@@ -10,7 +10,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 val EARTH_RADIUS = 6367 * 1000 // In metres
-val MAX_MESH_SIZE = 5000 // In metres
+val MAX_MESH_SIZE = 5000.0 // In metres
 val GAP_SIZE = 3.6 // In metres (or 12ft)
 
 // Represents a point where a tree is planted. Units are metres.
@@ -198,7 +198,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
     }
 
     override fun getAccuracy(): Float {
-        return if (fixType == LongLat.FixType.RTKFix) 0.01.toFloat() else 0.3.toFloat() // XX rought guess
+        return if (fixType == FixType.RTKFix) 0.01f else 0.3f // XX rough guess
     }
 
     override fun getLatitude(): Double {
@@ -261,7 +261,7 @@ class Geometry {
             val startX = -MAX_MESH_SIZE / 2.0
             var currentY = -MAX_MESH_SIZE / 2.0
             while (currentY < MAX_MESH_SIZE / 2) {
-                val line = Line(startX, currentY, GAP_SIZE, MAX_MESH_SIZE.toDouble())
+                val line = Line(startX, currentY, GAP_SIZE, MAX_MESH_SIZE)
                 line.rotate(mat) // Rotate them...
                 l.add(line)
                 currentY += GAP_SIZE // Go up one...

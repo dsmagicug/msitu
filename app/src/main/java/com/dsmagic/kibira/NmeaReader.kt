@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
@@ -19,12 +20,20 @@ class NmeaReader {
         var readingStarted = false
         var stopIt = false
         var thread: Thread? = null
-        var listener : LocationSource.OnLocationChangedListener? = null
+        val listener = RtkLocationSource()
+        // var listener : LocationSource.OnLocationChangedListener? = null
         // var socket : BluetoothSocket? = null
         var input: InputStream? = null
         fun stop() {
             thread?.interrupt()
             readingStarted = false
+        }
+
+        val ANGLE_SIGNIFICANT_DIFF = 1.5e-7
+        fun significantChange(old: Location?, new : Location) : Boolean {
+
+            return old == null ||  Math.abs( old.latitude - new.latitude) > ANGLE_SIGNIFICANT_DIFF ||
+               Math.abs(old.longitude-new.longitude) > ANGLE_SIGNIFICANT_DIFF
         }
 
         fun start(context: Context, device: BluetoothDevice) {
@@ -46,10 +55,11 @@ class NmeaReader {
             val socket = device.createRfcommSocketToServiceRecord(uuid)
             socket.connect()
             input = socket.inputStream
+            Log.d("bt", "Bluetooth connect complete")
             startDataListener()
         }
 
-        fun startDataListener() {
+        private fun startDataListener() {
             val looper = Looper.getMainLooper()
             val handler = Handler(looper)
             thread = Thread {
@@ -67,8 +77,8 @@ class NmeaReader {
                             if (longlat.fixType != LongLat.FixType.NoFixData) {
                                 // Send it to the Location Source...
                                 handler.post {
-                                    Log.d("Location","Location $longlat")
-                                    listener?.onLocationChanged(longlat)
+
+                                    listener.postNewLocation(longlat)
                                 }
                             }
                         }

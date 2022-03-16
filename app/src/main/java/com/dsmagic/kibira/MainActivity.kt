@@ -3,7 +3,9 @@ package com.dsmagic.kibira
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Intent
+import android.location.Location
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -11,9 +13,11 @@ import android.widget.Button
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -28,7 +32,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         val mapFragment =
             supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
         mapFragment?.getMapAsync(callback)
-
         scantBlueTooth()
     }
 
@@ -81,7 +84,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         spinner.adapter = adaptor
         spinner.onItemSelectedListener = this
         spinner.visibility = Spinner.VISIBLE
-
+        Log.d("bt", "Bluetooth scan complete")
         buttonConnect.setOnClickListener(this)
     }
 
@@ -116,55 +119,44 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             // Load the map
 
             //showMap()
-            this?.let { it1 ->
+            this.let { it1 ->
                 NmeaReader.start(it1, it)
-
+                Log.d("bt", "Bluetooth read started")
             }
 
         }
     }
 
+    private var map: GoogleMap? = null
+    private var marker: Marker? = null
+    var lastLoc: Location? = null
+    var zoomLevel = 15.0f
     private val callback = OnMapReadyCallback { googleMap ->
+        map = googleMap
+        googleMap.setLocationSource(NmeaReader.listener)
+        // Set callback
+        NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
+            override fun onLocationChanged(loc: Location) {
+                val xloc = LatLng(loc.latitude, loc.longitude)
 
-        val source = RtkLocationSource()
-        googleMap.setLocationSource(source)
-        /**
-         * Manipulates the map once available.
-         * This callback is triggered when the map is ready to be used.
-         * This is where we can add markers or lines, add listeners or move the camera.
-         * In this case, we just add a marker near Sydney, Australia.
-         * If Google Play services is not installed on the device, the user will be prompted to
-         * install it inside the SupportMapFragment. This method will only be triggered once the
-         * user has installed Google Play services and returned to the app.
-         */
-        /**
-         * Manipulates the map once available.
-         * This callback is triggered when the map is ready to be used.
-         * This is where we can add markers or lines, add listeners or move the camera.
-         * In this case, we just add a marker near Sydney, Australia.
-         * If Google Play services is not installed on the device, the user will be prompted to
-         * install it inside the SupportMapFragment. This method will only be triggered once the
-         * user has installed Google Play services and returned to the app.
-         */
-        /**
-         * Manipulates the map once available.
-         * This callback is triggered when the map is ready to be used.
-         * This is where we can add markers or lines, add listeners or move the camera.
-         * In this case, we just add a marker near Sydney, Australia.
-         * If Google Play services is not installed on the device, the user will be prompted to
-         * install it inside the SupportMapFragment. This method will only be triggered once the
-         * user has installed Google Play services and returned to the app.
-         */
-        /**
-         * Manipulates the map once available.
-         * This callback is triggered when the map is ready to be used.
-         * This is where we can add markers or lines, add listeners or move the camera.
-         * In this case, we just add a marker near Sydney, Australia.
-         * If Google Play services is not installed on the device, the user will be prompted to
-         * install it inside the SupportMapFragment. This method will only be triggered once the
-         * user has installed Google Play services and returned to the app.
-         */
-        val sydney = LatLng(-34.0, 151.0)
+                if (marker == null)
+                    marker = googleMap.addMarker(
+                        MarkerOptions().position(xloc).title("Here").draggable(true)
+                    )
+                else
+                    zoomLevel = googleMap.cameraPosition.zoom // Maintain zoom level please.
+                // Get the displacement from the last position.
+                val moved = NmeaReader.significantChange(lastLoc,loc);
+                lastLoc = loc // Grab last location
+                if (moved) { // If it has changed, move the thing...
+                    Log.d("Location","Location ${loc.latitude}, ${loc.longitude}")
+                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(xloc, zoomLevel))
+                    marker?.position = LatLng(loc.latitude, loc.longitude) // move it...
+                }
+            }
+        })
+        val sydney = LatLng(0.0, 32.0)
+        googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
         googleMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney))
 
