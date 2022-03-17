@@ -2,6 +2,7 @@ package com.dsmagic.kibira
 
 import android.annotation.SuppressLint
 import android.location.Location
+import android.util.Log
 import dilivia.s2.S2LatLng
 import java.text.SimpleDateFormat
 import java.util.*
@@ -10,7 +11,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 val EARTH_RADIUS = 6367 * 1000 // In metres
-val MAX_MESH_SIZE = 5000.0 // In metres
+val MAX_MESH_SIZE = 100.0 // In metres
 val GAP_SIZE = 3.6 // In metres (or 12ft)
 
 // Represents a point where a tree is planted. Units are metres.
@@ -34,7 +35,7 @@ class Point(internal var x: Double, internal var y: Double) {
 }
 
 // Represents a planting line...
-open class Line(private val points: ArrayList<Point>) {
+open class PlantingLine(private val points: ArrayList<Point>) {
 
 
     constructor(
@@ -54,10 +55,11 @@ open class Line(private val points: ArrayList<Point>) {
         }
     }
 
-    fun rotate(theta: Pair<Double, Double>) {
+    fun rotate(theta: Pair<Double, Double>): PlantingLine {
         for (p in points) {
             p.rotate(theta.first, theta.second)
         }
+        return this
     }
 
     open fun toGPS(centre: LongLat): ArrayList<LongLat> {
@@ -92,12 +94,19 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
     var aboveSeaLevel = 0.0
     var speed: Double? = null
 
+    var latitude = ""
+    var longitude = ""
+
     @SuppressLint("SimpleDateFormat")
     val dateFormat = SimpleDateFormat("HHmmss.SSZ")
 
     @SuppressLint("SimpleDateFormat")
     val dateFormatLong = SimpleDateFormat("DDMMyy-HHmmss.SSZ")
 
+
+    override fun toString(): String {
+        return "${this.longitude}, ${this.latitude} (${this.long}, ${this.lat}), altitude: ${this.altitude}, hdop: ${this.hdop}, fix: ${this.fixType}"
+    }
 
     // Project the point onto a plane..
     // See https://www.themathdoctors.org/distances-on-earth-3-planar-approximation/
@@ -133,7 +142,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
         var offset = v.indexOf('.') - 2
         if (offset < 0)
             offset = 0
-        val d = v.substring(0, offset).toDouble()
+        val d = if (offset == 0) 0 else v.substring(0, offset).toLong()
         val m = v.substring(offset).toDouble() / 60.0
         val sign = when (indicator) {
             "N" -> 1
@@ -145,9 +154,11 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
 
     private fun initGGA(l: List<String>) {
         // See http://lefebure.com/articles/nmea-gga/
-        dateFormat.parse(l[1] +"+0000").also { timeStamp = it }
+        dateFormat.parse(l[1] + "+0000").also { timeStamp = it }
         lat = parseDegrees(l[2], l[3])
+        latitude = l[2] + l[3]
         long = parseDegrees(l[4], l[5])
+        longitude = l[4] + l[5]
         val x = l[6].toInt()
         fixType = when (x) {
             1 -> FixType.Autonomous
@@ -168,11 +179,13 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
 
     private fun initRMC(l: List<String>) {
         // See https://orolia.com/manuals/VSP/Content/NC_and_SS/Com/Topics/APPENDIX/NMEA_RMCmess.htm
-        val dd = l[9] + "-" + l[1]+"+0000"
+        val dd = l[9] + "-" + l[1] + "+0000"
         timeStamp = dateFormatLong.parse(dd)
 
         lat = parseDegrees(l[3], l[4])
+        latitude = l[3] + l[4]
         long = parseDegrees(l[5], l[6])
+        longitude = l[5] + l[6]
         speed = l[7].toDouble() * 1.8 * 1000 // Knots to km/hr
         if (l[2].equals("V")) // Void as per spec
             fixType = FixType.NoFixData
@@ -243,39 +256,54 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
 
 class Geometry {
     companion object {
-        fun rotationMatrix(theta: Double): Pair<Double, Double> {
+        private fun rotationMatrix(theta: Double): Pair<Double, Double> {
             // Takes an angle in radians, computes the rotation values cosTheta and signTheta
-            return Pair(cos(theta), sin(theta))
+            val x = cos(theta)
+            val y = sin(theta)
+
+            Log.d("rotate", "sin($theta) = $y, cos($theta)= $x")
+            return Pair(x, y)
         }
 
         // Get the angle made with the horizontal by the vector from the origin to a point.
-        fun theta(p: Point): Double {
-            return atan2(p.x, p.y)
+        private fun theta(p: Point): Double {
+            val x =  atan2(p.y, p.x)
+            val y = x/Math.PI * 180
+            Log.d("theta","Angle between horizontal and point is $x (or $y°)")
+            return x
         }
 
-        fun generateMesh(centre: LongLat, directionPoint: LongLat): ArrayList<Line> {
+        fun generateMesh(centre: LongLat, directionPoint: LongLat): ArrayList<PlantingLine> {
             val theta = theta(directionPoint.projectToPlane(centre))
             val mat = rotationMatrix(theta)
-            val l = ArrayList<Line>()
-            // X, Y start at the bottom left. i.e. -mesh_size/2,-mesh_size/2..
+            val l = ArrayList<PlantingLine>()
+            // X starts at the left. We draw the centre line first, then generate the ones below and above in order until we are done...
             val startX = -MAX_MESH_SIZE / 2.0
-            var currentY = -MAX_MESH_SIZE / 2.0
-            while (currentY < MAX_MESH_SIZE / 2) {
-                val line = Line(startX, currentY, GAP_SIZE, MAX_MESH_SIZE)
-                line.rotate(mat) // Rotate them...
-                l.add(line)
-                currentY += GAP_SIZE // Go up one...
+            var currentY = GAP_SIZE
+
+            // Put in centre/base line
+            l.add(PlantingLine(startX, 0.0, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+
+            while (currentY < MAX_MESH_SIZE / 2.0) {
+                // The + one, then the - one
+                l.add(PlantingLine(startX, currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+                l.add(PlantingLine(startX, -currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+                currentY += GAP_SIZE
             }
+
             return l
         }
 
-        fun generateLongLat(centre: LongLat, a: ArrayList<Line>): ArrayList<ArrayList<LongLat>> {
+        fun generateLongLat(
+            centre: LongLat,
+            a: ArrayList<PlantingLine>
+        ): ArrayList<ArrayList<LongLat>> {
             val al = ArrayList<ArrayList<LongLat>>()
             for (l in a) {
                 al.add(l.toGPS(centre))
             }
 
-            return al;
+            return al
         }
     }
 }
