@@ -8,21 +8,21 @@ interface LocationChanged {
 }
 
 class RtkLocationSource : LocationSource {
-    var listener : LocationSource.OnLocationChangedListener? = null
+    var listener: LocationSource.OnLocationChangedListener? = null
     var locationChanged: LocationChanged? = null
     override fun activate(p0: LocationSource.OnLocationChangedListener) {
-       listener = p0
+        listener = p0
     }
 
     override fun deactivate() {
-       // TODO("Not yet implemented")
+        // TODO("Not yet implemented")
     }
 
     fun setLocationChangedTrigger(locationChanged: LocationChanged) {
         this.locationChanged = locationChanged
     }
 
-    fun postNewLocation( l : Location) {
+    fun postNewLocation(l: Location) {
         listener?.onLocationChanged(l)
         locationChanged?.onLocationChanged(l) // trigger it...
     }

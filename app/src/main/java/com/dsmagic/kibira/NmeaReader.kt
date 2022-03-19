@@ -2,7 +2,6 @@ package com.dsmagic.kibira
 
 import android.Manifest
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
@@ -10,7 +9,6 @@ import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import com.google.android.gms.maps.LocationSource
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
@@ -21,6 +19,7 @@ class NmeaReader {
         var stopIt = false
         var thread: Thread? = null
         val listener = RtkLocationSource()
+
         // var listener : LocationSource.OnLocationChangedListener? = null
         // var socket : BluetoothSocket? = null
         var input: InputStream? = null
@@ -30,10 +29,10 @@ class NmeaReader {
         }
 
         private const val ANGLE_SIGNIFICANT_DIFF = 0.5e-7
-        fun significantChange(old: Location?, new : Location) : Boolean {
+        fun significantChange(old: Location?, new: Location): Boolean {
 
-            return old == null ||  Math.abs( old.latitude - new.latitude) > ANGLE_SIGNIFICANT_DIFF ||
-               Math.abs(old.longitude-new.longitude) > ANGLE_SIGNIFICANT_DIFF
+            return old == null || Math.abs(old.latitude - new.latitude) > ANGLE_SIGNIFICANT_DIFF ||
+                    Math.abs(old.longitude - new.longitude) > ANGLE_SIGNIFICANT_DIFF
         }
 
         fun start(context: Context, device: BluetoothDevice) {
@@ -50,7 +49,7 @@ class NmeaReader {
                 //                                          int[] grantResults)
                 // to handle the case where the user grants the permission. See the documentation
                 // for ActivityCompat#requestPermissions for more details.
-              //  return
+                //  return
             }
             val socket = device.createRfcommSocketToServiceRecord(uuid)
             socket.connect()
@@ -70,8 +69,9 @@ class NmeaReader {
                         val b = ByteArray(n)
                         input?.read(b)
                         val s = String(b, Charset.forName("UTF-8"))
-                        val l = s.split("\n") // Into lines... Crude. What if we read only up to part of sentence??
-                        for (xs in l ) {
+                        val l =
+                            s.split("\n") // Into lines... Crude. What if we read only up to part of sentence??
+                        for (xs in l) {
                             // Hand off to higher level...
                             val longlat = LongLat(xs)
                             if (longlat.fixType != LongLat.FixType.NoFixData) {

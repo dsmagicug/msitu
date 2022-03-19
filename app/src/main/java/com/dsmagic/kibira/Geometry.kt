@@ -4,25 +4,23 @@ import android.annotation.SuppressLint
 import android.location.Location
 import android.util.Log
 import dilivia.s2.S2LatLng
+import gov.nasa.worldwind.geom.LatLon
+import gov.nasa.worldwind.geom.coords.UTMCoord
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
-val EARTH_RADIUS = 6367 * 1000 // In metres
-val MAX_MESH_SIZE = 100.0 // In metres
-val GAP_SIZE = 3.6 // In metres (or 12ft)
+const val MAX_MESH_SIZE = 1000.0 // In metres
+const val GAP_SIZE = 3.6 * .95 // In metres (or 12ft)
+
 
 // Represents a point where a tree is planted. Units are metres.
 class Point(internal var x: Double, internal var y: Double) {
 
-    open fun toGPSCoords(centre: LongLat): LongLat {
-        return LongLat(
-            centre.long + ((x * 180) / (Math.PI * EARTH_RADIUS * cos(centre.lat))),
-            centre.lat + (y * 180 / (Math.PI * EARTH_RADIUS))
-        )
-    }
+    var zone = 0 // UTM zone
+    var hemisphere = "N"
 
     // Rotate the point X degrees around the origin..
     open fun rotate(cosTheta: Double, sinTheta: Double) {
@@ -32,12 +30,23 @@ class Point(internal var x: Double, internal var y: Double) {
         y = yNew
     }
 
+    /**
+     * Create UTM coordinates
+     * See https://github.com/rolfrander/geo/blob/master/src/main/java/org/pvv/rolfn/geo/UTM.java
+     */
+    constructor(loc: LongLat) : this(0.0, 0.0) {
+        // Convert using Nasa libs
+        val ll = LatLon.fromDegrees(loc.getLatitude(), loc.getLongitude())
+        val utm = UTMCoord.fromLatLon(ll.latitude, ll.longitude)
+        hemisphere = utm.hemisphere
+        x = utm.easting
+        y = utm.northing
+        zone = utm.zone
+    }
 }
 
 // Represents a planting line...
 open class PlantingLine(private val points: ArrayList<Point>) {
-
-
     constructor(
         startPointX: Double,
         startPointY: Double,
@@ -62,12 +71,12 @@ open class PlantingLine(private val points: ArrayList<Point>) {
         return this
     }
 
-    open fun toGPS(centre: LongLat): ArrayList<LongLat> {
-        val l = ArrayList<LongLat>()
-        for (p in points) {
-            l.add(p.toGPSCoords(centre))
+
+    fun fromUTM(centre: Point): List<LongLat> {
+        return points.map {
+            // We need to shift the basis back to UTM from our point-centred axes
+            LongLat(centre.zone, centre.hemisphere, it.x + centre.x, it.y + centre.y)
         }
-        return l
     }
 }
 
@@ -103,21 +112,20 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
     @SuppressLint("SimpleDateFormat")
     val dateFormatLong = SimpleDateFormat("DDMMyy-HHmmss.SSZ")
 
+    /**
+     * From UTM.
+     * See: https://github.com/rolfrander/geo/blob/master/src/main/java/org/pvv/rolfn/geo/WGS84.java
+     */
+    constructor(zone: Int, hemisphere: String, easting: Double, northing: Double) : this(0.0, 0.0) {
+        val ll = UTMCoord.locationFromUTMCoord(zone, hemisphere, easting, northing)
+        lat = ll.latitude.degrees
+        long = ll.longitude.degrees
+    }
 
     override fun toString(): String {
         return "${this.longitude}, ${this.latitude} (${this.long}, ${this.lat}), altitude: ${this.altitude}, hdop: ${this.hdop}, fix: ${this.fixType}"
     }
 
-    // Project the point onto a plane..
-    // See https://www.themathdoctors.org/distances-on-earth-3-planar-approximation/
-    open fun projectToPlane(centre: LongLat): Point {
-        val longdiff = long - centre.long
-        val latdiff = lat - centre.lat
-        return Point(
-            longdiff * cos(centre.lat / Math.PI) * Math.PI * EARTH_RADIUS / 180.0,
-            latdiff * Math.PI * EARTH_RADIUS / 180.0
-        )
-    }
 
     // Parse NMEA sentence, set NoFixData if there was no fix data...
     constructor (sentence: String) : this(0.0, 0.0) {
@@ -266,15 +274,16 @@ class Geometry {
         }
 
         // Get the angle made with the horizontal by the vector from the origin to a point.
-        private fun theta(p: Point): Double {
-            val x =  atan2(p.y, p.x)
-            val y = x/Math.PI * 180
-            Log.d("theta","Angle between horizontal and point is $x (or $y°)")
+        private fun theta(p1: Point, p2: Point): Double {
+            val p = Point(p2.x-p1.x, p2.y-p1.y)
+            val x = atan2(p.y, p.x)
+            val y = x / Math.PI * 180
+            Log.d("theta", "Angle between horizontal and point is $x (or $y°)")
             return x
         }
 
-        fun generateMesh(centre: LongLat, directionPoint: LongLat): ArrayList<PlantingLine> {
-            val theta = theta(directionPoint.projectToPlane(centre))
+        fun generateMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
+            val theta = theta(centre,directionPoint)
             val mat = rotationMatrix(theta)
             val l = ArrayList<PlantingLine>()
             // X starts at the left. We draw the centre line first, then generate the ones below and above in order until we are done...
@@ -283,7 +292,6 @@ class Geometry {
 
             // Put in centre/base line
             l.add(PlantingLine(startX, 0.0, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
-
             while (currentY < MAX_MESH_SIZE / 2.0) {
                 // The + one, then the - one
                 l.add(PlantingLine(startX, currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
@@ -295,12 +303,17 @@ class Geometry {
         }
 
         fun generateLongLat(
-            centre: LongLat,
-            a: ArrayList<PlantingLine>
-        ): ArrayList<ArrayList<LongLat>> {
-            val al = ArrayList<ArrayList<LongLat>>()
+            c: Point,
+            a: List<PlantingLine>,
+            printline: (List<LongLat>) -> Unit
+        ): List<List<LongLat>> {
+            val al = ArrayList<List<LongLat>>()
             for (l in a) {
-                al.add(l.toGPS(centre))
+
+                val xl = l.fromUTM(c)
+                al.add(xl) // Use UTM centre...
+
+                printline(xl) // Cause it to be printed
             }
 
             return al

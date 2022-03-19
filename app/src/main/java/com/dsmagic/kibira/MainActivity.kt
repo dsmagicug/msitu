@@ -20,12 +20,28 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import dilivia.s2.S2LatLng
+import dilivia.s2.index.point.S2PointIndex
+import dilivia.s2.index.shape.MutableS2ShapeIndex
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.*
-import kotlin.collections.ArrayList
+import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener {
+    var deviceList = ArrayList<BluetoothDevice>()
+    var device: BluetoothDevice? = null
+    private var map: GoogleMap? = null
+    private var marker: Circle? = null
+    var lastLoc: Location? = null
+    var zoomLevel = 30.0f
+    var firstPoint: LongLat? = null
+    var secondPoint: LongLat? = null
+    val handler = Handler(Looper.getMainLooper())
+    var meshDone = false
+    var linesIndex = MutableS2ShapeIndex() // S2 index of lines...
 
+    var pointsIndex = S2PointIndex<S2LatLng>()
+    var polyLines = ArrayList<Polyline?>()
+    var asyncExecutor = Executors.newSingleThreadExecutor()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,12 +51,36 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         val mapFragment =
             supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
         mapFragment?.getMapAsync(callback)
+
+        // Set callback
+        NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
+            override fun onLocationChanged(loc: Location) {
+                if (map == null)
+                    return // Not yet...
+                val xloc = LatLng(loc.latitude, loc.longitude)
+
+                if (marker == null) {
+                    Log.d("Location", "First Location $loc!")
+                    map?.moveCamera(CameraUpdateFactory.newLatLngZoom(xloc, zoomLevel))
+                    firstPoint = loc as LongLat // Grab it.
+                }
+                // Get the displacement from the last position.
+                val moved = NmeaReader.significantChange(lastLoc, loc)
+                lastLoc = loc // Grab last location
+                if (moved) { // If it has changed, move the thing...
+                    // Log.d("Location","Location ${loc.latitude}, ${loc.longitude}")
+                    marker?.remove()
+                    marker = map?.addCircle(
+                        CircleOptions().center(xloc).fillColor(Color.YELLOW).radius(1.0)
+                            .strokeWidth(1.0f)
+                    )
+                }
+            }
+        })
         scantBlueTooth()
     }
 
 
-    var deviceList = ArrayList<BluetoothDevice>()
-    var device: BluetoothDevice? = null
     private fun scantBlueTooth() {
         val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
 
@@ -130,21 +170,41 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         }
     }
 
-    private var map: GoogleMap? = null
-    private var marker: Circle? = null
-    var lastLoc: Location? = null
-    var zoomLevel = 50.0f
-    var firstPoint: LongLat? = null
-    var secondPoint: LongLat? = null
-    val handler = Handler(Looper.getMainLooper())
-    var meshDone = false
+
+    private val drawLine: (List<LongLat>) -> Unit = { it ->
+        val ml = it.map {
+            LatLng(
+                it.getLatitude(),
+                it.getLongitude()
+            )
+        } // Convert to LatLng as expected by polyline
+        val poly = PolylineOptions().addAll(ml)
+            .color(Color.RED)
+            .jointType(JointType.ROUND)
+            .width(3f)
+            .geodesic(true)
+            .startCap(RoundCap())
+            .endCap(SquareCap())
+
+        handler.post {
+            val p = map?.addPolyline(poly) // Add it and set the tag to the line...
+            // Add it to the index
+            val idx = polyLines.size
+            S2Helper.addS2Polyline2Index(idx, linesIndex, S2Helper.makeS2PolyLine(ml, pointsIndex))
+            // Add it to the list as well.
+            polyLines.add(p)
+
+            p?.tag = ml // Keep the latlng
+            p?.isClickable = true
+        }
+    }
 
     private val onMapClick = GoogleMap.OnMapClickListener { loc ->
         val pt = LongLat(loc.longitude, loc.latitude)
         if (firstPoint == null) { // Special case, no BT
             firstPoint = pt
             marker = map?.addCircle(
-                CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0)
+                CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0).strokeWidth(1.0f)
             )
             return@OnMapClickListener
         }
@@ -153,81 +213,82 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             return@OnMapClickListener
 
         map?.addCircle(
-            CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0)
+            CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0).strokeWidth(1.0f)
         )
-        handler.post {
-            val lines = Geometry.generateMesh(firstPoint!!, secondPoint!!)
-            val mesh = Geometry.generateLongLat(firstPoint!!, lines)
-
-
-            for (l in mesh) {
-                val ml = l.map {
-                    LatLng(
-                        it.getLatitude(),
-                        it.getLongitude()
-                    )
-                } // Convert to LatLng as expected by polyline
-                val poly = PolylineOptions().addAll(ml)
-                    .color(Color.RED )
-                    .jointType(JointType.ROUND)
-                    .width(3f)
-                    .geodesic(true)
-                    .startCap(RoundCap())
-                    .endCap(SquareCap())
-
-               val p =  map?.addPolyline(poly) // Add it and set the tag to the line...
-                p?.tag = ml // Keep the latlng
-                p?.isClickable = true
-                /* Add circles for the points
-                handler.post { // Do it in next iteration. Right?
-                    ml.map {
-                        map?.addCircle(CircleOptions().center(it).fillColor(Color.RED).radius(0.1))
-                    }
-                }*/
-            }
+        asyncExecutor.execute {
+            val c = Point(firstPoint!!)
+            val p = Point(secondPoint!!)
+            val lines = Geometry.generateMesh(c, p)
+            Geometry.generateLongLat(c, lines, drawLine)
             meshDone = true
         }
     }
+    private val onPolyClick = GoogleMap.OnPolylineClickListener {
+        val l = it.tag as List<*>
+        var lastp: LatLng? = null
+        for (loc in l) {
+            var xloc = loc as LatLng
+            // Draw the points...
+            map?.addCircle(
+                CircleOptions().center(loc).fillColor(Color.RED).radius(0.5)
+                    .strokeWidth(1.0f)
+            )
+            if (lastp != null) {
+                val res = floatArrayOf(0f)
+                Location.distanceBetween(
+                    lastp.latitude,
+                    lastp.longitude,
+                    xloc.latitude,
+                    xloc.longitude,
+                    res
+                )
+
+                Log.d("distance", "Distance from last point: ${res[0]}")
+            }
+            lastp = xloc
+        }
+
+        Log.d("polylines", "Added points to line...")
+    }
+    private val onLongMapPress = GoogleMap.OnMapLongClickListener {
+        if (polyLines.size == 0)
+            return@OnMapLongClickListener // Not yet...
+
+        map?.addMarker(MarkerOptions().title("Landing").position(it))
+
+        //  val loc =  S2Helper.makeS2PointFromLngLat( it) // Get the point
+        val p = S2Helper.findClosestLine(linesIndex, it, polyLines)
+        Log.d("closest", "Closest line found, will look for closest point!")
+        if (p != null) {
+            (p as Polyline).color = Color.CYAN // change its colour..
+        }
+
+        val xloc = S2Helper.findClosestPointOnLine(pointsIndex, it) as S2LatLng?
+        if (xloc != null) {
+            val pt = LatLng(xloc.latDegrees(), xloc.lngDegrees())
+            // Draw the point on the line...
+            map?.addCircle(
+                CircleOptions().center(pt).fillColor(Color.CYAN).radius(0.5)
+                    .strokeWidth(1.0f)
+
+            )
+            Log.d("closest", "Closest point drawn")
+        }
+    }
+
     private val callback = OnMapReadyCallback { googleMap ->
         map = googleMap
         googleMap.setLocationSource(NmeaReader.listener)
         googleMap.setOnMapClickListener(onMapClick)
-        googleMap.setOnPolylineClickListener {
-            val l = it.tag as java.util.ArrayList<LatLng>
-            for (loc in l ) {
-                // Draw the points...
-                googleMap.addCircle(
-                    CircleOptions().center(loc).fillColor(Color.RED).radius(0.5)
-                )
-            }
-        }
-        // Set callback
-        NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
-            override fun onLocationChanged(loc: Location) {
-                val xloc = LatLng(loc.latitude, loc.longitude)
+        googleMap.setOnPolylineClickListener(onPolyClick)
 
-                if (marker == null) {
-                    Log.d("Location", "First Location $loc!")
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(xloc, zoomLevel))
-                    firstPoint = loc as LongLat // Grab it.
-                }
-                // Get the displacement from the last position.
-                val moved = NmeaReader.significantChange(lastLoc, loc);
-                lastLoc = loc // Grab last location
-                if (moved) { // If it has changed, move the thing...
-                    // Log.d("Location","Location ${loc.latitude}, ${loc.longitude}")
-                    marker?.remove()
-                    marker = googleMap.addCircle(
-                        CircleOptions().center(xloc).fillColor(Color.YELLOW).radius(1.0)
-                    )
-                }
-            }
-        })
+        googleMap.setOnMapLongClickListener(onLongMapPress)
 
-        val sydney = LatLng(0.0, 32.0)
+
+        val isl = LatLng(-.366044, 32.441599) // LatLng(0.0,32.44) //
         googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
-        googleMap.addMarker(MarkerOptions().position(sydney).title("Marker in Sydney"))
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(sydney,15.0f))
+        googleMap.addMarker(MarkerOptions().position(isl).title("Marker in N Residence"))
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(isl, 20.0f))
 
     }
 }
