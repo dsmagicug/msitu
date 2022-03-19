@@ -12,7 +12,7 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
-const val MAX_MESH_SIZE = 1000.0 // In metres
+const val MAX_MESH_SIZE = 500.0 // In metres
 const val GAP_SIZE = 3.6 * .95 // In metres (or 12ft)
 
 

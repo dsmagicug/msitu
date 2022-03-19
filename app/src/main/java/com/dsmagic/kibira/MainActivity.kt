@@ -203,9 +203,13 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         val pt = LongLat(loc.longitude, loc.latitude)
         if (firstPoint == null) { // Special case, no BT
             firstPoint = pt
-            marker = map?.addCircle(
-                CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0).strokeWidth(1.0f)
-            )
+            handler.post {
+                marker = map?.addCircle(
+                    CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0)
+                        .strokeWidth(1.0f)
+                )
+                map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),firstPoint!!.getLongitude()), 20.0f))
+            }
             return@OnMapClickListener
         }
         secondPoint = pt
@@ -221,6 +225,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             val lines = Geometry.generateMesh(c, p)
             Geometry.generateLongLat(c, lines, drawLine)
             meshDone = true
+            handler.post { // Centre it...
+                map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),firstPoint!!.getLongitude()), 20.0f))
+            }
         }
     }
     private val onPolyClick = GoogleMap.OnPolylineClickListener {
