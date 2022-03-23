@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         super.onCreate(savedInstanceState)
         //   binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(R.layout.activity_main)
-
+        
         val mapFragment =
             supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
         mapFragment?.getMapAsync(callback)

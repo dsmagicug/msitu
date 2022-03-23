@@ -12,8 +12,8 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
-const val MAX_MESH_SIZE = 500.0 // In metres
-const val GAP_SIZE = 3.6 * .95 // In metres (or 12ft)
+const val MAX_MESH_SIZE = 1000.0 // In metres
+const val GAP_SIZE = 3.6  // In metres (or 12ft)
 
 
 // Represents a point where a tree is planted. Units are metres.
@@ -84,6 +84,12 @@ var LOCATION_PROVIDER = "Rtk"
 
 class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
 
+    companion object {
+        var lastHorizontalAccuracy = 1.0 // Current accuracy
+        var lastVerticalAccuracy = 1.0
+        var lastAltitudeAccuracy = 1.0
+    }
+
     enum class FixType {
         NoFixData,
         Autonomous,
@@ -102,7 +108,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
     var hdop = 0.0
     var aboveSeaLevel = 0.0
     var speed: Double? = null
-
+    var accuracy: Double? = null // Default to 1m
     var latitude = ""
     var longitude = ""
 
@@ -139,8 +145,17 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
             initRMC(l)
         } else if (sType.endsWith("gga", true)) {
             initGGA(l)
+        } else if (sType.endsWith("gst", true)) {
+            lastVerticalAccuracy = l[6].toDouble()
+            lastHorizontalAccuracy = l[7].toDouble()
+            //   lastAltitudeAccuracy = l[7].toDouble() -- ignore, since has *checksum -- we don't need it.
+
+            fixType = FixType.NoFixData
         } else
             fixType = FixType.NoFixData
+
+        accuracy =
+            (lastHorizontalAccuracy + lastVerticalAccuracy) / 2 // Grab last accuracy, average regardless
     }
 
     private fun parseDegrees(v: String, indicator: String): Double {
@@ -219,7 +234,10 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
     }
 
     override fun getAccuracy(): Float {
-        return if (fixType == FixType.RTKFix) 0.01f else 0.3f // XX rough guess
+        return if (accuracy == null)
+            if (fixType == FixType.RTKFix) 0.01f else 0.3f // XX rough guess
+        else
+            accuracy!!.toFloat() // Else return what we got...
     }
 
     override fun getLatitude(): Double {
@@ -275,7 +293,7 @@ class Geometry {
 
         // Get the angle made with the horizontal by the vector from the origin to a point.
         private fun theta(p1: Point, p2: Point): Double {
-            val p = Point(p2.x-p1.x, p2.y-p1.y)
+            val p = Point(p2.x - p1.x, p2.y - p1.y)
             val x = atan2(p.y, p.x)
             val y = x / Math.PI * 180
             Log.d("theta", "Angle between horizontal and point is $x (or $y°)")
@@ -283,7 +301,7 @@ class Geometry {
         }
 
         fun generateMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
-            val theta = theta(centre,directionPoint)
+            val theta = theta(centre, directionPoint)
             val mat = rotationMatrix(theta)
             val l = ArrayList<PlantingLine>()
             // X starts at the left. We draw the centre line first, then generate the ones below and above in order until we are done...
