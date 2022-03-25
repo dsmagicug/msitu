@@ -1,5 +1,6 @@
 package com.dsmagic.kibira
 
+import android.app.Dialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Intent
@@ -9,17 +10,23 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.Spinner
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.viewpager.widget.ViewPager
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.tabs.TabLayout
 import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
@@ -47,7 +54,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         super.onCreate(savedInstanceState)
         //   binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(R.layout.activity_main)
-        
+        setSupportActionBar(findViewById(R.id.appToolbar))
+
         val mapFragment =
             supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
         mapFragment?.getMapAsync(callback)
@@ -79,7 +87,39 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         })
         scantBlueTooth()
     }
+  fun onCreateDialog(savedInstanceState: Bundle?){
+  true
+  //Returning a layout as a dialog box
+  }
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.appmenu, menu)
 
+        return true
+    }
+    //Handling the options in the app action bar
+    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
+        R.id.action_create -> {
+            // User chose the "create" project, show the create project UI/dialog(TBD)...
+         true
+        }
+
+        R.id.action_view_projects -> {
+            // User chose the "view projects" action, show past projects
+            // -- limit to avoid overcrowding
+            true
+        }
+
+        else -> {
+            // If we got here, the user's action was not recognized.
+            // Invoke the superclass to handle it.
+            super.onOptionsItemSelected(item)
+        }
+    }
+
+    //function to handle configurations -- gapsize etc
+    private fun configModal(){
+        true
+    }
 
     private fun scantBlueTooth() {
         val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
@@ -118,7 +158,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             this.let {
                 ArrayAdapter(
                     it,
+
                     android.R.layout.simple_spinner_dropdown_item,
+
                     items
                 )
             }
@@ -265,7 +307,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
         //  val loc =  S2Helper.makeS2PointFromLngLat( it) // Get the point
         val p = S2Helper.findClosestLine(linesIndex, it, polyLines)
-        Log.d("closest", "Closest line found, will look for closest point!")
+        Log.d("closest", "Closest l" +
+                "ine found, will look for closest point!")
         if (p != null) {
             (p as Polyline).color = Color.CYAN // change its colour..
         }
