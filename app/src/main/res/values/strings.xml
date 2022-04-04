@@ -1,12 +1,16 @@
 <resources>
     <string name="app_name">Kibira</string>
     <string name="title_activity_maps">MapsActivity</string>
-    <string name="title_activity_main">MainActivity</string>
+<!--    <string name="title_activity_main">MainActivity</string>-->
     <string name="create">New Project</string>
     <string name="view_projects">View Projects</string>
     <string name="description">Create Project</string>
     <string name="project_name">Project Name</string>
-    <string name="gap_size">Gap Size</string>
+    <string name="gap_size">Gap Size(m)</string>
+    <string name="list_projects">Choose Project</string>
+    <string name="create_new_project">create</string>
+    <string name="cancel">cancel</string>
+    <string name="pair">Pair</string>
 
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
@@ -18,4 +22,5 @@
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Marked points here</string>
+
 </resources>

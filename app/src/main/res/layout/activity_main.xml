@@ -22,68 +22,74 @@
             android:id="@+id/appToolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/white"
+            android:background="@color/green"
             android:elevation="4dp"
-            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"/>
+            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginEnd="1dp"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+            >
+            <TextView android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:id="@+id/project_name"
+                android:text=" "/>
 
-            <Spinner
-                android:id="@+id/spinner"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:layout_weight="1"
 
-                android:visibility="visible"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:layout_editor_absoluteX="2dp"
-                tools:visibility="visible" />
 
             <Button
                 android:id="@+id/buttonConnect"
-                android:layout_width="120dp"
+                android:layout_width="80dp"
+                android:layout_marginStart="80dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Connect"
-                android:visibility="invisible"
+                android:layout_marginTop="16dp"
+                android:text="@string/pair"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="1.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                android:background="@drawable/rounded_corners"
+                android:backgroundTint="@color/green"
+                android:textColor="@color/black"
+            android:visibility="invisible" />
 
 
 
-        </LinearLayout>
+            <Spinner
+                android:id="@+id/spinner"
+                android:layout_width="130dp"
+                android:layout_height="wrap_content"
+android:dropDownWidth="130dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="16dp"
+                android:layout_weight="1"
+                android:visibility="invisible"
+                app:layout_constraintTop_toTopOf="parent"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+                tools:layout_editor_absoluteX="2dp"
+                />
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginStart="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_marginEnd="1dp"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent">
+        </androidx.appcompat.widget.Toolbar>
 
 
-            <fragment
-                android:id="@+id/mapFragment"
-                android:name="com.google.android.gms.maps.SupportMapFragment"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
 
-        </FrameLayout>
-    </LinearLayout>
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_marginStart="1dp"
+                        android:layout_marginTop="1dp"
+                        android:layout_marginEnd="1dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent">
 
-</FrameLayout>
+
+                        <fragment
+                            android:id="@+id/mapFragment"
+                            android:name="com.google.android.gms.maps.SupportMapFragment"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" />
+
+                    </FrameLayout>
+                </LinearLayout>
+
+            </FrameLayout>

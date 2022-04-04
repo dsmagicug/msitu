@@ -1,17 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    >
 <item
     android:id="@+id/bluetooth_spinner"
     android:icon="@drawable/ic_baseline_bluetooth_24"
     android:title="Devices"
-    app:showAsAction="always"/>
-    //app:actionViewClass="androidx.appcompat.widget.AppCompatSpinner" />
+    app:showAsAction="ifRoom"
+    />
+
 
     <item
         android:id="@+id/project_options"
-        android:icon="@drawable/ic_baseline_settings_24"
+        android:icon="@drawable/ic_baseline_playlist_add_24"
         android:title="Projects"
+
         app:showAsAction="ifRoom" >
 
         <menu>
@@ -19,7 +22,8 @@
                 android:id="@+id/action_create"
                 android:icon="@drawable/ic_baseline_create_new_folder_24"
                 android:title="@string/create"
-                app:showAsAction="never" />
+                app:showAsAction="never"
+                />
             <item
                 android:id="@+id/action_view_projects"
                 android:icon="@drawable/ic_baseline_sync_24"

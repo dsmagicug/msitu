@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.Kibira" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="Theme.Kibira" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
@@ -19,11 +19,13 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="Theme.Kibira.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Theme.Kibira.AppBarOverlay" parent="Theme.AppCompat.DayNight.NoActionBar" />
 
     <style name="Theme.Kibira.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
 
     <style name="Theme.Snack.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
     <style name="Theme.Snack.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+
+
 </resources>

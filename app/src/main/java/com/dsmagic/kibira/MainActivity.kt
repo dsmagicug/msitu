@@ -1,9 +1,10 @@
 package com.dsmagic.kibira
 
-import android.app.Dialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
@@ -13,27 +14,22 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.Spinner
-import androidx.appcompat.app.AlertDialog
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.viewpager.widget.ViewPager
-import androidx.viewpager2.widget.ViewPager2
+import androidx.fragment.app.DialogFragment
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
-import com.google.android.material.tabs.TabLayout
 import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
-import kotlinx.android.synthetic.main.activity_main.*
 import java.util.concurrent.Executors
 
-class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener {
+
+class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener
+     {
     var deviceList = ArrayList<BluetoothDevice>()
     var device: BluetoothDevice? = null
     private var map: GoogleMap? = null
@@ -50,15 +46,19 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var polyLines = ArrayList<Polyline?>()
     var asyncExecutor = Executors.newSingleThreadExecutor()
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //   binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(R.layout.activity_main)
-        setSupportActionBar(findViewById(R.id.appToolbar))
 
-        val mapFragment =
-            supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
-        mapFragment?.getMapAsync(callback)
+        setSupportActionBar(findViewById(R.id.appToolbar))
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+
+            val mapFragment =
+                supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
+            mapFragment?.getMapAsync(callback)
 
         // Set callback
         NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
@@ -85,43 +85,63 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 }
             }
         })
-        scantBlueTooth()
+
     }
-  fun onCreateDialog(savedInstanceState: Bundle?){
-  true
-  //Returning a layout as a dialog box
-  }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.appmenu, menu)
 
         return true
     }
+
     //Handling the options in the app action bar
-    override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
-        R.id.action_create -> {
-            // User chose the "create" project, show the create project UI/dialog(TBD)...
-         true
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return if (item.itemId == R.id.action_create) {
+            var createNewProject = CreateProjectDialog()
+            createNewProject.show(supportFragmentManager,"create")
+            return true
         }
+        else if (item.itemId == R.id.action_view_projects ){
+            var createNewProject = CreateProjectDialog()
+            createNewProject.show(supportFragmentManager,"view_projects")
 
-        R.id.action_view_projects -> {
-            // User chose the "view projects" action, show past projects
-            // -- limit to avoid overcrowding
-            true
+            return true
         }
+        else if (item.itemId == R.id.bluetooth_spinner) {
+            toggleWidgets()
+//            scantBlueTooth()
 
-        else -> {
+            return true
+
+        }
+        else {
             // If we got here, the user's action was not recognized.
             // Invoke the superclass to handle it.
             super.onOptionsItemSelected(item)
         }
+        return true
     }
 
-    //function to handle configurations -- gapsize etc
-    private fun configModal(){
-        true
-    }
 
+    private fun toggleWidgets(){
+        val btSpinner = findViewById<Spinner>(R.id.spinner)
+        val btn  = findViewById<Button>(R.id.buttonConnect)
+
+        if(btSpinner.visibility == Spinner.INVISIBLE && btn.visibility == Button.INVISIBLE){
+            btSpinner.visibility = Spinner.VISIBLE
+            btn.visibility = Button.VISIBLE
+            scantBlueTooth()
+        }
+        else{
+            btSpinner.visibility = Spinner.INVISIBLE
+            btn.visibility = Button.INVISIBLE
+        }
+
+    }
     private fun scantBlueTooth() {
+        val btSpinner = findViewById<Spinner>(R.id.spinner)
+       val btn  = findViewById<Button>(R.id.buttonConnect)
+
         val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
 
         if (!bluetoothAdaptor.isEnabled) {
@@ -144,6 +164,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
             // return
+
         }
 
         val l = ArrayList<String>()
@@ -166,11 +187,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             }
 
 
-        spinner.adapter = adaptor
-        spinner.onItemSelectedListener = this
-        spinner.visibility = Spinner.VISIBLE
+        btSpinner.adapter = adaptor
+        btSpinner.onItemSelectedListener = this
+        btSpinner.visibility = Spinner.VISIBLE
         Log.d("bt", "Bluetooth scan complete")
-        buttonConnect.setOnClickListener(this)
+
+        btn.setOnClickListener(this)
     }
 
     override fun onItemSelected(
@@ -182,15 +204,19 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         device = deviceList.get(i)
 
         // Show connect button.
-        buttonConnect.visibility = Button.VISIBLE // Shown
+        val btn  = findViewById<Button>(R.id.buttonConnect)
+        btn.visibility = Button.VISIBLE // Shown
     }
 
     override fun onNothingSelected(p0: AdapterView<*>?) {
-        buttonConnect.visibility = Button.INVISIBLE
+        val btn  = findViewById<Button>(R.id.buttonConnect)
+        btn.visibility = Button.INVISIBLE
         // Do nothing...
     }
 
+
     override fun onClick(v: View?) {
+
         if (device == null)
             return
         if (NmeaReader.readingStarted) {
@@ -199,6 +225,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             openBlueTooth()
     }
 
+    private fun hideButton(){
+        val btn  = findViewById<Button>(R.id.buttonConnect)
+        btn.visibility = Button.INVISIBLE
+    }
     private fun openBlueTooth() {
         device?.let {
             // Load the map
@@ -210,6 +240,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             }
 
         }
+        hideButton()
     }
 
 
@@ -341,4 +372,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(isl, 20.0f))
 
     }
+
+
 }
