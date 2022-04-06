@@ -24,9 +24,9 @@
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="@color/hr"/>
-    />
+
     <TextView
-        android:id="@+id/projectName"
+        android:id="@+id/list_of_projects"
         android:inputType="text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -34,19 +34,8 @@
         android:layout_marginLeft="4dp"
         android:layout_marginRight="4dp"
         android:layout_marginBottom="4dp"
-        android:hint="Project 1" />
-    <TextView
-        android:id="@+id/gapSize"
-        android:inputType="number"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginLeft="4dp"
-        android:layout_marginRight="4dp"
-        android:layout_marginBottom="16dp"
-        android:fontFamily="sans-serif"
-        android:hint="Project 2"
-        />
+        android:text="" />
+
 
 
 

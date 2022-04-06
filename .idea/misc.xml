@@ -3,21 +3,13 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="../../../Library/Android/sdk/platforms/android-32/data/res/layout/simple_spinner_dropdown_item.xml" value="0.25" />
-        <entry key="../../../Library/Android/sdk/platforms/android-32/data/res/layout/simple_spinner_item.xml" value="0.13451086956521738" />
-        <entry key="app/src/main/res/drawable/rounded_corners.xml" value="0.1005" />
-        <entry key="app/src/main/res/drawable/spinner_icon.xml" value="0.1" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.39954853273137697" />
         <entry key="app/src/main/res/layout/activity_maps.xml" value="0.335" />
         <entry key="app/src/main/res/layout/content_main.xml" value="0.37604166666666666" />
-        <entry key="app/src/main/res/layout/create_project.xml" value="0.22" />
-        <entry key="app/src/main/res/layout/custom_layout.xml" value="0.25" />
+        <entry key="app/src/main/res/layout/create_project.xml" value="0.1" />
         <entry key="app/src/main/res/layout/fragment_first.xml" value="0.375" />
         <entry key="app/src/main/res/layout/fragment_second.xml" value="0.45" />
-        <entry key="app/src/main/res/layout/list_projects.xml" value="0.13451086956521738" />
-        <entry key="app/src/main/res/layout/spinner_icon.xml" value="0.2697095435684647" />
-        <entry key="app/src/main/res/layout/view_on_app_launch.xml" value="0.13451086956521738" />
-        <entry key="app/src/main/res/menu/appmenu.xml" value="0.21354166666666666" />
+        <entry key="app/src/main/res/layout/list_projects.xml" value="0.16770833333333332" />
       </map>
     </option>
   </component>

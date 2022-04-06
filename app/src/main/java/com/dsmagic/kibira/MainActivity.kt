@@ -1,5 +1,6 @@
 package com.dsmagic.kibira
 
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
@@ -17,6 +18,7 @@ import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
+import com.dsmagic.kibira.DBHelper.Companion.NAME_COl
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -25,6 +27,7 @@ import com.google.android.gms.maps.model.*
 import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
+import kotlinx.android.synthetic.main.list_projects.*
 import java.util.concurrent.Executors
 
 
@@ -98,23 +101,20 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return if (item.itemId == R.id.action_create) {
             var createNewProject = CreateProjectDialog()
-            createNewProject.show(supportFragmentManager,"create")
+            createNewProject.show(supportFragmentManager, "create")
             return true
-        }
-        else if (item.itemId == R.id.action_view_projects ){
-            var createNewProject = CreateProjectDialog()
-            createNewProject.show(supportFragmentManager,"view_projects")
-
+        } else if (item.itemId == R.id.action_view_projects) {
+           var createNewProject = CreateProjectDialog()
+           createNewProject.show(supportFragmentManager, "view_projects")
+//        listProjects()
             return true
-        }
-        else if (item.itemId == R.id.bluetooth_spinner) {
+        } else if (item.itemId == R.id.bluetooth_spinner) {
             toggleWidgets()
 //            scantBlueTooth()
 
             return true
 
-        }
-        else {
+        } else {
             // If we got here, the user's action was not recognized.
             // Invoke the superclass to handle it.
             super.onOptionsItemSelected(item)
@@ -122,7 +122,57 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         return true
     }
 
+         val sharedPrefFile = "kibirasharedfile"
 
+
+         override fun onPostResume() {
+
+             super.onPostResume()
+
+             var displayProjectName = findViewById<TextView>(R.id.display_project_name)
+             val sharedPreferences = getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)
+             val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
+             var saved_gap_size: Int? = sharedPreferences.getInt("gap_size", 0)
+
+             displayProjectName?.text = saved_project_name
+
+             Log.d("valuesMain","saved data $saved_project_name")
+
+             //overridePendingTransition(0, 0)
+
+             val db = DBHelper(this,null)
+             if (saved_project_name != null && saved_gap_size != null ) {
+                 with(db) {
+                     addProject(
+                         saved_project_name,
+                         saved_gap_size
+                     )
+                 }
+                 Toast.makeText(this, "Project $saved_project_name created", Toast.LENGTH_LONG).show()
+
+             }else{
+                 Toast.makeText(this, "Project not created", Toast.LENGTH_LONG).show()
+             }
+
+         }
+
+//         @SuppressLint("Range")
+//         fun listProjects() {
+//            val db = DBHelper(this, null)
+//             val cursor = db.getProject()
+//             cursor!!.moveToFirst()
+//             list_of_projects.append(
+//                 """${cursor.getString(cursor.getColumnIndex(NAME_COl))}
+//                 """
+//             )
+//             // moving our cursor to next
+//             // position and appending values
+//             while (cursor.moveToNext()) {
+//                 list_of_projects.append(cursor.getString(cursor.getColumnIndex(DBHelper.NAME_COl)) + "\n")
+//
+//             }
+//             cursor.close()
+//         }
     private fun toggleWidgets(){
         val btSpinner = findViewById<Spinner>(R.id.spinner)
         val btn  = findViewById<Button>(R.id.buttonConnect)

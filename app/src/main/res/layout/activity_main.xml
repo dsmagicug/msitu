@@ -30,23 +30,30 @@
             >
             <TextView android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
-                android:id="@+id/project_name"
-                android:text=" "/>
-
-
+                android:id="@+id/display_project_name"
+                android:text=" "
+                android:textSize="15sp"
+                android:textAllCaps="true"
+                />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="50dp"
+                android:text=" "
+                android:layout_marginTop="20dp"
+                android:id="@+id/display_gap_size"/>
 
             <Button
                 android:id="@+id/buttonConnect"
-                android:layout_width="80dp"
-                android:layout_marginStart="80dp"
+                android:layout_width="70dp"
+                android:layout_marginStart="60dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/pair"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="1.0"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                android:background="@drawable/rounded_corners"
+
+
+            android:background="@drawable/rounded_corners"
                 android:backgroundTint="@color/green"
                 android:textColor="@color/black"
             android:visibility="invisible" />
