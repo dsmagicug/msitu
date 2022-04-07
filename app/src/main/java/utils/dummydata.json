@@ -1,0 +1,80 @@
+[
+  {
+    "_id": "1",
+    "name": "Project 1",
+   "grid": [
+     {
+       "size": 200
+     },
+     {
+       "gap_size": 4
+     }
+   ],
+    "marked points": [
+      {
+        "latitude": -76.646831,
+        "longitude": -47.676246
+      },
+      {
+        "latitude": -86.646831,
+        "longitude": -57.676246
+      },
+      {
+        "latitude": -96.646831,
+        "longitude": -67.676246
+      }
+    ]
+  },
+  {
+    "_id": "2",
+    "name": "Project 2",
+    "grid": [
+      {
+        "size": 600
+      },
+      {
+        "gap_size": 2
+      }
+    ],
+    "marked points": [
+      {
+        "latitude": 76.646831,
+        "longitude": 47.676246
+      },
+      {
+        "latitude": 86.646831,
+        "longitude": 57.676246
+      },
+      {
+        "latitude": 96.646831,
+        "longitude": 67.676246
+      }
+    ]
+  },
+  {
+    "_id": "3",
+    "name": "Project 3",
+    "grid": [
+      {
+        "size": 800
+      },
+      {
+        "gap_size": 7
+      }
+    ],
+    "marked points": [
+      {
+        "latitude": 46.646831,
+        "longitude": 77.676246
+      },
+      {
+        "latitude": 56.646831,
+        "longitude": 87.676246
+      },
+      {
+        "latitude": 36.646831,
+        "longitude": 97.676246
+      }
+    ]
+  }
+]

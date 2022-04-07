@@ -9,6 +9,14 @@
     app:showAsAction="ifRoom"
     />
 
+<item
+
+        android:id="@+id/reload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+    android:icon="@drawable/ic_baseline_wifi_protected_setup_24"
+    android:title="refresh" />
 
     <item
         android:id="@+id/project_options"

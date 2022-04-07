@@ -1,6 +1,7 @@
 package com.dsmagic.kibira
 
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.fragment.app.DialogFragment
 import android.app.Dialog
@@ -16,10 +17,13 @@ import android.widget.Toast
 
 import androidx.appcompat.app.AlertDialog
 import com.dsmagic.kibira.R.*
+import org.json.JSONException
+import org.json.JSONObject
 
 //Returning a layout as a dialog box
 class CreateProjectDialog : DialogFragment() {
 
+    @SuppressLint("SetTextI18n")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
         return this.activity?.let {
@@ -48,11 +52,29 @@ class CreateProjectDialog : DialogFragment() {
 
             }
             else {
+                val projects = activity?.findViewById<TextView>(R.id.list_of_projects)
+
+                val str ="{\"employee\":{\"name\":\"Abhishek Saini\",\"salary\":65000}}"
+
+                try {
+
+                    val obj: JSONObject = JSONObject(str)
+                    val names: JSONObject = obj.getJSONObject("employee")
+
+                    val name = names.getString("name")
+
+                    // set employee name and salary in TextView's
+                    //projects?.setText = "Name: $name";
+
+
+                } catch (e: JSONException) {
+                    throw RuntimeException(e)
+                }
                // listProjects()
 
-//                builder.setView(inflater.inflate(layout.list_projects, null))
+                builder.setView(inflater.inflate(layout.list_projects, null))
 //
-                builder.create()
+               builder.create()
 
             }
         } ?: throw IllegalStateException("Activity cannot be null")

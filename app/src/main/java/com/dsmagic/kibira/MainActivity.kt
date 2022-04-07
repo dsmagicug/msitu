@@ -5,7 +5,6 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
@@ -27,7 +26,12 @@ import com.google.android.gms.maps.model.*
 import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.list_projects.*
+import org.json.JSONException
+import org.json.JSONObject
+import org.w3c.dom.Text
+import java.net.URL
 import java.util.concurrent.Executors
 
 
@@ -49,6 +53,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var polyLines = ArrayList<Polyline?>()
     var asyncExecutor = Executors.newSingleThreadExecutor()
 
+var str =
+    " {\n    \"_id\": \"1\",\n    \"name\": \"Project 1\",\n   \"grid\": [\n     {\n       \"size\": 200\n     },\n     {\n       \"gap_size\": 4\n     }\n   ],\n    \"marked points\": [\n      {\n        \"latitude\": -76.646831,\n        \"longitude\": -47.676246\n      },\n      {\n        \"latitude\": -86.646831,\n        \"longitude\": -57.676246\n      },\n      {\n        \"latitude\": -96.646831,\n        \"longitude\": -67.676246\n      }\n    ]\n  }"
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,6 +64,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
         setSupportActionBar(findViewById(R.id.appToolbar))
         supportActionBar?.setDisplayShowTitleEnabled(false)
+
 
             val mapFragment =
                 supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
@@ -110,11 +117,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             return true
         } else if (item.itemId == R.id.bluetooth_spinner) {
             toggleWidgets()
-//            scantBlueTooth()
-
             return true
 
-        } else {
+        } else if(item.itemId == R.id.reload){
+            finish()
+            startActivity(intent)
+            Log.d("reload","reloaded")
+            return true
+        }
+        else {
             // If we got here, the user's action was not recognized.
             // Invoke the superclass to handle it.
             super.onOptionsItemSelected(item)
@@ -128,6 +139,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
          override fun onPostResume() {
 
              super.onPostResume()
+             var url:URL = URL("http://uinames.com/api/")
 
              var displayProjectName = findViewById<TextView>(R.id.display_project_name)
              val sharedPreferences = getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)
@@ -157,22 +169,28 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
          }
 
 //         @SuppressLint("Range")
-//         fun listProjects() {
-//            val db = DBHelper(this, null)
-//             val cursor = db.getProject()
-//             cursor!!.moveToFirst()
-//             list_of_projects.append(
-//                 """${cursor.getString(cursor.getColumnIndex(NAME_COl))}
-//                 """
-//             )
-//             // moving our cursor to next
-//             // position and appending values
-//             while (cursor.moveToNext()) {
-//                 list_of_projects.append(cursor.getString(cursor.getColumnIndex(DBHelper.NAME_COl)) + "\n")
-//
-//             }
-//             cursor.close()
-//         }
+@SuppressLint("SetTextI18n")
+fun listProjects() {
+    val display_project_name = findViewById<TextView>(R.id.display_project_name)
+    val str =
+        "{{\n    \"_id\": \"1\",\n    \"name\": \"Project 1\",\n   \"grid\": [\n     {\n       \"size\": 200\n     },\n     {\n       \"gap_size\": 4\n     }\n   ],\n    \"marked points\": [\n      {\n        \"latitude\": -76.646831,\n        \"longitude\": -47.676246\n      },\n      {\n        \"latitude\": -86.646831,\n        \"longitude\": -57.676246\n      },\n      {\n        \"latitude\": -96.646831,\n        \"longitude\": -67.676246\n      }\n    ]\n  },\n  {\n    \"_id\": \"2\",\n    \"name\": \"Project 2\",\n    \"grid\": [\n      {\n        \"size\": 600\n      },\n      {\n        \"gap_size\": 2\n      }\n    ],\n    \"marked points\": [\n      {\n        \"latitude\": 76.646831,\n        \"longitude\": 47.676246\n      },\n      {\n        \"latitude\": 86.646831,\n        \"longitude\": 57.676246\n      },\n      {\n        \"latitude\": 96.646831,\n        \"longitude\": 67.676246\n      }\n    ]\n  },\n  {\n    \"_id\": \"3\",\n    \"name\": \"Project 3\",\n    \"grid\": [\n      {\n        \"size\": 800\n      },\n      {\n        \"gap_size\": 7\n      }\n    ],\n    \"marked points\": [\n      {\n        \"latitude\": 46.646831,\n        \"longitude\": 77.676246\n      },\n      {\n        \"latitude\": 56.646831,\n        \"longitude\": 87.676246\n      },\n      {\n        \"latitude\": 36.646831,\n        \"longitude\": 97.676246\n      }\n    ]\n  }\n]}"
+
+    try {
+
+        val obj:JSONObject = JSONObject(str)
+        val names:JSONObject = obj.getJSONObject("projects")
+
+         val name = names.getString("name")
+
+        // set employee name and salary in TextView's
+        display_project_name.setText("Name: $name");
+
+
+    } catch (e: JSONException) {
+        throw RuntimeException(e)
+    }
+}
+
     private fun toggleWidgets(){
         val btSpinner = findViewById<Spinner>(R.id.spinner)
         val btn  = findViewById<Button>(R.id.buttonConnect)
@@ -361,8 +379,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             // Draw the points...
             map?.addCircle(
                 CircleOptions().center(loc).fillColor(Color.RED).radius(0.5)
-                    .strokeWidth(1.0f)
+                    .strokeWidth(1.0f)  //if set to zero, no outline is drawn
             )
+
             if (lastp != null) {
                 val res = floatArrayOf(0f)
                 Location.distanceBetween(
@@ -377,9 +396,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             }
             lastp = xloc
         }
+            clearUnMarkedLines()
 
         Log.d("polylines", "Added points to line...")
     }
+         private fun clearUnMarkedLines(){
+             Log.d("clear","clear fun reached")
+            meshDone=false
+         }
     private val onLongMapPress = GoogleMap.OnMapLongClickListener {
         if (polyLines.size == 0)
             return@OnMapLongClickListener // Not yet...

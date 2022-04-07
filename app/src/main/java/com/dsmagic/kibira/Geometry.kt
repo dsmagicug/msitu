@@ -6,15 +6,22 @@ import android.util.Log
 import dilivia.s2.S2LatLng
 import gov.nasa.worldwind.geom.LatLon
 import gov.nasa.worldwind.geom.coords.UTMCoord
+import org.checkerframework.checker.signedness.SignednessUtil.toDouble
+import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
-const val MAX_MESH_SIZE = 500.0 // In metres
-const val GAP_SIZE = 3.6 * .95 // In metres (or 12ft)
+val values = "{\n\"Name\":\"Project 1\",\n\"Gap_Size\":\"5\",\n\"mesh\":\"600.00\"}"
 
+val obj: JSONObject = JSONObject(values)
+val gapsize = obj.getInt("Gap_Size")
+val mesh = obj.getInt("mesh")
+
+ val MAX_MESH_SIZE = mesh.toDouble()// In metres
+ val GAP_SIZE = gapsize * .95 // In metres (or 12ft)
 
 // Represents a point where a tree is planted. Units are metres.
 class Point(internal var x: Double, internal var y: Double) {
