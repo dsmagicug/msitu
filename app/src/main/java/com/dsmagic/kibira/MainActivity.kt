@@ -35,8 +35,9 @@ import java.net.URL
 import java.util.concurrent.Executors
 
 
+
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener
-     {
+{
     var deviceList = ArrayList<BluetoothDevice>()
     var device: BluetoothDevice? = null
     private var map: GoogleMap? = null
@@ -53,8 +54,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var polyLines = ArrayList<Polyline?>()
     var asyncExecutor = Executors.newSingleThreadExecutor()
 
-var str =
-    " {\n    \"_id\": \"1\",\n    \"name\": \"Project 1\",\n   \"grid\": [\n     {\n       \"size\": 200\n     },\n     {\n       \"gap_size\": 4\n     }\n   ],\n    \"marked points\": [\n      {\n        \"latitude\": -76.646831,\n        \"longitude\": -47.676246\n      },\n      {\n        \"latitude\": -86.646831,\n        \"longitude\": -57.676246\n      },\n      {\n        \"latitude\": -96.646831,\n        \"longitude\": -67.676246\n      }\n    ]\n  }"
+    var str =
+        " {\n    \"_id\": \"1\",\n    \"name\": \"Project 1\",\n   \"grid\": [\n     {\n       \"size\": 200\n     },\n     {\n       \"gap_size\": 4\n     }\n   ],\n    \"marked points\": [\n      {\n        \"latitude\": -76.646831,\n        \"longitude\": -47.676246\n      },\n      {\n        \"latitude\": -86.646831,\n        \"longitude\": -57.676246\n      },\n      {\n        \"latitude\": -96.646831,\n        \"longitude\": -67.676246\n      }\n    ]\n  }"
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,9 +67,9 @@ var str =
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
 
-            val mapFragment =
-                supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
-            mapFragment?.getMapAsync(callback)
+        val mapFragment =
+            supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
+        mapFragment?.getMapAsync(callback)
 
         // Set callback
         NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
@@ -111,8 +112,8 @@ var str =
             createNewProject.show(supportFragmentManager, "create")
             return true
         } else if (item.itemId == R.id.action_view_projects) {
-           var createNewProject = CreateProjectDialog()
-           createNewProject.show(supportFragmentManager, "view_projects")
+            var createNewProject = CreateProjectDialog()
+            createNewProject.show(supportFragmentManager, "view_projects")
 //        listProjects()
             return true
         } else if (item.itemId == R.id.bluetooth_spinner) {
@@ -133,63 +134,60 @@ var str =
         return true
     }
 
-         val sharedPrefFile = "kibirasharedfile"
+    val sharedPrefFile = "kibirasharedfile"
 
 
-         override fun onPostResume() {
+    override fun onPostResume() {
 
-             super.onPostResume()
-             var url:URL = URL("http://uinames.com/api/")
+        super.onPostResume()
+        var url:URL = URL("http://uinames.com/api/")
 
-             var displayProjectName = findViewById<TextView>(R.id.display_project_name)
-             val sharedPreferences = getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)
-             val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
-             var saved_gap_size: Int? = sharedPreferences.getInt("gap_size", 0)
+        var displayProjectName = findViewById<TextView>(R.id.display_project_name)
+        val sharedPreferences = getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)
+        val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
+        var saved_gap_size: Int? = sharedPreferences.getInt("gap_size", 0)
 
-             displayProjectName?.text = saved_project_name
+        displayProjectName?.text = saved_project_name
 
-             Log.d("valuesMain","saved data $saved_project_name")
+        Log.d("valuesMain","saved data $saved_project_name")
 
-             //overridePendingTransition(0, 0)
+        //overridePendingTransition(0, 0)
 
-             val db = DBHelper(this,null)
-             if (saved_project_name != null && saved_gap_size != null ) {
-                 with(db) {
-                     addProject(
-                         saved_project_name,
-                         saved_gap_size
-                     )
-                 }
-                 Toast.makeText(this, "Project $saved_project_name created", Toast.LENGTH_LONG).show()
+        val db = DBHelper(this,null)
+        if (saved_project_name != null && saved_gap_size != null ) {
+            with(db) {
+                addProject(
+                    saved_project_name,
+                    saved_gap_size
+                )
+            }
+            //Toast.makeText(this, "Project $saved_project_name created", Toast.LENGTH_LONG).show()
 
-             }else{
-                 Toast.makeText(this, "Project not created", Toast.LENGTH_LONG).show()
-             }
+        }else{
+            Toast.makeText(this, "Project not created", Toast.LENGTH_LONG).show()
+        }
 
-         }
-
-//         @SuppressLint("Range")
-@SuppressLint("SetTextI18n")
-fun listProjects() {
-    val display_project_name = findViewById<TextView>(R.id.display_project_name)
-    val str =
-        "{{\n    \"_id\": \"1\",\n    \"name\": \"Project 1\",\n   \"grid\": [\n     {\n       \"size\": 200\n     },\n     {\n       \"gap_size\": 4\n     }\n   ],\n    \"marked points\": [\n      {\n        \"latitude\": -76.646831,\n        \"longitude\": -47.676246\n      },\n      {\n        \"latitude\": -86.646831,\n        \"longitude\": -57.676246\n      },\n      {\n        \"latitude\": -96.646831,\n        \"longitude\": -67.676246\n      }\n    ]\n  },\n  {\n    \"_id\": \"2\",\n    \"name\": \"Project 2\",\n    \"grid\": [\n      {\n        \"size\": 600\n      },\n      {\n        \"gap_size\": 2\n      }\n    ],\n    \"marked points\": [\n      {\n        \"latitude\": 76.646831,\n        \"longitude\": 47.676246\n      },\n      {\n        \"latitude\": 86.646831,\n        \"longitude\": 57.676246\n      },\n      {\n        \"latitude\": 96.646831,\n        \"longitude\": 67.676246\n      }\n    ]\n  },\n  {\n    \"_id\": \"3\",\n    \"name\": \"Project 3\",\n    \"grid\": [\n      {\n        \"size\": 800\n      },\n      {\n        \"gap_size\": 7\n      }\n    ],\n    \"marked points\": [\n      {\n        \"latitude\": 46.646831,\n        \"longitude\": 77.676246\n      },\n      {\n        \"latitude\": 56.646831,\n        \"longitude\": 87.676246\n      },\n      {\n        \"latitude\": 36.646831,\n        \"longitude\": 97.676246\n      }\n    ]\n  }\n]}"
-
-    try {
-
-        val obj:JSONObject = JSONObject(str)
-        val names:JSONObject = obj.getJSONObject("projects")
-
-         val name = names.getString("name")
-
-        // set employee name and salary in TextView's
-        display_project_name.setText("Name: $name");
-
-
-    } catch (e: JSONException) {
-        throw RuntimeException(e)
     }
-}
+
+
+    fun listProjects() {
+
+
+        try {
+
+            val obj:JSONObject = JSONObject(str)
+            val names:JSONObject = obj.getJSONObject("projects")
+
+            val name = names.getString("name")
+
+            // set employee name and salary in TextView's
+            display_project_name.setText("Name: $name");
+
+
+        } catch (e: JSONException) {
+            throw RuntimeException(e)
+        }
+    }
 
     private fun toggleWidgets(){
         val btSpinner = findViewById<Spinner>(R.id.spinner)
@@ -208,7 +206,7 @@ fun listProjects() {
     }
     private fun scantBlueTooth() {
         val btSpinner = findViewById<Spinner>(R.id.spinner)
-       val btn  = findViewById<Button>(R.id.buttonConnect)
+        val btn  = findViewById<Button>(R.id.buttonConnect)
 
         val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
 
@@ -337,7 +335,9 @@ fun listProjects() {
 
             p?.tag = ml // Keep the latlng
             p?.isClickable = true
+
         }
+
     }
 
     private val onMapClick = GoogleMap.OnMapClickListener { loc ->
@@ -369,19 +369,41 @@ fun listProjects() {
             handler.post { // Centre it...
                 map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),firstPoint!!.getLongitude()), 20.0f))
             }
+
         }
+
     }
+
+    var ls = mutableListOf<LatLng>()
     private val onPolyClick = GoogleMap.OnPolylineClickListener {
+        it.color = Color.MAGENTA
         val l = it.tag as List<*>
         var lastp: LatLng? = null
+
+for(loc in l ){
+    ls.add(loc as LatLng)
+}
+        var mut = ls.subList(1, 40) as List<*>
+
         for (loc in l) {
             var xloc = loc as LatLng
             // Draw the points...
-            map?.addCircle(
-                CircleOptions().center(loc).fillColor(Color.RED).radius(0.5)
-                    .strokeWidth(1.0f)  //if set to zero, no outline is drawn
-            )
+            if(loc !in mut){
+                map?.addCircle(
+                    CircleOptions().center(loc).fillColor(Color.RED).radius(1.0)
+                        .clickable(true)
+                        .strokeWidth(1.0f)  //if set to zero, no outline is drawn
+                )
+            }else {
+                map?.addCircle(
+                    CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0)
+                        .clickable(true)
+                        .strokeWidth(1.0f)  //if set to zero, no outline is drawn
+                )
+            }
 
+
+            this.onMarkingPoint
             if (lastp != null) {
                 val res = floatArrayOf(0f)
                 Location.distanceBetween(
@@ -394,16 +416,34 @@ fun listProjects() {
 
                 Log.d("distance", "Distance from last point: ${res[0]}")
             }
-            lastp = xloc
-        }
-            clearUnMarkedLines()
+            //lastp = xloc
 
-        Log.d("polylines", "Added points to line...")
+            Log.d("ls","$ls")
+        }
+
+        clearUnMarkedLines(it)
     }
-         private fun clearUnMarkedLines(){
-             Log.d("clear","clear fun reached")
-            meshDone=false
-         }
+    private fun clearUnMarkedLines(polyline: Polyline) {
+        var mut = ls.subList(1, 5)
+        val l = polyline.tag as List<*>
+        for (loc in mut) {
+            var xloc = loc as LatLng
+
+            // Draw the points...
+            map?.addCircle(
+                CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5)
+                    .clickable(true)
+                    .strokeWidth(1.0f)  //if set to zero, no outline is drawn
+            )
+            Log.d("lsunmarked", "$mut")
+
+        }
+    }
+    private val onMarkingPoint = GoogleMap.OnCircleClickListener {
+        Log.d("clicked","circle clicked")
+
+
+    }
     private val onLongMapPress = GoogleMap.OnMapLongClickListener {
         if (polyLines.size == 0)
             return@OnMapLongClickListener // Not yet...
@@ -438,7 +478,7 @@ fun listProjects() {
         googleMap.setOnPolylineClickListener(onPolyClick)
 
         googleMap.setOnMapLongClickListener(onLongMapPress)
-
+        googleMap.setOnCircleClickListener(onMarkingPoint)
 
         val isl = LatLng(-.366044, 32.441599) // LatLng(0.0,32.44) //
         googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
