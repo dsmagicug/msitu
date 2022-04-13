@@ -52,7 +52,7 @@
                 android:id="@+id/buttonConnect"
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="60dp"
+                android:layout_marginStart="20dp"
                 android:layout_marginTop="16dp"
 
                 android:backgroundTint="@color/green"
@@ -66,12 +66,12 @@
 
             <Spinner
                 android:id="@+id/spinner"
-                android:layout_width="130dp"
+                android:layout_width="110dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="16dp"
                 android:layout_weight="1"
-                android:dropDownWidth="130dp"
+                android:dropDownWidth="100dp"
                 android:visibility="invisible"
                 app:layout_constraintTop_toTopOf="parent"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Light"

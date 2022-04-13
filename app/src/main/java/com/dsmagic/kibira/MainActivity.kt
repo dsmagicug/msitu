@@ -1,9 +1,11 @@
 package com.dsmagic.kibira
 
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Color
 import android.location.Location
@@ -15,8 +17,10 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentActivity
 import com.dsmagic.kibira.DBHelper.Companion.NAME_COl
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -35,9 +39,7 @@ import java.net.URL
 import java.util.concurrent.Executors
 
 
-
-class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener
-{
+class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener {
     var deviceList = ArrayList<BluetoothDevice>()
     var device: BluetoothDevice? = null
     private var map: GoogleMap? = null
@@ -54,23 +56,37 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var polyLines = ArrayList<Polyline?>()
     var asyncExecutor = Executors.newSingleThreadExecutor()
 
-    var str =
-        " {\n    \"_id\": \"1\",\n    \"name\": \"Project 1\",\n   \"grid\": [\n     {\n       \"size\": 200\n     },\n     {\n       \"gap_size\": 4\n     }\n   ],\n    \"marked points\": [\n      {\n        \"latitude\": -76.646831,\n        \"longitude\": -47.676246\n      },\n      {\n        \"latitude\": -86.646831,\n        \"longitude\": -57.676246\n      },\n      {\n        \"latitude\": -96.646831,\n        \"longitude\": -67.676246\n      }\n    ]\n  }"
+    var str ="[\n" +
+            "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
+            "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
+            "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
+            "  },\n" +
+            "  {\"name\":\"project one\"},\n" +
+            "  {\"gap size\":4},\n" +
+            "  {\"mesh\":600.0}\n" +
+            "\n" +
+            "\n" +
+            "]"
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         //   binding = ActivityMainBinding.inflate(layoutInflater)
+
         setContentView(R.layout.activity_main)
 
         setSupportActionBar(findViewById(R.id.appToolbar))
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
 
-        val mapFragment =
-            supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
-        mapFragment?.getMapAsync(callback)
+        if(savedInstanceState!=null){
 
+        }else {
+            createDialog()
+            val mapFragment =
+                supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
+            mapFragment?.getMapAsync(callback)
+        }
         // Set callback
         NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
             override fun onLocationChanged(loc: Location) {
@@ -99,10 +115,69 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
     }
 
+fun showFragment(){
+  finish()
+
+    setContentView(R.layout.activity_main)
+
+    setSupportActionBar(findViewById(R.id.appToolbar))
+    supportActionBar?.setDisplayShowTitleEnabled(false)
+    val mapFragment =
+        supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
+    mapFragment?.getMapAsync(callback)
+//    finish()
+//    startActivity(intent)
+    Log.d("clear","cleraed")
+}
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.appmenu, menu)
 
         return true
+    }
+fun createDialog():Boolean{
+    var onAppOpen = firstActivity()
+    onAppOpen.show(supportFragmentManager, "pick")
+    return true
+
+}
+    fun newProject(): Boolean {
+
+        var onNewProject =  firstActivity() as DialogFragment
+
+        onNewProject.show(supportFragmentManager, "project")
+        return true
+    }
+    fun crea(){
+        val newvalues = "[\n" +
+                "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
+                "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
+                "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
+                "  },\n" +
+                "  {\"name\":\"Project one\"},\n" +
+                "  {\"gap size\":4},\n" +
+                "  {\"mesh\":600.0}\n" +
+                "\n" +
+                "\n" +
+                "]"
+        val project2 =  "[\n" +
+                "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
+                "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
+                "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
+                "  },\n" +
+                "  {\"name\":\"Project two\"},\n" +
+                "  {\"gap size\":4},\n" +
+                "  {\"mesh\":600.0}\n" +
+                "\n" +
+                "\n" +
+                "]"
+
+
+//        val displayProjectName: TextView? = activity?.findViewById(R.id.display_project_name)
+//        displayProjectName?.text = selectedProject
+//
+//        val intent = Intent(this,Geometry::class.java)
+//        intent.putExtra("values",project2)
+//        startActivity(intent)
     }
 
     //Handling the options in the app action bar
@@ -120,13 +195,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             toggleWidgets()
             return true
 
-        } else if(item.itemId == R.id.reload){
+        } else if (item.itemId == R.id.reload) {
             finish()
             startActivity(intent)
-            Log.d("reload","reloaded")
+            Log.d("reload", "reloaded")
             return true
-        }
-        else {
+        } else {
             // If we got here, the user's action was not recognized.
             // Invoke the superclass to handle it.
             super.onOptionsItemSelected(item)
@@ -140,21 +214,21 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     override fun onPostResume() {
 
         super.onPostResume()
-        var url:URL = URL("http://uinames.com/api/")
+        var url: URL = URL("http://uinames.com/api/")
 
         var displayProjectName = findViewById<TextView>(R.id.display_project_name)
         val sharedPreferences = getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)
         val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
         var saved_gap_size: Int? = sharedPreferences.getInt("gap_size", 0)
 
-        displayProjectName?.text = saved_project_name
+       // displayProjectName?.text = saved_project_name
 
-        Log.d("valuesMain","saved data $saved_project_name")
+        Log.d("valuesMain", "saved data $saved_project_name")
 
         //overridePendingTransition(0, 0)
 
-        val db = DBHelper(this,null)
-        if (saved_project_name != null && saved_gap_size != null ) {
+        val db = DBHelper(this, null)
+        if (saved_project_name != null && saved_gap_size != null) {
             with(db) {
                 addProject(
                     saved_project_name,
@@ -162,8 +236,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 )
             }
             //Toast.makeText(this, "Project $saved_project_name created", Toast.LENGTH_LONG).show()
-
-        }else{
+//            val refresh = Intent(this,MainActivity::class.java)
+//            finish()
+//            startActivity(refresh)
+        } else {
             Toast.makeText(this, "Project not created", Toast.LENGTH_LONG).show()
         }
 
@@ -175,8 +251,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
         try {
 
-            val obj:JSONObject = JSONObject(str)
-            val names:JSONObject = obj.getJSONObject("projects")
+            val obj: JSONObject = JSONObject(str)
+            val names: JSONObject = obj.getJSONObject("projects")
 
             val name = names.getString("name")
 
@@ -189,24 +265,24 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         }
     }
 
-    private fun toggleWidgets(){
+    private fun toggleWidgets() {
         val btSpinner = findViewById<Spinner>(R.id.spinner)
-        val btn  = findViewById<Button>(R.id.buttonConnect)
+        val btn = findViewById<Button>(R.id.buttonConnect)
 
-        if(btSpinner.visibility == Spinner.INVISIBLE && btn.visibility == Button.INVISIBLE){
+        if (btSpinner.visibility == Spinner.INVISIBLE && btn.visibility == Button.INVISIBLE) {
             btSpinner.visibility = Spinner.VISIBLE
             btn.visibility = Button.VISIBLE
             scantBlueTooth()
-        }
-        else{
+        } else {
             btSpinner.visibility = Spinner.INVISIBLE
             btn.visibility = Button.INVISIBLE
         }
 
     }
+
     private fun scantBlueTooth() {
         val btSpinner = findViewById<Spinner>(R.id.spinner)
-        val btn  = findViewById<Button>(R.id.buttonConnect)
+        val btn = findViewById<Button>(R.id.buttonConnect)
 
         val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
 
@@ -265,17 +341,17 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         var1: AdapterView<*>?,
         view: View?,
         i: Int,
-        l: Long
+        l: Long,
     ) {
         device = deviceList.get(i)
 
         // Show connect button.
-        val btn  = findViewById<Button>(R.id.buttonConnect)
+        val btn = findViewById<Button>(R.id.buttonConnect)
         btn.visibility = Button.VISIBLE // Shown
     }
 
     override fun onNothingSelected(p0: AdapterView<*>?) {
-        val btn  = findViewById<Button>(R.id.buttonConnect)
+        val btn = findViewById<Button>(R.id.buttonConnect)
         btn.visibility = Button.INVISIBLE
         // Do nothing...
     }
@@ -291,10 +367,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             openBlueTooth()
     }
 
-    private fun hideButton(){
-        val btn  = findViewById<Button>(R.id.buttonConnect)
+    private fun hideButton() {
+        val btn = findViewById<Button>(R.id.buttonConnect)
         btn.visibility = Button.INVISIBLE
     }
+
     private fun openBlueTooth() {
         device?.let {
             // Load the map
@@ -317,26 +394,30 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 it.getLongitude()
             )
         } // Convert to LatLng as expected by polyline
-        val poly = PolylineOptions().addAll(ml)
-            .color(Color.RED)
-            .jointType(JointType.ROUND)
-            .width(3f)
-            .geodesic(true)
-            .startCap(RoundCap())
-            .endCap(SquareCap())
 
-        handler.post {
-            val p = map?.addPolyline(poly) // Add it and set the tag to the line...
-            // Add it to the index
-            val idx = polyLines.size
-            S2Helper.addS2Polyline2Index(idx, linesIndex, S2Helper.makeS2PolyLine(ml, pointsIndex))
-            // Add it to the list as well.
-            polyLines.add(p)
+            val poly = PolylineOptions().addAll(ml)
+                .color(Color.GRAY)
+                .jointType(JointType.ROUND)
+                .width(3f)
+                .geodesic(true)
+                .startCap(RoundCap())
+                .endCap(SquareCap())
+            handler.post {
+                val p = map?.addPolyline(poly) // Add it and set the tag to the line...
+                // Add it to the index
+                val idx = polyLines.size
+                S2Helper.addS2Polyline2Index(idx, linesIndex, S2Helper.makeS2PolyLine(ml, pointsIndex))
+                // Add it to the list as well.
+                polyLines.add(p)
 
-            p?.tag = ml // Keep the latlng
-            p?.isClickable = true
+                p?.tag = ml // Keep the latlng
+                p?.isClickable = true
 
-        }
+            }
+
+
+
+
 
     }
 
@@ -349,7 +430,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0)
                         .strokeWidth(1.0f)
                 )
-                map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),firstPoint!!.getLongitude()), 20.0f))
+             map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),
+                    firstPoint!!.getLongitude()), 20.0f))
             }
             return@OnMapClickListener
         }
@@ -357,7 +439,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         if (firstPoint == null || secondPoint == null || meshDone)
             return@OnMapClickListener
 
-        map?.addCircle(
+  map?.addCircle(
             CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0).strokeWidth(1.0f)
         )
         asyncExecutor.execute {
@@ -366,35 +448,43 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             val lines = Geometry.generateMesh(c, p)
             Geometry.generateLongLat(c, lines, drawLine)
             meshDone = true
+
             handler.post { // Centre it...
-                map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),firstPoint!!.getLongitude()), 20.0f))
+                map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),
+                    firstPoint!!.getLongitude()), 20.0f))
             }
 
         }
 
+
     }
 
     var ls = mutableListOf<LatLng>()
+    var clickedLines =  ArrayList<Polyline>()
     private val onPolyClick = GoogleMap.OnPolylineClickListener {
-        it.color = Color.MAGENTA
+        it.color = Color.GREEN
+        clickedLines.add(it)
+        var size = clickedLines.size
+        Log.d("size","$size")
         val l = it.tag as List<*>
+
         var lastp: LatLng? = null
 
-for(loc in l ){
-    ls.add(loc as LatLng)
-}
-        var mut = ls.subList(1, 40) as List<*>
+        for (loc in l) {
+            ls.add(loc as LatLng)
+        }
+        var mut = ls.subList(0, 40) as List<*>
 
         for (loc in l) {
             var xloc = loc as LatLng
             // Draw the points...
-            if(loc !in mut){
+            if (loc !in mut) {
                 map?.addCircle(
                     CircleOptions().center(loc).fillColor(Color.RED).radius(1.0)
                         .clickable(true)
                         .strokeWidth(1.0f)  //if set to zero, no outline is drawn
                 )
-            }else {
+            } else {
                 map?.addCircle(
                     CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0)
                         .clickable(true)
@@ -402,8 +492,6 @@ for(loc in l ){
                 )
             }
 
-
-            this.onMarkingPoint
             if (lastp != null) {
                 val res = floatArrayOf(0f)
                 Location.distanceBetween(
@@ -416,31 +504,15 @@ for(loc in l ){
 
                 Log.d("distance", "Distance from last point: ${res[0]}")
             }
-            //lastp = xloc
+            lastp = xloc
 
-            Log.d("ls","$ls")
-        }
-
-        clearUnMarkedLines(it)
-    }
-    private fun clearUnMarkedLines(polyline: Polyline) {
-        var mut = ls.subList(1, 5)
-        val l = polyline.tag as List<*>
-        for (loc in mut) {
-            var xloc = loc as LatLng
-
-            // Draw the points...
-            map?.addCircle(
-                CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5)
-                    .clickable(true)
-                    .strokeWidth(1.0f)  //if set to zero, no outline is drawn
-            )
-            Log.d("lsunmarked", "$mut")
-
+            Log.d("ls", "$ls")
         }
     }
+
+
     private val onMarkingPoint = GoogleMap.OnCircleClickListener {
-        Log.d("clicked","circle clicked")
+        Log.d("clicked", "circle clicked")
 
 
     }

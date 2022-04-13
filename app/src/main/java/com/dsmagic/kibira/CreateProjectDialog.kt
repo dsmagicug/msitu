@@ -2,20 +2,17 @@ package com.dsmagic.kibira
 
 
 import android.annotation.SuppressLint
-import android.os.Bundle
-import androidx.fragment.app.DialogFragment
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
+import android.content.Intent
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
+import android.os.Bundle
 import android.util.Log
 import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
-
-
 import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.DialogFragment
 import com.dsmagic.kibira.R.*
 import org.json.JSONException
 import org.json.JSONObject
@@ -44,7 +41,7 @@ class CreateProjectDialog : DialogFragment() {
                     })
                     .setPositiveButton(string.create_new_project, DialogInterface.OnClickListener { dialog: DialogInterface?, id: Int ->
 
-                     oncreateclick()
+                        oncreateclick()
 
                     })
 
@@ -52,7 +49,7 @@ class CreateProjectDialog : DialogFragment() {
 
             }
             else {
-                val projects = activity?.findViewById<TextView>(R.id.list_of_projects)
+                val projects = activity?.findViewById<TextView>(R.id.projectOne)
 
                 val str ="{\"employee\":{\"name\":\"Abhishek Saini\",\"salary\":65000}}"
 
@@ -70,11 +67,11 @@ class CreateProjectDialog : DialogFragment() {
                 } catch (e: JSONException) {
                     throw RuntimeException(e)
                 }
-               // listProjects()
+                // listProjects()
 
                 builder.setView(inflater.inflate(layout.list_projects, null))
 //
-               builder.create()
+                builder.create()
 
             }
         } ?: throw IllegalStateException("Activity cannot be null")
@@ -83,15 +80,15 @@ class CreateProjectDialog : DialogFragment() {
     val sharedPrefFile = "kibirasharedfile"
 
 
-     fun oncreateclick() {
+    fun oncreateclick() {
 
         val sharedPrefFile = "kibirasharedfile"
 
         val projectname = dialog?.findViewById<EditText>(R.id.projectName)
 
         val gapsize = dialog?.findViewById<EditText>(R.id.gapSize)
-         var displayProjectName = activity?.findViewById<TextView>(R.id.display_project_name)
-         var displayGapSize = activity?.findViewById<TextView>(R.id.display_gap_size)
+        var displayProjectName = activity?.findViewById<TextView>(R.id.display_project_name)
+        var displayGapSize = activity?.findViewById<TextView>(R.id.display_gap_size)
 
 
         val gap_size = Integer.parseInt(gapsize?.text.toString())
@@ -104,7 +101,7 @@ class CreateProjectDialog : DialogFragment() {
         editor.putString("name_key", project_name)
         editor.apply()
 
-         editor.commit()
+        editor.commit()
         if(editor.commit()){
             val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
             var saved_gap_size: Int? = sharedPreferences.getInt("gap_size", 0)
@@ -115,13 +112,13 @@ class CreateProjectDialog : DialogFragment() {
 
             Log.d("values","Project name is: $saved_project_name")
 
-
-
+//MainActivity().showFragment()
         } else{
             Log.d("not","Not saved")
         }
 
     }
+
 
 
 

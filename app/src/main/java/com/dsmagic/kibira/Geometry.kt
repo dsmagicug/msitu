@@ -3,6 +3,7 @@ package com.dsmagic.kibira
 import android.annotation.SuppressLint
 import android.location.Location
 import android.util.Log
+import android.widget.TextView
 import dilivia.s2.S2LatLng
 import gov.nasa.worldwind.geom.LatLon
 import gov.nasa.worldwind.geom.coords.UTMCoord
@@ -16,39 +17,26 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 val values = "{\n\"Name\":\"Project 1\",\n\"Gap_Size\":\"5\",\n\"mesh\":\"600.00\"}"
-const val valuvalu =
-        " {\n" +
-        "    \"_id\": \"2\",\n" +
-        "    \"name\": \"Project 2\",\n" +
-        "    \"grid\": [\n" +
-        "      {\n" +
-        "        \"size\": 600.0\n" +
-        "      },\n" +
-        "      {\n" +
-        "        \"gap_size\": 2\n" +
-        "      }\n" +
-        "    ],\n" +
+val newvalues = "[\n" +
+        "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
+        "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
+        "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
+        "  },\n" +
+        "  {\"name\":\"Project one\"},\n" +
+        "  {\"gap size\":4},\n" +
+        "  {\"mesh\":600.0}\n" +
         "\n" +
-        "    \"marked points\": [\n" +
-        "      {\n" +
-        "        \"lat/lng\": \"(-0.36884876250580456,32.44168932593797)\"\n" +
         "\n" +
-        "      },\n" +
-        "      {\n" +
-        "        \"lat/lng\": \"(-0.36876309003447466,32.44168252846961)\"\n" +
-        "      },\n" +
-        "      {\n" +
-        "      \"lat/lng\": \"(-0.3687202537988679,32.44167912973502)\"\n" +
-        "      }\n" +
-        "    ]\n" +
-
-        "  }"
-
-
-val obj: JSONObject = JSONObject(valuvalu)
-val gapsize = obj.getInt("gap_size")
+        "]"
+//val profileName=MainActivity().intent.getStringExtra("values")
+//
+//val values = firstActivity().crea()
+val obj: JSONArray = JSONArray(newvalues)
+val gapsizeobject = obj.getJSONObject(3)
+val gapsize = gapsizeobject.getInt("gap size")
+val meshobject = obj.getJSONObject(4)
 val mesh: Int
-    get() = obj.getInt("size")
+    get() = meshobject.getInt("mesh")
 
 val MAX_MESH_SIZE = mesh.toDouble()// In metres
  val GAP_SIZE = gapsize * .95 // In metres (or 12ft)
@@ -301,6 +289,8 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
 
 class Geometry {
     companion object {
+
+
         private fun rotationMatrix(theta: Double): Pair<Double, Double> {
             // Takes an angle in radians, computes the rotation values cosTheta and signTheta
             val x = cos(theta)
