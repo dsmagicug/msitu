@@ -5,15 +5,15 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
-import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+
 import android.util.Log
+import android.view.View
 import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.FragmentActivity
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
 
@@ -25,15 +25,16 @@ class firstActivity : DialogFragment() {
 
         return activity?.let {
             //val selectedItem = ArrayList<Int>()
-            lateinit var selectedProject: String
+           var selectedProject: String = ""
            val ar = arrayOf("Project one","Project two","Project three")
            // val ar = emptyArray<String>()
-            var checkedItemIndex = 0
+            var checkedItemIndex = -1
             val builder = AlertDialog.Builder(it)
             val inflater = requireActivity().layoutInflater
-
+//            val mDialogView: View = inflater.inflate(layout.activity_main, null)
+//              builder.setView(mDialogView)
             if (ar.isEmpty()) {
-                builder.setView(inflater.inflate(layout.create_project, null))
+                builder.setView(inflater.inflate(layout.activity_create_project, null))
                     // Add action buttons
 
                     .setNegativeButton(string.cancel,
@@ -51,6 +52,8 @@ class firstActivity : DialogFragment() {
                 builder.create()
 
             } else {
+               // val mDialogView: View = MainActivity().setContentView(layout.activity_main)
+//              builder.setView(mDialogView)
                 builder.setTitle("Choose Project")
                     .setSingleChoiceItems(ar, checkedItemIndex,
                         DialogInterface.OnClickListener { dialog, which ->
@@ -110,15 +113,15 @@ class firstActivity : DialogFragment() {
                                 "\n" +
                                 "\n" +
                                 "]"
-                            val displayProjectName: TextView? = activity?.findViewById(R.id.display_project_name)
-                               displayProjectName?.text = selectedProject
-                           //crea(selectedProject)
-//                            var context: Context
-//                            context= this.requireContext()
-//
-//                            val displayProjectName: TextView? = activity?.findViewById(R.id.display_project_name)
-//                                displayProjectName?.text = selectedProject
-//
+                            if(selectedProject == ""){
+                                //MainActivity().showSnackBar(mDialogView)
+                            }else
+                            {
+                                val displayProjectName: TextView? = activity?.findViewById(R.id.display_project_name)
+                                displayProjectName?.text = selectedProject
+                            }
+                          crea(selectedProject)
+
 //                            val intent = Intent(context,Geometry::class.java)
 //                            intent.putExtra("values",project2)
 //                            startActivity(intent)
@@ -135,6 +138,7 @@ Log.d("selected","$selectedProject")
 
         } ?: throw IllegalStateException("Activity cannot be null")
     }
+
 fun crea(name:String) {
     val newvalues = "[\n" +
             "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
@@ -158,9 +162,6 @@ fun crea(name:String) {
             "\n" +
             "\n" +
             "]"
-    if(name == "Project one"){
-        val values = newvalues
-    }
 
 }
 

@@ -1,40 +1,41 @@
 package com.dsmagic.kibira
 
-import android.annotation.SuppressLint
-import android.app.Dialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
-import android.content.DialogInterface
+
 import android.content.Intent
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
+
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
-import androidx.appcompat.app.AlertDialog
+
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.FragmentActivity
-import com.dsmagic.kibira.DBHelper.Companion.NAME_COl
+
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.snackbar.Snackbar
 import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.list_projects.*
+
 import org.json.JSONException
 import org.json.JSONObject
-import org.w3c.dom.Text
+
 import java.net.URL
 import java.util.concurrent.Executors
 
@@ -44,6 +45,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var device: BluetoothDevice? = null
     private var map: GoogleMap? = null
     private var marker: Circle? = null
+    private var tolerance:Circle? = null
     var lastLoc: Location? = null
     var zoomLevel = 30.0f
     var firstPoint: LongLat? = null
@@ -108,7 +110,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     marker = map?.addCircle(
                         CircleOptions().center(xloc).fillColor(Color.YELLOW).radius(1.0)
                             .strokeWidth(1.0f)
+
+
                     )
+                    marker as LatLng
+
                 }
             }
         })
@@ -147,38 +153,59 @@ fun createDialog():Boolean{
         onNewProject.show(supportFragmentManager, "project")
         return true
     }
-    fun crea(){
-        val newvalues = "[\n" +
-                "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
-                "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
-                "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
-                "  },\n" +
-                "  {\"name\":\"Project one\"},\n" +
-                "  {\"gap size\":4},\n" +
-                "  {\"mesh\":600.0}\n" +
-                "\n" +
-                "\n" +
-                "]"
-        val project2 =  "[\n" +
-                "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
-                "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
-                "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
-                "  },\n" +
-                "  {\"name\":\"Project two\"},\n" +
-                "  {\"gap size\":4},\n" +
-                "  {\"mesh\":600.0}\n" +
-                "\n" +
-                "\n" +
-                "]"
+    fun showSnackBar(view: View) {
+        val snackBar = Snackbar.make(view, "Please Choose a project", Snackbar.LENGTH_INDEFINITE)
+            .setAction("hidden") {
+//                on click btn
+            }
+//            .setActionTextColor(ContextCompat.getColor(this, R.color.green))
+//        val snackBarView = snackBar.view
+//        val txt =
+//            snackBarView.findViewById(com.google.android.material.R.id.snackbar_text) as TextView
+//        snackBarView.setBackgroundColor(ContextCompat.getColor(this, R.color.green))
+//        txt.setTextColor(ContextCompat.getColor(this, R.color.white))
 
-
-//        val displayProjectName: TextView? = activity?.findViewById(R.id.display_project_name)
-//        displayProjectName?.text = selectedProject
-//
-//        val intent = Intent(this,Geometry::class.java)
-//        intent.putExtra("values",project2)
-//        startActivity(intent)
+        snackBar.show()
+        Log.d("snack","snakbar")
     }
+//    fun crea(name:String){
+//        val newvalues = "[\n" +
+//                "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
+//                "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
+//                "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
+//                "  },\n" +
+//                "  {\"name\":\"Project one\"},\n" +
+//                "  {\"gap size\":4},\n" +
+//                "  {\"mesh\":600.0}\n" +
+//                "\n" +
+//                "\n" +
+//                "]"
+//        val project2 =  "[\n" +
+//                "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
+//                "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
+//                "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
+//                "  },\n" +
+//                "  {\"name\":\"Project two\"},\n" +
+//                "  {\"gap size\":4},\n" +
+//                "  {\"mesh\":600.0}\n" +
+//                "\n" +
+//                "\n" +
+//                "]"
+//        if(name == ""){
+//            val view = R.layout.activity_main
+//            val snack = Snackbar.make(this,"This is a simple Snackbar", Snackbar.LENGTH_LONG)
+//            snack.show()
+//        }
+//        val displayProjectName: TextView? = findViewById(R.id.display_project_name)
+//        displayProjectName?.text = name
+//
+////        val displayProjectName: TextView? = activity?.findViewById(R.id.display_project_name)
+////        displayProjectName?.text = selectedProject
+////
+////        val intent = Intent(this,Geometry::class.java)
+////        intent.putExtra("values",project2)
+////        startActivity(intent)
+//    }
 
     //Handling the options in the app action bar
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -442,6 +469,9 @@ fun createDialog():Boolean{
   map?.addCircle(
             CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0).strokeWidth(1.0f)
         )
+        tolerance =map?.addCircle(CircleOptions().center(loc).fillColor(Color.RED)
+            .strokeWidth(1.0f)
+        )
         asyncExecutor.execute {
             val c = Point(firstPoint!!)
             val p = Point(secondPoint!!)
@@ -451,7 +481,7 @@ fun createDialog():Boolean{
 
             handler.post { // Centre it...
                 map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),
-                    firstPoint!!.getLongitude()), 20.0f))
+                    firstPoint!!.getLongitude()), 30.0f))
             }
 
         }
@@ -474,19 +504,20 @@ fun createDialog():Boolean{
             ls.add(loc as LatLng)
         }
         var mut = ls.subList(0, 40) as List<*>
+        var newStartingPointAfterPlantingIndex = mut.last()
 
         for (loc in l) {
             var xloc = loc as LatLng
             // Draw the points...
             if (loc !in mut) {
                 map?.addCircle(
-                    CircleOptions().center(loc).fillColor(Color.RED).radius(1.0)
+                    CircleOptions().center(loc).fillColor(Color.RED).radius(0.5)
                         .clickable(true)
                         .strokeWidth(1.0f)  //if set to zero, no outline is drawn
                 )
             } else {
                 map?.addCircle(
-                    CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0)
+                    CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5)
                         .clickable(true)
                         .strokeWidth(1.0f)  //if set to zero, no outline is drawn
                 )
@@ -506,10 +537,49 @@ fun createDialog():Boolean{
             }
             lastp = xloc
 
+
             Log.d("ls", "$ls")
         }
+        if (lastp != null) {
+            tolerance(newStartingPointAfterPlantingIndex as LatLng)
+        }
+    }
+fun tolerance(loc:LatLng){
+   map?.addMarker(MarkerOptions().title("MyPosition").position(loc))
+    val xloc = S2Helper.findClosestPointOnLine(pointsIndex, loc) as S2LatLng?
+    val pt = xloc?.let { LatLng(it.latDegrees(), it.lngDegrees()) }
+    //var num = 10
+    var x = 1.0
+    while (true){
+        map?.addCircle(
+            CircleOptions().center(pt!!).fillColor(Color.CYAN).radius(animate())
+                .strokeWidth(1.0f)
+
+        )
+//                num--
+        x++
     }
 
+Log.d("closest","$pt")
+
+}
+    fun animate() {
+        object : CountDownTimer(300000, 10000) {
+
+            override fun onTick(millisUntilFinished: Long) {
+                var x = 1.0
+                while(true){
+                    x++
+                }
+
+                Log.d("time","seconds remaining: " + "$millisUntilFinished / 100")
+            }
+
+            override fun onFinish() {
+                Log.d("finish","time")
+            }
+        }.start()
+    }
 
     private val onMarkingPoint = GoogleMap.OnCircleClickListener {
         Log.d("clicked", "circle clicked")
