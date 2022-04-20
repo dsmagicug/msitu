@@ -38,6 +38,7 @@ import org.json.JSONObject
 
 import java.net.URL
 import java.util.concurrent.Executors
+import kotlin.reflect.typeOf
 
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener {
@@ -458,7 +459,7 @@ fun createDialog():Boolean{
                         .strokeWidth(1.0f)
                 )
              map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),
-                    firstPoint!!.getLongitude()), 20.0f))
+                    firstPoint!!.getLongitude()), 30.0f))
             }
             return@OnMapClickListener
         }
@@ -469,7 +470,7 @@ fun createDialog():Boolean{
   map?.addCircle(
             CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0).strokeWidth(1.0f)
         )
-        tolerance =map?.addCircle(CircleOptions().center(loc).fillColor(Color.RED)
+        map?.addCircle(CircleOptions().center(loc).fillColor(Color.RED)
             .strokeWidth(1.0f)
         )
         asyncExecutor.execute {
@@ -489,36 +490,46 @@ fun createDialog():Boolean{
 
     }
 
-    var ls = mutableListOf<LatLng>()
+    var listOfMarkedPoints = mutableListOf<LatLng>()
+    var listWithNext = mutableListOf<LatLng>()
     var clickedLines =  ArrayList<Polyline>()
+
     private val onPolyClick = GoogleMap.OnPolylineClickListener {
+
+        Toast.makeText(this, "Planting line selected...", Toast.LENGTH_LONG).show()
+        it.isClickable = false
         it.color = Color.GREEN
-        clickedLines.add(it)
-        var size = clickedLines.size
-        Log.d("size","$size")
+
         val l = it.tag as List<*>
 
         var lastp: LatLng? = null
 
         for (loc in l) {
-            ls.add(loc as LatLng)
+            listOfMarkedPoints.add(loc as LatLng)
         }
-        var mut = ls.subList(0, 40) as List<*>
-        var newStartingPointAfterPlantingIndex = mut.last()
+
+        var mut = listOfMarkedPoints.subList(40, 100) as List<*>
+        val newStartingPointAfterPlantingIndex = mut.last()
+        val index = mut.lastIndex
 
         for (loc in l) {
             var xloc = loc as LatLng
             // Draw the points...
             if (loc !in mut) {
-                map?.addCircle(
+
+              var circle =  map?.addCircle(
                     CircleOptions().center(loc).fillColor(Color.RED).radius(0.5)
                         .clickable(true)
-                        .strokeWidth(1.0f)  //if set to zero, no outline is drawn
+                        .strokeWidth(1.0f)
+                    //if set to zero, no outline is drawn
                 )
+                circle?.isClickable
+               var ta= circle?.tag
+                Log.d("circle","$ta")
             } else {
                 map?.addCircle(
                     CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5)
-                        .clickable(true)
+
                         .strokeWidth(1.0f)  //if set to zero, no outline is drawn
                 )
             }
@@ -538,31 +549,60 @@ fun createDialog():Boolean{
             lastp = xloc
 
 
-            Log.d("ls", "$ls")
+            Log.d("ls", "$listOfMarkedPoints")
         }
         if (lastp != null) {
-            tolerance(newStartingPointAfterPlantingIndex as LatLng)
+            tolerance(newStartingPointAfterPlantingIndex as LatLng,it)
         }
     }
-fun tolerance(loc:LatLng){
-   map?.addMarker(MarkerOptions().title("MyPosition").position(loc))
-    val xloc = S2Helper.findClosestPointOnLine(pointsIndex, loc) as S2LatLng?
-    val pt = xloc?.let { LatLng(it.latDegrees(), it.lngDegrees()) }
-    //var num = 10
-    var x = 1.0
-    while (true){
-        map?.addCircle(
-            CircleOptions().center(pt!!).fillColor(Color.CYAN).radius(animate())
-                .strokeWidth(1.0f)
 
-        )
-//                num--
-        x++
+fun tolerance(loc:LatLng,polyline: Polyline){
+
+    val l = polyline.tag as List<*>
+
+   //map?.addMarker(MarkerOptions().title("MyPosition").position(loc))
+   for(pt in l){
+//
+       if (pt == loc){
+           Log.d("point","$pt")
+//            println(findIndex(l, pt))
+           val index = l.indexOf(pt)
+           val nextIndex = index + 1
+           var nextPoint = l[nextIndex]
+           listWithNext.add(nextPoint as LatLng)
+
+
+           Log.d("nextPoint","$nextPoint")
+           var circles =     map?.addCircle(
+              CircleOptions().center(nextPoint!! as LatLng)
+                  .radius( radius(4))
+                  .fillColor(0x22228B22)
+                  .strokeColor(Color.GREEN)
+                    .strokeWidth(1.0f)
+                  .clickable(true)
+            )
+        }
     }
+    Log.d("tag","$l")
 
-Log.d("closest","$pt")
+ map?.addCircle(
+        CircleOptions().center(loc!!).fillColor(Color.CYAN).radius(1.0)
+            .strokeWidth(1.0f)
+
+
+    )
+
+
+Log.d("closest","$loc")
+
 
 }
+    fun radius(size:Int):Double{
+        val sizeInCentimeteres = size * 100
+        val toleranceCircle = ((0.1 * sizeInCentimeteres)/100) +1.0
+        return  toleranceCircle
+    }
+
     fun animate() {
         object : CountDownTimer(300000, 10000) {
 
@@ -582,10 +622,25 @@ Log.d("closest","$pt")
     }
 
     private val onMarkingPoint = GoogleMap.OnCircleClickListener {
-        Log.d("clicked", "circle clicked")
+       var cordinatesOfClickedCircle= it.center
+        listOfMarkedPoints.add(cordinatesOfClickedCircle)
+
+     var current =   map?.addCircle(
+            CircleOptions().center(cordinatesOfClickedCircle).fillColor(Color.YELLOW).radius(0.5)
+
+                .strokeWidth(1.0f)
+        )
+        if (current != null) {
+            if(current.isVisible){
+
+            }
+        }
+        Log.d("clicked", "$cordinatesOfClickedCircle")
+
 
 
     }
+
     private val onLongMapPress = GoogleMap.OnMapLongClickListener {
         if (polyLines.size == 0)
             return@OnMapLongClickListener // Not yet...
@@ -617,8 +672,9 @@ Log.d("closest","$pt")
         map = googleMap
         googleMap.setLocationSource(NmeaReader.listener)
         googleMap.setOnMapClickListener(onMapClick)
-        googleMap.setOnPolylineClickListener(onPolyClick)
 
+        googleMap.setOnPolylineClickListener(onPolyClick)
+//        googleMap.setOnCircleClickListener(onClickingPoint)
         googleMap.setOnMapLongClickListener(onLongMapPress)
         googleMap.setOnCircleClickListener(onMarkingPoint)
 
