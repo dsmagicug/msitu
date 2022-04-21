@@ -485,14 +485,15 @@ fun createDialog():Boolean{
                     firstPoint!!.getLongitude()), 30.0f))
             }
 
+            //Toast.makeText(this, "Grid done..", Toast.LENGTH_LONG).show()
         }
-
 
     }
 
     var listOfMarkedPoints = mutableListOf<LatLng>()
+    var listOfMarkedPointsDemo = mutableListOf<LatLng>()
     var listWithNext = mutableListOf<LatLng>()
-    var clickedLines =  ArrayList<Polyline>()
+    var unmarkedCirclesList =  mutableListOf<Circle>()
 
     private val onPolyClick = GoogleMap.OnPolylineClickListener {
 
@@ -505,29 +506,28 @@ fun createDialog():Boolean{
         var lastp: LatLng? = null
 
         for (loc in l) {
-            listOfMarkedPoints.add(loc as LatLng)
+           listOfMarkedPointsDemo.add(loc as LatLng)
         }
+        var mut = listOfMarkedPoints as List<*>
+        var mut2 = listOfMarkedPointsDemo.subList(40, 100) as List<*>
 
-        var mut = listOfMarkedPoints.subList(40, 100) as List<*>
-        val newStartingPointAfterPlantingIndex = mut.last()
         val index = mut.lastIndex
 
         for (loc in l) {
             var xloc = loc as LatLng
             // Draw the points...
-            if (loc !in mut) {
+            if (loc !in mut2) {
 
-              var circle =  map?.addCircle(
+              var unmarkedCircles =  map?.addCircle(
                     CircleOptions().center(loc).fillColor(Color.RED).radius(0.5)
                         .clickable(true)
                         .strokeWidth(1.0f)
                     //if set to zero, no outline is drawn
                 )
-                circle?.isClickable
-               var ta= circle?.tag
-                Log.d("circle","$ta")
+                unmarkedCircles?.isClickable
+                unmarkedCirclesList.add(unmarkedCircles!!)
             } else {
-                map?.addCircle(
+              var markedCircles =  map?.addCircle(
                     CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5)
 
                         .strokeWidth(1.0f)  //if set to zero, no outline is drawn
@@ -551,7 +551,9 @@ fun createDialog():Boolean{
 
             Log.d("ls", "$listOfMarkedPoints")
         }
-        if (lastp != null) {
+
+        if (lastp != null && mut.isNotEmpty()) {
+            val newStartingPointAfterPlantingIndex = mut.last()
             tolerance(newStartingPointAfterPlantingIndex as LatLng,it)
         }
     }
@@ -568,13 +570,13 @@ fun tolerance(loc:LatLng,polyline: Polyline){
 //            println(findIndex(l, pt))
            val index = l.indexOf(pt)
            val nextIndex = index + 1
-           var nextPoint = l[nextIndex]
-           listWithNext.add(nextPoint as LatLng)
+           var nextPoint = l[nextIndex] as LatLng
+          // listWithNext.add(nextPoint as LatLng)
 
 
            Log.d("nextPoint","$nextPoint")
-           var circles =     map?.addCircle(
-              CircleOptions().center(nextPoint!! as LatLng)
+        map?.addCircle(
+              CircleOptions().center(nextPoint )
                   .radius( radius(4))
                   .fillColor(0x22228B22)
                   .strokeColor(Color.GREEN)
@@ -586,7 +588,7 @@ fun tolerance(loc:LatLng,polyline: Polyline){
     Log.d("tag","$l")
 
  map?.addCircle(
-        CircleOptions().center(loc!!).fillColor(Color.CYAN).radius(1.0)
+        CircleOptions().center(loc!!).fillColor(Color.CYAN).radius(0.7)
             .strokeWidth(1.0f)
 
 
@@ -622,23 +624,90 @@ Log.d("closest","$loc")
     }
 
     private val onMarkingPoint = GoogleMap.OnCircleClickListener {
+var circletol = listTolerance.first()
+        circletol.remove()
        var cordinatesOfClickedCircle= it.center
+        var id = it.remove()
+        Log.d("ciircleid","$id")
         listOfMarkedPoints.add(cordinatesOfClickedCircle)
+       // Log.d("circleMarkedPoints","$listOfMarkedPoints")
 
-     var current =   map?.addCircle(
+
+
+        var circl = map?.addCircle(
             CircleOptions().center(cordinatesOfClickedCircle).fillColor(Color.YELLOW).radius(0.5)
 
                 .strokeWidth(1.0f)
         )
-        if (current != null) {
-            if(current.isVisible){
+        if(circl != null ){
 
-            }
+            map?.addCircle(
+                CircleOptions().center(cordinatesOfClickedCircle )
+                    .radius(0.0)
+                    .fillColor(0x22228B22)
+                    .strokeColor(Color.YELLOW)
+                    .strokeWidth(0.0f)
+                    .visible(false)
+
+            )
+            Log.d("false","true ooohh")
+        }else{
+            Log.d("false","false ooohh")
         }
+
+                plantingTolerance(it,unmarkedCirclesList)
+
+
         Log.d("clicked", "$cordinatesOfClickedCircle")
 
+    }
+var listTolerance = mutableListOf<Circle>()
+    fun plantingTolerance(circleCords:Circle,ummarkedcircles:MutableList<Circle>){
+        var listOfUnmarkedCircles = ummarkedcircles
+        var currentCircleId = circleCords.id
+        var col = circleCords.fillColor
+        Log.d("col","$col")
+        for (aCircle in listOfUnmarkedCircles){
+            if(currentCircleId == aCircle.id){
+                val index = listOfUnmarkedCircles.indexOf(aCircle)
+                val nextIndex = index + 1
+                var nextPoint = listOfUnmarkedCircles[nextIndex]
+                var nextPointLatLng = nextPoint.center
+                //listWithNext.add(nextPoint as LatLng)
 
+                var circles =  map?.addCircle(
+                    CircleOptions().center(nextPointLatLng )
+                        .radius( radius(4))
+                        .fillColor(0x22228B22)
+                        .strokeColor(Color.GREEN)
+                        .strokeWidth(1.0f)
 
+                )
+                circles?.isClickable
+
+                if (circles != null) {
+                    listTolerance.add(circles)
+                    Log.d("tolid","$circles.id")
+                }
+
+            }
+
+        }
+
+    }
+
+    fun removeTolerance(circle:Circle){
+        var nextPointLatLng = circle.center
+        circle.isVisible = false
+        map?.addCircle(
+            CircleOptions().center(nextPointLatLng )
+                .radius(0.0)
+                .fillColor(0x22228B22)
+                .strokeColor(Color.GREEN)
+                .strokeWidth(0.0f)
+                .visible(false)
+
+        )
     }
 
     private val onLongMapPress = GoogleMap.OnMapLongClickListener {
