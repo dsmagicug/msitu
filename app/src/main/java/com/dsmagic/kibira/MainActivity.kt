@@ -624,8 +624,7 @@ Log.d("closest","$loc")
     }
 
     private val onMarkingPoint = GoogleMap.OnCircleClickListener {
-var circletol = listTolerance.first()
-        circletol.remove()
+
        var cordinatesOfClickedCircle= it.center
         var id = it.remove()
         Log.d("ciircleid","$id")
@@ -656,6 +655,11 @@ var circletol = listTolerance.first()
         }
 
                 plantingTolerance(it,unmarkedCirclesList)
+        if(listTolerance.isNotEmpty()){
+            var circletol = listTolerance.first()
+            circletol.remove()
+            removeTolerance(circletol)
+        }
 
 
         Log.d("clicked", "$cordinatesOfClickedCircle")
