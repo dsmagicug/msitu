@@ -19,7 +19,6 @@ import android.view.View
 import android.widget.*
 
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.DialogFragment
 
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -38,7 +37,6 @@ import org.json.JSONObject
 
 import java.net.URL
 import java.util.concurrent.Executors
-import kotlin.reflect.typeOf
 
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener {
@@ -46,7 +44,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var device: BluetoothDevice? = null
     private var map: GoogleMap? = null
     private var marker: Circle? = null
-    private var tolerance:Circle? = null
+    private var tolerance: Circle? = null
     var lastLoc: Location? = null
     var zoomLevel = 30.0f
     var firstPoint: LongLat? = null
@@ -59,7 +57,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var polyLines = ArrayList<Polyline?>()
     var asyncExecutor = Executors.newSingleThreadExecutor()
 
-    var str ="[\n" +
+    var str = "[\n" +
             "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
             "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
             "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
@@ -82,9 +80,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
 
-        if(savedInstanceState!=null){
+        if (savedInstanceState != null) {
 
-        }else {
+        } else {
             createDialog()
             val mapFragment =
                 supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
@@ -122,38 +120,42 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
     }
 
-fun showFragment(){
-  finish()
+    fun showFragment() {
+        finish()
 
-    setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_main)
 
-    setSupportActionBar(findViewById(R.id.appToolbar))
-    supportActionBar?.setDisplayShowTitleEnabled(false)
-    val mapFragment =
-        supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
-    mapFragment?.getMapAsync(callback)
+        setSupportActionBar(findViewById(R.id.appToolbar))
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+        val mapFragment =
+            supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
+        mapFragment?.getMapAsync(callback)
 //    finish()
 //    startActivity(intent)
-    Log.d("clear","cleraed")
-}
+        Log.d("clear", "cleraed")
+    }
+
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.appmenu, menu)
 
         return true
     }
-fun createDialog():Boolean{
-    var onAppOpen = firstActivity()
-    onAppOpen.show(supportFragmentManager, "pick")
-    return true
 
-}
+    fun createDialog(): Boolean {
+        var onAppOpen = firstActivity()
+        onAppOpen.show(supportFragmentManager, "pick")
+        return true
+
+    }
+
     fun newProject(): Boolean {
 
-        var onNewProject =  firstActivity() as DialogFragment
+        var onNewProject = firstActivity() as DialogFragment
 
         onNewProject.show(supportFragmentManager, "project")
         return true
     }
+
     fun showSnackBar(view: View) {
         val snackBar = Snackbar.make(view, "Please Choose a project", Snackbar.LENGTH_INDEFINITE)
             .setAction("hidden") {
@@ -167,7 +169,7 @@ fun createDialog():Boolean{
 //        txt.setTextColor(ContextCompat.getColor(this, R.color.white))
 
         snackBar.show()
-        Log.d("snack","snakbar")
+        Log.d("snack", "snakbar")
     }
 //    fun crea(name:String){
 //        val newvalues = "[\n" +
@@ -249,7 +251,7 @@ fun createDialog():Boolean{
         val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
         var saved_gap_size: Int? = sharedPreferences.getInt("gap_size", 0)
 
-       // displayProjectName?.text = saved_project_name
+        // displayProjectName?.text = saved_project_name
 
         Log.d("valuesMain", "saved data $saved_project_name")
 
@@ -423,28 +425,25 @@ fun createDialog():Boolean{
             )
         } // Convert to LatLng as expected by polyline
 
-            val poly = PolylineOptions().addAll(ml)
-                .color(Color.GRAY)
-                .jointType(JointType.ROUND)
-                .width(3f)
-                .geodesic(true)
-                .startCap(RoundCap())
-                .endCap(SquareCap())
-            handler.post {
-                val p = map?.addPolyline(poly) // Add it and set the tag to the line...
-                // Add it to the index
-                val idx = polyLines.size
-                S2Helper.addS2Polyline2Index(idx, linesIndex, S2Helper.makeS2PolyLine(ml, pointsIndex))
-                // Add it to the list as well.
-                polyLines.add(p)
+        val poly = PolylineOptions().addAll(ml)
+            .color(Color.GRAY)
+            .jointType(JointType.ROUND)
+            .width(3f)
+            .geodesic(true)
+            .startCap(RoundCap())
+            .endCap(SquareCap())
+        handler.post {
+            val p = map?.addPolyline(poly) // Add it and set the tag to the line...
+            // Add it to the index
+            val idx = polyLines.size
+            S2Helper.addS2Polyline2Index(idx, linesIndex, S2Helper.makeS2PolyLine(ml, pointsIndex))
+            // Add it to the list as well.
+            polyLines.add(p)
 
-                p?.tag = ml // Keep the latlng
-                p?.isClickable = true
+            p?.tag = ml // Keep the latlng
+            p?.isClickable = true
 
-            }
-
-
-
+        }
 
 
     }
@@ -458,7 +457,7 @@ fun createDialog():Boolean{
                     CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0)
                         .strokeWidth(1.0f)
                 )
-             map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),
+                map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),
                     firstPoint!!.getLongitude()), 30.0f))
             }
             return@OnMapClickListener
@@ -467,7 +466,7 @@ fun createDialog():Boolean{
         if (firstPoint == null || secondPoint == null || meshDone)
             return@OnMapClickListener
 
-  map?.addCircle(
+        map?.addCircle(
             CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0).strokeWidth(1.0f)
         )
         map?.addCircle(CircleOptions().center(loc).fillColor(Color.RED)
@@ -493,7 +492,8 @@ fun createDialog():Boolean{
     var listOfMarkedPoints = mutableListOf<LatLng>()
     var listOfMarkedPointsDemo = mutableListOf<LatLng>()
     var listWithNext = mutableListOf<LatLng>()
-    var unmarkedCirclesList =  mutableListOf<Circle>()
+    var unmarkedCirclesList = mutableListOf<Circle>()
+    var listOfMarkedCircles = mutableListOf<Circle>()
 
     private val onPolyClick = GoogleMap.OnPolylineClickListener {
 
@@ -506,7 +506,7 @@ fun createDialog():Boolean{
         var lastp: LatLng? = null
 
         for (loc in l) {
-           listOfMarkedPointsDemo.add(loc as LatLng)
+            listOfMarkedPointsDemo.add(loc as LatLng)
         }
         var mut = listOfMarkedPoints as List<*>
         var mut2 = listOfMarkedPointsDemo.subList(40, 100) as List<*>
@@ -518,7 +518,7 @@ fun createDialog():Boolean{
             // Draw the points...
             if (loc !in mut2) {
 
-              var unmarkedCircles =  map?.addCircle(
+                var unmarkedCircles = map?.addCircle(
                     CircleOptions().center(loc).fillColor(Color.RED).radius(0.5)
                         .clickable(true)
                         .strokeWidth(1.0f)
@@ -527,7 +527,7 @@ fun createDialog():Boolean{
                 unmarkedCircles?.isClickable
                 unmarkedCirclesList.add(unmarkedCircles!!)
             } else {
-              var markedCircles =  map?.addCircle(
+                var markedCircles = map?.addCircle(
                     CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5)
 
                         .strokeWidth(1.0f)  //if set to zero, no outline is drawn
@@ -554,55 +554,56 @@ fun createDialog():Boolean{
 
         if (lastp != null && mut.isNotEmpty()) {
             val newStartingPointAfterPlantingIndex = mut.last()
-            tolerance(newStartingPointAfterPlantingIndex as LatLng,it)
+            tolerance(newStartingPointAfterPlantingIndex as LatLng, it)
         }
     }
 
-fun tolerance(loc:LatLng,polyline: Polyline){
+    fun tolerance(loc: LatLng, polyline: Polyline) {
 
-    val l = polyline.tag as List<*>
+        val l = polyline.tag as List<*>
 
-   //map?.addMarker(MarkerOptions().title("MyPosition").position(loc))
-   for(pt in l){
+        //map?.addMarker(MarkerOptions().title("MyPosition").position(loc))
+        for (pt in l) {
 //
-       if (pt == loc){
-           Log.d("point","$pt")
+            if (pt == loc) {
+                Log.d("point", "$pt")
 //            println(findIndex(l, pt))
-           val index = l.indexOf(pt)
-           val nextIndex = index + 1
-           var nextPoint = l[nextIndex] as LatLng
-          // listWithNext.add(nextPoint as LatLng)
+                val index = l.indexOf(pt)
+                val nextIndex = index + 1
+                var nextPoint = l[nextIndex] as LatLng
+                // listWithNext.add(nextPoint as LatLng)
 
 
-           Log.d("nextPoint","$nextPoint")
-        map?.addCircle(
-              CircleOptions().center(nextPoint )
-                  .radius( radius(4))
-                  .fillColor(0x22228B22)
-                  .strokeColor(Color.GREEN)
-                    .strokeWidth(1.0f)
-                  .clickable(true)
-            )
+                Log.d("nextPoint", "$nextPoint")
+                map?.addCircle(
+                    CircleOptions().center(nextPoint)
+                        .radius(radius(4))
+                        .fillColor(0x22228B22)
+                        .strokeColor(Color.GREEN)
+                        .strokeWidth(1.0f)
+                        .clickable(true)
+                )
+            }
         }
+        Log.d("tag", "$l")
+
+        map?.addCircle(
+            CircleOptions().center(loc!!).fillColor(Color.CYAN).radius(0.7)
+                .strokeWidth(1.0f)
+
+
+        )
+
+
+        Log.d("closest", "$loc")
+
+
     }
-    Log.d("tag","$l")
 
- map?.addCircle(
-        CircleOptions().center(loc!!).fillColor(Color.CYAN).radius(0.7)
-            .strokeWidth(1.0f)
-
-
-    )
-
-
-Log.d("closest","$loc")
-
-
-}
-    fun radius(size:Int):Double{
+    fun radius(size: Int): Double {
         val sizeInCentimeteres = size * 100
-        val toleranceCircle = ((0.1 * sizeInCentimeteres)/100) +1.0
-        return  toleranceCircle
+        val toleranceCircle = ((0.1 * sizeInCentimeteres) / 100) + 1.0
+        return toleranceCircle
     }
 
     fun animate() {
@@ -610,78 +611,56 @@ Log.d("closest","$loc")
 
             override fun onTick(millisUntilFinished: Long) {
                 var x = 1.0
-                while(true){
+                while (true) {
                     x++
                 }
 
-                Log.d("time","seconds remaining: " + "$millisUntilFinished / 100")
+                Log.d("time", "seconds remaining: " + "$millisUntilFinished / 100")
             }
 
             override fun onFinish() {
-                Log.d("finish","time")
+                Log.d("finish", "time")
             }
         }.start()
     }
 
     private val onMarkingPoint = GoogleMap.OnCircleClickListener {
+        it.isClickable = false
 
-       var cordinatesOfClickedCircle= it.center
-        var id = it.remove()
-        Log.d("ciircleid","$id")
+        var cordinatesOfClickedCircle = it.center
+
         listOfMarkedPoints.add(cordinatesOfClickedCircle)
-       // Log.d("circleMarkedPoints","$listOfMarkedPoints")
-
-
-
-        var circl = map?.addCircle(
+        // Log.d("circleMarkedPoints","$listOfMarkedPoints")
+        map?.addCircle(
             CircleOptions().center(cordinatesOfClickedCircle).fillColor(Color.YELLOW).radius(0.5)
 
                 .strokeWidth(1.0f)
         )
-        if(circl != null ){
-
-            map?.addCircle(
-                CircleOptions().center(cordinatesOfClickedCircle )
-                    .radius(0.0)
-                    .fillColor(0x22228B22)
-                    .strokeColor(Color.YELLOW)
-                    .strokeWidth(0.0f)
-                    .visible(false)
-
-            )
-            Log.d("false","true ooohh")
-        }else{
-            Log.d("false","false ooohh")
+        for (greenCircle in listOfMarkedCircles) {
+            if (greenCircle.center == cordinatesOfClickedCircle) {
+                greenCircle.remove()
+            }
         }
-
-                plantingTolerance(it,unmarkedCirclesList)
-        if(listTolerance.isNotEmpty()){
-            var circletol = listTolerance.first()
-            circletol.remove()
-            removeTolerance(circletol)
-        }
-
-
-        Log.d("clicked", "$cordinatesOfClickedCircle")
+        plantingTolerance(it, unmarkedCirclesList)
 
     }
-var listTolerance = mutableListOf<Circle>()
-    fun plantingTolerance(circleCords:Circle,ummarkedcircles:MutableList<Circle>){
+    var listTolerance = mutableListOf<Circle>()
+    fun plantingTolerance(circleCords: Circle, ummarkedcircles: MutableList<Circle>) {
+
         var listOfUnmarkedCircles = ummarkedcircles
         var currentCircleId = circleCords.id
-        var col = circleCords.fillColor
-        Log.d("col","$col")
-        for (aCircle in listOfUnmarkedCircles){
-            if(currentCircleId == aCircle.id){
+
+        for (aCircle in listOfUnmarkedCircles) {
+            if (currentCircleId == aCircle.id) {
                 val index = listOfUnmarkedCircles.indexOf(aCircle)
                 val nextIndex = index + 1
                 var nextPoint = listOfUnmarkedCircles[nextIndex]
                 var nextPointLatLng = nextPoint.center
                 //listWithNext.add(nextPoint as LatLng)
 
-                var circles =  map?.addCircle(
-                    CircleOptions().center(nextPointLatLng )
-                        .radius( radius(4))
+                var circles = map?.addCircle(
+                    CircleOptions().center(nextPointLatLng)
+                        .radius(radius(4))
                         .fillColor(0x22228B22)
                         .strokeColor(Color.GREEN)
                         .strokeWidth(1.0f)
@@ -689,30 +668,13 @@ var listTolerance = mutableListOf<Circle>()
                 )
                 circles?.isClickable
 
-                if (circles != null) {
-                    listTolerance.add(circles)
-                    Log.d("tolid","$circles.id")
-                }
-
+                circles?.let { listOfMarkedCircles.add(it) }
             }
 
         }
 
     }
 
-    fun removeTolerance(circle:Circle){
-        var nextPointLatLng = circle.center
-        circle.isVisible = false
-        map?.addCircle(
-            CircleOptions().center(nextPointLatLng )
-                .radius(0.0)
-                .fillColor(0x22228B22)
-                .strokeColor(Color.GREEN)
-                .strokeWidth(0.0f)
-                .visible(false)
-
-        )
-    }
 
     private val onLongMapPress = GoogleMap.OnMapLongClickListener {
         if (polyLines.size == 0)
