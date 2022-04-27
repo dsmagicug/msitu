@@ -6,6 +6,10 @@ import android.content.Context
 
 import android.content.Intent
 import android.graphics.Color
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.location.Location
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -27,6 +31,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.snackbar.Snackbar
+import com.google.gson.Gson
 import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
@@ -34,9 +39,16 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.File
+import java.io.FileWriter
+import java.io.IOException
+import java.io.PrintWriter
 
 import java.net.URL
+import java.util.*
 import java.util.concurrent.Executors
+import kotlin.collections.ArrayList
+import kotlin.math.sqrt
 
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener {
@@ -57,18 +69,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var polyLines = ArrayList<Polyline?>()
     var asyncExecutor = Executors.newSingleThreadExecutor()
 
-    var str = "[\n" +
-            "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
-            "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
-            "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
-            "  },\n" +
-            "  {\"name\":\"project one\"},\n" +
-            "  {\"gap size\":4},\n" +
-            "  {\"mesh\":600.0}\n" +
-            "\n" +
-            "\n" +
-            "]"
-
+    // Declaring sensorManager
+    // and acceleration constants
+    private var sensorManager: SensorManager? = null
+    private var acceleration = 0f
+    private var currentAcceleration = 0f
+    private var lastAcceleration = 0f
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,6 +85,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         setSupportActionBar(findViewById(R.id.appToolbar))
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
+        // Getting the Sensor Manager instance
+        sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        Objects.requireNonNull(sensorManager)!!
+            .registerListener(sensorListener, sensorManager!!
+                .getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL)
+
+        acceleration = 10f
+        currentAcceleration = SensorManager.GRAVITY_EARTH
+        lastAcceleration = SensorManager.GRAVITY_EARTH
 
         if (savedInstanceState != null) {
 
@@ -88,6 +103,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
             mapFragment?.getMapAsync(callback)
         }
+
+
         // Set callback
         NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
             override fun onLocationChanged(loc: Location) {
@@ -119,6 +136,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         })
 
     }
+    val str ="{\"employee\":{\"name\":\"Abhishek Saini\",\"salary\":65000}}"
 
     fun showFragment() {
         finish()
@@ -156,60 +174,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         return true
     }
 
-    fun showSnackBar(view: View) {
-        val snackBar = Snackbar.make(view, "Please Choose a project", Snackbar.LENGTH_INDEFINITE)
-            .setAction("hidden") {
-//                on click btn
-            }
-//            .setActionTextColor(ContextCompat.getColor(this, R.color.green))
-//        val snackBarView = snackBar.view
-//        val txt =
-//            snackBarView.findViewById(com.google.android.material.R.id.snackbar_text) as TextView
-//        snackBarView.setBackgroundColor(ContextCompat.getColor(this, R.color.green))
-//        txt.setTextColor(ContextCompat.getColor(this, R.color.white))
-
-        snackBar.show()
-        Log.d("snack", "snakbar")
-    }
-//    fun crea(name:String){
-//        val newvalues = "[\n" +
-//                "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
-//                "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
-//                "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
-//                "  },\n" +
-//                "  {\"name\":\"Project one\"},\n" +
-//                "  {\"gap size\":4},\n" +
-//                "  {\"mesh\":600.0}\n" +
-//                "\n" +
-//                "\n" +
-//                "]"
-//        val project2 =  "[\n" +
-//                "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
-//                "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
-//                "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
-//                "  },\n" +
-//                "  {\"name\":\"Project two\"},\n" +
-//                "  {\"gap size\":4},\n" +
-//                "  {\"mesh\":600.0}\n" +
-//                "\n" +
-//                "\n" +
-//                "]"
-//        if(name == ""){
-//            val view = R.layout.activity_main
-//            val snack = Snackbar.make(this,"This is a simple Snackbar", Snackbar.LENGTH_LONG)
-//            snack.show()
-//        }
-//        val displayProjectName: TextView? = findViewById(R.id.display_project_name)
-//        displayProjectName?.text = name
-//
-////        val displayProjectName: TextView? = activity?.findViewById(R.id.display_project_name)
-////        displayProjectName?.text = selectedProject
-////
-////        val intent = Intent(this,Geometry::class.java)
-////        intent.putExtra("values",project2)
-////        startActivity(intent)
-//    }
-
     //Handling the options in the app action bar
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return if (item.itemId == R.id.action_create) {
@@ -226,9 +190,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             return true
 
         } else if (item.itemId == R.id.reload) {
-            finish()
-            startActivity(intent)
-            Log.d("reload", "reloaded")
+//            finish()
+//            startActivity(intent)
+//            Log.d("reload", "reloaded")
+
             return true
         } else {
             // If we got here, the user's action was not recognized.
@@ -277,8 +242,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
 
     fun listProjects() {
-
-
         try {
 
             val obj: JSONObject = JSONObject(str)
@@ -494,13 +457,26 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var listWithNext = mutableListOf<LatLng>()
     var unmarkedCirclesList = mutableListOf<Circle>()
     var listOfMarkedCircles = mutableListOf<Circle>()
+    var listOfPlantingLines = mutableListOf<Polyline>()
+
 
     private val onPolyClick = GoogleMap.OnPolylineClickListener {
-
-        Toast.makeText(this, "Planting line selected...", Toast.LENGTH_LONG).show()
         it.isClickable = false
-        it.color = Color.GREEN
+        if(listOfPlantingLines.isEmpty()){
+            listOfPlantingLines.add(it)
+            Toast.makeText(this, "Planting line selected...", Toast.LENGTH_LONG).show()
+            it.color = Color.GREEN
 
+
+        }else{
+            Toast.makeText(this, "Switching planting line...", Toast.LENGTH_LONG).show()
+          var recentLineIndex = listOfPlantingLines.lastIndex
+            var recentLine = listOfPlantingLines[recentLineIndex]
+            recentLine.color = Color.GRAY
+            recentLine.isClickable = true
+            listOfPlantingLines.add(it)
+            it.color = Color.GREEN
+        }
         val l = it.tag as List<*>
 
         var lastp: LatLng? = null
@@ -527,6 +503,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 unmarkedCircles?.isClickable
                 unmarkedCirclesList.add(unmarkedCircles!!)
             } else {
+
                 var markedCircles = map?.addCircle(
                     CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5)
 
@@ -551,44 +528,109 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
             Log.d("ls", "$listOfMarkedPoints")
         }
-
         if (lastp != null && mut.isNotEmpty()) {
             val newStartingPointAfterPlantingIndex = mut.last()
             tolerance(newStartingPointAfterPlantingIndex as LatLng, it)
         }
     }
 
+    var i = 10
+
+    val sensorListener: SensorEventListener = object : SensorEventListener {
+        override fun onSensorChanged(event: SensorEvent) {
+
+            // Fetching x,y,z values
+            val x = event.values[0]
+            val y = event.values[1]
+            val z = event.values[2]
+            lastAcceleration = currentAcceleration
+
+            // Getting current accelerations
+            // with the help of fetched x,y,z values
+            currentAcceleration = sqrt((x * x + y * y + z * z).toDouble()).toFloat()
+            val delta: Float = currentAcceleration - lastAcceleration
+            acceleration = acceleration * 0.9f + delta
+
+            // Display a Toast message if
+            // acceleration value is over 12
+
+
+            if (acceleration > 12) {
+                var plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
+                val l = plantingLine.tag as List<*>
+
+
+
+                Log.d("points","$l")
+                var index = l[++i]
+                    for(loc in l){
+                        if(loc == index){
+                Log.d("shake","$loc")
+                      var circlePoint =  map?.addCircle(
+                            CircleOptions().center(loc as LatLng).fillColor(Color.CYAN).radius(0.5)
+                                .clickable(true)
+                                .strokeWidth(1.0f)
+                            //if set to zero, no outline is drawn
+                        )
+
+                            if (circlePoint != null) {
+                                plantingTolerance(circlePoint, unmarkedCirclesList)
+                                listOfMarkedCircles.add((circlePoint))
+                            }
+                    }
+
+
+                }
+
+                markPoints()
+                Toast.makeText(applicationContext, "Point Marked $index", Toast.LENGTH_SHORT).show()
+
+
+            }
+        }
+        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
+    }
+
+    override fun onResume() {
+        sensorManager?.registerListener(sensorListener, sensorManager!!.getDefaultSensor(
+            Sensor .TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL
+        )
+        super.onResume()
+    }
+
+    override fun onPause() {
+        sensorManager!!.unregisterListener(sensorListener)
+        super.onPause()
+    }
     fun tolerance(loc: LatLng, polyline: Polyline) {
 
         val l = polyline.tag as List<*>
 
         //map?.addMarker(MarkerOptions().title("MyPosition").position(loc))
-        for (pt in l) {
-//
-            if (pt == loc) {
-                Log.d("point", "$pt")
+        //
+        for (pt in l) if (pt == loc) {
+            Log.d("point", "$pt")
 //            println(findIndex(l, pt))
-                val index = l.indexOf(pt)
-                val nextIndex = index + 1
-                var nextPoint = l[nextIndex] as LatLng
-                // listWithNext.add(nextPoint as LatLng)
+            val index = l.indexOf(pt)
+            val nextIndex = index + 1
+            var nextPoint = l[nextIndex] as LatLng
+            // listWithNext.add(nextPoint as LatLng)
 
 
-                Log.d("nextPoint", "$nextPoint")
-                map?.addCircle(
-                    CircleOptions().center(nextPoint)
-                        .radius(radius(4))
-                        .fillColor(0x22228B22)
-                        .strokeColor(Color.GREEN)
-                        .strokeWidth(1.0f)
-                        .clickable(true)
-                )
-            }
+            Log.d("nextPoint", "$nextPoint")
+            map?.addCircle(
+                CircleOptions().center(nextPoint)
+                    .radius(radius(4))
+                    .fillColor(0x22228B22)
+                    .strokeColor(Color.GREEN)
+                    .strokeWidth(1.0f)
+                    .clickable(true)
+            )
         }
         Log.d("tag", "$l")
 
         map?.addCircle(
-            CircleOptions().center(loc!!).fillColor(Color.CYAN).radius(0.7)
+            CircleOptions().center(loc).fillColor(Color.CYAN).radius(0.7)
                 .strokeWidth(1.0f)
 
 
@@ -606,50 +648,40 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         return toleranceCircle
     }
 
-    fun animate() {
-        object : CountDownTimer(300000, 10000) {
+    fun markPoint(){
 
-            override fun onTick(millisUntilFinished: Long) {
-                var x = 1.0
-                while (true) {
-                    x++
+
+    }
+    fun markPoints()=GoogleMap.OnCircleClickListener{
+
+        //val onMarkingPoint = GoogleMap.OnCircleClickListener {
+            it.isClickable = false
+
+            var cordinatesOfClickedCircle = it.center
+
+            listOfMarkedPoints.add(cordinatesOfClickedCircle)
+            // Log.d("circleMarkedPoints","$listOfMarkedPoints")
+            map?.addCircle(
+                CircleOptions().center(cordinatesOfClickedCircle).fillColor(Color.YELLOW).radius(0.5)
+
+                    .strokeWidth(1.0f)
+            )
+            for (greenCircle in listOfMarkedCircles) {
+                if (greenCircle.center == cordinatesOfClickedCircle) {
+                    greenCircle.remove()
                 }
-
-                Log.d("time", "seconds remaining: " + "$millisUntilFinished / 100")
             }
+            plantingTolerance(it, unmarkedCirclesList)
 
-            override fun onFinish() {
-                Log.d("finish", "time")
-            }
-        }.start()
-    }
-
-    private val onMarkingPoint = GoogleMap.OnCircleClickListener {
-        it.isClickable = false
-
-        var cordinatesOfClickedCircle = it.center
-
-        listOfMarkedPoints.add(cordinatesOfClickedCircle)
-        // Log.d("circleMarkedPoints","$listOfMarkedPoints")
-        map?.addCircle(
-            CircleOptions().center(cordinatesOfClickedCircle).fillColor(Color.YELLOW).radius(0.5)
-
-                .strokeWidth(1.0f)
-        )
-        for (greenCircle in listOfMarkedCircles) {
-            if (greenCircle.center == cordinatesOfClickedCircle) {
-                greenCircle.remove()
-            }
         }
-        plantingTolerance(it, unmarkedCirclesList)
 
-    }
+
     var listTolerance = mutableListOf<Circle>()
     fun plantingTolerance(circleCords: Circle, ummarkedcircles: MutableList<Circle>) {
 
         var listOfUnmarkedCircles = ummarkedcircles
         var currentCircleId = circleCords.id
-
+Log.d("shake","I reach tolerance")
         for (aCircle in listOfUnmarkedCircles) {
             if (currentCircleId == aCircle.id) {
                 val index = listOfUnmarkedCircles.indexOf(aCircle)
@@ -674,7 +706,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         }
 
     }
-
 
     private val onLongMapPress = GoogleMap.OnMapLongClickListener {
         if (polyLines.size == 0)
@@ -711,7 +742,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         googleMap.setOnPolylineClickListener(onPolyClick)
 //        googleMap.setOnCircleClickListener(onClickingPoint)
         googleMap.setOnMapLongClickListener(onLongMapPress)
-        googleMap.setOnCircleClickListener(onMarkingPoint)
+        googleMap.setOnCircleClickListener(markPoints())
 
         val isl = LatLng(-.366044, 32.441599) // LatLng(0.0,32.44) //
         googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE

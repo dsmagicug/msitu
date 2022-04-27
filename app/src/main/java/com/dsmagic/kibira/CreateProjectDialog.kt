@@ -12,12 +12,19 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
-import com.dsmagic.kibira.R.*
+import com.dsmagic.kibira.R.layout
+import com.dsmagic.kibira.R.string
+import com.google.gson.Gson
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.FileWriter
+import java.io.PrintWriter
 
 //Returning a layout as a dialog box
 class CreateProjectDialog : DialogFragment() {
+
+
+
 
     @SuppressLint("SetTextI18n")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -88,6 +95,7 @@ class CreateProjectDialog : DialogFragment() {
         val gap_size = Integer.parseInt(gapsize?.text.toString())
         val project_name: String = projectname?.text.toString()
 
+        //MainActivity().saveProject(project_name,gap_size)
         val sharedPreferences: SharedPreferences =
             activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
         val editor = sharedPreferences.edit()
@@ -104,10 +112,25 @@ class CreateProjectDialog : DialogFragment() {
 
             Log.d("values","Project name is: $saved_project_name")
 
-//MainActivity().showFragment()
         } else{
             Log.d("not","Not saved")
         }
+
+//        val project = Project(
+//            project_name, gap_size
+//
+//        )
+//
+//        val path = "/main/assets/project.json"
+//        try {
+//            PrintWriter(FileWriter(path)).use {
+//                val gson = Gson()
+//                val jsonString = gson.toJson(project)
+//               it.write(jsonString)
+//            }
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//        }
 
     }
 

@@ -17,17 +17,23 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 val values = "{\n\"Name\":\"Project 1\",\n\"Gap_Size\":\"5\",\n\"mesh\":\"600.00\"}"
-val newvalues = "[\n" +
-        "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
-        "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
-        "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
+val newvalues = """[
+  [{"lat":8.4,"lng":43.9},{"lat":8,"lng":80}],
+""" +
+        """  {"Base points":{"first":[{"lat":8,"lng":9}],
+""" +
+        """    "second":[{"lat":9,"lng":10}]}
+""" +
         "  },\n" +
-        "  {\"name\":\"Project one\"},\n" +
-        "  {\"gap size\":4},\n" +
-        "  {\"mesh\":600.0}\n" +
+        """  {"name":"Project one"},
+""" +
+        """  {"gap size":4},
+""" +
+        """  {"mesh":600.0}
+""" +
         "\n" +
         "\n" +
-        "]"
+        """]"""
 //val profileName=MainActivity().intent.getStringExtra("values")
 //
 //val values = firstActivity().crea()
