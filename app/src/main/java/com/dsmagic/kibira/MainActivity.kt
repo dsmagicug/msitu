@@ -284,6 +284,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             startActivity(enableBT)
             return
         }
+
         if (this.let {
                 androidx.core.app.ActivityCompat.checkSelfPermission(
                     it,
@@ -300,6 +301,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             // for ActivityCompat#requestPermissions for more details.
             // return
 
+        }else{
+            Log.d("bt","Allowed")
+            //bluetoothAdaptor.startDiscovery()
         }
 
         val l = ArrayList<String>()
@@ -325,7 +329,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         btSpinner.adapter = adaptor
         btSpinner.onItemSelectedListener = this
         btSpinner.visibility = Spinner.VISIBLE
-        Log.d("bt", "Bluetooth scan complete")
+
 
         btn.setOnClickListener(this)
     }
@@ -355,6 +359,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         if (device == null)
             return
         if (NmeaReader.readingStarted) {
+            Log.d("device","can get reading")
             NmeaReader.stop()
         } else
             openBlueTooth()
@@ -511,22 +516,23 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 )
             }
 
-            if (lastp != null) {
-                val res = floatArrayOf(0f)
-                Location.distanceBetween(
-                    lastp.latitude,
-                    lastp.longitude,
-                    xloc.latitude,
-                    xloc.longitude,
-                    res
-                )
+            if (lastp != null){
+            val res = floatArrayOf(0f)
+            Location.distanceBetween(
+                lastp.latitude,
+                lastp.longitude,
+                xloc.latitude,
+                xloc.longitude,
+                res
+            )
 
-                Log.d("distance", "Distance from last point: ${res[0]}")
-            }
+            Log.d("distance", "Distance from last point: ${res[0]}")
+
             lastp = xloc
 
 
             Log.d("ls", "$listOfMarkedPoints")
+        }
         }
         if (lastp != null && mut.isNotEmpty()) {
             val newStartingPointAfterPlantingIndex = mut.last()
@@ -551,39 +557,48 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             val delta: Float = currentAcceleration - lastAcceleration
             acceleration = acceleration * 0.9f + delta
 
-            // Display a Toast message if
-            // acceleration value is over 12
-
-
-            if (acceleration > 12) {
+            if (acceleration > 22) {
                 var plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
                 val l = plantingLine.tag as List<*>
-
+                //val listOfCords = plantingLine.tag
+                var unMarkedPoints = mutableListOf<LatLng>()
+                for (loc in l) {
+                    unMarkedPoints.add(loc as LatLng)
+                }
+//                l.forEach(loc in l){
+//                    unMarkedPoints.add(l as LatLng)
+//                }
 
 
                 Log.d("points","$l")
                 var index = l[++i]
+                var displayIndex = l.indexOf(index) + 1
                     for(loc in l){
                         if(loc == index){
                 Log.d("shake","$loc")
                       var circlePoint =  map?.addCircle(
-                            CircleOptions().center(loc as LatLng).fillColor(Color.CYAN).radius(0.5)
+                            CircleOptions().center(loc as LatLng).fillColor(Color.YELLOW).radius(0.5)
                                 .clickable(true)
                                 .strokeWidth(1.0f)
                             //if set to zero, no outline is drawn
                         )
 
                             if (circlePoint != null) {
-                                plantingTolerance(circlePoint, unmarkedCirclesList)
-                                listOfMarkedCircles.add((circlePoint))
+                                plantingTolerance(circlePoint, unMarkedPoints)
+
+                                for (greenCircle in listOfMarkedCircles) {
+                                    if (greenCircle.center == circlePoint.center) {
+                                        greenCircle.remove()
+                                    }
+                                }
                             }
                     }
 
 
                 }
 
-                markPoints()
-                Toast.makeText(applicationContext, "Point Marked $index", Toast.LENGTH_SHORT).show()
+                Toast.makeText(applicationContext, "Point Marked $displayIndex" +
+                        "", Toast.LENGTH_SHORT).show()
 
 
             }
@@ -602,6 +617,37 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         sensorManager!!.unregisterListener(sensorListener)
         super.onPause()
     }
+    fun plantingTolerance(circleCords: Circle, ummarkedPoints: MutableList<LatLng>) {
+
+        var listOfUnmarkedPoints = ummarkedPoints
+        var currentCircleLatLng = circleCords.center
+
+        for (latlng in listOfUnmarkedPoints) {
+            if (currentCircleLatLng == latlng) {
+                Log.d("match","I reach tolerance")
+               val index = listOfUnmarkedPoints.indexOf(latlng)
+              val nextIndex = index + 1
+                var nextPoint = listOfUnmarkedPoints[nextIndex]
+                //var nextPointLatLng = nextPoint.center
+                //listWithNext.add(nextPoint as LatLng)
+
+                var circles = map?.addCircle(
+                    CircleOptions().center(nextPoint)
+                        .radius(radius(4))
+                        .fillColor(0x22228B22)
+                        .strokeColor(Color.GREEN)
+                        .strokeWidth(1.0f)
+
+                )
+                circles?.isClickable
+
+                circles?.let { listOfMarkedCircles.add(it) }
+            }
+
+        }
+
+    }
+
     fun tolerance(loc: LatLng, polyline: Polyline) {
 
         val l = polyline.tag as List<*>
@@ -671,41 +717,41 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     greenCircle.remove()
                 }
             }
-            plantingTolerance(it, unmarkedCirclesList)
+            //plantingTolerance(it, unmarkedCirclesList)
 
         }
 
 
     var listTolerance = mutableListOf<Circle>()
-    fun plantingTolerance(circleCords: Circle, ummarkedcircles: MutableList<Circle>) {
-
-        var listOfUnmarkedCircles = ummarkedcircles
-        var currentCircleId = circleCords.id
-Log.d("shake","I reach tolerance")
-        for (aCircle in listOfUnmarkedCircles) {
-            if (currentCircleId == aCircle.id) {
-                val index = listOfUnmarkedCircles.indexOf(aCircle)
-                val nextIndex = index + 1
-                var nextPoint = listOfUnmarkedCircles[nextIndex]
-                var nextPointLatLng = nextPoint.center
-                //listWithNext.add(nextPoint as LatLng)
-
-                var circles = map?.addCircle(
-                    CircleOptions().center(nextPointLatLng)
-                        .radius(radius(4))
-                        .fillColor(0x22228B22)
-                        .strokeColor(Color.GREEN)
-                        .strokeWidth(1.0f)
-
-                )
-                circles?.isClickable
-
-                circles?.let { listOfMarkedCircles.add(it) }
-            }
-
-        }
-
-    }
+//    fun plantingTolerance(circleCords: Circle, ummarkedcircles: MutableList<Circle>) {
+//
+//        var listOfUnmarkedCircles = ummarkedcircles
+//        var currentCircleId = circleCords.id
+//Log.d("shake","I reach tolerance")
+//        for (aCircle in listOfUnmarkedCircles) {
+//            if (currentCircleId == aCircle.id) {
+//                val index = listOfUnmarkedCircles.indexOf(aCircle)
+//                val nextIndex = index + 1
+//                var nextPoint = listOfUnmarkedCircles[nextIndex]
+//                var nextPointLatLng = nextPoint.center
+//                //listWithNext.add(nextPoint as LatLng)
+//
+//                var circles = map?.addCircle(
+//                    CircleOptions().center(nextPointLatLng)
+//                        .radius(radius(4))
+//                        .fillColor(0x22228B22)
+//                        .strokeColor(Color.GREEN)
+//                        .strokeWidth(1.0f)
+//
+//                )
+//                circles?.isClickable
+//
+//                circles?.let { listOfMarkedCircles.add(it) }
+//            }
+//
+//        }
+//
+//    }
 
     private val onLongMapPress = GoogleMap.OnMapLongClickListener {
         if (polyLines.size == 0)
