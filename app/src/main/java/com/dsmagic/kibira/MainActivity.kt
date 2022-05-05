@@ -3,7 +3,6 @@ package com.dsmagic.kibira
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
-
 import android.content.Intent
 import android.graphics.Color
 import android.hardware.Sensor
@@ -11,43 +10,27 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.location.Location
+import android.location.LocationManager
 import android.os.Bundle
-import android.os.CountDownTimer
 import android.os.Handler
 import android.os.Looper
-
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
-
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.DialogFragment
-
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
-import com.google.android.material.snackbar.Snackbar
-import com.google.gson.Gson
 import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
 import kotlinx.android.synthetic.main.activity_main.*
-
-import org.json.JSONException
-import org.json.JSONObject
-import java.io.File
-import java.io.FileWriter
-import java.io.IOException
-import java.io.PrintWriter
-
-import java.net.URL
 import java.util.*
 import java.util.concurrent.Executors
-import kotlin.collections.ArrayList
 import kotlin.math.sqrt
 
 
@@ -57,8 +40,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     private var map: GoogleMap? = null
     private var marker: Circle? = null
     private var tolerance: Circle? = null
+
     var lastLoc: Location? = null
-    var zoomLevel = 30.0f
+    var zoomLevel = 40.0f
     var firstPoint: LongLat? = null
     var secondPoint: LongLat? = null
     val handler = Handler(Looper.getMainLooper())
@@ -68,6 +52,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var pointsIndex = S2PointIndex<S2LatLng>()
     var polyLines = ArrayList<Polyline?>()
     var asyncExecutor = Executors.newSingleThreadExecutor()
+
+    var basePoints = mutableListOf<LongLat>()
+    var currentLocation = mutableListOf<LatLng>()
 
     // Declaring sensorManager
     // and acceleration constants
@@ -104,7 +91,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             mapFragment?.getMapAsync(callback)
         }
 
-
         // Set callback
         NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
             override fun onLocationChanged(loc: Location) {
@@ -116,6 +102,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     Log.d("Location", "First Location $loc!")
                     map?.moveCamera(CameraUpdateFactory.newLatLngZoom(xloc, zoomLevel))
                     firstPoint = loc as LongLat // Grab it.
+                    basePoints.add(firstPoint!!)
+
                 }
                 // Get the displacement from the last position.
                 val moved = NmeaReader.significantChange(lastLoc, loc)
@@ -124,153 +112,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     // Log.d("Location","Location ${loc.latitude}, ${loc.longitude}")
                     marker?.remove()
                     marker = map?.addCircle(
-                        CircleOptions().center(xloc).fillColor(Color.YELLOW).radius(1.0)
+                        CircleOptions().center(xloc).fillColor(Color.YELLOW).radius(0.5)
                             .strokeWidth(1.0f)
-
-
                     )
-                    marker as LatLng
-
+                    currentLocation.add(xloc)
                 }
             }
         })
 
-    }
-    val str ="{\"employee\":{\"name\":\"Abhishek Saini\",\"salary\":65000}}"
-
-    fun showFragment() {
-        finish()
-
-        setContentView(R.layout.activity_main)
-
-        setSupportActionBar(findViewById(R.id.appToolbar))
-        supportActionBar?.setDisplayShowTitleEnabled(false)
-        val mapFragment =
-            supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
-        mapFragment?.getMapAsync(callback)
-//    finish()
-//    startActivity(intent)
-        Log.d("clear", "cleraed")
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.appmenu, menu)
-
-        return true
-    }
-
-    fun createDialog(): Boolean {
-        var onAppOpen = firstActivity()
-        onAppOpen.show(supportFragmentManager, "pick")
-        return true
-
-    }
-
-    fun newProject(): Boolean {
-
-        var onNewProject = firstActivity() as DialogFragment
-
-        onNewProject.show(supportFragmentManager, "project")
-        return true
-    }
-
-    //Handling the options in the app action bar
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if (item.itemId == R.id.action_create) {
-            var createNewProject = CreateProjectDialog()
-            createNewProject.show(supportFragmentManager, "create")
-            return true
-        } else if (item.itemId == R.id.action_view_projects) {
-            var createNewProject = CreateProjectDialog()
-            createNewProject.show(supportFragmentManager, "view_projects")
-//        listProjects()
-            return true
-        } else if (item.itemId == R.id.bluetooth_spinner) {
-            toggleWidgets()
-            return true
-
-        } else if (item.itemId == R.id.reload) {
-//            finish()
-//            startActivity(intent)
-//            Log.d("reload", "reloaded")
-
-            return true
-        } else {
-            // If we got here, the user's action was not recognized.
-            // Invoke the superclass to handle it.
-            super.onOptionsItemSelected(item)
-        }
-        return true
-    }
-
-    val sharedPrefFile = "kibirasharedfile"
-
-
-    override fun onPostResume() {
-
-        super.onPostResume()
-        var url: URL = URL("http://uinames.com/api/")
-
-        var displayProjectName = findViewById<TextView>(R.id.display_project_name)
-        val sharedPreferences = getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)
-        val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
-        var saved_gap_size: Int? = sharedPreferences.getInt("gap_size", 0)
-
-        // displayProjectName?.text = saved_project_name
-
-        Log.d("valuesMain", "saved data $saved_project_name")
-
-        //overridePendingTransition(0, 0)
-
-        val db = DBHelper(this, null)
-        if (saved_project_name != null && saved_gap_size != null) {
-            with(db) {
-                addProject(
-                    saved_project_name,
-                    saved_gap_size
-                )
-            }
-            //Toast.makeText(this, "Project $saved_project_name created", Toast.LENGTH_LONG).show()
-//            val refresh = Intent(this,MainActivity::class.java)
-//            finish()
-//            startActivity(refresh)
-        } else {
-            Toast.makeText(this, "Project not created", Toast.LENGTH_LONG).show()
-        }
-
-    }
-
-
-    fun listProjects() {
-        try {
-
-            val obj: JSONObject = JSONObject(str)
-            val names: JSONObject = obj.getJSONObject("projects")
-
-            val name = names.getString("name")
-
-            // set employee name and salary in TextView's
-            display_project_name.setText("Name: $name");
-
-
-        } catch (e: JSONException) {
-            throw RuntimeException(e)
-        }
-    }
-
-    private fun toggleWidgets() {
-        val btSpinner = findViewById<Spinner>(R.id.spinner)
-        val btn = findViewById<Button>(R.id.buttonConnect)
-
-        if (btSpinner.visibility == Spinner.INVISIBLE && btn.visibility == Button.INVISIBLE) {
-            btSpinner.visibility = Spinner.VISIBLE
-            btn.visibility = Button.VISIBLE
-            scantBlueTooth()
-        } else {
-            btSpinner.visibility = Spinner.INVISIBLE
-            btn.visibility = Button.INVISIBLE
-        }
-
+        scantBlueTooth()
     }
 
     private fun scantBlueTooth() {
@@ -301,9 +151,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             // for ActivityCompat#requestPermissions for more details.
             // return
 
-        }else{
-            Log.d("bt","Allowed")
-            //bluetoothAdaptor.startDiscovery()
         }
 
         val l = ArrayList<String>()
@@ -334,13 +181,124 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         btn.setOnClickListener(this)
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        menuInflater.inflate(R.menu.appmenu, menu)
+
+        return true
+    }
+
+    private fun createDialog(): Boolean {
+        val onAppOpen = firstActivity()
+        onAppOpen.show(supportFragmentManager, "pick")
+        return true
+    }
+
+    //Handling the options in the app action bar
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return if (item.itemId == R.id.action_create) {
+
+            val createNewProject = CreateProjectDialog()
+            createNewProject.show(supportFragmentManager, "create")
+
+            return true
+        }
+        else if (item.itemId == R.id.action_view_projects) {
+            val createNewProject = CreateProjectDialog()
+            createNewProject.show(supportFragmentManager, "view_projects")
+
+//        listProjects()
+            return true
+        }
+        else if (item.itemId == R.id.bluetooth_spinner) {
+            toggleWidgets()
+            return true
+
+        } else if (item.itemId == R.id.scan) {
+//            finish()
+//            startActivity(intent)
+//            Log.d("reload", "reloaded")
+
+            return true
+        }
+        else {
+            // If we got here, the user's action was not recognized.
+            // Invoke the superclass to handle it.
+            super.onOptionsItemSelected(item)
+        }
+    }
+
+    private val sharedPrefFile = "kibirasharedfile"
+    override fun onPostResume() {
+
+        super.onPostResume()
+
+        var displayProjectName = findViewById<TextView>(R.id.display_project_name)
+        val sharedPreferences = getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)
+        val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
+        val saved_gap_size: Int = sharedPreferences.getInt("gap_size", 0)
+
+        // displayProjectName?.text = saved_project_name
+
+        Log.d("valuesMain", "saved data $saved_project_name")
+
+        //overridePendingTransition(0, 0)
+
+        val db = DBHelper(this, null)
+        if (saved_project_name != null) {
+            with(db) {
+                addProject(saved_project_name, saved_gap_size)
+            }
+            //Toast.makeText(this, "Project $saved_project_name created", Toast.LENGTH_LONG).show()
+//            val refresh = Intent(this,MainActivity::class.java)
+//            finish()
+//            startActivity(refresh)
+        }
+        else {
+            Toast.makeText(this, "Project not created", Toast.LENGTH_LONG).show()
+        }
+
+    }
+
+//
+//    fun listProjects() {
+//        try {
+//
+//            //val obj: JSONObject = JSONObject(str)
+//           // val names: JSONObject = obj.getJSONObject("projects")
+//
+//            val name = names.getString("name")
+//
+//            // set employee name and salary in TextView's
+//            display_project_name.setText("Name: $name");
+//
+//
+//        } catch (e: JSONException) {
+//            throw RuntimeException(e)
+//        }
+//    }
+
+    private fun toggleWidgets() {
+        val btSpinner = findViewById<Spinner>(R.id.spinner)
+        val btn = findViewById<Button>(R.id.buttonConnect)
+
+        if (btSpinner.visibility == Spinner.INVISIBLE && btn.visibility == Button.INVISIBLE) {
+            btSpinner.visibility = Spinner.VISIBLE
+            btn.visibility = Button.VISIBLE
+            scantBlueTooth()
+        } else {
+            btSpinner.visibility = Spinner.INVISIBLE
+            btn.visibility = Button.INVISIBLE
+        }
+
+    }
+
     override fun onItemSelected(
         var1: AdapterView<*>?,
         view: View?,
         i: Int,
         l: Long,
     ) {
-        device = deviceList.get(i)
+        device = deviceList[i]
 
         // Show connect button.
         val btn = findViewById<Button>(R.id.buttonConnect)
@@ -359,7 +317,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         if (device == null)
             return
         if (NmeaReader.readingStarted) {
-            Log.d("device","can get reading")
             NmeaReader.stop()
         } else
             openBlueTooth()
@@ -371,19 +328,20 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     }
 
     private fun openBlueTooth() {
+
         device?.let {
             // Load the map
 
             //showMap()
             this.let { it1 ->
                 NmeaReader.start(it1, it)
+                Toast.makeText(this, "Rover successfully connected", Toast.LENGTH_LONG).show()
                 Log.d("bt", "Bluetooth read started")
             }
 
         }
         hideButton()
     }
-
 
     private val drawLine: (List<LongLat>) -> Unit = { it ->
         val ml = it.map {
@@ -413,7 +371,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
         }
 
-
     }
 
     private val onMapClick = GoogleMap.OnMapClickListener { loc ->
@@ -435,11 +392,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             return@OnMapClickListener
 
         map?.addCircle(
-            CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0).strokeWidth(1.0f)
+            CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5).strokeWidth(1.0f)
         )
-        map?.addCircle(CircleOptions().center(loc).fillColor(Color.RED)
-            .strokeWidth(1.0f)
-        )
+        basePoints.add(secondPoint!!)
+
         asyncExecutor.execute {
             val c = Point(firstPoint!!)
             val p = Point(secondPoint!!)
@@ -459,7 +415,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
     var listOfMarkedPoints = mutableListOf<LatLng>()
     var listOfMarkedPointsDemo = mutableListOf<LatLng>()
-    var listWithNext = mutableListOf<LatLng>()
     var unmarkedCirclesList = mutableListOf<Circle>()
     var listOfMarkedCircles = mutableListOf<Circle>()
     var listOfPlantingLines = mutableListOf<Polyline>()
@@ -467,15 +422,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
     private val onPolyClick = GoogleMap.OnPolylineClickListener {
         it.isClickable = false
-        if(listOfPlantingLines.isEmpty()){
+        if (listOfPlantingLines.isEmpty()) {
             listOfPlantingLines.add(it)
             Toast.makeText(this, "Planting line selected...", Toast.LENGTH_LONG).show()
             it.color = Color.GREEN
+            Log.d("base", "$currentLocation")
 
-
-        }else{
+        } else {
             Toast.makeText(this, "Switching planting line...", Toast.LENGTH_LONG).show()
-          var recentLineIndex = listOfPlantingLines.lastIndex
+            var recentLineIndex = listOfPlantingLines.lastIndex
             var recentLine = listOfPlantingLines[recentLineIndex]
             recentLine.color = Color.GRAY
             recentLine.isClickable = true
@@ -483,56 +438,54 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             it.color = Color.GREEN
         }
         val l = it.tag as List<*>
-
         var lastp: LatLng? = null
 
         for (loc in l) {
             listOfMarkedPointsDemo.add(loc as LatLng)
         }
-        var mut = listOfMarkedPoints as List<*>
-        var mut2 = listOfMarkedPointsDemo.subList(40, 100) as List<*>
-
-        val index = mut.lastIndex
+        val mut = listOfMarkedPoints as List<*>
 
         for (loc in l) {
-            var xloc = loc as LatLng
+            val xloc = loc as LatLng
             // Draw the points...
-            if (loc !in mut2) {
+            // if (loc !in mut2) {
 
-                var unmarkedCircles = map?.addCircle(
-                    CircleOptions().center(loc).fillColor(Color.RED).radius(0.5)
-                        .clickable(true)
-                        .strokeWidth(1.0f)
-                    //if set to zero, no outline is drawn
-                )
-                unmarkedCircles?.isClickable
-                unmarkedCirclesList.add(unmarkedCircles!!)
-            } else {
-
-                var markedCircles = map?.addCircle(
-                    CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5)
-
-                        .strokeWidth(1.0f)  //if set to zero, no outline is drawn
-                )
-            }
-
-            if (lastp != null){
-            val res = floatArrayOf(0f)
-            Location.distanceBetween(
-                lastp.latitude,
-                lastp.longitude,
-                xloc.latitude,
-                xloc.longitude,
-                res
+            val unmarkedCircles = map?.addCircle(
+                CircleOptions().center(loc).fillColor(Color.RED).radius(0.5)
+                    .clickable(true)
+                    .strokeWidth(1.0f)
+                //if set to zero, no outline is drawn
             )
+            unmarkedCircles?.isClickable
+            unmarkedCirclesList.add(unmarkedCircles!!)
 
-            Log.d("distance", "Distance from last point: ${res[0]}")
+            // }
+//            else {
+//
+//                var markedCircles = map?.addCircle(
+//                    CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5)
+//
+//                        .strokeWidth(1.0f)  //if set to zero, no outline is drawn
+//                )
+//            }
 
-            lastp = xloc
+            if (lastp != null) {
+                val res = floatArrayOf(0f)
+                Location.distanceBetween(
+                    lastp.latitude,
+                    lastp.longitude,
+                    xloc.latitude,
+                    xloc.longitude,
+                    res
+                )
+
+                Log.d("distance", "Distance from last point: ${res[0]}")
+
+                lastp = xloc
 
 
-            Log.d("ls", "$listOfMarkedPoints")
-        }
+                Log.d("ls", "$listOfMarkedPoints")
+            }
         }
         if (lastp != null && mut.isNotEmpty()) {
             val newStartingPointAfterPlantingIndex = mut.last()
@@ -540,9 +493,65 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         }
     }
 
-    var i = 10
+    val CircleIndex:Int = 0
+    private fun markPoints() = GoogleMap.OnCircleClickListener {
 
-    val sensorListener: SensorEventListener = object : SensorEventListener {
+        //val onMarkingPoint = GoogleMap.OnCircleClickListener {
+        it.isClickable = false
+
+        var cordinatesOfClickedCircle = it.center
+
+        listOfMarkedPoints.add(cordinatesOfClickedCircle)
+        // Log.d("circleMarkedPoints","$listOfMarkedPoints")
+        map?.addCircle(
+            CircleOptions().center(cordinatesOfClickedCircle).fillColor(Color.YELLOW).radius(0.5)
+
+                .strokeWidth(1.0f)
+        )
+//        for (greenCircle in listOfMarkedCircles) {
+//            if (greenCircle.center == cordinatesOfClickedCircle) {
+//                greenCircle.remove()
+//            }
+//        }
+        plantingTolerance2(it, unmarkedCirclesList)
+
+    }
+
+
+    var listTolerance = mutableListOf<Circle>()
+    private var index: Int? = null
+    fun plantingTolerance2(circleCords: Circle, ummarkedcircles: MutableList<Circle>) {
+
+        val listOfUnmarkedCircles = ummarkedcircles
+        val currentCircleId = circleCords.id
+
+        for (aCircle in listOfUnmarkedCircles) {
+            if (currentCircleId == aCircle.id) {
+                val index = listOfUnmarkedCircles.indexOf(aCircle)
+                val nextIndex = index + 1
+                val nextPoint = listOfUnmarkedCircles[nextIndex]
+                val nextPointLatLng = nextPoint.center
+                //listWithNext.add(nextPoint as LatLng)
+
+                val circles = map?.addCircle(
+                    CircleOptions().center(nextPointLatLng)
+                        .radius(radius(4))
+                        .fillColor(0x22228B22)
+                        .strokeColor(Color.GREEN)
+                        .strokeWidth(1.0f)
+
+                )
+
+                circles?.let { listOfMarkedCircles.add(it) }
+            }
+
+        }
+
+    }
+
+    //var i = 10
+// Marking off points on a planting line
+    private val sensorListener: SensorEventListener = object : SensorEventListener {
         override fun onSensorChanged(event: SensorEvent) {
 
             // Fetching x,y,z values
@@ -557,58 +566,122 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             val delta: Float = currentAcceleration - lastAcceleration
             acceleration = acceleration * 0.9f + delta
 
-            if (acceleration > 22) {
-                var plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
+            var currentLatLng:LatLng? = null
+            if (acceleration > 25) {
+                val plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
                 val l = plantingLine.tag as List<*>
+
                 //val listOfCords = plantingLine.tag
-                var unMarkedPoints = mutableListOf<LatLng>()
+                val unMarkedPoints = mutableListOf<LatLng>()
                 for (loc in l) {
                     unMarkedPoints.add(loc as LatLng)
                 }
-//                l.forEach(loc in l){
-//                    unMarkedPoints.add(l as LatLng)
-//                }
+                if (listOfMarkedPoints.isEmpty()) {
+                    Toast.makeText(applicationContext,
+                        "Select a starting Point first by clicking a circle on line " +
+                                "",
+                        Toast.LENGTH_SHORT).show()
+                }
+                else
+                {
+                val startingPoint =
+                    listOfMarkedPoints[listOfMarkedPoints.lastIndex]   //point clicked on the polyline
+                for (uloc in unMarkedPoints) {
+                    if (uloc == startingPoint) {
+                        val index = unMarkedPoints.indexOf(uloc)
+                        val nextIndex = index + 1
+                         currentLatLng = unMarkedPoints[nextIndex]  // Exactly where we are on the polyline
+                    }
+
+                }
+                    val temp = Location(LocationManager.GPS_PROVIDER)
+                    temp.latitude = currentLatLng!!.latitude
+                    temp.longitude = currentLatLng.longitude
 
 
-                Log.d("points","$l")
-                var index = l[++i]
-                var displayIndex = l.indexOf(index) + 1
-                    for(loc in l){
-                        if(loc == index){
-                Log.d("shake","$loc")
-                      var circlePoint =  map?.addCircle(
-                            CircleOptions().center(loc as LatLng).fillColor(Color.YELLOW).radius(0.5)
-                                .clickable(true)
+
+                Log.d("points", "$l")
+                // var index = l[++i]
+                for (loc in currentLocation) {
+                    val current = Location(LocationManager.GPS_PROVIDER)
+                    current.latitude = loc.latitude
+                    current.longitude = loc.longitude
+                    val distance = temp.distanceTo(current)
+
+                    if(distance > radius(4)){
+                        Log.d("distance"," $distance + outside the Circle")
+
+                    } else{
+                        Log.d("distance"," $distance + within the circle")
+                        Toast.makeText(applicationContext, "Point Marked " +
+                                "", Toast.LENGTH_SHORT).show()
+                        val circlePoint = map?.addCircle(
+                            CircleOptions().center(currentLatLng).fillColor(Color.YELLOW)
+                                .radius(0.5)
+//                                .clickable(true)
                                 .strokeWidth(1.0f)
                             //if set to zero, no outline is drawn
                         )
 
-                            if (circlePoint != null) {
-                                plantingTolerance(circlePoint, unMarkedPoints)
+                        if (circlePoint != null) {
+                            Log.d("sanitycheck"," $distance + within the circle")
+                            plantingTolerance(circlePoint, unMarkedPoints)
 
-                                for (greenCircle in listOfMarkedCircles) {
-                                    if (greenCircle.center == circlePoint.center) {
-                                        greenCircle.remove()
-                                    }
+                            for (greenCircle in listOfMarkedCircles) {
+                                if (greenCircle.center == circlePoint.center) {
+                                    greenCircle.remove()
                                 }
                             }
+                            Toast.makeText(applicationContext, "Point Marked " +
+                                    "", Toast.LENGTH_SHORT).show()
+
+                        }
+
+
                     }
 
 
-                }
+                            Log.d("current", "$loc")
 
-                Toast.makeText(applicationContext, "Point Marked $displayIndex" +
-                        "", Toast.LENGTH_SHORT).show()
+
+                }
+                //val displayIndex = l.indexOf(index) + 1
+                //for(loc in l){
+                // if(loc == index){
+//
+//                      val circlePoint =  map?.addCircle(
+//                            CircleOptions().center(loc as LatLng).fillColor(Color.YELLOW).radius(0.5)
+//                                .clickable(true)
+//                                .strokeWidth(1.0f)
+//                            //if set to zero, no outline is drawn
+//                        )
+
+//                            if (circlePoint != null) {
+//                                plantingTolerance(circlePoint, unMarkedPoints)
+//
+//                                for (greenCircle in listOfMarkedCircles) {
+//                                    if (greenCircle.center == circlePoint.center) {
+//                                        greenCircle.remove()
+//                                    }
+//                                }
+//                            }
+                // }
+
+
+                // }
+
 
 
             }
+            }
         }
+
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
     }
 
     override fun onResume() {
         sensorManager?.registerListener(sensorListener, sensorManager!!.getDefaultSensor(
-            Sensor .TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL
+            Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL
         )
         super.onResume()
     }
@@ -617,6 +690,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         sensorManager!!.unregisterListener(sensorListener)
         super.onPause()
     }
+
     fun plantingTolerance(circleCords: Circle, ummarkedPoints: MutableList<LatLng>) {
 
         var listOfUnmarkedPoints = ummarkedPoints
@@ -624,9 +698,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
         for (latlng in listOfUnmarkedPoints) {
             if (currentCircleLatLng == latlng) {
-                Log.d("match","I reach tolerance")
-               val index = listOfUnmarkedPoints.indexOf(latlng)
-              val nextIndex = index + 1
+                val index = listOfUnmarkedPoints.indexOf(latlng)
+                val nextIndex = index + 1
                 var nextPoint = listOfUnmarkedPoints[nextIndex]
                 //var nextPointLatLng = nextPoint.center
                 //listWithNext.add(nextPoint as LatLng)
@@ -670,7 +743,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     .fillColor(0x22228B22)
                     .strokeColor(Color.GREEN)
                     .strokeWidth(1.0f)
-                    .clickable(true)
+
             )
         }
         Log.d("tag", "$l")
@@ -694,64 +767,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         return toleranceCircle
     }
 
-    fun markPoint(){
-
-
-    }
-    fun markPoints()=GoogleMap.OnCircleClickListener{
-
-        //val onMarkingPoint = GoogleMap.OnCircleClickListener {
-            it.isClickable = false
-
-            var cordinatesOfClickedCircle = it.center
-
-            listOfMarkedPoints.add(cordinatesOfClickedCircle)
-            // Log.d("circleMarkedPoints","$listOfMarkedPoints")
-            map?.addCircle(
-                CircleOptions().center(cordinatesOfClickedCircle).fillColor(Color.YELLOW).radius(0.5)
-
-                    .strokeWidth(1.0f)
-            )
-            for (greenCircle in listOfMarkedCircles) {
-                if (greenCircle.center == cordinatesOfClickedCircle) {
-                    greenCircle.remove()
-                }
-            }
-            //plantingTolerance(it, unmarkedCirclesList)
-
-        }
-
-
-    var listTolerance = mutableListOf<Circle>()
-//    fun plantingTolerance(circleCords: Circle, ummarkedcircles: MutableList<Circle>) {
-//
-//        var listOfUnmarkedCircles = ummarkedcircles
-//        var currentCircleId = circleCords.id
-//Log.d("shake","I reach tolerance")
-//        for (aCircle in listOfUnmarkedCircles) {
-//            if (currentCircleId == aCircle.id) {
-//                val index = listOfUnmarkedCircles.indexOf(aCircle)
-//                val nextIndex = index + 1
-//                var nextPoint = listOfUnmarkedCircles[nextIndex]
-//                var nextPointLatLng = nextPoint.center
-//                //listWithNext.add(nextPoint as LatLng)
-//
-//                var circles = map?.addCircle(
-//                    CircleOptions().center(nextPointLatLng)
-//                        .radius(radius(4))
-//                        .fillColor(0x22228B22)
-//                        .strokeColor(Color.GREEN)
-//                        .strokeWidth(1.0f)
-//
-//                )
-//                circles?.isClickable
-//
-//                circles?.let { listOfMarkedCircles.add(it) }
-//            }
-//
-//        }
-//
-//    }
 
     private val onLongMapPress = GoogleMap.OnMapLongClickListener {
         if (polyLines.size == 0)

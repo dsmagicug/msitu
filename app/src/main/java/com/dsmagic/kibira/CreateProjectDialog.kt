@@ -12,6 +12,7 @@ import android.widget.EditText
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentActivity
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
 import com.google.gson.Gson
@@ -79,8 +80,6 @@ class CreateProjectDialog : DialogFragment() {
         } ?: throw IllegalStateException("Activity cannot be null")
 
     }
-    val sharedPrefFile = "kibirasharedfile"
-
 
     fun oncreateclick() {
 
@@ -92,29 +91,37 @@ class CreateProjectDialog : DialogFragment() {
         var displayProjectName = activity?.findViewById<TextView>(R.id.display_project_name)
 
 
-        val gap_size = Integer.parseInt(gapsize?.text.toString())
+        val gap_size_string = gapsize?.text.toString()
+
         val project_name: String = projectname?.text.toString()
 
-        //MainActivity().saveProject(project_name,gap_size)
-        val sharedPreferences: SharedPreferences =
-            activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
-        val editor = sharedPreferences.edit()
-        editor.putInt("size_key", gap_size)
-        editor.putString("name_key", project_name)
-        editor.apply()
+      if(project_name =="" && gap_size_string == ""){
+          alertFail("Please fill all fields")
+      }else{
+          val gap_size = Integer.parseInt(gap_size_string)
 
-        editor.commit()
-        if(editor.commit()){
-            val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
-            var saved_gap_size: Int? = sharedPreferences.getInt("gap_size", 0)
+          val sharedPreferences: SharedPreferences =
+              activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
+          val editor = sharedPreferences.edit()
+          editor.putInt("size_key", gap_size)
+          editor.putString("name_key", project_name)
+          editor.apply()
 
-            displayProjectName?.text = saved_project_name
+          editor.commit()
+          if(editor.commit()){
+              val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
+              var saved_gap_size: Int? = sharedPreferences.getInt("gap_size", 0)
 
-            Log.d("values","Project name is: $saved_project_name")
+              displayProjectName?.text = saved_project_name
 
-        } else{
-            Log.d("not","Not saved")
-        }
+              Log.d("values","Project name is: $saved_project_name")
+
+          } else{
+              Log.d("not","Not saved")
+          }
+      }
+
+
 
 //        val project = Project(
 //            project_name, gap_size
@@ -134,6 +141,22 @@ class CreateProjectDialog : DialogFragment() {
 
     }
 
+    fun alertFail(S:String){
+        Log.d("failed","failed")
+        val context:Context = MainActivity()
+
+        activity?.let {
+            AlertDialog.Builder(it)
+
+                .setTitle("Failed")
+                .setMessage(S)
+                .setPositiveButton("ok", DialogInterface.OnClickListener { dialog: DialogInterface?, id: Int ->
+
+                    dialog?.dismiss()
+                })
+        }
+
+    }
 
 
 
