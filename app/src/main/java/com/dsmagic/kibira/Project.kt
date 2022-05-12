@@ -34,6 +34,24 @@ class Project : AppCompatActivity() {
     private var currentAcceleration = 0f
     private var lastAcceleration = 0f
 
+//    val plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
+//    val l = plantingLine.tag as List<*>
+//    var distance = 0.0F
+//    //Get where you are and get corresponding Loaction
+//    val myCurrentLocation =  marker?.center
+//    val currentLocation = Location(LocationManager.GPS_PROVIDER)
+//    currentLocation.latitude = myCurrentLocation!!.latitude
+//    currentLocation.longitude = myCurrentLocation.longitude
+//
+//    val unMarkedPoints = mutableListOf<LatLng>()
+//    val locationOfPoint = Location(LocationManager.GPS_PROVIDER)
+//    l.forEach { loc ->
+//        unMarkedPoints.add(loc as LatLng)
+//        locationOfPoint.latitude = loc.latitude
+//        locationOfPoint.longitude = loc.longitude
+//        distance = currentLocation.distanceTo(locationOfPoint)
+//    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)

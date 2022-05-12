@@ -9,6 +9,7 @@ import android.location.Location
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import java.io.IOException
 import java.io.InputStream
@@ -79,8 +80,11 @@ class NmeaReader {
         }
 
         private fun startDataListener() {
+           
             val looper = Looper.getMainLooper()
             val handler = Handler(looper)
+
+
             thread = Thread {
                 readingStarted = true
                 while (!stopIt) {
