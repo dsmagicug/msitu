@@ -2,8 +2,10 @@ package com.dsmagic.kibira
 
 import android.util.Log
 import com.google.android.gms.maps.model.LatLng
+import dilivia.s2.S1ChordAngle
 import dilivia.s2.S2LatLng
 import dilivia.s2.S2Point
+import dilivia.s2.index.point.PointData
 import dilivia.s2.index.point.S2ClosestPointQuery
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
@@ -42,6 +44,19 @@ class S2Helper {
                 return null
             Log.d("closest", "Found closest point $r")
             return ptList[r.shapeId]
+        }
+
+        fun isPointWithInPlantingRadius(
+            index: S2PointIndex<*>,
+            pointLoc: LatLng,
+            roverLoc: LatLng,
+        ): Boolean {
+            val target = S2ClosestPointQuery(index)
+            val p = S2ClosestPointQuery.S2ClosestPointQueryPointTarget(makeS2PointFromLngLat(pointLoc))
+
+         val result =  S1ChordAngle(makeS2PointFromLngLat(pointLoc), makeS2PointFromLngLat(roverLoc))
+            return target.isDistanceLess(p,result)
+
         }
 
         fun findClosestPointOnLine(index: S2PointIndex<*>, loc: LatLng): Any? {
