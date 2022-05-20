@@ -16,6 +16,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.R
+import com.dsmagic.kibira.RegisterActivity
 import com.dsmagic.kibira.databinding.ActivityLoginBinding
 
 
@@ -34,6 +35,13 @@ class LoginActivity : AppCompatActivity() {
         val password = binding.password
         val login = binding.login
         val loading = binding.loading
+        val register_page = binding.registerPage
+
+        register_page?.setOnClickListener{
+            val intent = Intent(this, RegisterActivity::class.java)
+            startActivity(intent)
+
+        }
 
         loginViewModel = ViewModelProvider(this, LoginViewModelFactory())
             .get(LoginViewModel::class.java)
@@ -98,14 +106,15 @@ class LoginActivity : AppCompatActivity() {
                 loading.visibility = View.VISIBLE
                 loginViewModel.login(username.text.toString(), password.text.toString())
             }
+
+
         }
     }
 
     private fun updateUiWithUser(model: LoggedInUserView) {
         val welcome = getString(R.string.welcome)
         val displayName = model.displayName
-//        var enableBT = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-//        startActivity(enableBT)
+
         val intent = Intent(this, MainActivity::class.java)
         intent.putExtra(KEY, "$welcome $displayName");
         startActivity(intent)
