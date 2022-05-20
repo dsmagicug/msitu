@@ -65,17 +65,23 @@ class NmeaReader {
                 // for ActivityCompat#requestPermissions for more details.
                 //  return
             }
-            try{
-                
-                val uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // Serial port UUID
-                var socket = device.createRfcommSocketToServiceRecord(uuid)
-                socket?.connect()
-                Log.d("uuid","$socket")
-                input = socket?.inputStream
-                startDataListener()
-            }catch (e:IOException){
-                e.printStackTrace()
-            }
+            val uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // Serial port UUID
+            val socket = device.createRfcommSocketToServiceRecord(uuid)
+            socket.connect()
+            input = socket.inputStream
+            Log.d("bt", "Bluetooth connect complete")
+            startDataListener()
+//            try{
+//
+//                val uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // Serial port UUID
+//                var socket = device.createRfcommSocketToServiceRecord(uuid)
+//                socket?.connect()
+//                Log.d("uuid","$socket")
+//                input = socket?.inputStream
+//                startDataListener()
+//            }catch (e:IOException){
+//                e.printStackTrace()
+//            }
 
         }
 

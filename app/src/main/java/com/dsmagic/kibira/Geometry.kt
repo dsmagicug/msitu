@@ -27,7 +27,7 @@ val newvalues = """[
         "  },\n" +
         """  {"name":"Project one"},
 """ +
-        """  {"gap size":4},
+        """  {"gap size":1},
 """ +
         """  {"mesh":600.0}
 """ +

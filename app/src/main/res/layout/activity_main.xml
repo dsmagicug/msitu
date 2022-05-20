@@ -42,7 +42,7 @@
 
             <TextView
                 android:id="@+id/display_gap_size"
-                android:layout_width="wrap_content"
+                android:layout_width="20dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:text=" "
@@ -50,15 +50,15 @@
 
             <Button
                 android:id="@+id/buttonConnect"
-                android:layout_width="70dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
+
                 android:layout_marginTop="16dp"
 
                 android:backgroundTint="@color/green"
 
 
-                android:text="Connect"
+                android:text="PAIR"
                 android:textColor="@color/black"
                 android:visibility="invisible"
                 app:layout_constraintEnd_toEndOf="parent" />
