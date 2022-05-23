@@ -14,6 +14,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 
 import androidx.lifecycle.ViewModelProvider
 import com.dsmagic.kibira.databinding.ActivityLoginBinding
@@ -47,18 +48,22 @@ var login = binding.login
         lateinit var name: String
         lateinit var email: String
         lateinit var password: String
-        lateinit var confrim: String
+        lateinit var confirm: String
 
         registerButton.setOnClickListener{
 
-            Log.d("clicked", "clicked")
            name = registerName.text.toString()
             email = registerEmail.text.toString()
             password = registerPassword.text.toString()
-            confrim = registerConfirmPassword.toString()
+            confirm = registerConfirmPassword.toString()
             if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                alertfail()
                 Toast.makeText(this, "Fields should not be empty", Toast.LENGTH_LONG).show()
-            }else{
+            }
+            else if(!password.equals(confirm)){
+                Toast.makeText(this, "Passwords don't match", Toast.LENGTH_LONG).show()
+            }
+            else{
                 validateRegistration()
             }
 
@@ -73,7 +78,6 @@ var login = binding.login
     fun validateRegistration(){
 
         val intent = Intent(this, LoginActivity::class.java)
-        intent.putExtra(Contacts.SettingsColumns.KEY, "Registered");
         startActivity(intent)
         Toast.makeText(
             applicationContext,
@@ -81,7 +85,12 @@ var login = binding.login
             Toast.LENGTH_LONG
         ).show()
     }
-
+fun alertfail(){
+    AlertDialog.Builder(this)
+        .setTitle("Error")
+        .setMessage("Error message")
+        .show()
+}
 //        val username = binding.username
 //        val password = binding.password
 //        val login = binding.login

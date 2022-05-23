@@ -137,32 +137,72 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
         scantBlueTooth()
     }
-//    val l = ArrayList<String>()
-//
+    val l = ArrayList<String>()
+   private fun discover(){
+
+      // val pBar = findViewById<ProgressBar>(R.id.progressBar)
+       val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
+       if (ActivityCompat.checkSelfPermission(
+               this,
+               Manifest.permission.BLUETOOTH_SCAN
+           ) != PackageManager.PERMISSION_GRANTED
+       ) {
+           // TODO: Consider calling
+           //    ActivityCompat#requestPermissions
+           // here to request the missing permissions, and then overriding
+           //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+           //                                          int[] grantResults)
+           // to handle the case where the user grants the permission. See the documentation
+           // for ActivityCompat#requestPermissions for more details.
+           //return
+       }
+       if(bluetoothAdaptor.isDiscovering){
+            bluetoothAdaptor.cancelDiscovery()
+
+            bluetoothAdaptor.startDiscovery()
+            val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+            registerReceiver(receiver, filter)
+           Toast.makeText(this,"Scanning for devices",Toast.LENGTH_LONG).show()
+        }
+        else{
+            bluetoothAdaptor.startDiscovery()
+            val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+            registerReceiver(receiver, filter)
+            Toast.makeText(this,"Scanning for Available devices ",Toast.LENGTH_LONG).show()
+            }
+    }
 //    // Create a BroadcastReceiver for ACTION_FOUND.
-//    private val receiver = object : BroadcastReceiver() {
-//
-//        override fun onReceive(context: Context, intent: Intent) {
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
 //            val pBar = findViewById<ProgressBar>(R.id.progressBar)
-//            val action: String? = intent.action
-//            when (action) {
-//                BluetoothDevice.ACTION_FOUND -> {
+            val action: String? = intent.action
+            when (action) {
+               BluetoothDevice.ACTION_FOUND -> {
 //                    // Discovery has found a device. Get the BluetoothDevice
 //                    // object and its info from the Intent.
-//                    val device: BluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
-//                    val deviceName = if (ActivityCompat.checkSelfPermission(applicationContext,
-//                            Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED
-//                    ) {
-//                    } else {
-//                        // TODO: Consider calling
-//                        //    ActivityCompat#requestPermissions
-//                        // here to request the missing permissions, and then overriding
-//                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//                        //                                          int[] grantResults)
-//                        // to handle the case where the user grants the permission. See the documentation
-//                        // for ActivityCompat#requestPermissions for more details.
-//                        return
-//                    }
+                    val device: BluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
+                   if (ActivityCompat.checkSelfPermission(applicationContext,Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                       // TODO: Consider calling
+                       //    ActivityCompat#requestPermissions
+                       // here to request the missing permissions, and then overriding
+                       //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                       //                                          int[] grantResults)
+                       // to handle the case where the user grants the permission. See the documentation
+                       // for ActivityCompat#requestPermissions for more details.
+                       //return
+                   }
+
+                      val name = device.name
+
+                       l.add(name)
+                       deviceList.add(device)
+                       Toast.makeText(applicationContext,"Found a device to connect to ${device.name}",Toast.LENGTH_LONG).show()
+                   bluetoothAdaptor.cancelDiscovery()
+
+
+//
+                   }
 //                        device.name
 //
 //                  if(device.name in l){
@@ -178,75 +218,16 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 //                    val deviceHardwareAddress = device.address // MAC address
 //
 //                }
-//            }
-//        }
-//    }
-//
-//    override fun onDestroy() {
-//        super.onDestroy()
-//
-//        // Don't forget to unregister the ACTION_FOUND receiver.
-//        unregisterReceiver(receiver)
-//    }
+            }
+        }
+   }
 
-//    private fun discover(){
-//        val pBar = findViewById<ProgressBar>(R.id.progressBar)
-//        val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
-//
-//        if (!bluetoothAdaptor.isEnabled) {
-//            val enableBT = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-//            if (this.let {
-//                    androidx.core.app.ActivityCompat.checkSelfPermission(
-//                        it,
-//                        android.Manifest.permission.BLUETOOTH_CONNECT
-//                    )
-//                } != android.content.pm.PackageManager.PERMISSION_GRANTED
-//            ){
-//                // TODO: Consider calling
-//                //    ActivityCompat#requestPermissions
-//                // here to request the missing permissions, and then overriding
-//                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//                //                                          int[] grantResults)
-//                // to handle the case where the user grants the permission. See the documentation
-//                // for ActivityCompat#requestPermissions for more details.
-//                return
-//            }
-//            startActivity(enableBT)
-//            return
-//        }
-//        if (this.let {
-//                androidx.core.app.ActivityCompat.checkSelfPermission(
-//                    it,
-//                    android.Manifest.permission.BLUETOOTH_SCAN
-//                )
-//            } != android.content.pm.PackageManager.PERMISSION_GRANTED
-//        ) {
-//            // TODO: Consider calling
-//            //    ActivityCompat#requestPermissions
-//            // here to request the missing permissions, and then overriding
-//            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-//            //                                          int[] grantResults)
-//            // to handle the case where the user grants the permission. See the documentation
-//            // for ActivityCompat#requestPermissions for more details.
-//            return
-//        }
-//        if(bluetoothAdaptor.isDiscovering){
-//            bluetoothAdaptor.cancelDiscovery()
-//
-//            bluetoothAdaptor.startDiscovery()
-//            val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
-//            registerReceiver(receiver, filter)
-//        }
-//        else{
-//            bluetoothAdaptor.startDiscovery()
-//            val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
-//            registerReceiver(receiver, filter)
-//            Toast.makeText(this,"Scanning for devices",Toast.LENGTH_LONG).show()
-//            pBar.isVisible = true
-//        }
-//        return
-//    }
+    override fun onDestroy() {
+        super.onDestroy()
 
+        // Don't forget to unregister the ACTION_FOUND receiver.
+        unregisterReceiver(receiver)
+   }
 
     private fun scantBlueTooth() {
         val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
@@ -273,7 +254,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             // return
         }
 
-        val l = ArrayList<String>()
+//        val l = ArrayList<String>()
         for (d in
         bluetoothAdaptor.bondedDevices) {
             l.add(d.name)
@@ -299,19 +280,20 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     }
 
 
+    // Display the menu layout
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.appmenu, menu)
-
         return true
     }
 
+    // display the create dialog if no projects available.
     private fun createDialog(): Boolean {
         val onAppOpen = firstActivity()
-        onAppOpen.show(supportFragmentManager, "pick")
+        onAppOpen.show(supportFragmentManager, "createDialog")
         return true
     }
 
-    //Handling the options in the app action bar
+    //Handling the options in the menu layout
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return if (item.itemId == R.id.action_create) {
 
@@ -330,8 +312,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             toggleWidgets()
             return true
 
-        } else if (item.itemId == R.id.bluetooth_spinner) {
-       //discover()
+        } else if (item.itemId == R.id.scan) {
+       discover()
 
             return true
         } else {
@@ -491,10 +473,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                         .strokeWidth(1.0f)
                 )
                 map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),
-                    firstPoint!!.getLongitude()), 20.0f))
-                runOnUiThread {
-                    pBar.isVisible = true
-                }
+                    firstPoint!!.getLongitude()), 60.0f))
+//                runOnUiThread {
+//                    pBar.isVisible = true
+//                }
             }
             return@OnMapClickListener
         }
@@ -516,11 +498,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             meshDone = true
 
             runOnUiThread {
-                pBar.isVisible = false
+                pBar.isVisible = true
             }
             handler.post { // Centre it...
                 map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),
-                    firstPoint!!.getLongitude()), 40.0f))
+                    firstPoint!!.getLongitude()), 60.0f))
 
             }
 
@@ -583,8 +565,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 if (lastp != null) {
                     val res = floatArrayOf(0f)
                     distanceBetween(
-                        lastp!!.latitude,
-                        lastp!!.longitude,
+                        lastp.latitude,
+                        lastp.longitude,
                         xloc.latitude,
                         xloc.longitude,
                         res

@@ -173,7 +173,7 @@ fun crea(name:String) {
 
         val gapsize = dialog?.findViewById<EditText>(R.id.gapSize)
         var displayProjectName = activity?.findViewById<TextView>(R.id.display_project_name)
-        var displayGapSize = activity?.findViewById<TextView>(R.id.display_gap_size)
+        //var displayGapSize = activity?.findViewById<TextView>(R.id.display_gap_size)
 
 
         val gap_size = Integer.parseInt(gapsize?.text.toString())

@@ -18,39 +18,41 @@
         >
 
     </TextView>
+
     <View
-        android:layout_width="match_parent"
+        android:layout_width="288dp"
         android:layout_height="2dp"
-        android:background="@color/hr"/>
+        android:layout_marginStart="2dp"
+        android:background="@color/hr" />
 
     <EditText
         android:id="@+id/register_name"
         android:layout_width="288dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
         android:layout_marginStart="10dp"
+        android:layout_marginTop="28dp"
         android:hint="@string/name"
         android:imeActionLabel="@string/action_sign_in_short"
         android:imeOptions="actionDone"
+        android:importantForAutofill="no"
         android:inputType="text"
-        android:minHeight="48dp"
 
-        android:selectAllOnFocus="true"
-        android:importantForAutofill="no" />
+        android:minHeight="48dp"
+        android:selectAllOnFocus="true" />
 
     <EditText
         android:id="@+id/register_email"
         android:layout_width="291dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
         android:layout_marginStart="10dp"
+        android:layout_marginTop="8dp"
+        android:autofillHints=""
         android:hint="@string/email"
         android:imeActionLabel="@string/action_sign_in_short"
         android:imeOptions="actionDone"
         android:inputType="textEmailAddress"
         android:minHeight="48dp"
-        android:selectAllOnFocus="true"
-        android:autofillHints="" />
+        android:selectAllOnFocus="true" />
 
     <EditText
         android:id="@+id/register_password"
@@ -85,19 +87,15 @@
         android:textColorHint="#757575"
         android:autofillHints="" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp">
 
         <Button
             android:id="@+id/register_button"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="start"
-            android:layout_marginStart="40dp"
+            android:layout_gravity="center"
+            android:layout_marginStart="4dp"
             android:layout_marginTop="16dp"
-            android:layout_marginBottom="64dp"
+            android:layout_marginBottom="14dp"
             android:background="@color/green"
             android:backgroundTint="@color/green"
             android:enabled="true"
@@ -106,17 +104,15 @@
 
         <Button
             android:id="@+id/login"
-            android:layout_width="130dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:background="@color/green"
             android:backgroundTint="@color/green"
-            android:layout_marginStart="40dp"
+            android:layout_marginStart="4dp"
             android:text="Login"
 
             android:textColor="#FFFF" />
-
-
-    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/register_loading"

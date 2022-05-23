@@ -4,6 +4,8 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="../../../../Android/Sdk/platforms/android-32/data/res/layout/simple_spinner_dropdown_item.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_baseline_bluetooth_24.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_baseline_playlist_add_24.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_baseline_sync_24.xml" value="0.1565" />
         <entry key="app/src/main/res/layout-w1240dp/activity_login.xml" value="0.10776439089692101" />
         <entry key="app/src/main/res/layout-w936dp/activity_login.xml" value="0.12578125" />

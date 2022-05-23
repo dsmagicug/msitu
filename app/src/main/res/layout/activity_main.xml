@@ -19,66 +19,6 @@
         app:layout_constraintStart_toStartOf="parent">
 
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/appToolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="@color/green"
-            android:elevation="4dp"
-            android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-
-            >
-
-            <TextView
-                android:id="@+id/display_project_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" "
-                android:textAllCaps="true"
-                android:textSize="15sp" />
-
-
-
-            <TextView
-                android:id="@+id/display_gap_size"
-                android:layout_width="20dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text=" "
-                android:textSize="50dp" />
-
-            <Button
-                android:id="@+id/buttonConnect"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-
-                android:layout_marginTop="16dp"
-
-                android:backgroundTint="@color/green"
-
-
-                android:text="PAIR"
-                android:textColor="@color/black"
-                android:visibility="invisible"
-                app:layout_constraintEnd_toEndOf="parent" />
-
-
-            <Spinner
-                android:id="@+id/spinner"
-                android:layout_width="110dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="16dp"
-                android:layout_weight="1"
-                android:dropDownWidth="200dp"
-                android:visibility="invisible"
-                app:layout_constraintTop_toTopOf="parent"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-                tools:layout_editor_absoluteX="2dp" />
-
-        </androidx.appcompat.widget.Toolbar>
-
         <FrameLayout
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
@@ -97,8 +37,62 @@
                             android:layout_width="match_parent"
                             android:layout_height="match_parent" />
 
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/appToolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/green"
+                android:elevation="4dp"
+                android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+                app:popupTheme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
 
-                    </FrameLayout>
+                >
+
+                <TextView
+                    android:id="@+id/display_project_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=" "
+                    android:textStyle="bold"
+                    android:textAllCaps="true"
+                    android:textSize="15sp"
+                    android:layout_marginTop="1dp"/>
+
+
+
+                <Button
+                    android:id="@+id/buttonConnect"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginTop="16dp"
+
+                    android:backgroundTint="@color/green"
+
+
+                    android:text="PAIR"
+                    android:textColor="@color/black"
+                    android:visibility="visible"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+
+                <Spinner
+                    android:id="@+id/spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_marginTop="16dp"
+                    android:layout_weight="1"
+                    android:dropDownWidth="200dp"
+                    android:visibility="visible"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+                    tools:layout_editor_absoluteX="2dp" />
+
+            </androidx.appcompat.widget.Toolbar>
+
+
+        </FrameLayout>
                 </LinearLayout>
     <ProgressBar
         android:id="@+id/progressBar"
