@@ -56,10 +56,10 @@
         android:text="Login"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/password"
-        app:layout_constraintVertical_bias="0.19"
-        />
+        app:layout_constraintVertical_bias="0.128" />
 
     <Button
         android:id="@+id/register_page"
@@ -73,8 +73,8 @@
         android:text="Register"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/password"
-        app:layout_constraintVertical_bias="0.558"
-        />
+        app:layout_constraintVertical_bias="0.319"
+        tools:layout_editor_absoluteX="-3dp" />
 
     <ProgressBar
         android:id="@+id/loading"

@@ -53,7 +53,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text=" "
-                    android:textStyle="bold"
                     android:textAllCaps="true"
                     android:textSize="15sp"
                     android:layout_marginTop="1dp"/>
@@ -62,32 +61,40 @@
 
                 <Button
                     android:id="@+id/buttonConnect"
-                    android:layout_width="wrap_content"
+                    android:layout_width="70dp"
                     android:layout_height="wrap_content"
 
                     android:layout_marginTop="16dp"
 
                     android:backgroundTint="@color/green"
-
-
                     android:text="PAIR"
                     android:textColor="@color/black"
-                    android:visibility="visible"
+                    android:visibility="invisible"
                     app:layout_constraintEnd_toEndOf="parent" />
 
 
                 <Spinner
                     android:id="@+id/spinner"
-                    android:layout_width="wrap_content"
+                    android:layout_width="170dp"
                     android:layout_height="wrap_content"
-
                     android:layout_marginTop="16dp"
                     android:layout_weight="1"
-                    android:dropDownWidth="200dp"
-                    android:visibility="visible"
+                    android:visibility="invisible"
                     app:layout_constraintTop_toTopOf="parent"
-                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-                    tools:layout_editor_absoluteX="2dp" />
+                    tools:layout_editor_absoluteX="2dp"
+                    />
+<!--                <Spinner-->
+<!--                    android:id="@+id/spinner"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--android:-->
+<!--                    android:layout_marginTop="16dp"-->
+<!--                    android:layout_weight="1"-->
+<!--                    android:dropDownWidth="200dp"-->
+<!--                    android:visibility="invisible"-->
+<!--                    app:layout_constraintTop_toTopOf="parent"-->
+<!--                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"-->
+<!--                    tools:layout_editor_absoluteX="2dp" />-->
 
             </androidx.appcompat.widget.Toolbar>
 

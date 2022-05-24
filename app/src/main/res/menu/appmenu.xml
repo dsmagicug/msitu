@@ -9,15 +9,15 @@
     app:showAsAction="ifRoom"
     />
 
-<item
+<!--<item-->
 
-        android:id="@+id/scan"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+<!--        android:id="@+id/scan"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
 
-    android:icon="@drawable/bt_serching"
-    android:title="Scan for devices"
-    app:showAsAction="ifRoom"/>
+<!--    android:icon="@drawable/bt_serching"-->
+<!--    android:title="Scan for devices"-->
+<!--    app:showAsAction="ifRoom"/>-->
 
     <item
         android:id="@+id/project_options"

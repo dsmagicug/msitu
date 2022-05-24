@@ -1,3 +1,5 @@
+import java.util.ArrayList
+
 //package com.dsmagic.kibira
 //
 //import android.bluetooth.BluetoothAdapter
@@ -542,3 +544,146 @@
 //////
 //////                    }
 //////                }
+
+
+val l = ArrayList<String>()
+//   private fun discover(){
+//
+//      // val pBar = findViewById<ProgressBar>(R.id.progressBar)
+//       val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
+//       if (ActivityCompat.checkSelfPermission(
+//               this,
+//               Manifest.permission.BLUETOOTH_SCAN
+//           ) != PackageManager.PERMISSION_GRANTED
+//       ) {
+//           // TODO: Consider calling
+//           //    ActivityCompat#requestPermissions
+//           // here to request the missing permissions, and then overriding
+//           //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+//           //                                          int[] grantResults)
+//           // to handle the case where the user grants the permission. See the documentation
+//           // for ActivityCompat#requestPermissions for more details.
+//           //return
+//       }
+//       if(bluetoothAdaptor.isDiscovering){
+//            bluetoothAdaptor.cancelDiscovery()
+//
+//            bluetoothAdaptor.startDiscovery()
+//            val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+//            registerReceiver(receiver, filter)
+//           Toast.makeText(this,"Scanning for devices",Toast.LENGTH_LONG).show()
+//        }
+//        else{
+//            bluetoothAdaptor.startDiscovery()
+//            val filter = IntentFilter(BluetoothDevice.ACTION_FOUND)
+//            registerReceiver(receiver, filter)
+//            Toast.makeText(this,"Scanning for Available devices ",Toast.LENGTH_LONG).show()
+//            }
+//    }
+//    // Create a BroadcastReceiver for ACTION_FOUND.
+//    private val receiver = object : BroadcastReceiver() {
+//        override fun onReceive(context: Context, intent: Intent) {
+//            val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
+////            val pBar = findViewById<ProgressBar>(R.id.progressBar)
+//            val action: String? = intent.action
+//            when (action) {
+//               BluetoothDevice.ACTION_FOUND -> {
+////                    // Discovery has found a device. Get the BluetoothDevice
+////                    // object and its info from the Intent.
+//                    val device: BluetoothDevice = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)!!
+//                   if (ActivityCompat.checkSelfPermission(applicationContext,Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+//                       // TODO: Consider calling
+//                       //    ActivityCompat#requestPermissions
+//                       // here to request the missing permissions, and then overriding
+//                       //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+//                       //                                          int[] grantResults)
+//                       // to handle the case where the user grants the permission. See the documentation
+//                       // for ActivityCompat#requestPermissions for more details.
+//                       //return
+//                   }
+//
+//                      val name = device.name
+//
+//                       l.add(name)
+//                       deviceList.add(device)
+//                       Toast.makeText(applicationContext,"Found a device to connect to ${device.name}",Toast.LENGTH_LONG).show()
+//                   bluetoothAdaptor.cancelDiscovery()
+//
+//
+////
+//                   }
+////                        device.name
+////
+////                  if(device.name in l){
+////                      return
+////                  }else{
+////                      l.add(device.name)
+////                      deviceList.add(device)
+////                      pBar.isVisible = false
+////                      Toast.makeText(applicationContext,"Found a device",Toast.LENGTH_LONG).show()
+////                  }
+////
+////                    //bluetoothAdaptor.cancelDiscovery()
+////                    val deviceHardwareAddress = device.address // MAC address
+////
+////                }
+//            }
+//        }
+//   }
+
+//    override fun onDestroy() {
+//        super.onDestroy()
+//
+//        // Don't forget to unregister the ACTION_FOUND receiver.
+//        unregisterReceiver(receiver)
+//   }
+
+
+//    private val sharedPrefFile = "kibirasharedfile"
+//    override fun onPostResume() {
+//
+//        super.onPostResume()
+//
+//       // var displayProjectName = findViewById<TextView>(R.id.display_project_name)
+//        val sharedPreferences = getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)
+//        val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
+//        val saved_gap_size: Int = sharedPreferences.getInt("gap_size", 0)
+//
+//        // displayProjectName?.text = saved_project_name
+//
+//        Log.d("valuesMain", "saved data $saved_project_name")
+//
+//        //overridePendingTransition(0, 0)
+//
+//        val db = DBHelper(this, null)
+//        if (saved_project_name != null) {
+//            with(db) {
+//                addProject(saved_project_name, saved_gap_size)
+//            }
+//            //Toast.makeText(this, "Project $saved_project_name created", Toast.LENGTH_LONG).show()
+////            val refresh = Intent(this,MainActivity::class.java)
+////            finish()
+////            startActivity(refresh)
+//        } else {
+//            Toast.makeText(this, "Project not created", Toast.LENGTH_LONG).show()
+//        }
+//
+//    }
+
+//
+//    fun listProjects() {
+//        try {
+//
+//            //val obj: JSONObject = JSONObject(str)
+//           // val names: JSONObject = obj.getJSONObject("projects")
+//
+//            val name = names.getString("name")
+//
+//            // set employee name and salary in TextView's
+//            display_project_name.setText("Name: $name");
+//
+//
+//        } catch (e: JSONException) {
+//            throw RuntimeException(e)
+//        }
+//    }

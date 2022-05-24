@@ -34,6 +34,8 @@ class S2Helper {
             index.add(s)
         }
 
+    //fun getDistance(target: S2MinDistanceTarget): S1ChordAngle = findClosestEdge(target).distance.value
+
         fun findClosestLine(index: MutableS2ShapeIndex, loc: LatLng, ptList: List<Any?>): Any? {
             val q = S2ClosestEdgeQuery(index)
             val p = S2ClosestEdgeQuery.PointTarget(makeS2PointFromLngLat(loc))
