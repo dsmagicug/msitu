@@ -22,8 +22,6 @@ class NmeaReader {
         var stopIt = false
         var thread: Thread? = null
         val listener = RtkLocationSource()
-
-
         // var listener : LocationSource.OnLocationChangedListener? = null
          var socket : BluetoothSocket? = null
         var input: InputStream? = null
@@ -77,9 +75,10 @@ class NmeaReader {
                val conn = socket?.connect()
                 Log.d("uuid","$socket")
                 if (conn != null) {
-          Log.d("conn","coonected")
+                   // Toast.makeText(MainActivity(),"Paired",Toast.LENGTH_LONG).show()
+                        Log.d("conn","coonected")
                 }else{
-                    Log.d("conn"," not coonected")
+                 //Toast.makeText(MainActivity(),"Could not Pair",Toast.LENGTH_LONG).show()
                 }
                 input = socket?.inputStream
                 startDataListener()

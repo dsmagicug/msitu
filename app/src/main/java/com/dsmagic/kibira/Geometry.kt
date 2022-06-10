@@ -154,7 +154,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
     }
 
     override fun toString(): String {
-        return "${this.longitude}, ${this.latitude} (${this.long}, ${this.lat}), altitude: ${this.altitude}, hdop: ${this.hdop}, fix: ${this.fixType}"
+        return "${this.longitude}, ${this.latitude} (${this.long}, ${this.lat}), altitude: ${this.altitude},bearing:${this.bearing}, hdop: ${this.hdop}, fix: ${this.fixType}"
     }
 
 

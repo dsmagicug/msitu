@@ -14,7 +14,7 @@ import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.dsmagic.kibira.MainActivity
+//import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.R
 import com.dsmagic.kibira.RegisterActivity
 import com.dsmagic.kibira.databinding.ActivityLoginBinding
@@ -115,7 +115,7 @@ class LoginActivity : AppCompatActivity() {
         val welcome = getString(R.string.welcome)
         val displayName = model.displayName
 
-        val intent = Intent(this, MainActivity::class.java)
+       // val intent = Intent(this, MainActivity::class.java)
         intent.putExtra(KEY, "$welcome $displayName");
         startActivity(intent)
 

@@ -35,5 +35,9 @@
     <string name="confirm_password">Confirm Password</string>
     <string name="name">Name</string>
     <string name="email">Email</string>
+    <string name="default_info_title">Default info</string>
+    <string name="default_info_snippet">Default info Snippet</string>
+    <string name="fab_map">Map_Mode</string>
+    <string name="compass">compass</string>
 
 </resources>

@@ -35,6 +35,12 @@
                 app:showAsAction="never"
                 />
             <item
+                android:id="@+id/map_view"
+                android:icon="@drawable/bt_serching"
+                android:title="@string/create"
+                app:showAsAction="never"
+                />
+            <item
                 android:id="@+id/action_view_projects"
                 android:icon="@drawable/ic_baseline_sync_24"
                 android:title="@string/view_projects"

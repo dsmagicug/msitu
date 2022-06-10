@@ -4,19 +4,25 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="../../../../Android/Sdk/platforms/android-32/data/res/layout/simple_spinner_dropdown_item.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_baseline_arrow_drop_down_24.xml" value="0.1485" />
         <entry key="app/src/main/res/drawable/ic_baseline_bluetooth_24.xml" value="0.1" />
+        <entry key="app/src/main/res/drawable/ic_baseline_map_24.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_baseline_playlist_add_24.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_baseline_sync_24.xml" value="0.1565" />
+        <entry key="app/src/main/res/drawable/walk_mode.xml" value="0.1" />
         <entry key="app/src/main/res/layout-w1240dp/activity_login.xml" value="0.10776439089692101" />
         <entry key="app/src/main/res/layout-w936dp/activity_login.xml" value="0.12578125" />
         <entry key="app/src/main/res/layout/activity_create_project.xml" value="0.15942028985507245" />
         <entry key="app/src/main/res/layout/activity_first.xml" value="0.1" />
         <entry key="app/src/main/res/layout/activity_login.xml" value="0.1" />
-        <entry key="app/src/main/res/layout/activity_main.xml" value="0.36596736596736595" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.22178217821782178" />
         <entry key="app/src/main/res/layout/activity_maps.xml" value="0.335" />
         <entry key="app/src/main/res/layout/activity_register.xml" value="0.16770833333333332" />
         <entry key="app/src/main/res/layout/content_main.xml" value="0.37604166666666666" />
         <entry key="app/src/main/res/layout/create_project.xml" value="0.1" />
+        <entry key="app/src/main/res/layout/current_place_menu.xml" value="0.13854166666666667" />
+        <entry key="app/src/main/res/layout/custom_info_contents.xml" value="0.13854166666666667" />
+        <entry key="app/src/main/res/layout/custom_info_window.xml" value="0.14175724637681159" />
         <entry key="app/src/main/res/layout/first_activity.xml" value="0.14175724637681159" />
         <entry key="app/src/main/res/layout/fragment_first.xml" value="0.375" />
         <entry key="app/src/main/res/layout/fragment_second.xml" value="0.45" />

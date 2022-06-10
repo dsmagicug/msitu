@@ -31,17 +31,51 @@
                         app:layout_constraintStart_toStartOf="parent">
 
 
-                        <fragment
-                            android:id="@+id/mapFragment"
-                            android:name="com.google.android.gms.maps.SupportMapFragment"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent" />
+            <fragment
+                android:id="@+id/mapFragment"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab_map"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|bottom"
+app:fabSize="mini"
+                android:layout_margin="16dp"
+                android:contentDescription="@string/fab_map"
+                android:src="@drawable/ic_baseline_map_24"
+                app:backgroundTint="@color/green"
+                />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/fab_compass"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+android:layout_gravity="center_vertical|end|bottom"
+                android:layout_marginBottom="66dp"
+                android:layout_marginEnd="16dp"
+                android:contentDescription="@string/compass"
+                android:src="@drawable/blackcompass"
+                app:backgroundTint="@color/green"
+                app:fabSize="mini"
+
+                app:rippleColor="#EDE8E8" />
+
+            <ImageView
+                android:id="@+id/compass"
+                android:layout_width="77dp"
+                android:layout_height="100dp"
+                android:layout_marginTop="65dp"
+                android:src="@drawable/slimarrow" />
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/appToolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="@color/green"
+
                 android:elevation="4dp"
                 android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
                 app:popupTheme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
@@ -52,11 +86,10 @@
                     android:id="@+id/display_project_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
                     android:text=" "
                     android:textAllCaps="true"
-                    android:textSize="15sp"
-                    android:layout_marginTop="1dp"/>
-
+                    android:textSize="15sp" />
 
 
                 <Button
@@ -81,20 +114,19 @@
                     android:layout_weight="1"
                     android:visibility="invisible"
                     app:layout_constraintTop_toTopOf="parent"
-                    tools:layout_editor_absoluteX="2dp"
-                    />
-<!--                <Spinner-->
-<!--                    android:id="@+id/spinner"-->
-<!--                    android:layout_width="wrap_content"-->
-<!--                    android:layout_height="wrap_content"-->
-<!--android:-->
-<!--                    android:layout_marginTop="16dp"-->
-<!--                    android:layout_weight="1"-->
-<!--                    android:dropDownWidth="200dp"-->
-<!--                    android:visibility="invisible"-->
-<!--                    app:layout_constraintTop_toTopOf="parent"-->
-<!--                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"-->
-<!--                    tools:layout_editor_absoluteX="2dp" />-->
+                    tools:layout_editor_absoluteX="2dp" />
+                <!--                <Spinner-->
+                <!--                    android:id="@+id/spinner"-->
+                <!--                    android:layout_width="wrap_content"-->
+                <!--                    android:layout_height="wrap_content"-->
+                <!--android:-->
+                <!--                    android:layout_marginTop="16dp"-->
+                <!--                    android:layout_weight="1"-->
+                <!--                    android:dropDownWidth="200dp"-->
+                <!--                    android:visibility="invisible"-->
+                <!--                    app:layout_constraintTop_toTopOf="parent"-->
+                <!--                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"-->
+                <!--                    tools:layout_editor_absoluteX="2dp" />-->
 
             </androidx.appcompat.widget.Toolbar>
 

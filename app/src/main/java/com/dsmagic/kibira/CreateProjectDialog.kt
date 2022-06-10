@@ -143,7 +143,7 @@ class CreateProjectDialog : DialogFragment() {
 
     fun alertFail(S:String){
         Log.d("failed","failed")
-        val context:Context = MainActivity()
+       // val context:Context = MainActivity()
 
         activity?.let {
             AlertDialog.Builder(it)
