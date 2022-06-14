@@ -52,10 +52,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var device: BluetoothDevice? = null
     private var map: GoogleMap? = null
     private var marker: Circle? = null
-    private var directionMarker:Marker? = null
+    private var directionMarker: Marker? = null
     var tempListMarker = mutableListOf<Marker>()
     var lastLoc: Location? = null
-    var zoomLevel = 20.0f
+    var zoomLevel = 21.0f
     var firstPoint: LongLat? = null
     var secondPoint: LongLat? = null
     val handler = Handler(Looper.getMainLooper())
@@ -81,8 +81,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     private var walkingMode = false
     private var markers: Marker? = null
     private var fabFlag = true
+    private var zoomMode = false
+
     //lateinit var fab: FloatingActionButton
-private var ready = false    //flag fro direction marker
+    private var ready = false    //flag fro direction marker
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -114,9 +116,13 @@ private var ready = false    //flag fro direction marker
 
 
         Objects.requireNonNull(sensorManager)
-            ?.registerListener(sensorListener, sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL)
+            ?.registerListener(sensorListener,
+                sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                SensorManager.SENSOR_DELAY_NORMAL)
 
-        sensorManager!!.registerListener(listener, magneticSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager!!.registerListener(listener,
+            magneticSensor,
+            SensorManager.SENSOR_DELAY_NORMAL);
         sensorManager!!.registerListener(listener, accSensor, SensorManager.SENSOR_DELAY_NORMAL);
         acceleration = 10f
         currentAcceleration = SensorManager.GRAVITY_EARTH
@@ -127,9 +133,11 @@ private var ready = false    //flag fro direction marker
         } else {
             var campus = false
 
-            Toast.makeText(applicationContext,"No Geomagnetic sensor, so some features have been disabled",Toast.LENGTH_LONG).show()
+            Toast.makeText(applicationContext,
+                "No Geomagnetic sensor, so some features have been disabled",
+                Toast.LENGTH_LONG).show()
             //compass.isVisible = false
-            Log.d("Supports","doest not supports")
+            Log.d("Supports", "doest not supports")
         }
 
         NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
@@ -157,30 +165,39 @@ private var ready = false    //flag fro direction marker
                             .strokeWidth(1.0f)
 
                     )
-//if(ready){
-    directionMarker?.remove()
-    directionMarker =  map?.addMarker(MarkerOptions().position(xloc)
-        .icon(BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1))
+                    if (ready) {
+                        directionMarker?.remove()
+                        directionMarker = map?.addMarker(MarkerOptions().position(xloc)
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1))
 
-       // .rotation(bDegrees!!.toFloat())
+                            .rotation(bDegrees!!.toFloat())
 
-    )
-//}
+                        )
+                    }
                     if (currentLocation.isNotEmpty()) {
                         currentLocation.clear()
                     }
                     marker?.let {
                         currentLocation.add(it.center)
                     }
+                    val location = currentLocation[currentLocation.lastIndex]
+                    distanceToPoint(location)
+
+                    val runnableCode = object : Runnable {
+                        override fun run() {
+                            headingDirection(location)
+                            handler.postDelayed(this, 5000)
+                        }
+                    }
+                    handler.postDelayed(runnableCode, 5000)
 
                 }
                 if (currentLocation.distinct().size == 1) {
                     plotFunc()
                 }
-                val location = currentLocation[currentLocation.lastIndex]
-                distanceToPoint(location)
-           //headingDirection(location)
 
+
+//pulsing effect when line is switched
                 if (switchedLines) {
                     val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
                     val tempPoint = mutableListOf<LatLng>()
@@ -234,6 +251,97 @@ private var ready = false    //flag fro direction marker
                     }
 
                 }
+
+                //controlling visibility given the zoom level on the map
+                if (zoomMode) {
+                    val zmlevel = map?.cameraPosition?.zoom
+                    val maxZmLevel = map?.maxZoomLevel
+
+                    var pt: LatLng? = null
+
+                    if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
+                        return
+                    }
+                    //get current line person is walking on, lat/lng and find closest point on line as they are moving
+                    val currentPlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
+                    val roverPoint = currentLocation[currentLocation.lastIndex]
+                    val l = currentPlantingLine.tag as List<*>
+                    var tcpt = mutableListOf<LatLng>()
+                    var plantingCircle: Circle? = null
+                    var templistCircle = mutableListOf<Circle>()
+
+                    val closestPoint =
+                        S2Helper.findClosestPointOnLine(pointsIndex, roverPoint) as S2LatLng?
+
+                    if (closestPoint != null) {
+                        pt = LatLng(closestPoint.latDegrees(), closestPoint.lngDegrees())
+                    }
+
+                    if (zmlevel != null) {
+                        if (zmlevel == maxZmLevel) {
+                            //remove line and circles once at max zoom level
+                            currentPlantingLine.isVisible = false
+                            if (unmarkedCirclesList.isNotEmpty()) {
+                                for (c in unmarkedCirclesList) {
+                                    c.isVisible = false
+                                }
+                            }
+                            if (pt in listOfMarkedPoints) {
+                                return
+                            }
+                            if (pt !in l) {
+                                return
+                            } else {
+                                tcpt.add(pt!!)
+                                //if (pt in l) {
+                                if (templistCircle.isNotEmpty()) {
+                                    for (c in templistCircle) {
+                                        if (c.center == pt) {
+                                            return    //do nothing if a circle is already drawn at that point
+                                        }
+                                        if (c.center !in tcpt) {
+                                            //removes the circle as one walks away from that point
+                                            c.remove()
+
+                                        }
+                                    }
+
+                                }
+                                //}
+                                // else {
+                                plantingCircle = map?.addCircle(
+                                    CircleOptions().center(pt).fillColor(Color.RED).radius(0.5)
+                                        .strokeWidth(1.0f)
+                                )
+                                // }
+
+                            }
+                            if (tcpt.isNotEmpty()) {
+                                tcpt.clear()
+                            }
+
+                            if (plantingCircle != null) {
+                                if (templistCircle.isNotEmpty()) {
+                                    for (c in templistCircle) {
+                                        c.remove()
+                                    }
+                                    templistCircle.clear()
+                                    templistCircle.add(plantingCircle)
+                                } else {
+                                    templistCircle.add((plantingCircle))
+                                }
+                            }
+
+                        } else {
+                            currentPlantingLine.isVisible = true
+                            if (unmarkedCirclesList.isNotEmpty()) {
+                                for (c in unmarkedCirclesList) {
+                                    c.isVisible = true
+                                }
+                            }
+                        }
+                    }
+                }
             }
         })
 
@@ -259,7 +367,7 @@ private var ready = false    //flag fro direction marker
                     var bearing = map?.cameraPosition?.bearing
                     val cameraPosition = CameraPosition.Builder()
                         .target(target!!)
-                        .zoom(21f)
+                        .zoom(19f)
                         .bearing(bearing!!)
                         .tilt(45f)
                         .build()
@@ -282,43 +390,42 @@ private var ready = false    //flag fro direction marker
 
             }
         }
-    }
-    var bDegrees:Double? = null
-    var bring:Int? = null
-    private fun headingDirection(location:LatLng) {
-        var currentLat = (location.latitude)/Math.PI * 180
-        var currentLong = (location.longitude)/Math.PI * 180
 
-        var destLat = (0.000000)/Math.PI * 180
-        var destLong = (0.000000)/Math.PI * 180
+
+    }
+
+    var bDegrees: Double? = null
+    var bring: Int? = null
+
+    private fun headingDirection(location: LatLng) {
+        var currentLat = (location.latitude) / Math.PI * 180
+        var currentLong = (location.longitude) / Math.PI * 180
+
+        var prevLat = (0.000000) / Math.PI * 180
+        var prevLng = (0.000000) / Math.PI * 180
         var lastRotateDegree = 0.0f
-        if(currentLong < 0){
-            currentLong * -1
-        }
+//        if (currentLong < 0) {
+//            currentLong * -1
+//        }
 
         //diff between the longitudes
-        var deltaLong = (currentLong - destLong)
-        if(deltaLong < 0){
-            deltaLong * -1
-        }
-        
-        var y = Math.sin(deltaLong) * Math.cos(destLat)
-        var x = Math.cos(currentLat) * Math.sin(destLat) - Math.sin(currentLat) * Math.cos(destLat) * Math.cos(deltaLong)
-        var b = atan2(y,x)
-         bDegrees = b * (180/Math.PI)
+        var deltaLong = (currentLong - prevLng)
 
-        if(b<0){
-          bring = bDegrees!!.toInt() + 360
+        var y = Math.sin(deltaLong) * Math.cos(currentLat)
+        var x =
+            Math.cos(prevLat) * Math.sin(currentLat) - Math.sin(prevLat) * Math.cos(currentLat) * Math.cos(
+                deltaLong)
+        var b = atan2(y, x)
+        bDegrees = (b * 180 / Math.PI + 360) % 360
 
-        }
-        destLat = currentLat
-        destLong = currentLong
-        Log.d("bearing"," plot me: $bDegrees ")
+        prevLat = currentLat
+        prevLng = currentLong
+        Log.d("bearing", " plot me: $bDegrees ")
 
         ready = true
     }
 
-    var bearing:Double? = null
+    var bearing: Double? = null
     private val listener: SensorEventListener = object : SensorEventListener {
         var accelerometerValues = FloatArray(3)
         var magneticValues = FloatArray(3)
@@ -329,17 +436,16 @@ private var ready = false    //flag fro direction marker
 // Pay attention to call the clone() method when assigning
                 accelerometerValues = event.values.clone()
 
-            }
-            else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
+            } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
                 magneticValues = event.values.clone()
 
-                Toast.makeText(applicationContext,"Changed magnet",Toast.LENGTH_LONG).show()
+                Toast.makeText(applicationContext, "Changed magnet", Toast.LENGTH_LONG).show()
             }
             val R = FloatArray(9)
             val values = FloatArray(3)
             SensorManager.getRotationMatrix(R, null, accelerometerValues, magneticValues)
             SensorManager.getOrientation(R, values)
-             bearing = -Math.toDegrees(values[0].toDouble())
+            bearing = -Math.toDegrees(values[0].toDouble())
             val rotateDegree = (-Math.toDegrees(values[0].toDouble())).toFloat()
             val diff = rotateDegree - lastRotateDegree
             if (Math.abs(diff) > 1) {
@@ -351,7 +457,7 @@ private var ready = false    //flag fro direction marker
                     Animation.RELATIVE_TO_SELF,
                     0.5f)
                 animation.fillAfter = true
-                 compass.startAnimation(animation)
+                compass.startAnimation(animation)
                 lastRotateDegree = rotateDegree
             }
         }
@@ -543,6 +649,7 @@ private var ready = false    //flag fro direction marker
     }
 
     private fun toggleWidgets() {
+        //TODO REMOVE AND USE TOGGLE BUTTONS INSTEAD
 
         if (spinner.visibility == Spinner.INVISIBLE && buttonConnect.visibility == Button.INVISIBLE) {
             spinner.visibility = Spinner.VISIBLE
@@ -697,30 +804,28 @@ private var ready = false    //flag fro direction marker
     var listOfPlantingLines = mutableListOf<Polyline>()
 
     private val onPolyClick = GoogleMap.OnPolylineClickListener {
-
         it.isClickable = false
+
         if (listOfPlantingLines.isEmpty()) {
             listOfPlantingLines.add(it)
             it.color = Color.GREEN
 
+            Toast.makeText(applicationContext, "Planting line selected...", Toast.LENGTH_LONG)
+                .show()
 
-    Toast.makeText(applicationContext, "Planting line selected...", Toast.LENGTH_LONG)
-        .show()
-
-        }
-        else {
+        } else {
 
             val recentLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
             recentLine.color = Color.GRAY
             recentLine.isClickable = true
-            recentLine.width = 3f   //return to default width after pulse effect and stop the handler
+            recentLine.width =
+                3f   //return to default width after pulse effect and stop the handler
+            listOfPlantingLines.clear()
             listOfPlantingLines.add(it)
             it.color = Color.GREEN
 
-                Toast.makeText(applicationContext, "Switching Lines..", Toast.LENGTH_LONG)
-                    .show()
-
-
+            Toast.makeText(applicationContext, "Switching Lines..", Toast.LENGTH_LONG)
+                .show()
             val runnableCode = object : Runnable {
                 override fun run() {
                     var w = it.width;
@@ -742,7 +847,7 @@ private var ready = false    //flag fro direction marker
             }
 
             //remove any markers if they exist
-            if(tempListMarker.isNotEmpty()){
+            if (tempListMarker.isNotEmpty()) {
                 tempListMarker[tempListMarker.lastIndex].remove()
                 tempListMarker.clear()
             }
@@ -750,52 +855,16 @@ private var ready = false    //flag fro direction marker
         }
 
         //Give the process of drawing points on line a thread --- makes the process faster
-
         handler.post {
             for (item in polyLines) {
                 item!!.isVisible = false
             }
             it.isVisible = true
-            val l = it.tag as List<*>
-            var lastp: LatLng? = null
-            for (loc in l) {
-                val xloc = loc as LatLng
-                // Draw the points...
-                if (loc !in listOfMarkedPoints) {
+            val l = it.tag as MutableList<*>
 
-                    val unmarkedCircles = map?.addCircle(
-                        CircleOptions().center(xloc).fillColor(Color.RED).radius(0.5)
-                            .strokeWidth(1.0f)
-                        //if set to zero, no outline is drawn
-                    )
-                    unmarkedCirclesList.add(unmarkedCircles!!)
-
-                    if (lastp != null) {
-                        val res = floatArrayOf(0f)
-                        distanceBetween(
-                            lastp!!.latitude,
-                            lastp!!.longitude,
-                            xloc.latitude,
-                            xloc.longitude,
-                            res
-                        )
-
-                        Log.d("distance", "Distance from last point: ${res[0]}")
-
-                        lastp = xloc
-
-                    }
-
-                } else {
-                    map?.addCircle(
-                        CircleOptions().center(xloc).fillColor(Color.YELLOW).radius(0.5)
-                            .strokeWidth(1.0f)
-                        //if set to zero, no outline is drawn
-                    )
-                }
-
-            }
+            plotLine(l)
             fab_map.show()
+            zoomMode = true
         }
 
         handler.post {
@@ -824,6 +893,56 @@ private var ready = false    //flag fro direction marker
 
     }
 
+    private fun plotLine(line: MutableList<*>) {
+        if (unmarkedCirclesList.isNotEmpty()) {
+            unmarkedCirclesList.clear()
+
+        }
+        var lastp: LatLng? = null
+        handler.post {
+            for (loc in line) {
+                val xloc = loc as LatLng
+                // Draw the points...
+                if (loc !in listOfMarkedPoints) {
+
+                    val unmarkedCircles = map?.addCircle(
+                        CircleOptions().center(xloc).fillColor(Color.RED).radius(0.5)
+                            .strokeWidth(1.0f)
+                        //if set to zero, no outline is drawn
+                    )
+
+                    unmarkedCirclesList.add(unmarkedCircles!!)
+
+                    if (lastp != null) {
+                        val res = floatArrayOf(0f)
+                        distanceBetween(
+                            lastp!!.latitude,
+                            lastp!!.longitude,
+                            xloc.latitude,
+                            xloc.longitude,
+                            res
+                        )
+
+                        Log.d("distance", "Distance from last point: ${res[0]}")
+
+                        lastp = xloc
+
+                    }
+
+                } else {
+                    map?.addCircle(
+                        CircleOptions().center(xloc).fillColor(Color.YELLOW).radius(0.5)
+                            .strokeWidth(1.0f)
+                        //if set to zero, no outline is drawn
+                    )
+                }
+
+            }
+
+        }
+
+
+    }
 
     var listOfPlantingRadius: Circle? = null
     val templist = mutableListOf<Circle>()
@@ -841,33 +960,33 @@ private var ready = false    //flag fro direction marker
         val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
 
         val l = lineOfInterest.tag as List<*>
+        val xloc = S2Helper.findClosestPointOnLine(pointsIndex, roverPoint) as S2LatLng?
 
-        val xloc =
-            roverPoint.let { S2Helper.findClosestPointOnLine(pointsIndex, it) } as S2LatLng?
+        if (xloc != null) {
+            val pt = LatLng(xloc.latDegrees(), xloc.lngDegrees())
 
-        val pt = xloc?.let { LatLng(it.latDegrees(), xloc.lngDegrees()) }
+            if (pt !in l) {
+                return
+            }
+            if (pt in listOfMarkedPoints) {
+                return
+            }
+            tempClosestPoint.add(pt)
+            if (pt in l) {
+                if (templist.isNotEmpty()) {
+                    for (c in templist) {
+                        if (c.center == pt) {
+                            return    //do nothing if a circle is already drawn at that point
+                        }
+                        if (c.center !in tempClosestPoint || c.center == markers?.position) {
+                            //removes the planting radius circle as one walks away from that point
+                            c.remove()
+                            markers?.remove()
 
-        tempClosestPoint.add(pt!!)
-
-
-        if (pt !in l || pt in listOfMarkedPoints) {
-            return
-        }
-
-        if (pt in l) {
-            if (templist.isNotEmpty()) {
-                for (c in templist) {
-                    if (c.center == pt) {
-                        return    //do nothing if a circle is already drawn at that point
+                        }
                     }
-                    if (c.center !in tempClosestPoint || c.center == markers?.position) {
-                        //removes the planting radius circle as one walks away from that point
-                        c.remove()
-                        markers?.remove()
 
-                    }
                 }
-
             }
             // else {
             plantingRadius = map?.addCircle(
@@ -926,21 +1045,22 @@ private var ready = false    //flag fro direction marker
 
             if (acceleration > 20) {
                 val plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
-                val l = plantingLine.tag as List<*>
 
+                val l = plantingLine.tag as MutableList<*>
                 var pointOfInterestOnPolyline: LatLng? = null
 
                 l.forEach { loc ->
                     loc as LatLng
                     if (loc == listOfPlantingRadius?.center)
-
                         pointOfInterestOnPolyline = loc
+
                 }
                 if (pointOfInterestOnPolyline == null) {
 
                     Toast.makeText(applicationContext, "Can't find point to mark" +
                             "", Toast.LENGTH_SHORT).show()
                 }
+
                 if (currentLocation.isNotEmpty()) {
                     val cl = currentLocation[currentLocation.lastIndex]
 
@@ -965,8 +1085,7 @@ private var ready = false    //flag fro direction marker
                         Toast.makeText(applicationContext, "Outside planting zone" +
                                 "", Toast.LENGTH_SHORT).show()
 
-                    }
-                    else {
+                    } else {
 
                         val markedCirclePoint = map?.addCircle(
                             CircleOptions().center(listOfPlantingRadius?.center!!)
@@ -975,10 +1094,13 @@ private var ready = false    //flag fro direction marker
                                 .strokeWidth(1.0f)
                         )
                         if (markedCirclePoint!!.center in listOfMarkedPoints) {
+                            Toast.makeText(applicationContext, "already Marked", Toast.LENGTH_LONG)
+                                .show()
                             return
                         }
 
-                        listOfMarkedPoints.add(markedCirclePoint!!.center)
+                        listOfMarkedPoints.add(markedCirclePoint.center)
+
                         var color = markedCirclePoint.fillColor
                         if (color != Color.YELLOW) {
                             Toast.makeText(this@MainActivity,
@@ -1004,8 +1126,8 @@ private var ready = false    //flag fro direction marker
                             }
                             Toast.makeText(applicationContext, "Point Marked " +
                                     "", Toast.LENGTH_SHORT).show()
-                        }
-                        else{
+
+                        } else {
                             Toast.makeText(applicationContext, "ERROR " +
                                     "", Toast.LENGTH_SHORT).show()
                         }
@@ -1045,51 +1167,49 @@ private var ready = false    //flag fro direction marker
         return ((0.1 * sizeInCentimeters) / 100) + 1.0
     }
 
-    private val onLongMapPress = GoogleMap.OnMapLongClickListener {
-        if (polyLines.size == 0)
-            return@OnMapLongClickListener // Not yet...
-
-        map?.addMarker(MarkerOptions().title("Landing").position(it)
-
-        )
-
-
-        val loc = S2Helper.makeS2PointFromLngLat(it) // Get the point
-        val p = S2Helper.findClosestLine(linesIndex, it, polyLines)
-        Log.d("closest", "Closest l" +
-                "ine found, will look for closest point!")
-        if (p != null) {
-            (p as Polyline).color = Color.CYAN // change its colour..
-        }
-
-        val xloc = S2Helper.findClosestPointOnLine(pointsIndex, it) as S2LatLng?
-        if (xloc != null) {
-            val pt = LatLng(xloc.latDegrees(), xloc.lngDegrees())
-            // Draw the point on the line...
-            map?.addCircle(
-                CircleOptions().center(pt).fillColor(Color.CYAN).radius(0.5)
-                    .strokeWidth(1.0f)
-
-            )
-
-            Log.d("closest", "Closest point drawn")
-        }
-    }
+//    private val onLongMapPress = GoogleMap.OnMapLongClickListener {
+//        if (polyLines.size == 0)
+//            return@OnMapLongClickListener // Not yet...
+//
+//        map?.addMarker(MarkerOptions().title("Landing").position(it)
+//
+//        )
+//
+//
+//        val loc = S2Helper.makeS2PointFromLngLat(it) // Get the point
+//        val p = S2Helper.findClosestLine(linesIndex, it, polyLines)
+//        Log.d("closest", "Closest l" +
+//                "ine found, will look for closest point!")
+//        if (p != null) {
+//            (p as Polyline).color = Color.CYAN // change its colour..
+//        }
+//
+//        val xloc = S2Helper.findClosestPointOnLine(pointsIndex, it) as S2LatLng?
+//        if (xloc != null) {
+//            val pt = LatLng(xloc.latDegrees(), xloc.lngDegrees())
+//            // Draw the point on the line...
+//            map?.addCircle(
+//                CircleOptions().center(pt).fillColor(Color.CYAN).radius(0.5)
+//                    .strokeWidth(1.0f)
+//
+//            )
+//
+//            Log.d("closest", "Closest point drawn")
+//        }
+//    }
 
     private val callback = OnMapReadyCallback { googleMap ->
         map = googleMap
         googleMap.setLocationSource(NmeaReader.listener)
         googleMap.setOnMapClickListener(onMapClick)
-        googleMap.setOnMyLocationButtonClickListener(this)
-        googleMap.setOnMyLocationClickListener(this)
 
         googleMap.setOnPolylineClickListener(onPolyClick)
         //googleMap.setOnCircleClickListener(onClickingPoint)
-        googleMap.setOnMapLongClickListener(onLongMapPress)
+        // googleMap.setOnMapLongClickListener(onLongMapPress)
         googleMap.isMyLocationEnabled = true
-       val isl = LatLng(-.366044, 32.441599) // LatLng(0.0,32.44) //
+        val isl = LatLng(-.366044, 32.441599) // LatLng(0.0,32.44) //
         googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
-     googleMap.addMarker(MarkerOptions().position(isl).title("Marker in N Residence"))
+        googleMap.addMarker(MarkerOptions().position(isl).title("Marker in N Residence"))
 //
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(isl, 21.0f))
 
