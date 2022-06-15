@@ -115,21 +115,24 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         val magneticSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
 
-        Objects.requireNonNull(sensorManager)
-            ?.registerListener(sensorListener,
-                sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-                SensorManager.SENSOR_DELAY_NORMAL)
+//        Objects.requireNonNull(sensorManager)
+//            ?.registerListener(sensorListener,
+//                sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+//                SensorManager.SENSOR_DELAY_NORMAL)
+//
+//
+//       val y = Objects.requireNonNull(sensorManager)?.registerListener(sensorListener,
+//                sensorManager!!.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
+//                SensorManager.SENSOR_DELAY_NORMAL)
 
-        sensorManager!!.registerListener(listener,
-            magneticSensor,
-            SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager!!.registerListener(listener, magneticSensor, SensorManager.SENSOR_DELAY_NORMAL);
         sensorManager!!.registerListener(listener, accSensor, SensorManager.SENSOR_DELAY_NORMAL);
         acceleration = 10f
         currentAcceleration = SensorManager.GRAVITY_EARTH
         lastAcceleration = SensorManager.GRAVITY_EARTH
 
         if (magneticSensor != null) {
-            return
+
         } else {
             var campus = false
 
@@ -167,12 +170,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     )
                     if (ready) {
                         directionMarker?.remove()
-                        directionMarker = map?.addMarker(MarkerOptions().position(xloc)
-                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1))
-
-                            .rotation(bDegrees!!.toFloat())
-
-                        )
+//                        directionMarker = map?.addMarker(MarkerOptions().position(xloc)
+//                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1))
+//
+//                            .rotation(diff!!.toFloat())
+//
+//                        )
                     }
                     if (currentLocation.isNotEmpty()) {
                         currentLocation.clear()
@@ -185,7 +188,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
                     val runnableCode = object : Runnable {
                         override fun run() {
-                            headingDirection(location)
+                            // headingDirection(location)
                             handler.postDelayed(this, 5000)
                         }
                     }
@@ -256,6 +259,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 if (zoomMode) {
                     val zmlevel = map?.cameraPosition?.zoom
                     val maxZmLevel = map?.maxZoomLevel
+                    val b = map?.cameraPosition?.bearing
+                    Log.d("bearing", "$b")
 
                     var pt: LatLng? = null
 
@@ -333,12 +338,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                             }
 
                         } else {
-                            currentPlantingLine.isVisible = true
-                            if (unmarkedCirclesList.isNotEmpty()) {
-                                for (c in unmarkedCirclesList) {
-                                    c.isVisible = true
-                                }
-                            }
+                            showLine()
                         }
                     }
                 }
@@ -394,76 +394,101 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
     }
 
-    var bDegrees: Double? = null
-    var bring: Int? = null
-
-    private fun headingDirection(location: LatLng) {
-        var currentLat = (location.latitude) / Math.PI * 180
-        var currentLong = (location.longitude) / Math.PI * 180
-
-        var prevLat = (0.000000) / Math.PI * 180
-        var prevLng = (0.000000) / Math.PI * 180
-        var lastRotateDegree = 0.0f
-//        if (currentLong < 0) {
-//            currentLong * -1
-//        }
-
-        //diff between the longitudes
-        var deltaLong = (currentLong - prevLng)
-
-        var y = Math.sin(deltaLong) * Math.cos(currentLat)
-        var x =
-            Math.cos(prevLat) * Math.sin(currentLat) - Math.sin(prevLat) * Math.cos(currentLat) * Math.cos(
-                deltaLong)
-        var b = atan2(y, x)
-        bDegrees = (b * 180 / Math.PI + 360) % 360
-
-        prevLat = currentLat
-        prevLng = currentLong
-        Log.d("bearing", " plot me: $bDegrees ")
-
-        ready = true
-    }
-
-    var bearing: Double? = null
-    private val listener: SensorEventListener = object : SensorEventListener {
-        var accelerometerValues = FloatArray(3)
-        var magneticValues = FloatArray(3)
-        private var lastRotateDegree = 0f
-        override fun onSensorChanged(event: SensorEvent) {
-// Determine whether it is an acceleration sensor or a geomagnetic sensor
-            if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-// Pay attention to call the clone() method when assigning
-                accelerometerValues = event.values.clone()
-
-            } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
-                magneticValues = event.values.clone()
-
-                Toast.makeText(applicationContext, "Changed magnet", Toast.LENGTH_LONG).show()
-            }
-            val R = FloatArray(9)
-            val values = FloatArray(3)
-            SensorManager.getRotationMatrix(R, null, accelerometerValues, magneticValues)
-            SensorManager.getOrientation(R, values)
-            bearing = -Math.toDegrees(values[0].toDouble())
-            val rotateDegree = (-Math.toDegrees(values[0].toDouble())).toFloat()
-            val diff = rotateDegree - lastRotateDegree
-            if (Math.abs(diff) > 1) {
-                val bearingAngle = Math.abs(diff)
-                val animation = RotateAnimation(lastRotateDegree,
-                    rotateDegree,
-                    Animation.RELATIVE_TO_SELF,
-                    0.5f,
-                    Animation.RELATIVE_TO_SELF,
-                    0.5f)
-                animation.fillAfter = true
-                compass.startAnimation(animation)
-                lastRotateDegree = rotateDegree
+    private fun showLine() {
+        var currentPlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
+        currentPlantingLine.isVisible = true
+        if (unmarkedCirclesList.isNotEmpty()) {
+            for (c in unmarkedCirclesList) {
+                c.isVisible = true
             }
         }
-
-        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
     }
+
+//
+//    var bDegrees: Double? = null
+//    var bring: Int? = null
+
+//    private fun headingDirection(location: LatLng) {
+//        var currentLat = (location.latitude) / Math.PI * 180
+//        var currentLong = (location.longitude) / Math.PI * 180
+//
+//        var prevLat = (0.000000) / Math.PI * 180
+//        var prevLng = (0.000000) / Math.PI * 180
+//        var lastRotateDegree = 0.0f
+////        if (currentLong < 0) {
+////            currentLong * -1
+////        }
+//
+//        //diff between the longitudes
+//        var deltaLong = (currentLong - prevLng)
+//
+//        var y = Math.sin(deltaLong) * Math.cos(currentLat)
+//        var x =
+//            Math.cos(prevLat) * Math.sin(currentLat) - Math.sin(prevLat) * Math.cos(currentLat) * Math.cos(
+//                deltaLong)
+//        var b = atan2(y, x)
+//        bDegrees = (b * 180 / Math.PI + 360) % 360
+//
+//        prevLat = currentLat
+//        prevLng = currentLong
+//        Log.d("bearing", " plot me: $bDegrees ")
+//
+//        ready = true
+//    }
+
+    var bearing: Double? = null
+    var diff: Float? = null
+    var threshold: Float = 5.0f
+//    private val listener: SensorEventListener = object : SensorEventListener {
+//        var accelerometerValues = FloatArray(3)
+//        var magneticValues = FloatArray(3)
+//        private var lastRotateDegree = 0f
+//        override fun onSensorChanged(event: SensorEvent) {
+//            // Determine whether it is an acceleration sensor or a geomagnetic sensor
+//            if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+//                // Pay attention to call the clone() method when assigning
+//                accelerometerValues = event.values.clone()
+//
+//            } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
+//                magneticValues = event.values.clone()
+//                //Toast.makeText(applicationContext, "Changed magnet", Toast.LENGTH_LONG).show()
+//            }
+//            val R = FloatArray(9)
+//            val values = FloatArray(3)
+//            SensorManager.getRotationMatrix(R, null, accelerometerValues, magneticValues)
+//            SensorManager.getOrientation(R, values)
+//            bearing = -Math.toDegrees(values[0].toDouble())
+//            val rotateDegree = (-Math.toDegrees(values[0].toDouble())).toFloat()
+//            diff = rotateDegree - lastRotateDegree
+//            val bearingAngle = Math.abs(diff!!)
+//            if (bearingAngle > 1) {
+//
+//                val animation = RotateAnimation(lastRotateDegree,
+//                    rotateDegree,
+//                    Animation.RELATIVE_TO_SELF,
+//                    0.5f,
+//                    Animation.RELATIVE_TO_SELF,
+//                    0.5f)
+//                animation.fillAfter = true
+//                compass.startAnimation(animation)
+//                lastRotateDegree = rotateDegree
+//               // Log.d("rotation", "$diff and $lastRotateDegree")
+//                //wait till lines are drawn then check closeness to line
+//                if (zoomMode) {
+//                    if (bearingAngle > threshold) {
+//                        showLine()
+//                        Toast.makeText(this@MainActivity, "Straying from line, zoom in to see line", Toast.LENGTH_LONG)
+//                            .show()
+//                        showLine()
+//                    }
+//                }
+//
+//
+//            }
+//        }
+//
+//        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
+//    }
 
     //private var View row  = getLayoutInflater().inflate(R.layout.custom_info_window, null)
     //private val contents: View = layoutInflater.inflate(R.layout.custom_info_contents, null)
@@ -696,7 +721,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     }
 
     private fun openBlueTooth() {
-
+        //progressBar.isVisible = true
         device?.let {
             // Load the map
 
@@ -1028,13 +1053,60 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
 
     // Marking off points on a planting line
-    private val sensorListener: SensorEventListener = object : SensorEventListener {
+    private val listener: SensorEventListener = object : SensorEventListener {
+        var accelerometerValues = FloatArray(3)
+        var magneticValues = FloatArray(3)
+        private var lastRotateDegree = 0f
+
         override fun onSensorChanged(event: SensorEvent) {
 
+            if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+                // Pay attention to call the clone() method when assigning
+                accelerometerValues = event.values.clone()
+
+            } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
+                magneticValues = event.values.clone()
+                //Toast.makeText(applicationContext, "Changed magnet", Toast.LENGTH_LONG).show()
+            }
+            val R = FloatArray(9)
+            val values = FloatArray(3)
+            SensorManager.getRotationMatrix(R, null, accelerometerValues, magneticValues)
+            SensorManager.getOrientation(R, values)
+            bearing = -Math.toDegrees(values[0].toDouble())
+            val rotateDegree = (-Math.toDegrees(values[0].toDouble())).toFloat()
+            diff = rotateDegree - lastRotateDegree
+            val bearingAngle = Math.abs(diff!!)
+
+            if (bearingAngle > 1) {
+
+                val animation = RotateAnimation(lastRotateDegree,
+                    rotateDegree,
+                    Animation.RELATIVE_TO_SELF,
+                    0.5f,
+                    Animation.RELATIVE_TO_SELF,
+                    0.5f)
+                animation.fillAfter = true
+                compass.startAnimation(animation)
+                lastRotateDegree = rotateDegree
+               // Log.d("rotation", "$diff and $lastRotateDegree")
+                //wait till lines are drawn then check closeness to line
+                if (zoomMode) {
+                    if (bearingAngle > threshold) {
+                        showLine()
+                        Toast.makeText(this@MainActivity, "Straying from line, zoom in to see line", Toast.LENGTH_LONG)
+                            .show()
+                        showLine()
+                    }
+                }
+
+
+            }
+
             // Fetching x,y,z values
-            val x = event.values[0]
-            val y = event.values[1]
-            val z = event.values[2]
+            val x = accelerometerValues[0]
+            val y = accelerometerValues[1]
+            val z = accelerometerValues[2]
+
             lastAcceleration = currentAcceleration
 
             // Getting current accelerations
@@ -1043,7 +1115,59 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             val delta: Float = currentAcceleration - lastAcceleration
             acceleration = acceleration * 0.9f + delta
 
-            if (acceleration > 20) {
+            //   private val listener: SensorEventListener = object : SensorEventListener {
+//        var accelerometerValues = FloatArray(3)
+//        var magneticValues = FloatArray(3)
+//        private var lastRotateDegree = 0f
+
+//        override fun onSensorChanged(event: SensorEvent) {
+//            // Determine whether it is an acceleration sensor or a geomagnetic sensor
+//            if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+//                // Pay attention to call the clone() method when assigning
+//                accelerometerValues = event.values.clone()
+//
+//            } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
+//                magneticValues = event.values.clone()
+//                //Toast.makeText(applicationContext, "Changed magnet", Toast.LENGTH_LONG).show()
+//            }
+//            val R = FloatArray(9)
+//            val values = FloatArray(3)
+//            SensorManager.getRotationMatrix(R, null, accelerometerValues, magneticValues)
+//            SensorManager.getOrientation(R, values)
+//            bearing = -Math.toDegrees(values[0].toDouble())
+//            val rotateDegree = (-Math.toDegrees(values[0].toDouble())).toFloat()
+//            diff = rotateDegree - lastRotateDegree
+//            val bearingAngle = Math.abs(diff!!)
+//            if (bearingAngle > 1) {
+//
+//                val animation = RotateAnimation(lastRotateDegree,
+//                    rotateDegree,
+//                    Animation.RELATIVE_TO_SELF,
+//                    0.5f,
+//                    Animation.RELATIVE_TO_SELF,
+//                    0.5f)
+//                animation.fillAfter = true
+//                compass.startAnimation(animation)
+//                lastRotateDegree = rotateDegree
+//               // Log.d("rotation", "$diff and $lastRotateDegree")
+//                //wait till lines are drawn then check closeness to line
+//                if (zoomMode) {
+//                    if (bearingAngle > threshold) {
+//                        showLine()
+//                        Toast.makeText(this@MainActivity, "Straying from line, zoom in to see line", Toast.LENGTH_LONG)
+//                            .show()
+//                        showLine()
+//                    }
+//                }
+//
+//
+//            }
+//        }
+//
+//        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
+//    }
+
+            if (acceleration > 10) {
                 val plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
 
                 val l = plantingLine.tag as MutableList<*>
@@ -1094,8 +1218,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                                 .strokeWidth(1.0f)
                         )
                         if (markedCirclePoint!!.center in listOfMarkedPoints) {
-                            Toast.makeText(applicationContext, "already Marked", Toast.LENGTH_LONG)
-                                .show()
+
                             return
                         }
 
@@ -1150,14 +1273,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     }
 
     override fun onResume() {
-        sensorManager?.registerListener(sensorListener, sensorManager!!.getDefaultSensor(
+        sensorManager?.registerListener(listener, sensorManager!!.getDefaultSensor(
             Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL
         )
         super.onResume()
     }
 
     override fun onPause() {
-        sensorManager!!.unregisterListener(sensorListener)
+        sensorManager!!.unregisterListener(listener)
         super.onPause()
     }
 

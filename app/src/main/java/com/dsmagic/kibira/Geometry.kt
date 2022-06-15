@@ -346,7 +346,7 @@ class Geometry {
 
                 val xl = l.fromUTM(c)
                 al.add(xl) // Use UTM centre...
-                if (count < 6){
+                if (count < 100){
                     printline(xl) // Cause it to be printed
                 }
                 count+=1

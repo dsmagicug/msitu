@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -20,15 +19,15 @@
 
 
         <FrameLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
-                        android:layout_marginStart="1dp"
-                        android:layout_marginTop="1dp"
-                        android:layout_marginEnd="1dp"
-                        android:layout_weight="1"
-                        android:orientation="horizontal"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent">
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginStart="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginEnd="1dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
 
             <fragment
@@ -42,20 +41,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="end|bottom"
-app:fabSize="mini"
                 android:layout_margin="16dp"
                 android:contentDescription="@string/fab_map"
                 android:src="@drawable/ic_baseline_map_24"
                 app:backgroundTint="@color/green"
-                />
+                app:fabSize="mini" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fab_compass"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-android:layout_gravity="center_vertical|end|bottom"
-                android:layout_marginBottom="66dp"
+                android:layout_gravity="center_vertical|end|bottom"
                 android:layout_marginEnd="16dp"
+                android:layout_marginBottom="66dp"
                 android:contentDescription="@string/compass"
                 android:src="@drawable/blackcompass"
                 app:backgroundTint="@color/green"
@@ -63,12 +61,15 @@ android:layout_gravity="center_vertical|end|bottom"
 
                 app:rippleColor="#EDE8E8" />
 
+
             <ImageView
                 android:id="@+id/compass"
-                android:layout_width="77dp"
+                android:layout_width="100dp"
                 android:layout_height="100dp"
-                android:layout_marginTop="65dp"
-                android:src="@drawable/slimarrow" />
+                android:layout_marginTop="85dp"
+                android:src="@drawable/slimarrow"
+                android:contentDescription="@string/directionarrow"
+                />
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/appToolbar"
@@ -132,14 +133,15 @@ android:layout_gravity="center_vertical|end|bottom"
 
 
         </FrameLayout>
-                </LinearLayout>
+    </LinearLayout>
+
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="320dp"
         android:layout_centerHorizontal="true"
-        android:visibility="gone"/>
+        android:layout_marginTop="320dp"
+        android:visibility="gone" />
 
 </RelativeLayout>

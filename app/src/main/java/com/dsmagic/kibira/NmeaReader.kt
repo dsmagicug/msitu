@@ -11,6 +11,8 @@ import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
+import androidx.core.view.isVisible
+import kotlinx.android.synthetic.main.activity_main.*
 import java.io.IOException
 import java.io.InputStream
 import java.nio.charset.Charset
@@ -22,8 +24,9 @@ class NmeaReader {
         var stopIt = false
         var thread: Thread? = null
         val listener = RtkLocationSource()
+
         // var listener : LocationSource.OnLocationChangedListener? = null
-         var socket : BluetoothSocket? = null
+        var socket: BluetoothSocket? = null
         var input: InputStream? = null
         fun stop() {
             thread?.interrupt()
@@ -69,27 +72,29 @@ class NmeaReader {
 //            input = socket.inputStream
 //            Log.d("bt", "Bluetooth connect complete")
 //            startDataListener()
-            try{
-                val uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // Serial port UUID
+           // val pbar = MainActivity().progressBar
+            try {
+                val uuid =
+                    UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // Serial port UUID
                 val socket = device.createRfcommSocketToServiceRecord(uuid)
-               val conn = socket?.connect()
-                Log.d("uuid","$socket")
-                if (conn != null) {
-                   // Toast.makeText(MainActivity(),"Paired",Toast.LENGTH_LONG).show()
-                        Log.d("conn","coonected")
-                }else{
-                 //Toast.makeText(MainActivity(),"Could not Pair",Toast.LENGTH_LONG).show()
-                }
+              val con =  socket?.connect()
+                Log.d("socket","$con")
+                //pbar.isVisible = false
                 input = socket?.inputStream
+//
+                Toast.makeText(context, "Device successfully paired", Toast.LENGTH_LONG).show()
                 startDataListener()
-            }catch (e:IOException){
+            } catch (e: IOException) {
+               // pbar.isVisible = false
+                Toast.makeText(context, "Could not Pair! Make sure device is on", Toast.LENGTH_LONG)
+                    .show()
                 e.printStackTrace()
             }
 
         }
 
         private fun startDataListener() {
-           
+
             val looper = Looper.getMainLooper()
             val handler = Handler(looper)
 

@@ -39,5 +39,6 @@
     <string name="default_info_snippet">Default info Snippet</string>
     <string name="fab_map">Map_Mode</string>
     <string name="compass">compass</string>
+    <string name="directionarrow">DirectionArrow</string>
 
 </resources>
