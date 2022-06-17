@@ -6,10 +6,7 @@ import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
+import android.hardware.*
 import android.location.Location
 import android.location.Location.distanceBetween
 import android.location.LocationManager
@@ -36,17 +33,13 @@ import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
 import kotlinx.android.synthetic.main.activity_main.*
-import org.checkerframework.checker.units.qual.degrees
-import org.checkerframework.checker.units.qual.radians
-import java.lang.Math.atan2
 import java.util.*
 import java.util.concurrent.Executors
-import kotlin.math.atan
 import kotlin.math.sqrt
 
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener,
-    GoogleMap.InfoWindowAdapter, GoogleMap.OnMyLocationButtonClickListener,
+    GoogleMap.OnMyLocationButtonClickListener,
     GoogleMap.OnMyLocationClickListener, OnMapReadyCallback {
     var deviceList = ArrayList<BluetoothDevice>()
     var device: BluetoothDevice? = null
@@ -88,10 +81,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-        //binding = ActivityMainBinding.inflate(layoutInflater)
-        val title = findViewById<TextView>(R.id.title)
-        val size = findViewById<TextView>(R.id.size)
-        val dista = findViewById<TextView>(R.id.distance)
+
 
 
         setContentView(R.layout.activity_main)
@@ -115,17 +105,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         val magneticSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
 
-//        Objects.requireNonNull(sensorManager)
-//            ?.registerListener(sensorListener,
-//                sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
-//                SensorManager.SENSOR_DELAY_NORMAL)
-//
-//
-//       val y = Objects.requireNonNull(sensorManager)?.registerListener(sensorListener,
-//                sensorManager!!.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD),
-//                SensorManager.SENSOR_DELAY_NORMAL)
-
-        sensorManager!!.registerListener(listener, magneticSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager!!.registerListener(listener,
+            magneticSensor,
+            SensorManager.SENSOR_DELAY_NORMAL);
         sensorManager!!.registerListener(listener, accSensor, SensorManager.SENSOR_DELAY_NORMAL);
         acceleration = 10f
         currentAcceleration = SensorManager.GRAVITY_EARTH
@@ -170,12 +152,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     )
                     if (ready) {
                         directionMarker?.remove()
-//                        directionMarker = map?.addMarker(MarkerOptions().position(xloc)
-//                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1))
-//
-//                            .rotation(diff!!.toFloat())
-//
-//                        )
+                        directionMarker = map?.addMarker(MarkerOptions().position(xloc)
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1))
+
+                            .rotation(heading.toFloat())
+
+                        )
                     }
                     if (currentLocation.isNotEmpty()) {
                         currentLocation.clear()
@@ -184,15 +166,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                         currentLocation.add(it.center)
                     }
                     val location = currentLocation[currentLocation.lastIndex]
-                    distanceToPoint(location)
 
-                    val runnableCode = object : Runnable {
-                        override fun run() {
-                            // headingDirection(location)
-                            handler.postDelayed(this, 5000)
-                        }
-                    }
-                    handler.postDelayed(runnableCode, 5000)
+                            distanceToPoint(location)
 
                 }
                 if (currentLocation.distinct().size == 1) {
@@ -238,7 +213,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                             val half = d / 2
                             val halfhalf = half / 2
                             if (distance < half && distance > halfhalf) {
-                                lineOfInterest.color = Color.YELLOW
+                                // lineOfInterest.color = Color.YELLOW
                             } else {
                                 if (distance < halfhalf || halfhalf == 0) {
                                     lineOfInterest.color = Color.GREEN
@@ -259,8 +234,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 if (zoomMode) {
                     val zmlevel = map?.cameraPosition?.zoom
                     val maxZmLevel = map?.maxZoomLevel
-                    val b = map?.cameraPosition?.bearing
-                    Log.d("bearing", "$b")
 
                     var pt: LatLng? = null
 
@@ -270,7 +243,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     //get current line person is walking on, lat/lng and find closest point on line as they are moving
                     val currentPlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
                     val roverPoint = currentLocation[currentLocation.lastIndex]
-                    val l = currentPlantingLine.tag as List<*>
+                    val l = currentPlantingLine.tag as MutableList<*>
                     var tcpt = mutableListOf<LatLng>()
                     var plantingCircle: Circle? = null
                     var templistCircle = mutableListOf<Circle>()
@@ -339,6 +312,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
                         } else {
                             showLine()
+                            //plotLine(l)
                         }
                     }
                 }
@@ -404,168 +378,123 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         }
     }
 
-//
-//    var bDegrees: Double? = null
-//    var bring: Int? = null
-
-//    private fun headingDirection(location: LatLng) {
-//        var currentLat = (location.latitude) / Math.PI * 180
-//        var currentLong = (location.longitude) / Math.PI * 180
-//
-//        var prevLat = (0.000000) / Math.PI * 180
-//        var prevLng = (0.000000) / Math.PI * 180
-//        var lastRotateDegree = 0.0f
-////        if (currentLong < 0) {
-////            currentLong * -1
-////        }
-//
-//        //diff between the longitudes
-//        var deltaLong = (currentLong - prevLng)
-//
-//        var y = Math.sin(deltaLong) * Math.cos(currentLat)
-//        var x =
-//            Math.cos(prevLat) * Math.sin(currentLat) - Math.sin(prevLat) * Math.cos(currentLat) * Math.cos(
-//                deltaLong)
-//        var b = atan2(y, x)
-//        bDegrees = (b * 180 / Math.PI + 360) % 360
-//
-//        prevLat = currentLat
-//        prevLng = currentLong
-//        Log.d("bearing", " plot me: $bDegrees ")
-//
-//        ready = true
-//    }
-
-    var bearing: Double? = null
-    var diff: Float? = null
-    var threshold: Float = 5.0f
-//    private val listener: SensorEventListener = object : SensorEventListener {
-//        var accelerometerValues = FloatArray(3)
-//        var magneticValues = FloatArray(3)
-//        private var lastRotateDegree = 0f
-//        override fun onSensorChanged(event: SensorEvent) {
-//            // Determine whether it is an acceleration sensor or a geomagnetic sensor
-//            if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-//                // Pay attention to call the clone() method when assigning
-//                accelerometerValues = event.values.clone()
-//
-//            } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
-//                magneticValues = event.values.clone()
-//                //Toast.makeText(applicationContext, "Changed magnet", Toast.LENGTH_LONG).show()
-//            }
-//            val R = FloatArray(9)
-//            val values = FloatArray(3)
-//            SensorManager.getRotationMatrix(R, null, accelerometerValues, magneticValues)
-//            SensorManager.getOrientation(R, values)
-//            bearing = -Math.toDegrees(values[0].toDouble())
-//            val rotateDegree = (-Math.toDegrees(values[0].toDouble())).toFloat()
-//            diff = rotateDegree - lastRotateDegree
-//            val bearingAngle = Math.abs(diff!!)
-//            if (bearingAngle > 1) {
-//
-//                val animation = RotateAnimation(lastRotateDegree,
-//                    rotateDegree,
-//                    Animation.RELATIVE_TO_SELF,
-//                    0.5f,
-//                    Animation.RELATIVE_TO_SELF,
-//                    0.5f)
-//                animation.fillAfter = true
-//                compass.startAnimation(animation)
-//                lastRotateDegree = rotateDegree
-//               // Log.d("rotation", "$diff and $lastRotateDegree")
-//                //wait till lines are drawn then check closeness to line
-//                if (zoomMode) {
-//                    if (bearingAngle > threshold) {
-//                        showLine()
-//                        Toast.makeText(this@MainActivity, "Straying from line, zoom in to see line", Toast.LENGTH_LONG)
-//                            .show()
-//                        showLine()
-//                    }
-//                }
-//
-//
-//            }
-//        }
-//
-//        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
-//    }
-
-    //private var View row  = getLayoutInflater().inflate(R.layout.custom_info_window, null)
-    //private val contents: View = layoutInflater.inflate(R.layout.custom_info_contents, null)
-    private var myContentsView: View? = null
-
-    fun MyInfoWindowAdapter() {
-
-
-    }
-
-    override fun getInfoWindow(p0: Marker): View? {
-        return null
-    }
-
-    override fun getInfoContents(p0: Marker): View? {
-        myContentsView = layoutInflater.inflate(R.layout.custom_info_window, null)
-
-        return myContentsView
-    }
+    var heading = 0.0f
+    var refPoint: LatLng? = null
+    var distance = 0.0f
+    var latLng: LatLng? = null
 
     private fun distanceToPoint(loc: LatLng) {
         if (walkingMode && listOfMarkedPoints.isNotEmpty()) {
+
+            val locationOfNextPoint = Location(LocationManager.GPS_PROVIDER)
+            val locationOfRoverLatLng = Location(LocationManager.FUSED_PROVIDER)
             var line = listOfPlantingLines[listOfPlantingLines.lastIndex]
             var l = line.tag as List<*>
             var size = listOfMarkedPoints.size
-            var pt: LatLng? = null
-            var distance = 0.0f
+            refPoint = listOfMarkedPoints[listOfMarkedPoints.lastIndex]
+            var index = 0
 
-            val runnableCode = object : Runnable {
-                override fun run() {
-                    val closeloc =
-                        loc.let { S2Helper.findClosestPointOnLine(pointsIndex, it) } as S2LatLng?
-
-                    pt = closeloc?.let { LatLng(it.latDegrees(), closeloc.lngDegrees()) }!!
-
-                    if (pt !in l || pt in listOfMarkedPoints) {
-                        return
-                    }
-
-                    val locationOfNextPoint = Location(LocationManager.GPS_PROVIDER)
-
-                    locationOfNextPoint.latitude = pt!!.latitude
-                    locationOfNextPoint.longitude = pt!!.longitude
-
-                    val locationOfRoverLatLng = Location(LocationManager.FUSED_PROVIDER)
-
-                    locationOfRoverLatLng.latitude = loc.latitude
-                    locationOfRoverLatLng.longitude = loc.longitude
-
-                    distance = locationOfNextPoint.distanceTo(locationOfRoverLatLng)
-
-                    if (tempListMarker.isNotEmpty()) {
-                        for (m in tempListMarker) {
-                            if (m.position == pt) {
-                                return    //do nothing if a marker is already drawn at that point
-                            }
-                        }
-
-                    }
-
-                    markers = map?.addMarker(MarkerOptions().position(pt!!)
-                        .title("Marked Points: $size")
-                        .snippet("distance to next point:" + "<" + "$distance")
-
-
-                    )
-
-                    tempListMarker.add(markers!!)
-                    markers?.showInfoWindow()
-                    handler.postDelayed(this, 2000)
+            if (tempListMarker.isNotEmpty()) {
+                var last = tempListMarker[tempListMarker.lastIndex]
+                last.remove()
+                tempListMarker.clear()
+            }
+            for (point in l) {
+                if (point == refPoint) {
+                    index = l.indexOf(point)
                 }
             }
-            markers?.hideInfoWindow()
-            handler.postDelayed(runnableCode, 2000)
+            //problematic code
+            if (lastRotateDegree in (-180.0..90.0)) {
+                Log.d("north", "$lastRotateDegree")
+                distance = 0f
+                var nextIndex = index + 1
+                latLng = l[nextIndex] as LatLng
+//
+//                if (latLng in listOfMarkedPoints) {
+//                    return
+//                }
+
+                locationOfNextPoint.latitude = latLng!!.latitude
+                locationOfNextPoint.longitude = latLng!!.longitude
+
+                locationOfRoverLatLng.latitude = loc.latitude
+                locationOfRoverLatLng.longitude = loc.longitude
+
+                distance = locationOfRoverLatLng.distanceTo(locationOfNextPoint)
+
+                markers = map?.addMarker(MarkerOptions().position(latLng!!)
+                    .title("Points")
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
+                    .snippet("Marked Points :$size"+"Distance: $distance")
+                )
+            }
+            else {
+                distance = 0f
+                var nextIndex = index - 1
+                latLng = l[nextIndex] as LatLng
+
+//                if (latLng in listOfMarkedPoints) {
+//                 return
+//                }
+
+
+                locationOfNextPoint.latitude = latLng!!.latitude
+                locationOfNextPoint.longitude = latLng!!.longitude
+
+                locationOfRoverLatLng.latitude = loc.latitude
+                locationOfRoverLatLng.longitude = loc.longitude
+
+                distance = locationOfRoverLatLng.distanceTo(locationOfNextPoint)
+                markers = map?.addMarker(MarkerOptions().position(latLng!!)
+                    .title("Points")
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
+                    .snippet("Marked Points :$size"+"Distance: $distance")
+                )
+            }
+
+
+            //var bearingTo = locationOfRoverLatLng.bearingTo(locationOfNextPoint)
+            val geomagneticField = GeomagneticField(
+                locationOfRoverLatLng.getLatitude().toFloat(),
+                locationOfRoverLatLng.getLongitude().toFloat(),
+                locationOfRoverLatLng.getAltitude().toFloat(),
+                System.currentTimeMillis())
+
+            var declination = Math.toRadians(geomagneticField.declination.toDouble()).toFloat()
+         var bearingTo = current_measured_bearing + declination
+            heading = Math.abs(lastRotateDegree) - declination
+
+          // heading = bearingTo
+            var initialB = 0.0f
+//            val animation = RotateAnimation(initialB,
+//                bearingTo,
+//                Animation.RELATIVE_TO_SELF,
+//                0.5f,
+//                Animation.RELATIVE_TO_SELF,
+//                0.5f)
+//            animation.fillAfter = true
+//            headTo.startAnimation(animation)
+//            initialB = bearingTo
+
+            if (distance > (gapsize + 1)) {
+                Toast.makeText(applicationContext,
+                    "Straying from Line or away from Point",
+                    Toast.LENGTH_SHORT).show()
+                //  showLine()
+            }
+
+            markers!!.showInfoWindow()
+            for (x in unmarkedCirclesList) {
+                if (x.center == latLng) {
+                    x.isVisible = true
+                }
+            }
+            tempListMarker.add(markers!!)
+
         }
 
-        markers?.showInfoWindow()
+
     }
 
     private fun scantBlueTooth() {
@@ -884,6 +813,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             for (item in polyLines) {
                 item!!.isVisible = false
             }
+            if (unmarkedCirclesList.isNotEmpty()) {
+                for (circle in unmarkedCirclesList) {
+                    circle.isVisible = false
+                }
+            }
             it.isVisible = true
             val l = it.tag as MutableList<*>
 
@@ -993,9 +927,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             if (pt !in l) {
                 return
             }
-            if (pt in listOfMarkedPoints) {
-                return
-            }
+//            if (pt in listOfMarkedPoints) {
+//                return
+//            }
             tempClosestPoint.add(pt)
             if (pt in l) {
                 if (templist.isNotEmpty()) {
@@ -1050,13 +984,45 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         }
 
     }
+//
+//    private fun showLineForFewSeconds() {
+//
+//        Toast.makeText(this@MainActivity,
+//            "Far from line, zoom in to see line",
+//            Toast.LENGTH_SHORT)
+//            .show()
+//        object : CountDownTimer(30000, 1000) {
+//
+//            // Callback function, fired on regular interval
+//            override fun onTick(millisUntilFinished: Long) {
+//                showLine()
+//            }
+//
+//            // Callback function, fired
+//            // when the time is up
+//            override fun onFinish() {
+//                var currentPlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
+//                currentPlantingLine.isVisible = false
+//                if (unmarkedCirclesList.isNotEmpty()) {
+//                    for (c in unmarkedCirclesList) {
+//                        c.isVisible = false
+//                    }
+//                }
+//            }
+//
+//        }
+//            .start()
+//    }
 
-
+    var bearing: Double? = null
+    var diff: Float? = null
+    var threshold: Float = 10.0f
+    private var lastRotateDegree = 0f
+private var current_measured_bearing = 0f
     // Marking off points on a planting line
     private val listener: SensorEventListener = object : SensorEventListener {
         var accelerometerValues = FloatArray(3)
         var magneticValues = FloatArray(3)
-        private var lastRotateDegree = 0f
 
         override fun onSensorChanged(event: SensorEvent) {
 
@@ -1066,9 +1032,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
             } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
                 magneticValues = event.values.clone()
-                //Toast.makeText(applicationContext, "Changed magnet", Toast.LENGTH_LONG).show()
+
             }
+
+             current_measured_bearing = (magneticValues.get(0) * 180 / Math.PI).toFloat()
+            if (current_measured_bearing < 0) current_measured_bearing += 360f
+
             val R = FloatArray(9)
+
             val values = FloatArray(3)
             SensorManager.getRotationMatrix(R, null, accelerometerValues, magneticValues)
             SensorManager.getOrientation(R, values)
@@ -1086,21 +1057,23 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     Animation.RELATIVE_TO_SELF,
                     0.5f)
                 animation.fillAfter = true
-                compass.startAnimation(animation)
+                //compass.startAnimation(animation)
                 lastRotateDegree = rotateDegree
-               // Log.d("rotation", "$diff and $lastRotateDegree")
+                ready = true
+
                 //wait till lines are drawn then check closeness to line
                 if (zoomMode) {
                     if (bearingAngle > threshold) {
-                        showLine()
-                        Toast.makeText(this@MainActivity, "Straying from line, zoom in to see line", Toast.LENGTH_LONG)
-                            .show()
-                        showLine()
+                        // showLineForFewSeconds()
+
+
                     }
                 }
 
 
             }
+
+            //******** The shake event starts here *******//
 
             // Fetching x,y,z values
             val x = accelerometerValues[0]
@@ -1115,156 +1088,114 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             val delta: Float = currentAcceleration - lastAcceleration
             acceleration = acceleration * 0.9f + delta
 
-            //   private val listener: SensorEventListener = object : SensorEventListener {
-//        var accelerometerValues = FloatArray(3)
-//        var magneticValues = FloatArray(3)
-//        private var lastRotateDegree = 0f
-
-//        override fun onSensorChanged(event: SensorEvent) {
-//            // Determine whether it is an acceleration sensor or a geomagnetic sensor
-//            if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-//                // Pay attention to call the clone() method when assigning
-//                accelerometerValues = event.values.clone()
-//
-//            } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
-//                magneticValues = event.values.clone()
-//                //Toast.makeText(applicationContext, "Changed magnet", Toast.LENGTH_LONG).show()
-//            }
-//            val R = FloatArray(9)
-//            val values = FloatArray(3)
-//            SensorManager.getRotationMatrix(R, null, accelerometerValues, magneticValues)
-//            SensorManager.getOrientation(R, values)
-//            bearing = -Math.toDegrees(values[0].toDouble())
-//            val rotateDegree = (-Math.toDegrees(values[0].toDouble())).toFloat()
-//            diff = rotateDegree - lastRotateDegree
-//            val bearingAngle = Math.abs(diff!!)
-//            if (bearingAngle > 1) {
-//
-//                val animation = RotateAnimation(lastRotateDegree,
-//                    rotateDegree,
-//                    Animation.RELATIVE_TO_SELF,
-//                    0.5f,
-//                    Animation.RELATIVE_TO_SELF,
-//                    0.5f)
-//                animation.fillAfter = true
-//                compass.startAnimation(animation)
-//                lastRotateDegree = rotateDegree
-//               // Log.d("rotation", "$diff and $lastRotateDegree")
-//                //wait till lines are drawn then check closeness to line
-//                if (zoomMode) {
-//                    if (bearingAngle > threshold) {
-//                        showLine()
-//                        Toast.makeText(this@MainActivity, "Straying from line, zoom in to see line", Toast.LENGTH_LONG)
-//                            .show()
-//                        showLine()
-//                    }
-//                }
-//
-//
-//            }
-//        }
-//
-//        override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
-//    }
-
             if (acceleration > 10) {
-                val plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
+                try{
+                    val plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
 
-                val l = plantingLine.tag as MutableList<*>
-                var pointOfInterestOnPolyline: LatLng? = null
+                    val l = plantingLine.tag as MutableList<*>
+                    var pointOfInterestOnPolyline: LatLng? = null
 
-                l.forEach { loc ->
-                    loc as LatLng
-                    if (loc == listOfPlantingRadius?.center)
-                        pointOfInterestOnPolyline = loc
+                    l.forEach { loc ->
+                        loc as LatLng
+                        if (loc == listOfPlantingRadius?.center)
+                            pointOfInterestOnPolyline = loc
 
-                }
-                if (pointOfInterestOnPolyline == null) {
+                    }
 
-                    Toast.makeText(applicationContext, "Can't find point to mark" +
-                            "", Toast.LENGTH_SHORT).show()
-                }
+                    if (currentLocation.isNotEmpty()) {
+                        val cl = currentLocation[currentLocation.lastIndex]
 
-                if (currentLocation.isNotEmpty()) {
-                    val cl = currentLocation[currentLocation.lastIndex]
+                        val LocationOfPointOfInterestOnPolyline =
+                            Location(LocationManager.GPS_PROVIDER)
 
-                    val LocationOfPointOfInterestOnPolyline =
-                        Location(LocationManager.GPS_PROVIDER)
+                        LocationOfPointOfInterestOnPolyline.latitude =
+                            pointOfInterestOnPolyline!!.latitude
+                        LocationOfPointOfInterestOnPolyline.longitude =
+                            pointOfInterestOnPolyline!!.longitude
 
-                    LocationOfPointOfInterestOnPolyline.latitude =
-                        pointOfInterestOnPolyline!!.latitude
-                    LocationOfPointOfInterestOnPolyline.longitude =
-                        pointOfInterestOnPolyline!!.longitude
+                        val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
 
-                    val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
+                        locationOfRoverLatLng.latitude = cl.latitude
+                        locationOfRoverLatLng.longitude = cl.longitude
+                        var distance = 0.0F
+                        distance =
+                            LocationOfPointOfInterestOnPolyline.distanceTo(locationOfRoverLatLng)
 
-                    locationOfRoverLatLng.latitude = cl.latitude
-                    locationOfRoverLatLng.longitude = cl.longitude
-                    var distance = 0.0F
-                    distance =
-                        LocationOfPointOfInterestOnPolyline.distanceTo(locationOfRoverLatLng)
+                        if (distance > listOfPlantingRadius?.radius!!) {
 
-                    if (distance > listOfPlantingRadius?.radius!!) {
+                            Toast.makeText(applicationContext, "Outside planting zone" +
+                                    "", Toast.LENGTH_SHORT).show()
 
-                        Toast.makeText(applicationContext, "Outside planting zone" +
-                                "", Toast.LENGTH_SHORT).show()
+                        } else {
 
-                    } else {
-
-                        val markedCirclePoint = map?.addCircle(
-                            CircleOptions().center(listOfPlantingRadius?.center!!)
-                                .fillColor(Color.YELLOW)
-                                .radius(0.5)
-                                .strokeWidth(1.0f)
-                        )
-                        if (markedCirclePoint!!.center in listOfMarkedPoints) {
-
-                            return
-                        }
-
-                        listOfMarkedPoints.add(markedCirclePoint.center)
-
-                        var color = markedCirclePoint.fillColor
-                        if (color != Color.YELLOW) {
-                            Toast.makeText(this@MainActivity,
-                                "Was not yellow",
-                                Toast.LENGTH_LONG).show()
-                            map?.addCircle(
-                                CircleOptions().center(markedCirclePoint.center)
+                            val markedCirclePoint = map?.addCircle(
+                                CircleOptions().center(listOfPlantingRadius?.center!!)
                                     .fillColor(Color.YELLOW)
                                     .radius(0.5)
                                     .strokeWidth(1.0f)
                             )
-                        }
+                            if (markedCirclePoint!!.center in listOfMarkedPoints) {
 
-                        if (markedCirclePoint.center == listOfPlantingRadius!!.center) {
-
-                            listOfPlantingRadius?.remove()
-                            if (markers != null) {
-                                markers!!.remove()
-
+                                return
                             }
-                            if (tempListMarker.isNotEmpty()) {
-                                tempListMarker.clear()
+
+                            listOfMarkedPoints.add(markedCirclePoint.center)
+                            var listofmarkedcircles = mutableListOf<Circle>()
+                            listofmarkedcircles.add(markedCirclePoint)
+                            if(listofmarkedcircles.isNotEmpty()){
+                                var last = listofmarkedcircles[listofmarkedcircles.lastIndex]
+                                var color = last.fillColor
+                                if (color != Color.YELLOW) {
+                                    Toast.makeText(this@MainActivity,
+                                        "Was not yellow",
+                                        Toast.LENGTH_LONG).show()
+
+                                    map?.addCircle(
+                                        CircleOptions().center(markedCirclePoint.center)
+                                            .fillColor(Color.YELLOW)
+                                            .radius(0.5)
+                                            .strokeWidth(1.0f)
+                                    )
+                                }
                             }
-                            Toast.makeText(applicationContext, "Point Marked " +
-                                    "", Toast.LENGTH_SHORT).show()
 
-                        } else {
-                            Toast.makeText(applicationContext, "ERROR " +
-                                    "", Toast.LENGTH_SHORT).show()
-                        }
-                        if (templist.isNotEmpty()) {
-                            templist.clear()
-                        }
-                        if (tempClosestPoint.isNotEmpty()) {
-                            tempClosestPoint.clear()
-                        }
 
-                        walkingMode = true
 
+                            if (markedCirclePoint.center == listOfPlantingRadius!!.center) {
+
+                                listOfPlantingRadius?.remove()
+                                if (markers != null) {
+                                    markers!!.remove()
+
+                                }
+                                if (tempListMarker.isNotEmpty()) {
+                                    tempListMarker.clear()
+                                }
+                                Toast.makeText(applicationContext, "Point Marked " +
+                                        "", Toast.LENGTH_SHORT).show()
+
+                            } else {
+                                Toast.makeText(applicationContext, "ERROR " +
+                                        "", Toast.LENGTH_SHORT).show()
+                            }
+                            if (templist.isNotEmpty()) {
+                                templist.clear()
+                            }
+                            if (tempClosestPoint.isNotEmpty()) {
+                                tempClosestPoint.clear()
+                            }
+
+                            walkingMode = true
+
+                        }
                     }
                 }
+                catch (e:Exception){
+                    Toast.makeText(applicationContext, "Can't find point to mark" +
+                            "", Toast.LENGTH_SHORT).show()
+                }
+
+
 
             }
         }
@@ -1325,8 +1256,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         map = googleMap
         googleMap.setLocationSource(NmeaReader.listener)
         googleMap.setOnMapClickListener(onMapClick)
-
         googleMap.setOnPolylineClickListener(onPolyClick)
+        googleMap.setInfoWindowAdapter(CustomInfoWindowAdapter())
         //googleMap.setOnCircleClickListener(onClickingPoint)
         // googleMap.setOnMapLongClickListener(onLongMapPress)
         googleMap.isMyLocationEnabled = true
@@ -1367,4 +1298,57 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     override fun onMapReady(p0: GoogleMap) {
         TODO("Not yet implemented")
     }
+
+    internal inner class CustomInfoWindowAdapter : GoogleMap.InfoWindowAdapter {
+
+        private val window: View = layoutInflater.inflate(R.layout.custom_info_contents, null)
+
+        override fun getInfoWindow(marker: Marker): View? {
+            render(markers!!, window)
+            return window
+        }
+
+        override fun getInfoContents(marker: Marker): View? {
+            render(markers!!, window)
+            return window
+        }
+
+        private fun render(marker: Marker, view: View) {
+
+            // Set the title and snippet for the custom info window
+
+            val titleUi = view.findViewById<TextView>(R.id.title)
+            if (marker.title != "") {
+                titleUi.text = marker.title
+            }
+
+            val snippet: String? = marker.snippet
+            val snippetUi = view.findViewById<TextView>(R.id.snippet)
+
+            if (marker.snippet != "") {
+                snippetUi.text = marker.snippet
+            }
+
+            snippetUi.text = snippet
+
+        }
+    }
+//    var mWindow = layoutInflater.inflate(R.layout.custom_info_window, null)
+//    private fun rendowWindowText(marker: Marker, view: View){
+//        val title = view.findViewById<TextView>(R.id.title)
+//        val snippet = view.findViewById<TextView>(R.id.snippet)
+//
+//        title.text = marker.title
+//        snippet.text = marker.snippet
+//
+//    }
+//    override fun getInfoContents(p0: Marker): View? {
+//        rendowWindowText(p0, mWindow)
+//        return mWindow
+//    }
+//
+//    override fun getInfoWindow(p0: Marker): View? {
+//        rendowWindowText(p0, mWindow)
+//        return mWindow
+//    }
 }

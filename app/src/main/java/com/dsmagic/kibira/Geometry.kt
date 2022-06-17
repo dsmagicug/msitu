@@ -10,6 +10,8 @@ import gov.nasa.worldwind.geom.coords.UTMCoord
 import org.checkerframework.checker.signedness.SignednessUtil.toDouble
 import org.json.JSONArray
 import org.json.JSONObject
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.atan2
@@ -149,8 +151,17 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
      */
     constructor(zone: Int, hemisphere: String, easting: Double, northing: Double) : this(0.0, 0.0) {
         val ll = UTMCoord.locationFromUTMCoord(zone, hemisphere, easting, northing)
-        lat = ll.latitude.degrees
-        long = ll.longitude.degrees
+        val dflat = DecimalFormat("#.##################") //18dp
+        val dflng = DecimalFormat("#.##############") //14dp
+        dflat.roundingMode = RoundingMode.DOWN
+        dflng.roundingMode = RoundingMode.DOWN
+
+     val l = dflat.format(ll.latitude.degrees).toDouble()
+        val llng = dflng.format(ll.longitude.degrees).toDouble()
+       // lat = ll.latitude.degrees
+        lat = l
+        long = llng
+       // long =ll.longitude.degrees
     }
 
     override fun toString(): String {
@@ -346,10 +357,10 @@ class Geometry {
 
                 val xl = l.fromUTM(c)
                 al.add(xl) // Use UTM centre...
-                if (count < 100){
+                if (count < 10){
                     printline(xl) // Cause it to be printed
                 }
-                count+=1
+               count+=1
 
             }
 

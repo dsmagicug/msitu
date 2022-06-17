@@ -62,19 +62,28 @@
                 app:rippleColor="#EDE8E8" />
 
 
-            <ImageView
-                android:id="@+id/compass"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_marginTop="85dp"
-                android:src="@drawable/slimarrow"
-                android:contentDescription="@string/directionarrow"
-                />
+<!--            <ImageView-->
+<!--                android:id="@+id/compass"-->
+<!--                android:layout_width="100dp"-->
+<!--                android:layout_height="127dp"-->
+<!--                android:layout_marginTop="85dp"-->
+<!--                android:contentDescription="@string/directionarrow"-->
+<!--                android:src="@drawable/slimarrow" />-->
+
+<!--            <ImageView-->
+<!--                android:id="@+id/headTo"-->
+<!--                android:layout_width="393dp"-->
+<!--                android:layout_height="127dp"-->
+<!--                android:layout_marginStart="0dp"-->
+<!--                android:layout_marginTop="85dp"-->
+<!--                android:layout_marginEnd="0dp"-->
+<!--                android:contentDescription="@string/directionarrow"-->
+<!--                android:src="@drawable/slimarrow" />-->
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/appToolbar"
                 android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
+                android:layout_height="81dp"
                 android:background="@color/green"
 
                 android:elevation="4dp"
@@ -83,39 +92,61 @@
 
                 >
 
-                <TextView
-                    android:id="@+id/display_project_name"
-                    android:layout_width="wrap_content"
+
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="1dp"
-                    android:text=" "
-                    android:textAllCaps="true"
-                    android:textSize="15sp" />
+                    app:layout_constraintEnd_toStartOf="@+id/spinner"
+                    app:layout_constraintStart_toStartOf="@+id/spinner">
 
+                    <TextView
+                        android:id="@+id/display_project_name"
+                        android:layout_width="110dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginTop="8dp"
+                        android:text=" "
+                        android:textAllCaps="true"
+                        android:textSize="15sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
-                <Button
-                    android:id="@+id/buttonConnect"
-                    android:layout_width="70dp"
-                    android:layout_height="wrap_content"
+                    <Button
+                        android:id="@+id/buttonConnect"
+                        android:layout_width="89dp"
+                        android:layout_height="51dp"
 
-                    android:layout_marginTop="16dp"
+                        android:layout_marginStart="53dp"
+                        android:layout_marginEnd="11dp"
+                        android:layout_marginBottom="4dp"
+                        android:backgroundTint="@color/green"
+                        android:text="PAIR"
+                        android:textColor="@color/black"
+                        android:visibility="invisible"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/spinner"
+                        app:layout_constraintStart_toStartOf="parent" />
 
-                    android:backgroundTint="@color/green"
-                    android:text="PAIR"
-                    android:textColor="@color/black"
-                    android:visibility="invisible"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    <Spinner
+                        android:id="@+id/spinner"
+                        android:layout_width="158dp"
+                        android:layout_height="26dp"
+                        android:layout_marginEnd="46dp"
+                        android:layout_weight="1"
+                        android:visibility="invisible"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/buttonConnect"
+                        app:layout_constraintTop_toTopOf="@+id/buttonConnect" />
 
+                    <androidx.constraintlayout.widget.Guideline
+                        android:id="@+id/guideline2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        app:layout_constraintGuide_percent="0.06393862" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <Spinner
-                    android:id="@+id/spinner"
-                    android:layout_width="170dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:layout_weight="1"
-                    android:visibility="invisible"
-                    app:layout_constraintTop_toTopOf="parent"
-                    tools:layout_editor_absoluteX="2dp" />
                 <!--                <Spinner-->
                 <!--                    android:id="@+id/spinner"-->
                 <!--                    android:layout_width="wrap_content"-->

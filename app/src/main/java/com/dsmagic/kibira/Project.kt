@@ -1,5 +1,82 @@
 import java.util.ArrayList
 
+
+
+//
+//    var bDegrees: Double? = null
+//    var bring: Int? = null
+
+//    private fun headingDirection(location: LatLng) {
+//        var currentLat = (location.latitude) / Math.PI * 180
+//        var currentLong = (location.longitude) / Math.PI * 180
+//
+//        var prevLat = (0.000000) / Math.PI * 180
+//        var prevLng = (0.000000) / Math.PI * 180
+//        var lastRotateDegree = 0.0f
+////        if (currentLong < 0) {
+////            currentLong * -1
+////        }
+//
+//        //diff between the longitudes
+//        var deltaLong = (currentLong - prevLng)
+//
+//        var y = Math.sin(deltaLong) * Math.cos(currentLat)
+//        var x =
+//            Math.cos(prevLat) * Math.sin(currentLat) - Math.sin(prevLat) * Math.cos(currentLat) * Math.cos(
+//                deltaLong)
+//        var b = atan2(y, x)
+//        bDegrees = (b * 180 / Math.PI + 360) % 360
+//
+//        prevLat = currentLat
+//        prevLng = currentLong
+//        Log.d("bearing", " plot me: $bDegrees ")
+//
+//        ready = true
+//    }
+
+
+
+
+//                    val closeloc =
+//                        loc.let { S2Helper.findClosestPointOnLine(pointsIndex, it) } as S2LatLng?
+//
+//                    pt = closeloc?.let { LatLng(it.latDegrees(), closeloc.lngDegrees()) }!!
+
+//                    if (latLng !in l || latLng in listOfMarkedPoints) {
+//                        return
+//                    }
+
+//                    val locationOfNextPoint = Location(LocationManager.GPS_PROVIDER)
+//
+//                    locationOfNextPoint.latitude = latLng!!.latitude
+//                    locationOfNextPoint.longitude = latLng!!.longitude
+//
+//                    val locationOfRoverLatLng = Location(LocationManager.FUSED_PROVIDER)
+//
+//                    locationOfRoverLatLng.latitude = loc.latitude
+//                    locationOfRoverLatLng.longitude = loc.longitude
+//
+//                    distance = locationOfNextPoint.distanceTo(locationOfRoverLatLng)
+//
+//                    if (tempListMarker.isNotEmpty()) {
+//                        for (m in tempListMarker) {
+//                            if (m.position == latLng) {
+//                                return    //do nothing if a marker is already drawn at that point
+//                            }
+//                        }
+//
+//                    }
+
+//
+//                    markers = map?.addMarker(MarkerOptions().position(pt!!)
+//                        .title("Marked Points: $size")
+//                        .snippet("distance to next point:" + "<" + "$distance")
+//
+//
+//                    )
+
+
+
 //package com.dsmagic.kibira
 //
 //import android.bluetooth.BluetoothAdapter
