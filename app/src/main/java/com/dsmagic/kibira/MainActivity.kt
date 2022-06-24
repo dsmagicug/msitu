@@ -5,8 +5,12 @@ import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
-import android.hardware.*
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.location.Location
 import android.location.Location.distanceBetween
 import android.location.LocationManager
@@ -20,9 +24,12 @@ import android.view.View
 import android.view.animation.Animation
 import android.view.animation.RotateAnimation
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import com.dsmagic.kibira.services.apiInterface
+import com.dsmagic.kibira.services.retrieveProjectsDataClass
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -33,7 +40,14 @@ import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
 import kotlinx.android.synthetic.main.activity_main.*
-import java.util.*
+import kotlinx.android.synthetic.main.list_projects.*
+import okhttp3.Interceptor
+import okhttp3.OkHttpClient
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.Executors
 import kotlin.math.sqrt
 
@@ -76,8 +90,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     private var fabFlag = true
     private var zoomMode = false
 
+     var BaseUrl = "http://192.168.100.17:8000/api/"
+    var userID: String? = null
+    var user_id:Int? = 0
+    var extras:Bundle? = null
     //lateinit var fab: FloatingActionButton
     private var ready = false    //flag fro direction marker
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -89,6 +109,27 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         setSupportActionBar(findViewById(R.id.appToolbar))
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
+         extras = getIntent().extras
+
+        if (extras != null) {
+            userID = extras!!.getString("userID")
+            val APIToken = extras!!.getString("token")
+            val sharedPreferences: SharedPreferences = this.getSharedPreferences(
+                CreateProjectDialog().sharedPrefFile,
+                Context.MODE_PRIVATE
+            )!!
+            val editor = sharedPreferences.edit()
+            editor.putString("userid_key", userID)
+            editor.putString("apiToken_key",APIToken)
+            editor.apply()
+            editor.commit()
+
+
+            if (editor.commit()) {
+                val userID: String? = sharedPreferences.getString("userid_key", "defaultValue")
+                Log.d("values", "Project name is: $userID")
+            }
+        }
         // Getting the Sensor Manager instance
 
         if (savedInstanceState != null) {
@@ -115,14 +156,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
         if (magneticSensor != null) {
 
-        } else {
-            var campus = false
+        }
+        else {
 
             Toast.makeText(applicationContext,
                 "No Geomagnetic sensor, so some features have been disabled",
                 Toast.LENGTH_LONG).show()
             //compass.isVisible = false
-            Log.d("Supports", "doest not supports")
+
         }
 
         NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
@@ -144,21 +185,20 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 if (moved) { // If it has changed, move the thing...
                     marker?.remove()
                     directionMarker?.remove()
+                    polyline1?.remove()
 
                     marker = map?.addCircle(
-                        CircleOptions().center(xloc).fillColor(Color.GREEN).radius(0.5)
+                        CircleOptions().center(xloc).fillColor(Color.GREEN).radius(0.1)
                             .strokeWidth(1.0f)
 
                     )
-                    if (ready) {
+                   // if (ready) {
                         directionMarker?.remove()
                         directionMarker = map?.addMarker(MarkerOptions().position(xloc)
-                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1))
-
-                            .rotation(heading.toFloat())
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.smallman))
 
                         )
-                    }
+                   // }
                     if (currentLocation.isNotEmpty()) {
                         currentLocation.clear()
                     }
@@ -365,10 +405,88 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             }
         }
 
+  // getProjects()
 
     }
 
-    private fun showLine() {
+    private fun getProjects() {
+        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
+            CreateProjectDialog().sharedPrefFile,
+            Context.MODE_PRIVATE
+        )!!
+        val apiToken: String? = sharedPreferences.getString("apiToken_key", "defaultValue")
+        val retrofitBuilder = Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(BaseUrl)
+            .build()
+            .create(apiInterface::class.java)
+
+        val retrofitData = retrofitBuilder.getProjectsList(apiToken!!)
+
+        retrofitData.enqueue(object : Callback<List<retrieveProjectsDataClass>?> {
+            override fun onResponse(
+                call: Call<List<retrieveProjectsDataClass>?>,
+                response: Response<List<retrieveProjectsDataClass>?>
+            ) {
+              val responseBody = response.body()
+                val stringbuilder = StringBuilder()
+                if (responseBody != null) {
+
+                    for( data in responseBody){
+                        stringbuilder.append(data.name)
+                        stringbuilder.append("/n")
+                    }
+    projectList.text = stringbuilder
+
+                }else{
+                    alertfail("No response got from server")
+                }
+            }
+
+            override fun onFailure(call: Call<List<retrieveProjectsDataClass>?>, t: Throwable) {
+                Log.d("error","${t.message}")
+            }
+        })
+    }
+    fun alertfail(S:String){
+        AlertDialog.Builder(MainActivity().applicationContext)
+            .setTitle("Error")
+            .setIcon(R.drawable.cross)
+            .setMessage(S)
+            .show()
+    }
+    fun SuccessAlert(S:String){
+        AlertDialog.Builder(MainActivity().applicationContext)
+            .setTitle("Success")
+            .setIcon(R.drawable.tick)
+            .setMessage(S)
+            .show()
+    }
+
+//    fun loginUser(email:String,password: String)
+//    {
+//        val retrofitBuilder = Retrofit.Builder()
+//            .addConverterFactory(GsonConverterFactory.create())
+//            .baseUrl(BaseUrl)
+//            .build()
+//            .create(apiInterface::class.java)
+//        val modal = LoginDataClassX(email,password)
+//        val retrofitData = retrofitBuilder.loginUser(modal)
+//        retrofitData.enqueue(object : Callback<loginDataclass?> {
+//            override fun onResponse(
+//                call: Call<LoginDataClassX?>,
+//                response: Response<LoginDataClassX?>
+//            ) {
+//            SuccessAlert("Successfully Logged in")
+//            }
+//
+//            override fun onFailure(call: Call<LoginDataClassX?>, t: Throwable) {
+//           alertfail("Invalid Credentials")
+//            }
+//        })
+//    }
+
+        private fun showLine() {
         var currentPlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
         currentPlantingLine.isVisible = true
         if (unmarkedCirclesList.isNotEmpty()) {
@@ -378,7 +496,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         }
     }
 
-    var heading = 0.0f
+    var polyline1:Polyline? = null
     var refPoint: LatLng? = null
     var distance = 0.0f
     var latLng: LatLng? = null
@@ -410,10 +528,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 distance = 0f
                 var nextIndex = index + 1
                 latLng = l[nextIndex] as LatLng
-//
-//                if (latLng in listOfMarkedPoints) {
-//                    return
-//                }
+
+                if (latLng in listOfMarkedPoints) {
+                     nextIndex = index - 1
+                    latLng = l[nextIndex] as LatLng
+                }
 
                 locationOfNextPoint.latitude = latLng!!.latitude
                 locationOfNextPoint.longitude = latLng!!.longitude
@@ -424,7 +543,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 distance = locationOfRoverLatLng.distanceTo(locationOfNextPoint)
 
                 markers = map?.addMarker(MarkerOptions().position(latLng!!)
-                    .title("Points")
+                    .title("Point Stats!")
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
                     .snippet("Marked Points :$size"+"Distance: $distance")
                 )
@@ -434,9 +553,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 var nextIndex = index - 1
                 latLng = l[nextIndex] as LatLng
 
-//                if (latLng in listOfMarkedPoints) {
-//                 return
-//                }
+                if (latLng in listOfMarkedPoints) {
+                     nextIndex = index + 1
+                    latLng = l[nextIndex] as LatLng
+                }
 
 
                 locationOfNextPoint.latitude = latLng!!.latitude
@@ -447,47 +567,41 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
                 distance = locationOfRoverLatLng.distanceTo(locationOfNextPoint)
                 markers = map?.addMarker(MarkerOptions().position(latLng!!)
-                    .title("Points")
+                    .title("Point Stats!")
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
-                    .snippet("Marked Points :$size"+"Distance: $distance")
+                    .snippet("Marked Points :$size"+"Distance: $distance (m)")
                 )
             }
 
-
-            //var bearingTo = locationOfRoverLatLng.bearingTo(locationOfNextPoint)
-            val geomagneticField = GeomagneticField(
-                locationOfRoverLatLng.getLatitude().toFloat(),
-                locationOfRoverLatLng.getLongitude().toFloat(),
-                locationOfRoverLatLng.getAltitude().toFloat(),
-                System.currentTimeMillis())
-
-            var declination = Math.toRadians(geomagneticField.declination.toDouble()).toFloat()
-         var bearingTo = current_measured_bearing + declination
-            heading = Math.abs(lastRotateDegree) - declination
-
-          // heading = bearingTo
-            var initialB = 0.0f
-//            val animation = RotateAnimation(initialB,
-//                bearingTo,
-//                Animation.RELATIVE_TO_SELF,
-//                0.5f,
-//                Animation.RELATIVE_TO_SELF,
-//                0.5f)
-//            animation.fillAfter = true
-//            headTo.startAnimation(animation)
-//            initialB = bearingTo
-
-            if (distance > (gapsize + 1)) {
+            if (distance > (gapsize)) {
                 Toast.makeText(applicationContext,
                     "Straying from Line or away from Point",
                     Toast.LENGTH_SHORT).show()
+                polyline1 = map?.addPolyline(PolylineOptions()
+                    .color(Color.GRAY)
+                    .jointType(JointType.DEFAULT)
+                    .width(3f)
+                    .geodesic(true)
+                    .startCap(RoundCap())
+                    .add(
+                        LatLng(loc.latitude,loc.longitude),
+                        LatLng(latLng!!.latitude,latLng!!.longitude),
+                       ))
+                polyline1!!.endCap = CustomCap(
+                    BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f)
                 //  showLine()
+            }
+            else{
+                polyline1?.remove()
             }
 
             markers!!.showInfoWindow()
             for (x in unmarkedCirclesList) {
                 if (x.center == latLng) {
                     x.isVisible = true
+                }
+                else{
+                    Toast.makeText(this,"point not drawn",Toast.LENGTH_SHORT).show()
                 }
             }
             tempListMarker.add(markers!!)
@@ -570,10 +684,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
             return true
         } else if (item.itemId == R.id.action_view_projects) {
-            val createNewProject = CreateProjectDialog()
-            createNewProject.show(supportFragmentManager, "view_projects")
+           // alertfail("I reach here")
+//            val createNewProject = CreateProjectDialog()
+//            createNewProject.show(supportFragmentManager, "view_projects")
 
-//        listProjects()
+            getProjects()
             return true
         } else if (item.itemId == R.id.bluetooth_spinner) {
             toggleWidgets()
@@ -673,7 +788,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
         val poly = PolylineOptions().addAll(ml)
             .color(Color.GRAY)
-            .jointType(JointType.BEVEL)
+            .jointType(JointType.DEFAULT)
             .width(3f)
             .geodesic(true)
             .startCap(RoundCap())
@@ -829,16 +944,16 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         handler.post {
             //changing map type lags, so handle it ina thread as well
             map?.mapType = GoogleMap.MAP_TYPE_NORMAL
-            try {
-                // Customise the styling of the base map using a JSON object defined
-                // in a raw resource file.
-                map?.setMapStyle(
-                    MapStyleOptions.loadRawResourceStyle(
-                        this, R.raw.style_json));
-
-            } catch (e: java.lang.Exception) {
-
-            }
+//            try {
+//                // Customise the styling of the base map using a JSON object defined
+//                // in a raw resource file.
+//                map?.setMapStyle(
+//                    MapStyleOptions.loadRawResourceStyle(
+//                        this, R.raw.style_json));
+//
+//            } catch (e: java.lang.Exception) {
+//
+//            }
             var target = map?.cameraPosition?.target
             var bearing = map?.cameraPosition?.bearing
             val cameraPosition = CameraPosition.Builder()
@@ -927,9 +1042,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             if (pt !in l) {
                 return
             }
-//            if (pt in listOfMarkedPoints) {
-//                return
-//            }
+            if (pt in listOfMarkedPoints) {
+                return
+            }
             tempClosestPoint.add(pt)
             if (pt in l) {
                 if (templist.isNotEmpty()) {
@@ -1260,7 +1375,7 @@ private var current_measured_bearing = 0f
         googleMap.setInfoWindowAdapter(CustomInfoWindowAdapter())
         //googleMap.setOnCircleClickListener(onClickingPoint)
         // googleMap.setOnMapLongClickListener(onLongMapPress)
-        googleMap.isMyLocationEnabled = true
+        //googleMap.isMyLocationEnabled = true
         val isl = LatLng(-.366044, 32.441599) // LatLng(0.0,32.44) //
         googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
         googleMap.addMarker(MarkerOptions().position(isl).title("Marker in N Residence"))

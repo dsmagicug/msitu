@@ -151,6 +151,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
      */
     constructor(zone: Int, hemisphere: String, easting: Double, northing: Double) : this(0.0, 0.0) {
         val ll = UTMCoord.locationFromUTMCoord(zone, hemisphere, easting, northing)
+
         val dflat = DecimalFormat("#.##################") //18dp
         val dflng = DecimalFormat("#.##############") //14dp
         dflat.roundingMode = RoundingMode.DOWN
@@ -357,7 +358,7 @@ class Geometry {
 
                 val xl = l.fromUTM(c)
                 al.add(xl) // Use UTM centre...
-                if (count < 10){
+                if (count < 100){
                     printline(xl) // Cause it to be printed
                 }
                count+=1

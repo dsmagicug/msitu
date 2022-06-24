@@ -40,5 +40,6 @@
     <string name="fab_map">Map_Mode</string>
     <string name="compass">compass</string>
     <string name="directionarrow">DirectionArrow</string>
+    <string name="login">LOGIN</string>
 
 </resources>

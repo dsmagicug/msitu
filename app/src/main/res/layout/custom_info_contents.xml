@@ -30,7 +30,7 @@
 
     <LinearLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="79dp"
         android:orientation="vertical">
 
         <TextView
@@ -39,21 +39,21 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:ellipsize="end"
+            android:maxLines="1"
             android:singleLine="true"
             android:textColor="#ff000000"
             android:textSize="14sp"
-            android:maxLines="1"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/snippet"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="200dp"
+            android:layout_height="36dp"
             android:ellipsize="end"
-            android:singleLine="true"
             android:maxLines="5"
-            android:textColor="#ff7f7f7f"
-            android:textSize="14sp" />
+            android:textColor="#ff000000"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 </LinearLayout>

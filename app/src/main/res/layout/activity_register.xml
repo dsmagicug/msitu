@@ -5,124 +5,133 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextView
-
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardView2"
         android:layout_width="match_parent"
-        android:layout_height="44dp"
-        android:layout_marginTop="45dp"
-        android:background="#FFFFFF"
-        android:text="@string/register"
-        android:textAlignment="center"
-        android:paddingTop="10dp"
+        android:layout_height="486dp"
+        android:layout_marginTop="55dp"
+        android:layout_marginEnd="9dp"
+        android:layout_marginStart="9dp"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="10dp"
+        app:cardMaxElevation="32dp"
+        app:cardPreventCornerOverlap="true"
+        app:cardUseCompatPadding="true">
 
-        >
+        <TextView
 
-    </TextView>
-
-    <View
-        android:layout_width="288dp"
-        android:layout_height="2dp"
-        android:layout_marginStart="2dp"
-        android:background="@color/hr" />
-
-    <EditText
-        android:id="@+id/register_name"
-        android:layout_width="288dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="28dp"
-        android:hint="@string/name"
-        android:imeActionLabel="@string/action_sign_in_short"
-        android:imeOptions="actionDone"
-        android:importantForAutofill="no"
-        android:inputType="text"
-
-        android:minHeight="48dp"
-        android:selectAllOnFocus="true" />
-
-    <EditText
-        android:id="@+id/register_email"
-        android:layout_width="291dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="8dp"
-        android:autofillHints=""
-        android:hint="@string/email"
-        android:imeActionLabel="@string/action_sign_in_short"
-        android:imeOptions="actionDone"
-        android:inputType="textEmailAddress"
-        android:minHeight="48dp"
-        android:selectAllOnFocus="true" />
-
-    <EditText
-        android:id="@+id/register_password"
-        android:layout_width="293dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginStart="10dp"
-        android:hint="@string/prompt_password"
-        android:imeActionLabel="@string/action_sign_in_short"
-        android:imeOptions="actionDone"
-        android:importantForAutofill="no"
-        android:inputType="textPassword"
-        android:minHeight="48dp"
-        android:selectAllOnFocus="true"
-        android:textColorHint="#757575"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <EditText
-        android:id="@+id/register_confirm_password"
-        android:layout_width="291dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-
-        android:hint="@string/confirm_password"
-        android:imeActionLabel="@string/action_sign_in_short"
-        android:imeOptions="actionDone"
-        android:inputType="textPassword"
-        android:minHeight="48dp"
-        android:layout_marginStart="10dp"
-        android:selectAllOnFocus="true"
-        android:textColorHint="#757575"
-        android:autofillHints="" />
-
-
-        <Button
-            android:id="@+id/register_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginStart="4dp"
             android:layout_marginTop="16dp"
-            android:layout_marginBottom="14dp"
-            android:background="@color/green"
-            android:backgroundTint="@color/green"
-            android:enabled="true"
-            android:text="Register"
-            android:textColor="#FFFF" />
+            android:background="#FFFFFF"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:text="@string/register"
+            android:textAlignment="center"
+
+            >
+
+        </TextView>
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="2dp"
+            android:layout_marginTop="50dp"
+            android:background="@color/hr" />
+
+        <EditText
+            android:id="@+id/register_name"
+            android:layout_width="297dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="45dp"
+            android:hint="@string/name"
+            android:imeActionLabel="@string/action_sign_in_short"
+            android:imeOptions="actionDone"
+            android:importantForAutofill="no"
+            android:inputType="text"
+
+            android:minHeight="48dp"
+            android:selectAllOnFocus="true" />
+
+        <EditText
+            android:id="@+id/register_email"
+            android:layout_width="297dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="80dp"
+            android:autofillHints=""
+            android:hint="@string/email"
+            android:imeActionLabel="@string/action_sign_in_short"
+            android:imeOptions="actionDone"
+            android:inputType="textEmailAddress"
+            android:minHeight="48dp"
+            android:selectAllOnFocus="true" />
+
+        <EditText
+            android:id="@+id/register_password"
+            android:layout_width="297dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="125dp"
+            android:hint="@string/prompt_password"
+            android:imeActionLabel="@string/action_sign_in_short"
+            android:imeOptions="actionDone"
+            android:importantForAutofill="no"
+            android:inputType="textPassword"
+            android:selectAllOnFocus="true"
+            android:textColorHint="#757575" />
+
+        <EditText
+            android:id="@+id/register_confirm_password"
+            android:layout_width="297dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+
+            android:layout_marginTop="165dp"
+            android:autofillHints=""
+            android:hint="@string/confirm_password"
+            android:imeActionLabel="@string/action_sign_in_short"
+            android:imeOptions="actionDone"
+            android:inputType="textPassword"
+            android:selectAllOnFocus="true"
+            android:textColorHint="#757575" />
 
         <Button
             android:id="@+id/login"
-            android:layout_width="match_parent"
+            android:layout_width="157dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:layout_marginTop="65dp"
             android:background="@color/green"
             android:backgroundTint="@color/green"
-            android:layout_marginStart="4dp"
-            android:text="Login"
+            android:enabled="true"
+            android:text="Login" />
 
-            android:textColor="#FFFF" />
+        <Button
+            android:id="@+id/register_button"
+            android:layout_width="157dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="138dp"
+            android:layout_marginBottom="13dp"
 
-    <ProgressBar
-        android:id="@+id/register_loading"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="64dp"
-        android:layout_marginBottom="64dp"
-        android:visibility="gone"
+            android:background="@color/green"
+            android:backgroundTint="@color/green"
+            android:enabled="true"
+            android:text="Register" />
 
-        />
+        <ProgressBar
+            android:id="@+id/register_loading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="64dp"
+            android:layout_marginBottom="64dp"
+            android:visibility="gone"
+
+            />
+    </androidx.cardview.widget.CardView>
 
 </LinearLayout>

@@ -11,13 +11,24 @@ import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.Toast
 import androidx.annotation.StringRes
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import com.dsmagic.kibira.MainActivity
 //import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.R
 import com.dsmagic.kibira.RegisterActivity
 import com.dsmagic.kibira.databinding.ActivityLoginBinding
+import com.dsmagic.kibira.services.LoginDataClassX
+import com.dsmagic.kibira.services.apiInterface
+import com.dsmagic.kibira.services.loginDataclass
+import kotlinx.android.synthetic.main.activity_login.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 
 class LoginActivity : AppCompatActivity() {
@@ -68,7 +79,7 @@ class LoginActivity : AppCompatActivity() {
                 showLoginFailed(loginResult.error)
             }
             if (loginResult.success != null) {
-                updateUiWithUser(loginResult.success)
+                //updateUiWithUser(loginResult.success)
             }
             setResult(Activity.RESULT_OK)
 
@@ -104,30 +115,94 @@ class LoginActivity : AppCompatActivity() {
 
             login.setOnClickListener {
                 loading.visibility = View.VISIBLE
-                loginViewModel.login(username.text.toString(), password.text.toString())
+              loginUser(username.text.toString(), password.text.toString())
+                //loginViewModel.login(username.text.toString(), password.text.toString())
             }
 
 
         }
     }
 
-    private fun updateUiWithUser(model: LoggedInUserView) {
-        val welcome = getString(R.string.welcome)
-        val displayName = model.displayName
+    fun loginUser(email:String,password: String)
+    {
+        val retrofitBuilder = Retrofit.Builder()
+            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(MainActivity().BaseUrl)
+            .build()
+            .create(apiInterface::class.java)
+        val modal = LoginDataClassX(email,password)
+        val retrofitData = retrofitBuilder.loginUser(modal)
+        retrofitData.enqueue(object : Callback<loginDataclass?> {
+            override fun onResponse(
+                call: Call<loginDataclass?>,
+                response: Response<loginDataclass?>
+            ) {
+                loading.visibility = View.INVISIBLE
+                if(response.isSuccessful) {
+                    if (response.body() != null) {
+                        val tag = response.body()!!.tag
+                        val myemail = response.body()!!.email
+                        val user_id = response.body()!!.user_id
+                        val token = response.body()!!.token
+                        if (tag == "V") {
+                            updateUiWithUser(myemail, user_id,token)
+                            SuccessAlert("Successfully Logged in")
+                        }
+                        else {
+                            alertfail("Invalid Credentials!")
+                        }
 
-       // val intent = Intent(this, MainActivity::class.java)
-        intent.putExtra(KEY, "$welcome $displayName");
+
+                    } else {
+                        alertfail("Body null!")
+                    }
+                }
+                else{
+                    alertfail("Response not successful!")
+                }
+
+
+            }
+
+            override fun onFailure(call: Call<loginDataclass?>, t: Throwable) {
+                loading.visibility = View.INVISIBLE
+                alertfail("something Went wrong!")
+            }
+        })
+    }
+    fun alertfail(S:String){
+        AlertDialog.Builder(this)
+            .setTitle("Error")
+            .setIcon(R.drawable.cross)
+            .setMessage(S)
+            .show()
+    }
+    fun SuccessAlert(S:String){
+        AlertDialog.Builder(this)
+            .setTitle("Success")
+            .setIcon(R.drawable.tick)
+            .setMessage(S)
+            .show()
+    }
+    private fun updateUiWithUser(email: String,user_id:Int,token:String) {
+        val welcome = getString(R.string.welcome)
+        val displayEmail = email
+        val user_id = user_id
+        var apiToken = token
+
+        val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("userID","$user_id")
+        intent.putExtra("email", displayEmail)
+        intent.putExtra("token",apiToken)
         startActivity(intent)
 
-
-
-        // TODO : initiate successful logged in experience
         Toast.makeText(
             applicationContext,
-            "$welcome $displayName",
+            "$welcome $displayEmail",
             Toast.LENGTH_LONG
         ).show()
     }
+
 
     private fun showLoginFailed(@StringRes errorString: Int) {
         Toast.makeText(applicationContext, errorString, Toast.LENGTH_SHORT).show()
