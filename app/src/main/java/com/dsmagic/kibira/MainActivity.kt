@@ -419,6 +419,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(BaseUrl)
             .build()
+            //.client()
             .create(apiInterface::class.java)
 
         val retrofitData = retrofitBuilder.getProjectsList(apiToken!!)

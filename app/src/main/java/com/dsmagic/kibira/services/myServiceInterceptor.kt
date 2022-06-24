@@ -1,6 +1,7 @@
 package com.dsmagic.kibira.services
 
 import okhttp3.Interceptor
+import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Response
@@ -10,19 +11,19 @@ import javax.inject.Singleton
 
 
     @Singleton
-    class myServiceInterceptor @Inject constructor() : Interceptor {
-        private var sessionToken: String? = null
-        fun setSessionToken(sessionToken: String?) {
-            this.sessionToken = sessionToken
-        }
+    class myServiceInterceptor constructor( val tokenType:String, private var sessionToken: String
+                                           ) : Interceptor {
+
+//        fun setSessionToken(sessionToken: String?) {
+//            this.sessionToken = sessionToken
+//        }
 
         @Throws(IOException::class)
         override fun intercept(chain: okhttp3.Interceptor.Chain): okhttp3.Response {
-            val request: Request = chain.request()
-            val requestBuilder: Request.Builder = request.newBuilder()
-           val x = requestBuilder.header("Authorization","$sessionToken")
+            var request = chain.request()
+            request = request.newBuilder().header("Authorization","$tokenType $sessionToken")
                 .build()
-
+            return chain.proceed(request)
 //            if (request.header("Authorization") == null) {
 //                // needs credentials
 //                if (sessionToken == null) {
@@ -36,7 +37,7 @@ import javax.inject.Singleton
 //
 //                }
 //            }
-            return chain.proceed(x)
+
         }
 
 
