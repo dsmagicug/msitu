@@ -16,10 +16,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
-import com.dsmagic.kibira.services.RegisterDataclassX
-import com.dsmagic.kibira.services.ResponseProjectDataClass
-import com.dsmagic.kibira.services.apiInterface
-import com.dsmagic.kibira.services.createProjectDataClass
+import com.dsmagic.kibira.services.*
 import com.google.gson.Gson
 import org.json.JSONException
 import org.json.JSONObject
@@ -35,7 +32,6 @@ import java.io.PrintWriter
 class CreateProjectDialog : DialogFragment() {
 
     val sharedPrefFile = "kibirasharedfile"
-
 
     @SuppressLint("SetTextI18n")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -59,6 +55,8 @@ class CreateProjectDialog : DialogFragment() {
                     .setPositiveButton(string.create_new_project, DialogInterface.OnClickListener { dialog: DialogInterface?, id: Int ->
 
                         oncreateclick()
+                        //dismiss()
+
 
                     })
 
@@ -75,57 +73,18 @@ class CreateProjectDialog : DialogFragment() {
             }
         } ?: throw IllegalStateException("Activity cannot be null")
 
+
+
     }
 
-    fun createProject(name:String,gap_size:Int,user_id:Int){
-        val retrofitBuilder = Retrofit.Builder()
-            .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(MainActivity().BaseUrl)
-            .build()
-            .create(apiInterface::class.java)
-        val modal = createProjectDataClass(gap_size,name,user_id)
-        val retrofitData =  retrofitBuilder.createProject(modal)
-        retrofitData.enqueue(object : Callback<ResponseProjectDataClass?> {
-            override fun onResponse(
-                call: Call<ResponseProjectDataClass?>,
-                response: Response<ResponseProjectDataClass?>
-            ) {
-if(response.isSuccessful){
-    if(response.body() != null){
-        val ProjectName = response.body()!!.name
-        if(response.body()!!.message == "created"){
-
-            SuccessAlert("Project $ProjectName created")
-
-        }else{
-
-            alertfail("Project $ProjectName created")
-        }
-    }else{
-
-        alertfail("Project not created")
-    }
-
-}else{
-
-    alertfail("Project not created")
-}
-            }
-
-            override fun onFailure(call: Call<ResponseProjectDataClass?>, t: Throwable) {
-                alertfail(("Response failed, invalid data"))
-            }
-        })
-    }
     fun oncreateclick() {
 
-
-        val sharedPrefFile = "kibirasharedfile"
+       // val sharedPrefFile = "kibirasharedfile"
 
         val projectname = dialog?.findViewById<EditText>(R.id.projectName)
 
         val gapsize = dialog?.findViewById<EditText>(R.id.gapSize)
-        var displayProjectName = activity?.findViewById<TextView>(R.id.display_project_name)
+        val displayProjectName = activity?.findViewById<TextView>(R.id.display_project_name)
 
 
         val gap_size_string = gapsize?.text.toString()
@@ -136,7 +95,6 @@ if(response.isSuccessful){
           alertfail("Please fill all fields")
       }
       else{
-          //val gap_size = Integer.parseInt(gap_size_string)
 
           val sharedPreferences: SharedPreferences =
               activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
@@ -149,14 +107,53 @@ if(response.isSuccessful){
 
           if(editor.commit()){
               val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
-              var gap_size: String? = sharedPreferences.getString("size_key","defaultValue")
-             // val userID = MainActivity().user_id
-              var saved_gap_size =  gap_size!!.toInt()
-
+              val gap_size: String? = sharedPreferences.getString("size_key","defaultValue")
+              val saved_gap_size =  gap_size!!.toInt()
               val UID: String? = sharedPreferences.getString("userid_key", "defaultValue")
               val userID = UID!!.toInt()
 
-             createProject(saved_project_name!!,saved_gap_size,userID)
+              val CreateProjectRetrofitObject = AppModule.retrofitInstance()
+              val modal = createProjectDataClass(saved_gap_size,saved_project_name!!,userID)
+              val retrofitData =  CreateProjectRetrofitObject.createProject(modal)
+              retrofitData.enqueue(object : Callback<ResponseProjectDataClass?> {
+                  override fun onResponse(
+                      call: Call<ResponseProjectDataClass?>,
+                      response: Response<ResponseProjectDataClass?>
+                  ) {
+                      if(response.isSuccessful){
+                          if(response.body() != null){
+                              val ProjectName = response.body()!!.name
+                              val ProjectIDInt = response.body()!!.projectID
+                              val ProjectID = ProjectIDInt.toString()
+
+                              if(response.body()!!.message == "created"){
+
+            editor.putString("productID_key", ProjectID)
+            editor.apply()
+            editor.commit()
+
+                                  SuccessAlert("Project $ProjectName created")
+
+                              }else{
+
+                                  alertfail("Project $ProjectName not created")
+                              }
+                          }else{
+
+                              alertfail("Project not created")
+                          }
+
+                      }else{
+
+                          alertfail("Project not created")
+                      }
+                  }
+
+                  override fun onFailure(call: Call<ResponseProjectDataClass?>, t: Throwable) {
+                      alertfail(("Response failed, invalid data"))
+                  }
+              })
+             //createProject(saved_project_name!!,saved_gap_size,userID)
 
               displayProjectName?.text = saved_project_name
 
@@ -167,28 +164,10 @@ if(response.isSuccessful){
           }
       }
 
-
-
-//        val project = Project(
-//            project_name, gap_size
-//
-//        )
-//
-//        val path = "/main/assets/project.json"
-//        try {
-//            PrintWriter(FileWriter(path)).use {
-//                val gson = Gson()
-//                val jsonString = gson.toJson(project)
-//               it.write(jsonString)
-//            }
-//        } catch (e: Exception) {
-//            e.printStackTrace()
-//        }
-
     }
-val c = dialog?.context
+//val c = dialog?.context
     fun alertfail(S:String){
-        AlertDialog.Builder(c!!)
+        AlertDialog.Builder(MainActivity().applicationContext)
                 .setTitle("Error")
                 .setMessage(S)
             .setIcon(R.drawable.cross)
@@ -197,14 +176,21 @@ val c = dialog?.context
 
     fun SuccessAlert(S:String){
 
-            AlertDialog.Builder(c!!)
+
+        this.activity?.let {
+            AlertDialog.Builder(it)
                 .setTitle("Success")
                 .setIcon(R.drawable.tick)
                 .setMessage(S)
                 .show()
+        }
+
 
     }
 
 
+
+}
+class AnotherOne : DialogFragment() {
 
 }

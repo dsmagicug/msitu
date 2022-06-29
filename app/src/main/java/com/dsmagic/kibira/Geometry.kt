@@ -1,9 +1,12 @@
 package com.dsmagic.kibira
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.SharedPreferences
 import android.location.Location
 import android.util.Log
 import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import dilivia.s2.S2LatLng
 import gov.nasa.worldwind.geom.LatLon
 import gov.nasa.worldwind.geom.coords.UTMCoord
@@ -36,17 +39,28 @@ val newvalues = """[
         "\n" +
         "\n" +
         """]"""
-//val profileName=MainActivity().intent.getStringExtra("values")
-//
-//val values = firstActivity().crea()
+////val profileName=MainActivity().intent.getStringExtra("values")
+////
+////val values = firstActivity().crea()
 val obj: JSONArray = JSONArray(newvalues)
 val gapsizeobject = obj.getJSONObject(3)
 val gapsize = gapsizeobject.getInt("gap size")
 val meshobject = obj.getJSONObject(4)
 val mesh: Int
     get() = meshobject.getInt("mesh")
+//
+//class settings: AppCompatActivity(){
+////
+////    val sharedPreferences: SharedPreferences =
+////        context.getSharedPreferences(CreateProjectDialog().sharedPrefFile, Context.MODE_PRIVATE)!!
+//
+//val gap_size: String? = sharedPreferences.getString("size_key","defaultValue")
+//val project_id: String? = sharedPreferences.getString("productID_key","defaultValue")
+//val gapsize = gap_size!!.toInt()
+//
+//}
 
-val MAX_MESH_SIZE = mesh.toDouble()// In metres
+val MAX_MESH_SIZE = 600.0// In metres
  val GAP_SIZE = gapsize * .95 // In metres (or 12ft)
 
 // Represents a point where a tree is planted. Units are metres.

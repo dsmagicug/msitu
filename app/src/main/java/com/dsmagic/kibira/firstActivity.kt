@@ -26,7 +26,7 @@ class firstActivity : DialogFragment() {
         return activity?.let {
             //val selectedItem = ArrayList<Int>()
            var selectedProject: String = ""
-            //val ar = arrayOf(MainActivity().)
+
            val ar = arrayOf("Project one","Project two","Project three")
            // val ar = emptyArray<String>()
             var checkedItemIndex = -1

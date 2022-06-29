@@ -7,8 +7,8 @@ import retrofit2.http.*
 interface apiInterface {
 
    // @GET(" http://192.168.100.17:8000/api/projects")
-    @GET("projects")
-    fun getProjectsList(@Header("Token" ) ApiToken:String):Call<List<retrieveProjectsDataClass>>
+//    @GET("projects")
+//    fun getProjectsList(@Header("Token" ) ApiToken:String):Call<List<retrieveProjectsDataClass>>
 
 
     @POST("register")
@@ -19,5 +19,13 @@ interface apiInterface {
 
     @POST("create_project")
     fun createProject(@Body dataModal:createProjectDataClass):Call<ResponseProjectDataClass>
+
+ //UserProjects
+
+ @GET("myProjects")
+ fun getProjectsList(@Header("Token" ) ApiToken:String):Call<List<retrieveProjectsDataClass>>
+
+ @POST("savePoints")
+ fun storePoints( @Body dataModal: savePointsDataClass ):Call<savePointsResponse>
 
 }

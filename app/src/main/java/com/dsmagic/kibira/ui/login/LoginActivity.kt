@@ -20,6 +20,7 @@ import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.R
 import com.dsmagic.kibira.RegisterActivity
 import com.dsmagic.kibira.databinding.ActivityLoginBinding
+import com.dsmagic.kibira.services.AppModule
 import com.dsmagic.kibira.services.LoginDataClassX
 import com.dsmagic.kibira.services.apiInterface
 import com.dsmagic.kibira.services.loginDataclass
@@ -125,13 +126,16 @@ class LoginActivity : AppCompatActivity() {
 
     fun loginUser(email:String,password: String)
     {
-        val retrofitBuilder = Retrofit.Builder()
-            .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(MainActivity().BaseUrl)
-            .build()
-            .create(apiInterface::class.java)
+//        val retrofitBuilder = Retrofit.Builder()
+//            .addConverterFactory(GsonConverterFactory.create())
+//            .baseUrl(MainActivity().BaseUrl)
+//            .build()
+//            .create(apiInterface::class.java)
+
+        val retrofitDataObject = AppModule.retrofitInstance()
+
         val modal = LoginDataClassX(email,password)
-        val retrofitData = retrofitBuilder.loginUser(modal)
+        val retrofitData = retrofitDataObject.loginUser(modal)
         retrofitData.enqueue(object : Callback<loginDataclass?> {
             override fun onResponse(
                 call: Call<loginDataclass?>,
@@ -146,6 +150,10 @@ class LoginActivity : AppCompatActivity() {
                         val token = response.body()!!.token
                         if (tag == "V") {
                             updateUiWithUser(myemail, user_id,token)
+//                            Toast.makeText(
+//                                applicationContext, "Logged in " +
+//                                        "", Toast.LENGTH_SHORT
+//                            ).show()
                             SuccessAlert("Successfully Logged in")
                         }
                         else {
@@ -185,22 +193,22 @@ class LoginActivity : AppCompatActivity() {
             .show()
     }
     private fun updateUiWithUser(email: String,user_id:Int,token:String) {
-        val welcome = getString(R.string.welcome)
+
         val displayEmail = email
         val user_id = user_id
-        var apiToken = token
+        val apiToken = token
 
         val intent = Intent(this, MainActivity::class.java)
         intent.putExtra("userID","$user_id")
         intent.putExtra("email", displayEmail)
         intent.putExtra("token",apiToken)
         startActivity(intent)
-
-        Toast.makeText(
-            applicationContext,
-            "$welcome $displayEmail",
-            Toast.LENGTH_LONG
-        ).show()
+//
+//        Toast.makeText(
+//            applicationContext,
+//            "$welcome $displayEmail",
+//            Toast.LENGTH_LONG
+//        ).show()
     }
 
 

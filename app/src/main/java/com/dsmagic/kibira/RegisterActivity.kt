@@ -19,6 +19,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import com.dsmagic.kibira.databinding.ActivityLoginBinding
 import com.dsmagic.kibira.databinding.ActivityRegisterBinding
+import com.dsmagic.kibira.services.AppModule
 import com.dsmagic.kibira.services.RegisterDataclassX
 import com.dsmagic.kibira.services.apiInterface
 import com.dsmagic.kibira.ui.login.LoginActivity
@@ -86,22 +87,16 @@ var login = binding.login
 
         fun registerUser(name:String, email:String,password:String,password_confirm:String)
         {
-            val retrofitBuilder = Retrofit.Builder()
-                .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl(MainActivity().BaseUrl)
-                .build()
-                .create(apiInterface::class.java)
+        val retrofitDataObject = AppModule.retrofitInstance()
             val modal = RegisterDataclassX(email,name,password,password_confirm)
-            val retrofitData = retrofitBuilder.registerUser(modal)
+            val retrofitData = retrofitDataObject.registerUser(modal)
             retrofitData.enqueue(object : Callback<RegisterDataclassX?> {
                 override fun onResponse(
                     call: Call<RegisterDataclassX?>,
                     response: Response<RegisterDataclassX?>
                 ) {
 
-
                     SuccessAlert("Successfully Registered")
-
 
                 }
 

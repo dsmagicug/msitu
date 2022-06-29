@@ -28,8 +28,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import com.dsmagic.kibira.services.apiInterface
-import com.dsmagic.kibira.services.retrieveProjectsDataClass
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.dsmagic.kibira.services.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -90,10 +91,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     private var fabFlag = true
     private var zoomMode = false
 
-     var BaseUrl = "http://192.168.100.17:8000/api/"
+
     var userID: String? = null
-    var user_id:Int? = 0
-    var extras:Bundle? = null
+    var user_id: Int? = 0
+    var extras: Bundle? = null
+
     //lateinit var fab: FloatingActionButton
     private var ready = false    //flag fro direction marker
 
@@ -109,18 +111,22 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         setSupportActionBar(findViewById(R.id.appToolbar))
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
-         extras = getIntent().extras
+        extras = getIntent().extras
+
+        //retrieve userid and token from intent, then store it in a shared preferences file for access
+        //throughout the app
 
         if (extras != null) {
             userID = extras!!.getString("userID")
             val APIToken = extras!!.getString("token")
+
             val sharedPreferences: SharedPreferences = this.getSharedPreferences(
                 CreateProjectDialog().sharedPrefFile,
                 Context.MODE_PRIVATE
             )!!
             val editor = sharedPreferences.edit()
             editor.putString("userid_key", userID)
-            editor.putString("apiToken_key",APIToken)
+            editor.putString("apiToken_key", APIToken)
             editor.apply()
             editor.commit()
 
@@ -146,9 +152,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         val magneticSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
 
-        sensorManager!!.registerListener(listener,
+        sensorManager!!.registerListener(
+            listener,
             magneticSensor,
-            SensorManager.SENSOR_DELAY_NORMAL);
+            SensorManager.SENSOR_DELAY_NORMAL
+        );
         sensorManager!!.registerListener(listener, accSensor, SensorManager.SENSOR_DELAY_NORMAL);
         acceleration = 10f
         currentAcceleration = SensorManager.GRAVITY_EARTH
@@ -156,12 +164,13 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
         if (magneticSensor != null) {
 
-        }
-        else {
+        } else {
 
-            Toast.makeText(applicationContext,
+            Toast.makeText(
+                applicationContext,
                 "No Geomagnetic sensor, so some features have been disabled",
-                Toast.LENGTH_LONG).show()
+                Toast.LENGTH_LONG
+            ).show()
             //compass.isVisible = false
 
         }
@@ -192,13 +201,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                             .strokeWidth(1.0f)
 
                     )
-                   // if (ready) {
-                        directionMarker?.remove()
-                        directionMarker = map?.addMarker(MarkerOptions().position(xloc)
+                    // if (ready) {
+                    directionMarker?.remove()
+                    directionMarker = map?.addMarker(
+                        MarkerOptions().position(xloc)
                             .icon(BitmapDescriptorFactory.fromResource(R.drawable.smallman))
 
-                        )
-                   // }
+                    )
+                    // }
                     if (currentLocation.isNotEmpty()) {
                         currentLocation.clear()
                     }
@@ -207,13 +217,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     }
                     val location = currentLocation[currentLocation.lastIndex]
 
-                            distanceToPoint(location)
+                    distanceToPoint(location)
 
                 }
                 if (currentLocation.distinct().size == 1) {
                     plotFunc()
                 }
-
 
 //pulsing effect when line is switched
                 if (switchedLines) {
@@ -364,11 +373,16 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             try {
                 if (!fabFlag) {
 
-                    fab_map.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(),
-                        R.drawable.ic_baseline_map_24))
+                    fab_map.setImageDrawable(
+                        ContextCompat.getDrawable(
+                            getApplicationContext(),
+                            R.drawable.ic_baseline_map_24
+                        )
+                    )
                     map?.mapType = GoogleMap.MAP_TYPE_NORMAL
                     map?.setMapStyle(
-                        MapStyleOptions.loadRawResourceStyle(this, R.raw.style_json))
+                        MapStyleOptions.loadRawResourceStyle(this, R.raw.style_json)
+                    )
                     for (item in polyLines) {
                         item!!.isVisible = false
 
@@ -389,8 +403,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     fabFlag = true
 
                 } else if (fabFlag) {
-                    fab_map.setImageDrawable(ContextCompat.getDrawable(getApplicationContext(),
-                        R.drawable.walk_mode))
+                    fab_map.setImageDrawable(
+                        ContextCompat.getDrawable(
+                            getApplicationContext(),
+                            R.drawable.walk_mode
+                        )
+                    )
                     map?.mapType = GoogleMap.MAP_TYPE_SATELLITE
                     for (c in polyLines) {
                         c?.isVisible = true
@@ -405,58 +423,69 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             }
         }
 
-  // getProjects()
 
     }
 
     private fun getProjects() {
+        val saredPreferences = getSharedPreferences("Settings", Context.MODE_PRIVATE)
         val sharedPreferences: SharedPreferences = this.getSharedPreferences(
             CreateProjectDialog().sharedPrefFile,
             Context.MODE_PRIVATE
         )!!
         val apiToken: String? = sharedPreferences.getString("apiToken_key", "defaultValue")
-        val retrofitBuilder = Retrofit.Builder()
-            .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(BaseUrl)
-            .build()
-            //.client()
-            .create(apiInterface::class.java)
 
-        val retrofitData = retrofitBuilder.getProjectsList(apiToken!!)
-
+        val retrofitDataObject = ServiceInterceptor("Bearer", apiToken!!).httpClient(apiToken)
+        val retrofitData = retrofitDataObject.getProjectsList(apiToken)
         retrofitData.enqueue(object : Callback<List<retrieveProjectsDataClass>?> {
             override fun onResponse(
                 call: Call<List<retrieveProjectsDataClass>?>,
                 response: Response<List<retrieveProjectsDataClass>?>
             ) {
-              val responseBody = response.body()
+                val responseBody = response.body()
                 val stringbuilder = StringBuilder()
                 if (responseBody != null) {
 
-                    for( data in responseBody){
-                        stringbuilder.append(data.name)
-                        stringbuilder.append("/n")
+                    val l = ArrayList<String>()
+                    for (data in responseBody) {
+                        l.add(data.name)
                     }
-    projectList.text = stringbuilder
 
-                }else{
+                    val items = l.toArray()
+                    val adaptor =
+                        MainActivity().applicationContext.let {
+                            ArrayAdapter(
+                                it,
+                                android.R.layout.simple_spinner_dropdown_item,
+                                items
+                            )
+                        }
+                    spinner.adapter = adaptor
+                    spinner.onItemSelectedListener = MainActivity()
+
+
+                    // // projectList.text = stringbuilder
+                    Log.d("Projects", "$stringbuilder")
+
+                } else {
                     alertfail("No response got from server")
                 }
             }
 
             override fun onFailure(call: Call<List<retrieveProjectsDataClass>?>, t: Throwable) {
-                Log.d("error","${t.message}")
+                Log.d("error", "${t.message}")
             }
         })
     }
-    fun alertfail(S:String){
+
+    fun alertfail(S: String) {
         AlertDialog.Builder(MainActivity().applicationContext)
             .setTitle("Error")
             .setIcon(R.drawable.cross)
             .setMessage(S)
             .show()
     }
-    fun SuccessAlert(S:String){
+
+    fun SuccessAlert(S: String) {
         AlertDialog.Builder(MainActivity().applicationContext)
             .setTitle("Success")
             .setIcon(R.drawable.tick)
@@ -464,30 +493,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             .show()
     }
 
-//    fun loginUser(email:String,password: String)
-//    {
-//        val retrofitBuilder = Retrofit.Builder()
-//            .addConverterFactory(GsonConverterFactory.create())
-//            .baseUrl(BaseUrl)
-//            .build()
-//            .create(apiInterface::class.java)
-//        val modal = LoginDataClassX(email,password)
-//        val retrofitData = retrofitBuilder.loginUser(modal)
-//        retrofitData.enqueue(object : Callback<loginDataclass?> {
-//            override fun onResponse(
-//                call: Call<LoginDataClassX?>,
-//                response: Response<LoginDataClassX?>
-//            ) {
-//            SuccessAlert("Successfully Logged in")
-//            }
-//
-//            override fun onFailure(call: Call<LoginDataClassX?>, t: Throwable) {
-//           alertfail("Invalid Credentials")
-//            }
-//        })
-//    }
-
-        private fun showLine() {
+    private fun showLine() {
         var currentPlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
         currentPlantingLine.isVisible = true
         if (unmarkedCirclesList.isNotEmpty()) {
@@ -497,7 +503,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         }
     }
 
-    var polyline1:Polyline? = null
+    var polyline1: Polyline? = null
     var refPoint: LatLng? = null
     var distance = 0.0f
     var latLng: LatLng? = null
@@ -506,7 +512,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         if (walkingMode && listOfMarkedPoints.isNotEmpty()) {
 
             val locationOfNextPoint = Location(LocationManager.GPS_PROVIDER)
-            val locationOfRoverLatLng = Location(LocationManager.FUSED_PROVIDER)
+            val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
             var line = listOfPlantingLines[listOfPlantingLines.lastIndex]
             var l = line.tag as List<*>
             var size = listOfMarkedPoints.size
@@ -531,7 +537,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 latLng = l[nextIndex] as LatLng
 
                 if (latLng in listOfMarkedPoints) {
-                     nextIndex = index - 1
+                    nextIndex = index - 1
                     latLng = l[nextIndex] as LatLng
                 }
 
@@ -543,19 +549,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
                 distance = locationOfRoverLatLng.distanceTo(locationOfNextPoint)
 
-                markers = map?.addMarker(MarkerOptions().position(latLng!!)
-                    .title("Point Stats!")
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
-                    .snippet("Marked Points :$size"+"Distance: $distance")
-                )
-            }
-            else {
+
+            } else {
                 distance = 0f
                 var nextIndex = index - 1
                 latLng = l[nextIndex] as LatLng
 
                 if (latLng in listOfMarkedPoints) {
-                     nextIndex = index + 1
+                    nextIndex = index + 1
                     latLng = l[nextIndex] as LatLng
                 }
 
@@ -567,32 +568,49 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 locationOfRoverLatLng.longitude = loc.longitude
 
                 distance = locationOfRoverLatLng.distanceTo(locationOfNextPoint)
-                markers = map?.addMarker(MarkerOptions().position(latLng!!)
+                if (tempListMarker.isNotEmpty()) {
+                    for (m in tempListMarker) {
+                        if (m.position == latLng) {
+                            return    //do nothing if a marker is already drawn at that point
+                        }
+                    }
+                }
+//                markers = map?.addMarker(
+//                    MarkerOptions().position(latLng!!)
+//                        .title("Point Stats!")
+//                       // .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
+//                        .snippet("Marked Points :$size" + "Distance: $distance (m)")
+//                )
+            }
+            markers = map?.addMarker(
+                MarkerOptions().position(latLng!!)
                     .title("Point Stats!")
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
-                    .snippet("Marked Points :$size"+"Distance: $distance (m)")
-                )
-            }
-
+                    .snippet("Marked Points :$size" + "Distance: $distance (m)")
+            )
             if (distance > (gapsize)) {
-                Toast.makeText(applicationContext,
+                Toast.makeText(
+                    applicationContext,
                     "Straying from Line or away from Point",
-                    Toast.LENGTH_SHORT).show()
-                polyline1 = map?.addPolyline(PolylineOptions()
-                    .color(Color.GRAY)
-                    .jointType(JointType.DEFAULT)
-                    .width(3f)
-                    .geodesic(true)
-                    .startCap(RoundCap())
-                    .add(
-                        LatLng(loc.latitude,loc.longitude),
-                        LatLng(latLng!!.latitude,latLng!!.longitude),
-                       ))
+                    Toast.LENGTH_SHORT
+                ).show()
+                polyline1 = map?.addPolyline(
+                    PolylineOptions()
+                        .color(Color.GREEN)
+                        .jointType(JointType.DEFAULT)
+                        .width(4f)
+                        .geodesic(true)
+                        .startCap(RoundCap())
+                        .add(
+                            LatLng(loc.latitude, loc.longitude),
+                            LatLng(latLng!!.latitude, latLng!!.longitude),
+                        )
+                )
                 polyline1!!.endCap = CustomCap(
-                    BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f)
+                    BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
+                )
                 //  showLine()
-            }
-            else{
+            } else {
                 polyline1?.remove()
             }
 
@@ -600,9 +618,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             for (x in unmarkedCirclesList) {
                 if (x.center == latLng) {
                     x.isVisible = true
-                }
-                else{
-                    Toast.makeText(this,"point not drawn",Toast.LENGTH_SHORT).show()
+                } else {
+                    return
+                    //Toast.makeText(this, "point not drawn", Toast.LENGTH_SHORT).show()
                 }
             }
             tempListMarker.add(markers!!)
@@ -685,7 +703,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
             return true
         } else if (item.itemId == R.id.action_view_projects) {
-           // alertfail("I reach here")
+            // alertfail("I reach here")
 //            val createNewProject = CreateProjectDialog()
 //            createNewProject.show(supportFragmentManager, "view_projects")
 
@@ -819,8 +837,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0)
                         .strokeWidth(1.0f)
                 )
-                map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),
-                    firstPoint!!.getLongitude()), 21.0f))
+                map?.moveCamera(
+                    CameraUpdateFactory.newLatLngZoom(
+                        LatLng(
+                            firstPoint!!.getLatitude(),
+                            firstPoint!!.getLongitude()
+                        ), 21.0f
+                    )
+                )
 
             }
             return@OnMapClickListener
@@ -833,9 +857,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5).strokeWidth(1.0f)
         )
         runOnUiThread {
-            Toast.makeText(applicationContext,
+            Toast.makeText(
+                applicationContext,
                 "Drawing grid! This won't take long..",
-                Toast.LENGTH_LONG)
+                Toast.LENGTH_LONG
+            )
                 .show()
 
             pBar.isVisible = true
@@ -851,12 +877,21 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             meshDone = true
 
             runOnUiThread {
-                pBar.isVisible = false
+                if (meshDone) {
+                    pBar.isVisible = false
+                }
+
             }
             handler.post { // Centre it...
 //
-                map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),
-                    firstPoint!!.getLongitude()), 21.0f))
+                map?.moveCamera(
+                    CameraUpdateFactory.newLatLngZoom(
+                        LatLng(
+                            firstPoint!!.getLatitude(),
+                            firstPoint!!.getLongitude()
+                        ), 21.0f
+                    )
+                )
 
 
             }
@@ -1134,7 +1169,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var diff: Float? = null
     var threshold: Float = 10.0f
     private var lastRotateDegree = 0f
-private var current_measured_bearing = 0f
+    private var current_measured_bearing = 0f
+
     // Marking off points on a planting line
     private val listener: SensorEventListener = object : SensorEventListener {
         var accelerometerValues = FloatArray(3)
@@ -1151,7 +1187,7 @@ private var current_measured_bearing = 0f
 
             }
 
-             current_measured_bearing = (magneticValues.get(0) * 180 / Math.PI).toFloat()
+            current_measured_bearing = (magneticValues.get(0) * 180 / Math.PI).toFloat()
             if (current_measured_bearing < 0) current_measured_bearing += 360f
 
             val R = FloatArray(9)
@@ -1166,12 +1202,14 @@ private var current_measured_bearing = 0f
 
             if (bearingAngle > 1) {
 
-                val animation = RotateAnimation(lastRotateDegree,
+                val animation = RotateAnimation(
+                    lastRotateDegree,
                     rotateDegree,
                     Animation.RELATIVE_TO_SELF,
                     0.5f,
                     Animation.RELATIVE_TO_SELF,
-                    0.5f)
+                    0.5f
+                )
                 animation.fillAfter = true
                 //compass.startAnimation(animation)
                 lastRotateDegree = rotateDegree
@@ -1205,112 +1243,117 @@ private var current_measured_bearing = 0f
             acceleration = acceleration * 0.9f + delta
 
             if (acceleration > 10) {
-                try{
-                    val plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
+                // try {
+                val plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
 
-                    val l = plantingLine.tag as MutableList<*>
-                    var pointOfInterestOnPolyline: LatLng? = null
+                val l = plantingLine.tag as MutableList<*>
+                var pointOfInterestOnPolyline: LatLng? = null
 
-                    l.forEach { loc ->
-                        loc as LatLng
-                        if (loc == listOfPlantingRadius?.center)
-                            pointOfInterestOnPolyline = loc
+                l.forEach { loc ->
+                    loc as LatLng
+                    if (loc == listOfPlantingRadius?.center)
+                        pointOfInterestOnPolyline = loc
+                }
 
-                    }
+                if (currentLocation.isNotEmpty()) {
+                    val cl = currentLocation[currentLocation.lastIndex]
 
-                    if (currentLocation.isNotEmpty()) {
-                        val cl = currentLocation[currentLocation.lastIndex]
+                    val LocationOfPointOfInterestOnPolyline =
+                        Location(LocationManager.GPS_PROVIDER)
 
-                        val LocationOfPointOfInterestOnPolyline =
-                            Location(LocationManager.GPS_PROVIDER)
+                    LocationOfPointOfInterestOnPolyline.latitude =
+                        pointOfInterestOnPolyline!!.latitude
+                    LocationOfPointOfInterestOnPolyline.longitude =
+                        pointOfInterestOnPolyline!!.longitude
 
-                        LocationOfPointOfInterestOnPolyline.latitude =
-                            pointOfInterestOnPolyline!!.latitude
-                        LocationOfPointOfInterestOnPolyline.longitude =
-                            pointOfInterestOnPolyline!!.longitude
+                    val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
 
-                        val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
+                    locationOfRoverLatLng.latitude = cl.latitude
+                    locationOfRoverLatLng.longitude = cl.longitude
+                    var distance = 0.0F
+                    distance =
+                        LocationOfPointOfInterestOnPolyline.distanceTo(locationOfRoverLatLng)
 
-                        locationOfRoverLatLng.latitude = cl.latitude
-                        locationOfRoverLatLng.longitude = cl.longitude
-                        var distance = 0.0F
-                        distance =
-                            LocationOfPointOfInterestOnPolyline.distanceTo(locationOfRoverLatLng)
+                    if (distance > listOfPlantingRadius?.radius!!) {
 
-                        if (distance > listOfPlantingRadius?.radius!!) {
+                        Toast.makeText(
+                            applicationContext, "Outside planting zone" +
+                                    "", Toast.LENGTH_SHORT
+                        ).show()
 
-                            Toast.makeText(applicationContext, "Outside planting zone" +
-                                    "", Toast.LENGTH_SHORT).show()
+                    } else {
+
+                        val markedCirclePoint = map?.addCircle(
+                            CircleOptions().center(listOfPlantingRadius?.center!!)
+                                .fillColor(Color.YELLOW)
+                                .radius(0.5)
+                                .strokeWidth(1.0f)
+                        )
+
+                        // point is already marked, so ignore it
+                        if (markedCirclePoint!!.center in listOfMarkedPoints) {
+
+                            return
+                        }
+
+
+                        val listofmarkedcircles = mutableListOf<Circle>()
+                        listofmarkedcircles.add(markedCirclePoint)
+                        if (listofmarkedcircles.isNotEmpty()) {
+                            val last = listofmarkedcircles[listofmarkedcircles.lastIndex]
+                            val color = last.fillColor
+                            if (color != Color.YELLOW) {
+                                Toast.makeText(
+                                    applicationContext,
+                                    "Was not yellow",
+                                    Toast.LENGTH_LONG
+                                ).show()
+
+                                map?.addCircle(
+                                    CircleOptions().center(markedCirclePoint.center)
+                                        .fillColor(Color.YELLOW)
+                                        .radius(0.5)
+                                        .strokeWidth(1.0f)
+                                )
+                            }
+                        }
+
+                        if (markedCirclePoint.center == pointOfInterestOnPolyline) {
+
+                            listOfPlantingRadius?.remove()
+                            if (markers != null) {
+                                markers!!.remove()
+
+                            }
+                            if (tempListMarker.isNotEmpty()) {
+                                tempListMarker.clear()
+                            }
+
+                            savePoints(markedCirclePoint)
 
                         } else {
-
-                            val markedCirclePoint = map?.addCircle(
-                                CircleOptions().center(listOfPlantingRadius?.center!!)
-                                    .fillColor(Color.YELLOW)
-                                    .radius(0.5)
-                                    .strokeWidth(1.0f)
-                            )
-                            if (markedCirclePoint!!.center in listOfMarkedPoints) {
-
-                                return
-                            }
-
-                            listOfMarkedPoints.add(markedCirclePoint.center)
-                            var listofmarkedcircles = mutableListOf<Circle>()
-                            listofmarkedcircles.add(markedCirclePoint)
-                            if(listofmarkedcircles.isNotEmpty()){
-                                var last = listofmarkedcircles[listofmarkedcircles.lastIndex]
-                                var color = last.fillColor
-                                if (color != Color.YELLOW) {
-                                    Toast.makeText(this@MainActivity,
-                                        "Was not yellow",
-                                        Toast.LENGTH_LONG).show()
-
-                                    map?.addCircle(
-                                        CircleOptions().center(markedCirclePoint.center)
-                                            .fillColor(Color.YELLOW)
-                                            .radius(0.5)
-                                            .strokeWidth(1.0f)
-                                    )
-                                }
-                            }
-
-
-
-                            if (markedCirclePoint.center == listOfPlantingRadius!!.center) {
-
-                                listOfPlantingRadius?.remove()
-                                if (markers != null) {
-                                    markers!!.remove()
-
-                                }
-                                if (tempListMarker.isNotEmpty()) {
-                                    tempListMarker.clear()
-                                }
-                                Toast.makeText(applicationContext, "Point Marked " +
-                                        "", Toast.LENGTH_SHORT).show()
-
-                            } else {
-                                Toast.makeText(applicationContext, "ERROR " +
-                                        "", Toast.LENGTH_SHORT).show()
-                            }
-                            if (templist.isNotEmpty()) {
-                                templist.clear()
-                            }
-                            if (tempClosestPoint.isNotEmpty()) {
-                                tempClosestPoint.clear()
-                            }
-
-                            walkingMode = true
-
+                            Toast.makeText(
+                                applicationContext, "ERROR " +
+                                        "", Toast.LENGTH_SHORT
+                            ).show()
                         }
+                        if (templist.isNotEmpty()) {
+                            templist.clear()
+                        }
+                        if (tempClosestPoint.isNotEmpty()) {
+                            tempClosestPoint.clear()
+                        }
+
+                        walkingMode = true
+
                     }
                 }
-                catch (e:Exception){
-                    Toast.makeText(applicationContext, "Can't find point to mark" +
-                            "", Toast.LENGTH_SHORT).show()
-                }
-
+//                } catch (e: Exception) {
+//                    Toast.makeText(
+//                        applicationContext, "Can't find point to mark" +
+//                                "", Toast.LENGTH_SHORT
+//                    ).show()
+//                }
 
 
             }
@@ -1320,8 +1363,10 @@ private var current_measured_bearing = 0f
     }
 
     override fun onResume() {
-        sensorManager?.registerListener(listener, sensorManager!!.getDefaultSensor(
-            Sensor.TYPE_ACCELEROMETER), SensorManager.SENSOR_DELAY_NORMAL
+        sensorManager?.registerListener(
+            listener, sensorManager!!.getDefaultSensor(
+                Sensor.TYPE_ACCELEROMETER
+            ), SensorManager.SENSOR_DELAY_NORMAL
         )
         super.onResume()
     }
@@ -1331,6 +1376,59 @@ private var current_measured_bearing = 0f
         super.onPause()
     }
 
+    fun savePoints(circle: Circle) {
+        val latlng = circle.center
+        val lat = latlng.latitude
+        val lng = latlng.longitude
+
+        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
+            CreateProjectDialog().sharedPrefFile,
+            Context.MODE_PRIVATE
+        )!!
+
+
+        val userIDString:String? = sharedPreferences.getString("userid_key", "defaultValue")!!
+        val ProjectIDString:String? = sharedPreferences.getString("productID_key", "default")
+
+        val userID = userIDString!!.toInt()
+val ProjectID = ProjectIDString!!.toInt()
+
+
+        val modal = savePointsDataClass(lat, lng, ProjectID, userID)
+        val retrofitDataObject = AppModule.retrofitInstance()
+
+        val retrofitData = retrofitDataObject.storePoints(modal)
+
+        retrofitData.enqueue(object : Callback<savePointsResponse?> {
+            override fun onResponse(
+                call: Call<savePointsResponse?>,
+                response: Response<savePointsResponse?>
+            ) {
+                if (response.isSuccessful) {
+                    if (response.body() != null) {
+                        if (response.body()!!.message == "success") {
+                            listOfMarkedPoints.add(circle.center)
+                            Toast.makeText(
+                                applicationContext, "Point Marked " +
+                                        "", Toast.LENGTH_SHORT
+                            ).show()
+                        } else {
+                            Toast.makeText(
+                                applicationContext, "Something Went wrong!! " +
+                                        "", Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<savePointsResponse?>, t: Throwable) {
+                TODO("Not yet implemented")
+            }
+        })
+
+
+    }
 
     fun radius(size: Int): Double {
         val sizeInCentimeters = size * 100

@@ -80,14 +80,17 @@ dependencies {
 
 
     implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
-    // implementation 'com.google.android.libraries.mapsplatform.secrets-gradle-plugin:secrets-gradle-plugin:2.0.1'
-    // implementation 'com.android.tools.build:gradle:7.2.1'
+
     implementation 'com.google.android.libraries.places:places:2.6.0'
     gmsImplementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.1'
     gmsImplementation 'com.google.android.gms:play-services-maps:18.0.2'
     gmsImplementation 'com.google.maps.android:maps-ktx:3.3.0'
-    implementation 'com.google.android.gms:play-services-location:19.0.1'
+    implementation 'com.google.android.gms:play-services-location:20.0.0'
 
     implementation 'com.squareup.okhttp3:logging-interceptor:3.4.0'
-    implementation 'com.squareup.okhttp3:okhttp:3.14.9'
+
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    implementation 'androidx.cardview:cardview:1.0.0'
+
 }
