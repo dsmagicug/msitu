@@ -21,6 +21,7 @@ import com.dsmagic.kibira.databinding.ActivityLoginBinding
 import com.dsmagic.kibira.databinding.ActivityRegisterBinding
 import com.dsmagic.kibira.services.AppModule
 import com.dsmagic.kibira.services.RegisterDataclassX
+import com.dsmagic.kibira.services.ResponseRegister
 import com.dsmagic.kibira.services.apiInterface
 import com.dsmagic.kibira.ui.login.LoginActivity
 import com.dsmagic.kibira.ui.login.LoginViewModel
@@ -90,19 +91,29 @@ var login = binding.login
         val retrofitDataObject = AppModule.retrofitInstance()
             val modal = RegisterDataclassX(email,name,password,password_confirm)
             val retrofitData = retrofitDataObject.registerUser(modal)
-            retrofitData.enqueue(object : Callback<RegisterDataclassX?> {
+            retrofitData.enqueue(object : Callback<ResponseRegister?> {
                 override fun onResponse(
-                    call: Call<RegisterDataclassX?>,
-                    response: Response<RegisterDataclassX?>
+                    call: Call<ResponseRegister?>,
+                    response: Response<ResponseRegister?>
                 ) {
+if(response.isSuccessful){
+    if(response.body()!!.message == "Success"){
+        SuccessAlert("Successfully Registered")
+    }else{
 
-                    SuccessAlert("Successfully Registered")
+        alertfail("Email already taken")
+    }
+} else{
+    alertfail("$response")
+}
+
+
 
                 }
 
-                override fun onFailure(call: Call<RegisterDataclassX?>, t: Throwable) {
+                override fun onFailure(call: Call<ResponseRegister?>, t: Throwable) {
 
-                    alertfail("Email already taken")
+                    alertfail("Something went wrong")
                 }
             })
         }

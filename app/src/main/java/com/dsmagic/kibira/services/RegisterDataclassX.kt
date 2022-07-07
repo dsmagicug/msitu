@@ -6,3 +6,7 @@ data class RegisterDataclassX(
     val password: String,
     val password_confirmation: String
 )
+
+data class ResponseRegister(
+    val message:String,
+)

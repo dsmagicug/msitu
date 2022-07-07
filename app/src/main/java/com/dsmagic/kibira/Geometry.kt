@@ -17,6 +17,7 @@ import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.absoluteValue
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
@@ -44,24 +45,17 @@ val newvalues = """[
 ////val values = firstActivity().crea()
 val obj: JSONArray = JSONArray(newvalues)
 val gapsizeobject = obj.getJSONObject(3)
-val gapsize = gapsizeobject.getInt("gap size")
+//val gapsize = gapsizeobject.getInt("gap size")
 val meshobject = obj.getJSONObject(4)
 val mesh: Int
     get() = meshobject.getInt("mesh")
+var Geoggapsize: Int? = 0
+var Geogmesh_size:Double? = 0.0
 //
-//class settings: AppCompatActivity(){
-////
-////    val sharedPreferences: SharedPreferences =
-////        context.getSharedPreferences(CreateProjectDialog().sharedPrefFile, Context.MODE_PRIVATE)!!
-//
-//val gap_size: String? = sharedPreferences.getString("size_key","defaultValue")
-//val project_id: String? = sharedPreferences.getString("productID_key","defaultValue")
-//val gapsize = gap_size!!.toInt()
-//
-//}
+//val List = MainActivity().settings()
+//val gapsize = List[1]
 
-val MAX_MESH_SIZE = 600.0// In metres
- val GAP_SIZE = gapsize * .95 // In metres (or 12ft)
+
 
 // Represents a point where a tree is planted. Units are metres.
 class Point(internal var x: Double, internal var y: Double) {
@@ -167,7 +161,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
         val ll = UTMCoord.locationFromUTMCoord(zone, hemisphere, easting, northing)
 
         val dflat = DecimalFormat("#.##################") //18dp
-        val dflng = DecimalFormat("#.##############") //14dp
+        val dflng = DecimalFormat("#.##################") //18dp
         dflat.roundingMode = RoundingMode.DOWN
         dflng.roundingMode = RoundingMode.DOWN
 
@@ -342,6 +336,8 @@ class Geometry {
         }
 
         fun generateMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
+            val MAX_MESH_SIZE:Double = Geogmesh_size!!// In metres
+            val GAP_SIZE:Double = Geoggapsize!! * .95 // In metres (or 12ft)
             val theta = theta(centre,directionPoint)
             val mat = rotationMatrix(theta)
             val l = ArrayList<PlantingLine>()
@@ -351,7 +347,7 @@ class Geometry {
 
             // Put in centre/base line
             l.add(PlantingLine(startX, 0.0, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
-            while (currentY < MAX_MESH_SIZE / 2.0) {
+            while (currentY < Geogmesh_size!! / 2.0) {
                 // The + one, then the - one
                 l.add(PlantingLine(startX, currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
                 l.add(PlantingLine(startX, -currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))

@@ -49,16 +49,44 @@ android:layout_marginTop="55dp"
             android:layout_marginTop="34dp"
             android:background="@color/hr" />
 
-        <EditText
-            android:id="@+id/password"
-            android:layout_width="262dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="97dp"
-            android:hint="@string/prompt_password"
-            android:inputType="textPassword"
 
-            android:selectAllOnFocus="true" />
+<!--        &lt;!&ndash;TextInput layout which acts as a wrapper to the edit text&ndash;&gt;-->
+<!--        <com.google.android.material.textfield.TextInputLayout-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+
+<!--            app:hintTextAppearance="@style/TextAppearance.AppCompat.Large"-->
+<!--            android:hint="Enter your password..."-->
+
+<!--app:passwordToggleEnabled="true"-->
+<!--        android:scrollbarSize="25dp"-->
+<!--        app:layout_constraintBottom_toBottomOf="parent"-->
+<!--        app:layout_constraintLeft_toLeftOf="parent"-->
+<!--        app:layout_constraintRight_toRightOf="parent"-->
+<!--        app:layout_constraintTop_toTopOf="parent">-->
+
+<!--        <com.google.android.material.textfield.TextInputEditText-->
+<!--            android:id="@+id/password"-->
+<!--            android:layout_width="262dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_marginStart="16dp"-->
+<!--            android:layout_marginTop="97dp"-->
+<!--            android:hint="@string/prompt_password"-->
+<!--            android:inputType="textPassword"-->
+
+<!--            android:selectAllOnFocus="true"/>-->
+<!--        </com.google.android.material.textfield.TextInputLayout>-->
+
+<EditText
+    android:id="@+id/password"
+    android:layout_width="262dp"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginTop="97dp"
+    android:hint="@string/prompt_password"
+    android:inputType="textPassword"
+
+    android:selectAllOnFocus="true"/>
 
         <EditText
             android:id="@+id/username"
@@ -90,10 +118,10 @@ android:layout_marginTop="55dp"
             android:id="@+id/registerPage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-
-            android:layout_marginStart="150dp"
+            android:layout_gravity="center_vertical|end|bottom"
+            android:layout_marginEnd="16dp"
             android:layout_marginTop="200dp"
-            android:layout_marginBottom="13dp"
+            android:layout_marginBottom="60dp"
             android:background="@color/green"
             android:backgroundTint="@color/green"
             android:enabled="true"

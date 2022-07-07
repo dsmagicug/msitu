@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
@@ -17,6 +18,7 @@ import androidx.fragment.app.FragmentActivity
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
 import com.dsmagic.kibira.services.*
+import com.google.android.gms.maps.SupportMapFragment
 import com.google.gson.Gson
 import org.json.JSONException
 import org.json.JSONObject
@@ -81,7 +83,9 @@ class CreateProjectDialog : DialogFragment() {
 
        // val sharedPrefFile = "kibirasharedfile"
 
+
         val projectname = dialog?.findViewById<EditText>(R.id.projectName)
+        val meshSize = dialog?.findViewById<EditText>(R.id.MeshSize)
 
         val gapsize = dialog?.findViewById<EditText>(R.id.gapSize)
         val displayProjectName = activity?.findViewById<TextView>(R.id.display_project_name)
@@ -90,6 +94,7 @@ class CreateProjectDialog : DialogFragment() {
         val gap_size_string = gapsize?.text.toString()
 
         val project_name: String = projectname?.text.toString()
+        val mesh_size: String = meshSize?.text.toString()
 
       if(project_name =="" || gap_size_string == ""){
           alertfail("Please fill all fields")
@@ -102,6 +107,7 @@ class CreateProjectDialog : DialogFragment() {
           val editor = sharedPreferences.edit()
           editor.putString("size_key", gap_size_string)
           editor.putString("name_key", project_name)
+          editor.putString("mesh_key", mesh_size)
           editor.apply()
           editor.commit()
 
@@ -111,9 +117,12 @@ class CreateProjectDialog : DialogFragment() {
               val saved_gap_size =  gap_size!!.toInt()
               val UID: String? = sharedPreferences.getString("userid_key", "defaultValue")
               val userID = UID!!.toInt()
-
+              val mesh_size_string: String? = sharedPreferences.getString("mesh_key","defaultValue")
+              val MeshSize = mesh_size_string!!.toInt()
+              Geogmesh_size = MeshSize.toDouble()
+              Geoggapsize = saved_gap_size
               val CreateProjectRetrofitObject = AppModule.retrofitInstance()
-              val modal = createProjectDataClass(saved_gap_size,saved_project_name!!,userID)
+              val modal = createProjectDataClass(saved_gap_size,saved_project_name!!,userID, MeshSize)
               val retrofitData =  CreateProjectRetrofitObject.createProject(modal)
               retrofitData.enqueue(object : Callback<ResponseProjectDataClass?> {
                   override fun onResponse(
@@ -131,7 +140,11 @@ class CreateProjectDialog : DialogFragment() {
             editor.putString("productID_key", ProjectID)
             editor.apply()
             editor.commit()
-
+MainActivity().mapFragment
+//var act = MainActivity()
+//                                  val mapFragment =
+//                                      act.supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
+//                                  mapFragment?.getMapAsync(act.callback)
                                   SuccessAlert("Project $ProjectName created")
 
                               }else{
@@ -165,13 +178,16 @@ class CreateProjectDialog : DialogFragment() {
       }
 
     }
+
 //val c = dialog?.context
     fun alertfail(S:String){
-        AlertDialog.Builder(MainActivity().applicationContext)
-                .setTitle("Error")
-                .setMessage(S)
+    this.activity?.let {
+        AlertDialog.Builder(it)
+            .setTitle("Error")
             .setIcon(R.drawable.cross)
-                .show()
+            .setMessage(S)
+            .show()
+    }
     }
 
     fun SuccessAlert(S:String){

@@ -4,6 +4,7 @@ package com.dsmagic.kibira
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Color
@@ -28,8 +29,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.dsmagic.kibira.services.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -41,14 +40,9 @@ import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.list_projects.*
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.Executors
 import kotlin.math.sqrt
 
@@ -76,8 +70,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     //var asyncExecutor = Executors.newSingleThreadExecutor()
     var asyncExecutor = Executors.newCachedThreadPool()
 
-    //var basePoints = mutableListOf<LongLat>()
+    var basePoints = mutableListOf<LongLat>()
     var currentLocation = mutableListOf<LatLng>()
+    var x = false
 
     // Declaring sensorManager
     // and acceleration constants
@@ -90,21 +85,23 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     private var markers: Marker? = null
     private var fabFlag = true
     private var zoomMode = false
-
+    private var ViewProjects = false
 
     var userID: String? = null
     var user_id: Int? = 0
     var extras: Bundle? = null
+    var mapFragment: SupportMapFragment? = null
 
-    //lateinit var fab: FloatingActionButton
     private var ready = false    //flag fro direction marker
 
+    var projectList = ArrayList<String>()
+    var projectIDList = mutableListOf<Int>()
+    var projectSizeList = mutableListOf<Int>()
+    var projectMeshSizeList = mutableListOf<Int>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-
-
 
         setContentView(R.layout.activity_main)
 
@@ -133,7 +130,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
             if (editor.commit()) {
                 val userID: String? = sharedPreferences.getString("userid_key", "defaultValue")
-                Log.d("values", "Project name is: $userID")
+                val size = sharedPreferences.getString("size_key","default")
+                //GapSize = size!!.toInt()
+
+                Log.d("values", "Project name is: $size  $userID")
             }
         }
         // Getting the Sensor Manager instance
@@ -141,8 +141,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         if (savedInstanceState != null) {
 
         } else {
+        getProjects()
             createDialog()
-            val mapFragment =
+           val mapFragment =
                 supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
             mapFragment?.getMapAsync(callback)
         }
@@ -184,8 +185,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
                 if (marker == null) {
                     map?.moveCamera(CameraUpdateFactory.newLatLngZoom(xloc, zoomLevel))
-                    firstPoint = loc as LongLat // Grab it.
-                    // basePoints.add(firstPoint!!)
+                    firstPoint = loc as LongLat // Grab it
 
                 }
                 // Get the displacement from the last position.
@@ -195,6 +195,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     marker?.remove()
                     directionMarker?.remove()
                     polyline1?.remove()
+                    markers?.remove()
 
                     marker = map?.addCircle(
                         CircleOptions().center(xloc).fillColor(Color.GREEN).radius(0.1)
@@ -208,6 +209,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                             .icon(BitmapDescriptorFactory.fromResource(R.drawable.smallman))
 
                     )
+                    Log.d("BasePoints"," first $xloc")
                     // }
                     if (currentLocation.isNotEmpty()) {
                         currentLocation.clear()
@@ -318,7 +320,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                             }
                             if (pt !in l) {
                                 return
-                            } else {
+                            } else
+                            {
                                 tcpt.add(pt!!)
                                 //if (pt in l) {
                                 if (templistCircle.isNotEmpty()) {
@@ -380,9 +383,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                         )
                     )
                     map?.mapType = GoogleMap.MAP_TYPE_NORMAL
-                    map?.setMapStyle(
-                        MapStyleOptions.loadRawResourceStyle(this, R.raw.style_json)
-                    )
+//                    map?.setMapStyle(
+//                        MapStyleOptions.loadRawResourceStyle(this, R.raw.style_json)
+//                    )
                     for (item in polyLines) {
                         item!!.isVisible = false
 
@@ -395,7 +398,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     var bearing = map?.cameraPosition?.bearing
                     val cameraPosition = CameraPosition.Builder()
                         .target(target!!)
-                        .zoom(19f)
+                        .zoom(20f)
                         .bearing(bearing!!)
                         .tilt(45f)
                         .build()
@@ -423,11 +426,58 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             }
         }
 
+    }
+
+    private fun getPoints(id:Int){
+        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
+            CreateProjectDialog().sharedPrefFile,
+            Context.MODE_PRIVATE
+        )!!
+
+        val userIDString:String? = sharedPreferences.getString("userid_key", "0")!!
+
+
+        val userID = userIDString!!.toInt()
+        val ProjectID = id
+
+        val retrofitGetPointsObject = AppModule.retrofitInstance()
+        val modal = RequestPoints(ProjectID,userID)
+
+        val retrofitData = retrofitGetPointsObject.retrievePoints(modal)
+        retrofitData.enqueue(object : Callback<ResponsePoints?> {
+            override fun onResponse(
+                call: Call<ResponsePoints?>,
+                response: Response<ResponsePoints?>
+            ) {
+                if (response.isSuccessful){
+                    if(response.body()!!.message == "Success"){
+                        val result = response.body()!!.results
+                        for(r in result){
+                            val point = LatLng(r.Lat.toDouble(),r.Long.toDouble())
+                            listOfMarkedPoints.add(point)
+
+                        }
+                        Log.d("points","$listOfMarkedPoints")
+                    }
+                } else{
+                    alertfail("Could not retrieve points at this time!")
+                }
+            }
+
+            override fun onFailure(call: Call<ResponsePoints?>, t: Throwable) {
+                Log.d("points","Can't retrieve points at this time")
+            }
+        })
 
     }
 
-    private fun getProjects() {
-        val saredPreferences = getSharedPreferences("Settings", Context.MODE_PRIVATE)
+    override fun onBackPressed() {
+        super.onBackPressed()
+        SuccessAlert("Saving and exiting App")
+    }
+
+     fun getProjects() {
+
         val sharedPreferences: SharedPreferences = this.getSharedPreferences(
             CreateProjectDialog().sharedPrefFile,
             Context.MODE_PRIVATE
@@ -436,61 +486,250 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
         val retrofitDataObject = ServiceInterceptor("Bearer", apiToken!!).httpClient(apiToken)
         val retrofitData = retrofitDataObject.getProjectsList(apiToken)
-        retrofitData.enqueue(object : Callback<List<retrieveProjectsDataClass>?> {
+        retrofitData.enqueue(object : Callback<List<ResponseProjectsDataClass>?> {
             override fun onResponse(
-                call: Call<List<retrieveProjectsDataClass>?>,
-                response: Response<List<retrieveProjectsDataClass>?>
+                call: Call<List<ResponseProjectsDataClass>?>,
+                response: Response<List<ResponseProjectsDataClass>?>
             ) {
                 val responseBody = response.body()
-                val stringbuilder = StringBuilder()
-                if (responseBody != null) {
 
-                    val l = ArrayList<String>()
+                if (responseBody != null) {
+                    //Crude: clear the lists to avoid duplicates
+                        // or! Make name unique, and check its existance before adding i to list to avoid duplicates.
+                    projectList.clear()
+                    projectIDList.clear()
+                    projectMeshSizeList.clear()
+                    projectSizeList.clear()
                     for (data in responseBody) {
-                        l.add(data.name)
+                        projectList.add(data.name)
+                        projectIDList.add(data.id)
+                        projectMeshSizeList.add(data.mesh_size)
+                        projectSizeList.add(data.gap_size)
+                    }
+                    if(ViewProjects){
+                        displayProjects(projectList,projectIDList)
                     }
 
-                    val items = l.toArray()
-                    val adaptor =
-                        MainActivity().applicationContext.let {
-                            ArrayAdapter(
-                                it,
-                                android.R.layout.simple_spinner_dropdown_item,
-                                items
-                            )
-                        }
-                    spinner.adapter = adaptor
-                    spinner.onItemSelectedListener = MainActivity()
-
-
-                    // // projectList.text = stringbuilder
-                    Log.d("Projects", "$stringbuilder")
+                    Log.d("Projects", "$projectList")
 
                 } else {
                     alertfail("No response got from server")
                 }
             }
 
-            override fun onFailure(call: Call<List<retrieveProjectsDataClass>?>, t: Throwable) {
+            override fun onFailure(call: Call<List<ResponseProjectsDataClass>?>, t: Throwable) {
                 Log.d("error", "${t.message}")
+            }
+        })
+
+    }
+
+    var selectedProject:String = " "
+    fun displayProjects(list:ArrayList<String>,project_id:MutableList<Int>){
+
+        var checkedItemIndex = -1
+       val l = list.toTypedArray()
+       projectIDList
+        projectMeshSizeList
+        projectSizeList
+
+        AlertDialog.Builder(this)
+            .setTitle("Projects")
+           // .setMessage(s)
+            .setSingleChoiceItems(l, checkedItemIndex,
+                DialogInterface.OnClickListener { dialog, which ->
+                    checkedItemIndex = which
+                    selectedProject = l[which]
+                })
+            .setNegativeButton("Delete",
+                DialogInterface.OnClickListener { dialog, id ->
+
+                    DeleteAlert("\nProject '$selectedProject' will be deleted permanently.\n\nAre you sure?")
+
+                })
+            .setPositiveButton("Open",
+
+                DialogInterface.OnClickListener { dialog, id ->
+
+                    if(selectedProject == ""){
+                        //MainActivity().showSnackBar(mDialogView)
+                    }else
+                    {
+                        for (j in l){
+                            if(j == selectedProject){
+                                val index = l.indexOf(j)
+                                val id = projectIDList[index]
+                                var gap_size = projectSizeList[index]
+                                var mesh_size = projectMeshSizeList[index]
+                                loadProject(id,gap_size,mesh_size)
+                            }
+
+                        }
+
+
+
+
+                    }
+
+                })
+
+            .show()
+    }
+
+    private fun loadProject(ProjectID:Int,Meshsize:Int,Gapsize:Int) {
+        val displayProjectName: TextView? = findViewById(R.id.display_project_name)
+
+        Toast.makeText(
+            applicationContext, "Loading project, This may take some time." +
+                    "", Toast.LENGTH_SHORT
+        ).show()
+        progressBar.isVisible = true
+
+    val retrofitGetPointsObject = AppModule.retrofitInstance()
+
+        val modal = RequestBasePointsDataClass(ProjectID)
+
+        val retrofitData = retrofitGetPointsObject.retrieveBasePoints(modal)
+
+        retrofitData.enqueue(object : Callback<RetrieveBasePointsDataClass?> {
+            override fun onResponse(
+                call: Call<RetrieveBasePointsDataClass?>,
+                response: Response<RetrieveBasePointsDataClass?>
+            ) {
+            if(response.isSuccessful){
+               if(response.body() != null ){
+                   val results = response.body()!!.points
+                   if(results.isNotEmpty()){
+                       displayProjectName?.text = selectedProject
+                       Log.d("results","$results")
+                       val l = results[0]
+                       val y = results[1]
+                       val firstPoint = LongLat(l.Long.toDouble(),l.Lat.toDouble())
+                       val secondPoint = LongLat(y.Long.toDouble(),y.Lat.toDouble())
+                       getPoints(ProjectID)
+                       Geoggapsize = Gapsize
+                       Geogmesh_size = Meshsize.toDouble()
+                       plotMesh(firstPoint,secondPoint)
+                   } else{
+
+                       warningAlert("\nProject is empty!! Might be best to delete it.")
+                   }
+
+
+               }
+            }
+            else{
+                val responseBody = response.body()
+                Log.d("results","Failed")
+                //alertfail("no response from server")
+            }
+            }
+
+
+            override fun onFailure(call: Call<RetrieveBasePointsDataClass?>, t: Throwable) {
+              alertfail("Could not load the project. It could be empty")
             }
         })
     }
 
     fun alertfail(S: String) {
-        AlertDialog.Builder(MainActivity().applicationContext)
+        AlertDialog.Builder(this)
             .setTitle("Error")
             .setIcon(R.drawable.cross)
             .setMessage(S)
             .show()
     }
 
+    fun warningAlert(S:String){
+        AlertDialog.Builder(this)
+            .setTitle("Warning")
+            .setIcon(R.drawable.caution)
+            .setMessage(S)
+            .setPositiveButton(
+                "Delete",
+
+                DialogInterface.OnClickListener { dialog, id ->
+
+                    deleteProjectFunc()
+
+                })
+            .setNegativeButton("Just leave it alone",
+                DialogInterface.OnClickListener { dialog, id ->
+                })
+            .show()
+    }
     fun SuccessAlert(S: String) {
-        AlertDialog.Builder(MainActivity().applicationContext)
+        AlertDialog.Builder(this)
             .setTitle("Success")
             .setIcon(R.drawable.tick)
             .setMessage(S)
             .show()
+    }
+    fun DeleteAlert(S: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Caution")
+            .setIcon(R.drawable.caution)
+            .setMessage(S)
+            .setPositiveButton(
+                "Delete",
+
+                DialogInterface.OnClickListener { dialog, id ->
+
+                    deleteProjectFunc()
+
+                })
+            .setNegativeButton("Cancel",
+                DialogInterface.OnClickListener { dialog, id ->
+                })
+
+            .show()
+    }
+
+    private fun deleteProjectFunc() {
+        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
+            CreateProjectDialog().sharedPrefFile,
+            Context.MODE_PRIVATE
+        )!!
+
+        val ProjectIDString:String? = sharedPreferences.getString("productID_key", "0")
+
+        val ProjectID = ProjectIDString!!.toInt()
+
+        if(ProjectID == 0){
+            Toast.makeText(
+                applicationContext, "Could not load project" +
+                        "", Toast.LENGTH_SHORT
+            ).show()
+        }
+
+        val retrofitDeleteProjectInstance = AppModule.retrofitInstance()
+
+        val modal = deleteProjectDataClass(ProjectID)
+       val retrofitData = retrofitDeleteProjectInstance.deleteProject(modal)
+
+        retrofitData.enqueue(object : Callback<deleteProjectResponse?> {
+            override fun onResponse(
+                call: Call<deleteProjectResponse?>,
+                response: Response<deleteProjectResponse?>
+            ) {
+                if(response.isSuccessful){
+                    if(response.body()!!.message == "success"){
+                        Toast.makeText(applicationContext,"Project deleted",Toast.LENGTH_LONG).show()
+
+                    }else{
+                        alertfail("Could not delete project :(")
+                    }
+                }
+                else{
+                    alertfail("Error!! We all have bad days!! :( ")
+                }
+            }
+
+            override fun onFailure(call: Call<deleteProjectResponse?>, t: Throwable) {
+                alertfail("Error ${t.message}")
+            }
+        })
+
     }
 
     private fun showLine() {
@@ -588,7 +827,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
                     .snippet("Marked Points :$size" + "Distance: $distance (m)")
             )
-            if (distance > (gapsize)) {
+            if (distance > (Geoggapsize!!)) {
                 Toast.makeText(
                     applicationContext,
                     "Straying from Line or away from Point",
@@ -596,9 +835,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 ).show()
                 polyline1 = map?.addPolyline(
                     PolylineOptions()
-                        .color(Color.GREEN)
+                        .color(Color.BLACK)
                         .jointType(JointType.DEFAULT)
-                        .width(4f)
+                        .width(3.5f)
                         .geodesic(true)
                         .startCap(RoundCap())
                         .add(
@@ -703,10 +942,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
             return true
         } else if (item.itemId == R.id.action_view_projects) {
-            // alertfail("I reach here")
-//            val createNewProject = CreateProjectDialog()
-//            createNewProject.show(supportFragmentManager, "view_projects")
 
+            ViewProjects = true
             getProjects()
             return true
         } else if (item.itemId == R.id.bluetooth_spinner) {
@@ -847,15 +1084,18 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 )
 
             }
+
             return@OnMapClickListener
         }
         secondPoint = pt
+
         if (firstPoint == null || secondPoint == null || meshDone)
             return@OnMapClickListener
 
         var l = map?.addCircle(
             CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5).strokeWidth(1.0f)
         )
+        Log.d("BasePoints","$loc")
         runOnUiThread {
             Toast.makeText(
                 applicationContext,
@@ -866,19 +1106,61 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
             pBar.isVisible = true
         }
-        //basePoints.add(secondPoint!!)
+
+        saveBasepoints(firstPoint!!)
+        saveBasepoints(secondPoint!!)
+        plotMesh(firstPoint!!,secondPoint!!)
+
+
+//        asyncExecutor.execute {
+//        val c = Point(LongLat( 32.46332991868300,0.04710796689723))
+//            val p =Point(LongLat(32.46333260089200,0.04699799636470))
+//
+//           // val c = Point(firstPoint!!)
+//            //val p = Point(secondPoint!!)
+//            val lines = Geometry.generateMesh(c, p)
+//            Geometry.generateLongLat(c, lines, drawLine)
+//            meshDone = true
+//
+//            runOnUiThread {
+//                if (meshDone) {
+//                    pBar.isVisible = false
+//                }
+//
+//            }
+//            handler.post { // Centre it...
+////
+//                map?.moveCamera(
+//                    CameraUpdateFactory.newLatLngZoom(
+//                        LatLng(
+//                            firstPoint!!.getLatitude(),
+//                            firstPoint!!.getLongitude()
+//                        ), 21.0f
+//                    )
+//                )
+//
+//
+//            }
+//
+//        }
+
+        l?.remove()
+        // marker?.remove()
+    }
+    fun plotMesh(cp:LongLat,pp:LongLat){
 
         asyncExecutor.execute {
 
-            val c = Point(firstPoint!!)
-            val p = Point(secondPoint!!)
+val c = Point(cp)
+            val p = Point(pp)
+
             val lines = Geometry.generateMesh(c, p)
             Geometry.generateLongLat(c, lines, drawLine)
             meshDone = true
 
             runOnUiThread {
                 if (meshDone) {
-                    pBar.isVisible = false
+                    progressBar.isVisible = false
                 }
 
             }
@@ -887,8 +1169,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 map?.moveCamera(
                     CameraUpdateFactory.newLatLngZoom(
                         LatLng(
-                            firstPoint!!.getLatitude(),
-                            firstPoint!!.getLongitude()
+                            cp.getLatitude(),
+                            cp.getLongitude()
                         ), 21.0f
                     )
                 )
@@ -896,19 +1178,31 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
             }
 
+
         }
 
-        l?.remove()
-        // marker?.remove()
+//        if(listOfMarkedPoints.isNotEmpty()){
+//            for(latlang in listOfMarkedPoints ){
+//                map?.addCircle(CircleOptions().center(latlang)
+//                    .fillColor(Color.YELLOW)
+//                    .radius(1.0)
+//                    .strokeWidth(1.0f)
+//                )
+//            }
+//        }
+progressBar.isVisible =false
     }
 
     var listOfMarkedPoints = mutableListOf<LatLng>()
+    var listofmarkedcircles = mutableListOf<Circle>()
 
     var unmarkedCirclesList = mutableListOf<Circle>()
 
     var listOfPlantingLines = mutableListOf<Polyline>()
 
     private val onPolyClick = GoogleMap.OnPolylineClickListener {
+
+
         it.isClickable = false
 
         if (listOfPlantingLines.isEmpty()) {
@@ -1171,7 +1465,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     private var lastRotateDegree = 0f
     private var current_measured_bearing = 0f
 
-    // Marking off points on a planting line
+    // Marking off points on a planting line section
     private val listener: SensorEventListener = object : SensorEventListener {
         var accelerometerValues = FloatArray(3)
         var magneticValues = FloatArray(3)
@@ -1186,6 +1480,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 magneticValues = event.values.clone()
 
             }
+
+
+            //I don't remember why i was doing this :( Always comment your code!!!!
 
             current_measured_bearing = (magneticValues.get(0) * 180 / Math.PI).toFloat()
             if (current_measured_bearing < 0) current_measured_bearing += 360f
@@ -1227,7 +1524,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
             }
 
-            //******** The shake event starts here *******//
+            //******** The shake event for marking points starts here *******//
 
             // Fetching x,y,z values
             val x = accelerometerValues[0]
@@ -1243,7 +1540,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             acceleration = acceleration * 0.9f + delta
 
             if (acceleration > 10) {
-                // try {
+                 try {
                 val plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
 
                 val l = plantingLine.tag as MutableList<*>
@@ -1292,13 +1589,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
                         // point is already marked, so ignore it
                         if (markedCirclePoint!!.center in listOfMarkedPoints) {
-
                             return
+                        } else{
+
+                            savePoints(markedCirclePoint)
                         }
 
 
-                        val listofmarkedcircles = mutableListOf<Circle>()
                         listofmarkedcircles.add(markedCirclePoint)
+
                         if (listofmarkedcircles.isNotEmpty()) {
                             val last = listofmarkedcircles[listofmarkedcircles.lastIndex]
                             val color = last.fillColor
@@ -1318,18 +1617,19 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                             }
                         }
 
-                        if (markedCirclePoint.center == pointOfInterestOnPolyline) {
+                        if (markedCirclePoint.center == listOfPlantingRadius?.center) {
 
-                            listOfPlantingRadius?.remove()
+                            listOfPlantingRadius?.remove()   //remove planting radius, marker and clear list
+
                             if (markers != null) {
                                 markers!!.remove()
 
                             }
+
                             if (tempListMarker.isNotEmpty()) {
                                 tempListMarker.clear()
                             }
 
-                            savePoints(markedCirclePoint)
 
                         } else {
                             Toast.makeText(
@@ -1348,12 +1648,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
                     }
                 }
-//                } catch (e: Exception) {
-//                    Toast.makeText(
-//                        applicationContext, "Can't find point to mark" +
-//                                "", Toast.LENGTH_SHORT
-//                    ).show()
-//                }
+                } catch (e: Exception) {
+                    Toast.makeText(
+                        applicationContext, "Can't find point to mark" +
+                                "", Toast.LENGTH_SHORT
+                    ).show()
+                }
 
 
             }
@@ -1376,6 +1676,60 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         super.onPause()
     }
 
+    fun saveBasepoints(loc:LongLat){
+        val lat = loc.getLatitude()
+        val lng = loc.getLongitude()
+
+        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
+            CreateProjectDialog().sharedPrefFile,
+            Context.MODE_PRIVATE
+        )!!
+
+       // val userIDString:String? = sharedPreferences.getString("userid_key", "defaultValue")!!
+        val ProjectIDString:String? = sharedPreferences.getString("productID_key", "default")
+
+        //val userID = userIDString!!.toInt()
+        val ProjectID = ProjectIDString!!.toInt()
+
+
+        val modal = SaveBasePointsClass(lat, lng, ProjectID)
+        val retrofitDataObject = AppModule.retrofitInstance()
+
+        val retrofitData = retrofitDataObject.storeBasePoints(modal)
+        retrofitData.enqueue(object : Callback<SaveBasePointsResponse?> {
+            override fun onResponse(
+                call: Call<SaveBasePointsResponse?>,
+                response: Response<SaveBasePointsResponse?>
+            ) {
+               if(response.isSuccessful){
+                   if(response.body() != null)
+                   {
+                       if(response.body()!!.message == "success"){
+
+                           Toast.makeText(
+                               applicationContext, "Saved!! " +
+                                       "", Toast.LENGTH_SHORT
+                           ).show()
+                       } else{
+                           val m = response.body()!!.meta
+                           alertfail(m)
+                       }
+                   }else{
+                       alertfail("BODY IS NULL")
+                   }
+                   }
+               else{
+                   alertfail("An error has occured")
+               }
+            }
+
+            override fun onFailure(call: Call<SaveBasePointsResponse?>, t: Throwable) {
+                TODO("Not yet implemented")
+            }
+        })
+    }
+
+//saving points in the db
     fun savePoints(circle: Circle) {
         val latlng = circle.center
         val lat = latlng.latitude
@@ -1391,8 +1745,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         val ProjectIDString:String? = sharedPreferences.getString("productID_key", "default")
 
         val userID = userIDString!!.toInt()
-val ProjectID = ProjectIDString!!.toInt()
-
+        val ProjectID = ProjectIDString!!.toInt()
 
         val modal = savePointsDataClass(lat, lng, ProjectID, userID)
         val retrofitDataObject = AppModule.retrofitInstance()
@@ -1423,7 +1776,7 @@ val ProjectID = ProjectIDString!!.toInt()
             }
 
             override fun onFailure(call: Call<savePointsResponse?>, t: Throwable) {
-                TODO("Not yet implemented")
+          alertfail("Server not responsive")
             }
         })
 
@@ -1466,7 +1819,7 @@ val ProjectID = ProjectIDString!!.toInt()
 //        }
 //    }
 
-    private val callback = OnMapReadyCallback { googleMap ->
+     val callback = OnMapReadyCallback { googleMap ->
         map = googleMap
         googleMap.setLocationSource(NmeaReader.listener)
         googleMap.setOnMapClickListener(onMapClick)

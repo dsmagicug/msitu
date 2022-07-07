@@ -24,6 +24,7 @@ import com.dsmagic.kibira.services.AppModule
 import com.dsmagic.kibira.services.LoginDataClassX
 import com.dsmagic.kibira.services.apiInterface
 import com.dsmagic.kibira.services.loginDataclass
+import com.google.android.material.textfield.TextInputEditText
 import kotlinx.android.synthetic.main.activity_login.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -68,7 +69,7 @@ class LoginActivity : AppCompatActivity() {
                 username.error = getString(loginState.usernameError)
             }
             if (loginState.passwordError != null) {
-                password.error = getString(loginState.passwordError)
+                password.error= getString(loginState.passwordError)
             }
         })
 
@@ -150,11 +151,11 @@ class LoginActivity : AppCompatActivity() {
                         val token = response.body()!!.token
                         if (tag == "V") {
                             updateUiWithUser(myemail, user_id,token)
-//                            Toast.makeText(
-//                                applicationContext, "Logged in " +
-//                                        "", Toast.LENGTH_SHORT
-//                            ).show()
-                            SuccessAlert("Successfully Logged in")
+                            Toast.makeText(
+                                applicationContext, "Logged in " +
+                                        "", Toast.LENGTH_SHORT
+                            ).show()
+//                            SuccessAlert("Successfully Logged in")
                         }
                         else {
                             alertfail("Invalid Credentials!")
@@ -174,7 +175,7 @@ class LoginActivity : AppCompatActivity() {
 
             override fun onFailure(call: Call<loginDataclass?>, t: Throwable) {
                 loading.visibility = View.INVISIBLE
-                alertfail("something Went wrong!")
+                alertfail("something Went wrong! ${t.message}")
             }
         })
     }
