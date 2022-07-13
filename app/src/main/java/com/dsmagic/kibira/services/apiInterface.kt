@@ -40,4 +40,7 @@ interface apiInterface {
  @POST("deleteProject")
  fun deleteProject(@Body dataClass: deleteProjectDataClass):Call<deleteProjectResponse>
 
+ @POST("deleteCoords")
+ fun unmarkPoint(@Body dataClass: DeleteCoords):Call<DeleteCoordsResponse>
+
 }

@@ -22,40 +22,8 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
-val values = "{\n\"Name\":\"Project 1\",\n\"Gap_Size\":\"5\",\n\"mesh\":\"600.00\"}"
-val newvalues = """[
-  [{"lat":8.4,"lng":43.9},{"lat":8,"lng":80}],
-""" +
-        """  {"Base points":{"first":[{"lat":8,"lng":9}],
-""" +
-        """    "second":[{"lat":9,"lng":10}]}
-""" +
-        "  },\n" +
-        """  {"name":"Project one"},
-""" +
-        """  {"gap size":3},
-""" +
-        """  {"mesh":600.0}
-""" +
-        "\n" +
-        "\n" +
-        """]"""
-////val profileName=MainActivity().intent.getStringExtra("values")
-////
-////val values = firstActivity().crea()
-val obj: JSONArray = JSONArray(newvalues)
-val gapsizeobject = obj.getJSONObject(3)
-//val gapsize = gapsizeobject.getInt("gap size")
-val meshobject = obj.getJSONObject(4)
-val mesh: Int
-    get() = meshobject.getInt("mesh")
 var Geoggapsize: Int? = 0
 var Geogmesh_size:Double? = 0.0
-//
-//val List = MainActivity().settings()
-//val gapsize = List[1]
-
-
 
 // Represents a point where a tree is planted. Units are metres.
 class Point(internal var x: Double, internal var y: Double) {
@@ -363,19 +331,23 @@ class Geometry {
             printline: (List<LongLat>) -> Unit
         ): List<List<LongLat>> {
             val al = ArrayList<List<LongLat>>()
+            var xl:List<LongLat>
             var count = 0
             for (l in a) {
-
-                val xl = l.fromUTM(c)
+                xl = l.fromUTM(c)
                 al.add(xl) // Use UTM centre...
+
                 if (count < 100){
-                    printline(xl) // Cause it to be printed
+
+                       printline(xl)  //Cause it to be printed
                 }
                count+=1
 
             }
 
-            return al
+    return  al
+
+
         }
     }
 }

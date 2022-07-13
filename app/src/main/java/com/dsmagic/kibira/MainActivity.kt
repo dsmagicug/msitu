@@ -18,11 +18,14 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.animation.Animation
+import android.view.animation.BounceInterpolator
+import android.view.animation.Interpolator
 import android.view.animation.RotateAnimation
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
@@ -47,9 +50,7 @@ import java.util.concurrent.Executors
 import kotlin.math.sqrt
 
 
-class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener,
-    GoogleMap.OnMyLocationButtonClickListener,
-    GoogleMap.OnMyLocationClickListener, OnMapReadyCallback {
+class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener {
     var deviceList = ArrayList<BluetoothDevice>()
     var device: BluetoothDevice? = null
     private var map: GoogleMap? = null
@@ -67,12 +68,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var pointsIndex = S2PointIndex<S2LatLng>()
     var polyLines = ArrayList<Polyline?>()
 
-    //var asyncExecutor = Executors.newSingleThreadExecutor()
     var asyncExecutor = Executors.newCachedThreadPool()
 
-    var basePoints = mutableListOf<LongLat>()
     var currentLocation = mutableListOf<LatLng>()
-    var x = false
+    var clearFragment = false
 
     // Declaring sensorManager
     // and acceleration constants
@@ -81,18 +80,22 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     private var currentAcceleration = 0f
     private var lastAcceleration = 0f
     private var switchedLines = false
-    private var walkingMode = false
+    private var plantingMode = false
     private var markers: Marker? = null
     private var fabFlag = true
     private var zoomMode = false
     private var ViewProjects = false
 
-    var userID: String? = null
-    var user_id: Int? = 0
-    var extras: Bundle? = null
-    var mapFragment: SupportMapFragment? = null
+    var listOfMarkedPoints = mutableListOf<LatLng>()
+    var listofmarkedcircles = mutableListOf<Circle>()
 
-    private var ready = false    //flag fro direction marker
+    var unmarkedCirclesList = mutableListOf<Circle>()
+
+    var listOfPlantingLines = mutableListOf<Polyline>()
+
+    var userID: String? = null
+
+    var extras: Bundle? = null
 
     var projectList = ArrayList<String>()
     var projectIDList = mutableListOf<Int>()
@@ -127,23 +130,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             editor.apply()
             editor.commit()
 
-
-            if (editor.commit()) {
-                val userID: String? = sharedPreferences.getString("userid_key", "defaultValue")
-                val size = sharedPreferences.getString("size_key","default")
-                //GapSize = size!!.toInt()
-
-                Log.d("values", "Project name is: $size  $userID")
-            }
         }
         // Getting the Sensor Manager instance
 
         if (savedInstanceState != null) {
 
         } else {
-        getProjects()
+            //  getProjects()
             createDialog()
-           val mapFragment =
+            val mapFragment =
                 supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
             mapFragment?.getMapAsync(callback)
         }
@@ -151,7 +146,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val accSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         val magneticSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
-
 
         sensorManager!!.registerListener(
             listener,
@@ -163,18 +157,18 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         currentAcceleration = SensorManager.GRAVITY_EARTH
         lastAcceleration = SensorManager.GRAVITY_EARTH
 
-        if (magneticSensor != null) {
-
-        } else {
-
-            Toast.makeText(
-                applicationContext,
-                "No Geomagnetic sensor, so some features have been disabled",
-                Toast.LENGTH_LONG
-            ).show()
-            //compass.isVisible = false
-
-        }
+//        if (magneticSensor != null) {
+//
+//        } else {
+//
+//            Toast.makeText(
+//                applicationContext,
+//                "No Geomagnetic sensor, so some features have been disabled",
+//                Toast.LENGTH_LONG
+//            ).show()
+//            //compass.isVisible = false
+//
+//        }
 
         NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
             override fun onLocationChanged(loc: Location) {
@@ -198,19 +192,17 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     markers?.remove()
 
                     marker = map?.addCircle(
-                        CircleOptions().center(xloc).fillColor(Color.GREEN).radius(0.1)
+                        CircleOptions().center(xloc).fillColor(Color.GREEN).radius(0.5)
                             .strokeWidth(1.0f)
 
                     )
-                    // if (ready) {
                     directionMarker?.remove()
                     directionMarker = map?.addMarker(
                         MarkerOptions().position(xloc)
                             .icon(BitmapDescriptorFactory.fromResource(R.drawable.smallman))
 
                     )
-                    Log.d("BasePoints"," first $xloc")
-                    // }
+
                     if (currentLocation.isNotEmpty()) {
                         currentLocation.clear()
                     }
@@ -219,7 +211,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     }
                     val location = currentLocation[currentLocation.lastIndex]
 
-                    distanceToPoint(location)
+                    //distanceToPoint(location)
 
                 }
                 if (currentLocation.distinct().size == 1) {
@@ -230,7 +222,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 if (switchedLines) {
                     val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
                     val tempPoint = mutableListOf<LatLng>()
-                    val r = lineOfInterest.tag as List<*>
+                    val r = lineOfInterest.tag as MutableList<*>
 
                     if (currentLocation.isNotEmpty()) {
 
@@ -272,6 +264,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                                     switchedLines = false
                                     handler.removeMessages(0)
                                     lineOfInterest.width = 3f
+                                    tempPoint.clear()
+                                    r.clear()
                                 }
                             }
 
@@ -281,93 +275,44 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
                 }
 
-                //controlling visibility given the zoom level on the map
-                if (zoomMode) {
-                    val zmlevel = map?.cameraPosition?.zoom
-                    val maxZmLevel = map?.maxZoomLevel
-
-                    var pt: LatLng? = null
-
-                    if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
-                        return
-                    }
-                    //get current line person is walking on, lat/lng and find closest point on line as they are moving
-                    val currentPlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
-                    val roverPoint = currentLocation[currentLocation.lastIndex]
-                    val l = currentPlantingLine.tag as MutableList<*>
-                    var tcpt = mutableListOf<LatLng>()
-                    var plantingCircle: Circle? = null
-                    var templistCircle = mutableListOf<Circle>()
-
-                    val closestPoint =
-                        S2Helper.findClosestPointOnLine(pointsIndex, roverPoint) as S2LatLng?
-
-                    if (closestPoint != null) {
-                        pt = LatLng(closestPoint.latDegrees(), closestPoint.lngDegrees())
-                    }
-
-                    if (zmlevel != null) {
-                        if (zmlevel == maxZmLevel) {
-                            //remove line and circles once at max zoom level
-                            currentPlantingLine.isVisible = false
-                            if (unmarkedCirclesList.isNotEmpty()) {
-                                for (c in unmarkedCirclesList) {
-                                    c.isVisible = false
-                                }
-                            }
-                            if (pt in listOfMarkedPoints) {
-                                return
-                            }
-                            if (pt !in l) {
-                                return
-                            } else
-                            {
-                                tcpt.add(pt!!)
-                                //if (pt in l) {
-                                if (templistCircle.isNotEmpty()) {
-                                    for (c in templistCircle) {
-                                        if (c.center == pt) {
-                                            return    //do nothing if a circle is already drawn at that point
-                                        }
-                                        if (c.center !in tcpt) {
-                                            //removes the circle as one walks away from that point
-                                            c.remove()
-
-                                        }
-                                    }
-
-                                }
-                                //}
-                                // else {
-                                plantingCircle = map?.addCircle(
-                                    CircleOptions().center(pt).fillColor(Color.RED).radius(0.5)
-                                        .strokeWidth(1.0f)
-                                )
-                                // }
-
-                            }
-                            if (tcpt.isNotEmpty()) {
-                                tcpt.clear()
-                            }
-
-                            if (plantingCircle != null) {
-                                if (templistCircle.isNotEmpty()) {
-                                    for (c in templistCircle) {
-                                        c.remove()
-                                    }
-                                    templistCircle.clear()
-                                    templistCircle.add(plantingCircle)
-                                } else {
-                                    templistCircle.add((plantingCircle))
-                                }
-                            }
-
-                        } else {
-                            showLine()
-                            //plotLine(l)
-                        }
-                    }
-                }
+//                //controlling visibility given the zoom level on the map
+//                if (zoomMode) {
+//                    val zmlevel = map?.cameraPosition?.zoom
+//                    val maxZmLevel = map?.maxZoomLevel
+//
+//                    var pt: LatLng? = null
+//
+//                    if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
+//                        return
+//                    }
+////                    //get current line person is walking on, lat/lng and find closest point on line as they are moving
+//                   val currentPlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
+////                    val roverPoint = currentLocation[currentLocation.lastIndex]
+//                    val l = currentPlantingLine.tag as MutableList<*>
+//
+//                    if (zmlevel != null) {
+//                        if (zmlevel == maxZmLevel) {
+//                            //remove line and circles once at max zoom level
+//
+//                            currentPlantingLine.isVisible = false
+//
+//                            if (unmarkedCirclesList.isNotEmpty()) {
+//                                for (c in unmarkedCirclesList) {
+//
+//                                        c.isVisible = false
+//
+//                                }
+//                            }
+//
+//                            plantingMode = true
+//
+//markPoint()
+//                        } else {
+//                            showLine()
+//                            //plotLine(l)
+//                        }
+//                    }
+//                }
             }
         })
 
@@ -394,15 +339,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     val activePlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
                     activePlantingLine.isVisible = true
 
-                    var target = map?.cameraPosition?.target
-                    var bearing = map?.cameraPosition?.bearing
-                    val cameraPosition = CameraPosition.Builder()
-                        .target(target!!)
-                        .zoom(20f)
-                        .bearing(bearing!!)
-                        .tilt(45f)
-                        .build()
-                    map?.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
                     fabFlag = true
 
                 } else if (fabFlag) {
@@ -428,20 +364,21 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
     }
 
-    private fun getPoints(id:Int){
+    private fun getPoints(id: Int) {
         val sharedPreferences: SharedPreferences = this.getSharedPreferences(
             CreateProjectDialog().sharedPrefFile,
             Context.MODE_PRIVATE
         )!!
 
-        val userIDString:String? = sharedPreferences.getString("userid_key", "0")!!
-
+        if (listOfMarkedPoints.isNotEmpty()) {
+            listOfMarkedPoints.clear()
+        }
+        val userIDString: String? = sharedPreferences.getString("userid_key", "0")!!
 
         val userID = userIDString!!.toInt()
-        val ProjectID = id
 
         val retrofitGetPointsObject = AppModule.retrofitInstance()
-        val modal = RequestPoints(ProjectID,userID)
+        val modal = RequestPoints(id, userID)
 
         val retrofitData = retrofitGetPointsObject.retrievePoints(modal)
         retrofitData.enqueue(object : Callback<ResponsePoints?> {
@@ -449,23 +386,30 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 call: Call<ResponsePoints?>,
                 response: Response<ResponsePoints?>
             ) {
-                if (response.isSuccessful){
-                    if(response.body()!!.message == "Success"){
+                if (response.isSuccessful) {
+                    if (response.body()!!.message == "Success") {
+                        Log.d("results", "$response")
                         val result = response.body()!!.results
-                        for(r in result){
-                            val point = LatLng(r.Lat.toDouble(),r.Long.toDouble())
-                            listOfMarkedPoints.add(point)
+                        if (result.isNotEmpty()) {
+                            for (r in result) {
+                                val point = LatLng(r.Lat.toDouble(), r.Long.toDouble())
 
+                                listOfMarkedPoints.add(point)
+                            }
+
+                        } else {
+                            listOfMarkedPoints.clear()
                         }
-                        Log.d("points","$listOfMarkedPoints")
+
+                        Log.d("points", "$listOfMarkedPoints")
                     }
-                } else{
+                } else {
                     alertfail("Could not retrieve points at this time!")
                 }
             }
 
             override fun onFailure(call: Call<ResponsePoints?>, t: Throwable) {
-                Log.d("points","Can't retrieve points at this time")
+                Log.d("points", "Can't retrieve points at this time")
             }
         })
 
@@ -476,7 +420,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         SuccessAlert("Saving and exiting App")
     }
 
-     fun getProjects() {
+    fun getProjects() {
 
         val sharedPreferences: SharedPreferences = this.getSharedPreferences(
             CreateProjectDialog().sharedPrefFile,
@@ -495,7 +439,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
                 if (responseBody != null) {
                     //Crude: clear the lists to avoid duplicates
-                        // or! Make name unique, and check its existance before adding i to list to avoid duplicates.
+                    // or! Make name unique, and check its existance before adding i to list to avoid duplicates.
                     projectList.clear()
                     projectIDList.clear()
                     projectMeshSizeList.clear()
@@ -506,8 +450,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                         projectMeshSizeList.add(data.mesh_size)
                         projectSizeList.add(data.gap_size)
                     }
-                    if(ViewProjects){
-                        displayProjects(projectList,projectIDList)
+                    if (ViewProjects) {
+                        displayProjects(
+                            projectList
+                        )
                     }
 
                     Log.d("Projects", "$projectList")
@@ -524,18 +470,18 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
     }
 
-    var selectedProject:String = " "
-    fun displayProjects(list:ArrayList<String>,project_id:MutableList<Int>){
+    var selectedProject: String = " "
+    fun displayProjects(
+        list: ArrayList<String>,
+
+        ) {
 
         var checkedItemIndex = -1
-       val l = list.toTypedArray()
-       projectIDList
-        projectMeshSizeList
-        projectSizeList
+        val l = list.toTypedArray()
 
         AlertDialog.Builder(this)
             .setTitle("Projects")
-           // .setMessage(s)
+            // .setMessage(s)
             .setSingleChoiceItems(l, checkedItemIndex,
                 DialogInterface.OnClickListener { dialog, which ->
                     checkedItemIndex = which
@@ -543,30 +489,39 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 })
             .setNegativeButton("Delete",
                 DialogInterface.OnClickListener { dialog, id ->
+                    for (j in l) {
+                        if (j == selectedProject) {
+                            val index = l.indexOf(j)
+                            val id = projectIDList[index]
 
-                    DeleteAlert("\nProject '$selectedProject' will be deleted permanently.\n\nAre you sure?")
+                            DeleteAlert(
+                                "\nProject '$selectedProject' will be deleted permanently.\n\nAre you sure?",
+                                id
+                            )
+                        }
+
+                    }
+
 
                 })
             .setPositiveButton("Open",
 
                 DialogInterface.OnClickListener { dialog, id ->
 
-                    if(selectedProject == ""){
-                        //MainActivity().showSnackBar(mDialogView)
-                    }else
-                    {
-                        for (j in l){
-                            if(j == selectedProject){
+                    if (selectedProject == "") {
+
+                    } else {
+                        for (j in l) {
+                            if (j == selectedProject) {
                                 val index = l.indexOf(j)
                                 val id = projectIDList[index]
                                 var gap_size = projectSizeList[index]
                                 var mesh_size = projectMeshSizeList[index]
-                                loadProject(id,gap_size,mesh_size)
+                                getPoints(id)
+                                loadProject(id, mesh_size, gap_size)
                             }
 
                         }
-
-
 
 
                     }
@@ -576,16 +531,18 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             .show()
     }
 
-    private fun loadProject(ProjectID:Int,Meshsize:Int,Gapsize:Int) {
+    private fun loadProject(ProjectID: Int, Meshsize: Int, Gapsize: Int) {
         val displayProjectName: TextView? = findViewById(R.id.display_project_name)
 
         Toast.makeText(
-            applicationContext, "Loading project, This may take some time." +
-                    "", Toast.LENGTH_SHORT
+            applicationContext, "Loading project, This may take some few minutes time." +
+                    "", Toast.LENGTH_LONG
         ).show()
+
         progressBar.isVisible = true
 
-    val retrofitGetPointsObject = AppModule.retrofitInstance()
+
+        val retrofitGetPointsObject = AppModule.retrofitInstance()
 
         val modal = RequestBasePointsDataClass(ProjectID)
 
@@ -596,38 +553,42 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 call: Call<RetrieveBasePointsDataClass?>,
                 response: Response<RetrieveBasePointsDataClass?>
             ) {
-            if(response.isSuccessful){
-               if(response.body() != null ){
-                   val results = response.body()!!.points
-                   if(results.isNotEmpty()){
-                       displayProjectName?.text = selectedProject
-                       Log.d("results","$results")
-                       val l = results[0]
-                       val y = results[1]
-                       val firstPoint = LongLat(l.Long.toDouble(),l.Lat.toDouble())
-                       val secondPoint = LongLat(y.Long.toDouble(),y.Lat.toDouble())
-                       getPoints(ProjectID)
-                       Geoggapsize = Gapsize
-                       Geogmesh_size = Meshsize.toDouble()
-                       plotMesh(firstPoint,secondPoint)
-                   } else{
+                if (response.isSuccessful) {
+                    if (response.body() != null) {
+                        val results = response.body()!!.points
+                        if (results.isNotEmpty()) {
+                            displayProjectName?.text = selectedProject
+                            Log.d("results", "$results")
+                            val l = results[0]
+                            val y = results[1]
+                            val firstPoint = LongLat(l.Long.toDouble(), l.Lat.toDouble())
+                            val secondPoint = LongLat(y.Long.toDouble(), y.Lat.toDouble())
 
-                       warningAlert("\nProject is empty!! Might be best to delete it.")
-                   }
+                            Geoggapsize = Gapsize
+                            Geogmesh_size = Meshsize.toDouble()
+                            clearFragment = true
+//
+                            plotMesh(firstPoint, secondPoint)
+                        } else {
+
+                            warningAlert(
+                                "\nProject is empty!! Might be best to delete it.",
+                                ProjectID
+                            )
+                        }
 
 
-               }
-            }
-            else{
-                val responseBody = response.body()
-                Log.d("results","Failed")
-                //alertfail("no response from server")
-            }
+                    }
+                } else {
+
+                    Log.d("results", "Failed")
+
+                }
             }
 
 
             override fun onFailure(call: Call<RetrieveBasePointsDataClass?>, t: Throwable) {
-              alertfail("Could not load the project. It could be empty")
+                alertfail("Could not load the project. It could be empty")
             }
         })
     }
@@ -640,7 +601,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             .show()
     }
 
-    fun warningAlert(S:String){
+    fun warningAlert(S: String, I: Int) {
         AlertDialog.Builder(this)
             .setTitle("Warning")
             .setIcon(R.drawable.caution)
@@ -650,14 +611,18 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
                 DialogInterface.OnClickListener { dialog, id ->
 
-                    deleteProjectFunc()
+                    deleteProjectFunc(I)
 
                 })
             .setNegativeButton("Just leave it alone",
+
                 DialogInterface.OnClickListener { dialog, id ->
+                    progressBar.isVisible = false
                 })
+
             .show()
     }
+
     fun SuccessAlert(S: String) {
         AlertDialog.Builder(this)
             .setTitle("Success")
@@ -665,7 +630,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             .setMessage(S)
             .show()
     }
-    fun DeleteAlert(S: String) {
+
+    fun DeleteAlert(S: String, I: Int) {
         AlertDialog.Builder(this)
             .setTitle("Caution")
             .setIcon(R.drawable.caution)
@@ -675,7 +641,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
                 DialogInterface.OnClickListener { dialog, id ->
 
-                    deleteProjectFunc()
+                    deleteProjectFunc(I)
 
                 })
             .setNegativeButton("Cancel",
@@ -685,17 +651,17 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             .show()
     }
 
-    private fun deleteProjectFunc() {
+    private fun deleteProjectFunc(ID: Int) {
         val sharedPreferences: SharedPreferences = this.getSharedPreferences(
             CreateProjectDialog().sharedPrefFile,
             Context.MODE_PRIVATE
         )!!
 
-        val ProjectIDString:String? = sharedPreferences.getString("productID_key", "0")
+        val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
 
         val ProjectID = ProjectIDString!!.toInt()
 
-        if(ProjectID == 0){
+        if (ProjectID == 0) {
             Toast.makeText(
                 applicationContext, "Could not load project" +
                         "", Toast.LENGTH_SHORT
@@ -704,24 +670,24 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
         val retrofitDeleteProjectInstance = AppModule.retrofitInstance()
 
-        val modal = deleteProjectDataClass(ProjectID)
-       val retrofitData = retrofitDeleteProjectInstance.deleteProject(modal)
+        val modal = deleteProjectDataClass(ID)
+        val retrofitData = retrofitDeleteProjectInstance.deleteProject(modal)
 
         retrofitData.enqueue(object : Callback<deleteProjectResponse?> {
             override fun onResponse(
                 call: Call<deleteProjectResponse?>,
                 response: Response<deleteProjectResponse?>
             ) {
-                if(response.isSuccessful){
-                    if(response.body()!!.message == "success"){
-                        Toast.makeText(applicationContext,"Project deleted",Toast.LENGTH_LONG).show()
+                if (response.isSuccessful) {
+                    if (response.body()!!.message == "success") {
+                        Toast.makeText(applicationContext, "Project deleted", Toast.LENGTH_LONG)
+                            .show()
 
-                    }else{
+                    } else {
                         alertfail("Could not delete project :(")
                     }
-                }
-                else{
-                    alertfail("Error!! We all have bad days!! :( ")
+                } else {
+                    alertfail("Error!! We all have bad days!! :( $response")
                 }
             }
 
@@ -748,7 +714,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var latLng: LatLng? = null
 
     private fun distanceToPoint(loc: LatLng) {
-        if (walkingMode && listOfMarkedPoints.isNotEmpty()) {
+        if (plantingMode && listOfMarkedPoints.isNotEmpty()) {
 
             val locationOfNextPoint = Location(LocationManager.GPS_PROVIDER)
             val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
@@ -768,7 +734,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     index = l.indexOf(point)
                 }
             }
-            //problematic code
+
             if (lastRotateDegree in (-180.0..90.0)) {
                 Log.d("north", "$lastRotateDegree")
                 distance = 0f
@@ -814,12 +780,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                         }
                     }
                 }
-//                markers = map?.addMarker(
-//                    MarkerOptions().position(latLng!!)
-//                        .title("Point Stats!")
-//                       // .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
-//                        .snippet("Marked Points :$size" + "Distance: $distance (m)")
-//                )
+
             }
             markers = map?.addMarker(
                 MarkerOptions().position(latLng!!)
@@ -863,6 +824,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                 }
             }
             tempListMarker.add(markers!!)
+
 
         }
 
@@ -1043,7 +1005,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         } // Convert to LatLng as expected by polyline
 
         val poly = PolylineOptions().addAll(ml)
-            .color(Color.GRAY)
+            .color(Color.BLUE)
             .jointType(JointType.DEFAULT)
             .width(3f)
             .geodesic(true)
@@ -1095,7 +1057,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         var l = map?.addCircle(
             CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5).strokeWidth(1.0f)
         )
-        Log.d("BasePoints","$loc")
+        Log.d("BasePoints", "$loc")
         runOnUiThread {
             Toast.makeText(
                 applicationContext,
@@ -1109,15 +1071,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
         saveBasepoints(firstPoint!!)
         saveBasepoints(secondPoint!!)
-        plotMesh(firstPoint!!,secondPoint!!)
+        plotMesh(firstPoint!!, secondPoint!!)
 
-
-//        asyncExecutor.execute {
-//        val c = Point(LongLat( 32.46332991868300,0.04710796689723))
-//            val p =Point(LongLat(32.46333260089200,0.04699799636470))
 //
-//           // val c = Point(firstPoint!!)
-//            //val p = Point(secondPoint!!)
+//        asyncExecutor.execute {
+////        val c = Point(LongLat( 32.46332991868300,0.04710796689723))
+////            val p =Point(LongLat(32.46333260089200,0.04699799636470))
+//
+//            val c = Point(firstPoint!!)
+//            val p = Point(secondPoint!!)
 //            val lines = Geometry.generateMesh(c, p)
 //            Geometry.generateLongLat(c, lines, drawLine)
 //            meshDone = true
@@ -1147,25 +1109,40 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         l?.remove()
         // marker?.remove()
     }
-    fun plotMesh(cp:LongLat,pp:LongLat){
+
+    fun plotMesh(cp: LongLat, pp: LongLat) {
+        if (clearFragment) {
+            val mapFragment =
+                supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
+            mapFragment?.getMapAsync(callback)
+            for (item in polyLines) {
+                item!!.remove()
+            }
+            for (l in listofmarkedcircles) {
+                l.remove()
+            }
+            for (l in unmarkedCirclesList) {
+                l.remove()
+            }
+        }
 
         asyncExecutor.execute {
 
-val c = Point(cp)
+            val c = Point(cp)
             val p = Point(pp)
 
             val lines = Geometry.generateMesh(c, p)
             Geometry.generateLongLat(c, lines, drawLine)
+
             meshDone = true
 
             runOnUiThread {
                 if (meshDone) {
                     progressBar.isVisible = false
                 }
-
             }
             handler.post { // Centre it...
-//
+
                 map?.moveCamera(
                     CameraUpdateFactory.newLatLngZoom(
                         LatLng(
@@ -1175,34 +1152,45 @@ val c = Point(cp)
                     )
                 )
 
-
             }
-
 
         }
 
-//        if(listOfMarkedPoints.isNotEmpty()){
-//            for(latlang in listOfMarkedPoints ){
-//                map?.addCircle(CircleOptions().center(latlang)
-//                    .fillColor(Color.YELLOW)
-//                    .radius(1.0)
-//                    .strokeWidth(1.0f)
-//                )
-//            }
-//        }
-progressBar.isVisible =false
+        if (listOfMarkedPoints.isNotEmpty()) {
+            for (latlang in listOfMarkedPoints) {
+                val c = map?.addCircle(
+                    CircleOptions().center(latlang)
+                        .fillColor(Color.YELLOW)
+                        .radius(0.5)
+                        .strokeWidth(1.0f)
+                )
+
+                unmarkedCirclesList.add(c!!)
+            }
+
+        } else {
+            Log.d("empty", "empty")
+        }
+
+
+        progressBar.isVisible = false
     }
 
-    var listOfMarkedPoints = mutableListOf<LatLng>()
-    var listofmarkedcircles = mutableListOf<Circle>()
+    fun freshFragment(v: Boolean) {
+        if (v) {
+            val mapFragment =
+                supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
+            mapFragment?.getMapAsync(callback)
+            for (item in polyLines) {
+                item!!.remove()
+            }
+        }
+    }
 
-    var unmarkedCirclesList = mutableListOf<Circle>()
-
-    var listOfPlantingLines = mutableListOf<Polyline>()
 
     private val onPolyClick = GoogleMap.OnPolylineClickListener {
 
-
+        handler.removeMessages(0)
         it.isClickable = false
 
         if (listOfPlantingLines.isEmpty()) {
@@ -1215,7 +1203,7 @@ progressBar.isVisible =false
         } else {
 
             val recentLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
-            recentLine.color = Color.GRAY
+            recentLine.color = Color.BLUE
             recentLine.isClickable = true
             recentLine.width =
                 3f   //return to default width after pulse effect and stop the handler
@@ -1255,11 +1243,19 @@ progressBar.isVisible =false
 
         //Give the process of drawing points on line a thread --- makes the process faster
         handler.post {
+
+            //make the lines and circles on other polylines disaapear, once we have line of interest
             for (item in polyLines) {
                 item!!.isVisible = false
             }
+
             if (unmarkedCirclesList.isNotEmpty()) {
                 for (circle in unmarkedCirclesList) {
+                    circle.isVisible = false
+                }
+            }
+            if(listofmarkedcircles.isNotEmpty()){
+                for(circle in listofmarkedcircles){
                     circle.isVisible = false
                 }
             }
@@ -1298,10 +1294,14 @@ progressBar.isVisible =false
     }
 
     private fun plotLine(line: MutableList<*>) {
+        //clear it so that the points to loop through are not many
+
         if (unmarkedCirclesList.isNotEmpty()) {
             unmarkedCirclesList.clear()
 
         }
+//        listOfMarkedPoints
+//        Log.d("Points"," plot line $listOfMarkedPoints")
         var lastp: LatLng? = null
         handler.post {
             for (loc in line) {
@@ -1345,25 +1345,32 @@ progressBar.isVisible =false
 
         }
 
-
     }
 
-    var listOfPlantingRadius: Circle? = null
+    var plantingRadiusCircle: Circle? = null
     val templist = mutableListOf<Circle>()
     val tempClosestPoint = mutableListOf<LatLng>()
 
+    fun toS2(loc: LatLng): S2LatLng {
+        return S2LatLng((loc.latitude / Math.PI).toFloat(), (loc.longitude / Math.PI).toFloat())
+    }
+
     private fun plotFunc() {
+
+        if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
+            return
+        }
 
         var plantingRadius: Circle? = null
 
         val roverPoint = currentLocation[currentLocation.lastIndex]
 
-        if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
-            return
-        }
         val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
 
         val l = lineOfInterest.tag as List<*>
+
+        //controlling visibility given the zoom level on the map
+
         val xloc = S2Helper.findClosestPointOnLine(pointsIndex, roverPoint) as S2LatLng?
 
         if (xloc != null) {
@@ -1373,9 +1380,11 @@ progressBar.isVisible =false
                 return
             }
             if (pt in listOfMarkedPoints) {
-                return
+              return
             }
             tempClosestPoint.add(pt)
+
+            //handle visibility and lifecycle of the radius circle
             if (pt in l) {
                 if (templist.isNotEmpty()) {
                     for (c in templist) {
@@ -1394,7 +1403,7 @@ progressBar.isVisible =false
             }
             // else {
             plantingRadius = map?.addCircle(
-                CircleOptions().center(pt).fillColor(Color.GREEN).radius(radius(4))
+                CircleOptions().center(pt).fillColor(Color.GREEN).radius(radius(Geoggapsize!!))
                     .strokeWidth(1.0f)
                     .fillColor(0x22228B22)
                     .strokeColor(Color.GREEN)
@@ -1407,6 +1416,7 @@ progressBar.isVisible =false
             tempClosestPoint.clear()
         }
 
+        //add drawn circle to a list
         if (plantingRadius != null) {
             if (templist.isNotEmpty()) {
                 for (c in templist) {
@@ -1417,17 +1427,147 @@ progressBar.isVisible =false
             } else {
                 templist.add((plantingRadius))
             }
+            plantingRadiusCircle = templist[templist.lastIndex]
+            plantingMode = true
+            markPoint()
 
-
-            listOfPlantingRadius = templist[templist.lastIndex]
-
-//            val temp = templist.distinct()
-//            if (temp.size == 1) {
-//                listOfPlantingRadius = temp[templist.lastIndex]
+//            if (zoomMode) {
+//                val zmlevel = map?.cameraPosition?.zoom
+//                val maxZmLevel = map?.maxZoomLevel
+//
+//                if (zmlevel != null) {
+//                    if (zmlevel == maxZmLevel) {
+//                        //remove line and circles once at max zoom level
+//
+//                        lineOfInterest.isVisible = false
+//
+//                        for (circle in unmarkedCirclesList) {
+//
+//                            if (circle.center == plantingRadiusCircle!!.center) {
+//                                circle.isVisible = true
+//                            }
+//                        }
+//markPoint(plantingRadiusCircle!!.center)
+//                    }
+//                    else {
+//                        showLine()
+//                    }
+//                }
 //            }
+
+
 
         }
 
+    }
+
+    private fun markPoint() {
+        if (plantingMode) {
+            val plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
+            val delta = 0.01f  // 1 cm
+
+            val l = plantingLine.tag as MutableList<*>
+            var pointOfInterestOnPolyline: LatLng? = null
+
+            l.forEach { loc ->
+                loc as LatLng
+                if (loc == plantingRadiusCircle!!.center)
+                    pointOfInterestOnPolyline = loc
+            }
+
+            if (currentLocation.isNotEmpty()) {
+                val cl = currentLocation[currentLocation.lastIndex]
+
+                val LocationOfPointOfInterestOnPolyline =
+                    Location(LocationManager.GPS_PROVIDER)
+
+                LocationOfPointOfInterestOnPolyline.latitude =
+                    pointOfInterestOnPolyline!!.latitude
+                LocationOfPointOfInterestOnPolyline.longitude =
+                    pointOfInterestOnPolyline!!.longitude
+
+                val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
+
+                locationOfRoverLatLng.latitude = cl.latitude
+                locationOfRoverLatLng.longitude = cl.longitude
+                var distance = 0.0F
+                distance =
+                    LocationOfPointOfInterestOnPolyline.distanceTo(locationOfRoverLatLng)
+
+                if (distance < plantingRadiusCircle!!.radius) {
+//                    if(ll in listOfMarkedPoints){
+//                        map?.addMarker(MarkerOptions().position(ll))
+//
+//                    }
+
+                    val markedCirclePoint = map?.addCircle(
+                        CircleOptions().center(plantingRadiusCircle?.center!!)
+                            .fillColor(Color.YELLOW)
+                            .radius(0.5)
+                            .strokeWidth(1.0f)
+                    )
+
+                    if (markedCirclePoint!!.center in listOfMarkedPoints) {
+                        return
+                    }
+
+                    listOfMarkedPoints.add(markedCirclePoint.center)
+                    listofmarkedcircles.add(markedCirclePoint)
+                    savePoints(markedCirclePoint)
+
+                    if (listofmarkedcircles.isNotEmpty()) {
+                        val last = listofmarkedcircles[listofmarkedcircles.lastIndex]
+                        val color = last.fillColor
+                        if (color != Color.YELLOW) {
+                            Toast.makeText(
+                                applicationContext,
+                                "Was not yellow",
+                                Toast.LENGTH_LONG
+                            ).show()
+
+                            map?.addCircle(
+                                CircleOptions().center(markedCirclePoint.center)
+                                    .fillColor(Color.YELLOW)
+                                    .radius(0.5)
+                                    .strokeWidth(1.0f)
+                            )
+                        }
+                    }
+
+                    if (markedCirclePoint.center == plantingRadiusCircle?.center) {
+
+                        plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
+
+                        if (markers != null) {
+                            markers!!.remove()
+
+                        }
+
+                        if (tempListMarker.isNotEmpty()) {
+                            tempListMarker.clear()
+                        }
+
+
+                    } else {
+                        Toast.makeText(
+                            applicationContext, "ERROR " +
+                                    "", Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    if (templist.isNotEmpty()) {
+                        templist.clear()
+                    }
+                    if (tempClosestPoint.isNotEmpty()) {
+                        tempClosestPoint.clear()
+                    }
+
+                    plantingMode = true
+
+                }
+            }
+        }else{
+            Toast.makeText(this,"Not Planting Mode",Toast.LENGTH_LONG).show()
+        }
     }
 //
 //    private fun showLineForFewSeconds() {
@@ -1499,27 +1639,27 @@ progressBar.isVisible =false
 
             if (bearingAngle > 1) {
 
-                val animation = RotateAnimation(
-                    lastRotateDegree,
-                    rotateDegree,
-                    Animation.RELATIVE_TO_SELF,
-                    0.5f,
-                    Animation.RELATIVE_TO_SELF,
-                    0.5f
-                )
-                animation.fillAfter = true
+//                val animation = RotateAnimation(
+//                    lastRotateDegree,
+//                    rotateDegree,
+//                    Animation.RELATIVE_TO_SELF,
+//                    0.5f,
+//                    Animation.RELATIVE_TO_SELF,
+//                    0.5f
+//                )
+//                animation.fillAfter = true
                 //compass.startAnimation(animation)
                 lastRotateDegree = rotateDegree
-                ready = true
-
-                //wait till lines are drawn then check closeness to line
-                if (zoomMode) {
-                    if (bearingAngle > threshold) {
-                        // showLineForFewSeconds()
-
-
-                    }
-                }
+//                ready = true
+//
+//                //wait till lines are drawn then check closeness to line
+//                if (zoomMode) {
+//                    if (bearingAngle > threshold) {
+//                        // showLineForFewSeconds()
+//
+//
+//                    }
+//                }
 
 
             }
@@ -1539,115 +1679,114 @@ progressBar.isVisible =false
             val delta: Float = currentAcceleration - lastAcceleration
             acceleration = acceleration * 0.9f + delta
 
+
             if (acceleration > 10) {
-                 try {
-                val plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
 
-                val l = plantingLine.tag as MutableList<*>
-                var pointOfInterestOnPolyline: LatLng? = null
+                try {
+                    val plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
 
-                l.forEach { loc ->
-                    loc as LatLng
-                    if (loc == listOfPlantingRadius?.center)
-                        pointOfInterestOnPolyline = loc
-                }
+                    val l = plantingLine.tag as MutableList<*>
+                    var pointOfInterestOnPolyline: LatLng? = null
 
-                if (currentLocation.isNotEmpty()) {
-                    val cl = currentLocation[currentLocation.lastIndex]
+                    l.forEach { loc ->
+                        loc as LatLng
+                        if (loc == plantingRadiusCircle?.center)
+                            pointOfInterestOnPolyline = loc
+                    }
 
-                    val LocationOfPointOfInterestOnPolyline =
-                        Location(LocationManager.GPS_PROVIDER)
+                    if (currentLocation.isNotEmpty()) {
+                        val cl = currentLocation[currentLocation.lastIndex]
 
-                    LocationOfPointOfInterestOnPolyline.latitude =
-                        pointOfInterestOnPolyline!!.latitude
-                    LocationOfPointOfInterestOnPolyline.longitude =
-                        pointOfInterestOnPolyline!!.longitude
+                        val LocationOfPointOfInterestOnPolyline =
+                            Location(LocationManager.GPS_PROVIDER)
 
-                    val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
+                        LocationOfPointOfInterestOnPolyline.latitude =
+                            pointOfInterestOnPolyline!!.latitude
+                        LocationOfPointOfInterestOnPolyline.longitude =
+                            pointOfInterestOnPolyline!!.longitude
 
-                    locationOfRoverLatLng.latitude = cl.latitude
-                    locationOfRoverLatLng.longitude = cl.longitude
-                    var distance = 0.0F
-                    distance =
-                        LocationOfPointOfInterestOnPolyline.distanceTo(locationOfRoverLatLng)
+                        val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
 
-                    if (distance > listOfPlantingRadius?.radius!!) {
+                        locationOfRoverLatLng.latitude = cl.latitude
+                        locationOfRoverLatLng.longitude = cl.longitude
+                        var distance = 0.0F
+                        distance =
+                            LocationOfPointOfInterestOnPolyline.distanceTo(locationOfRoverLatLng)
 
-                        Toast.makeText(
-                            applicationContext, "Outside planting zone" +
-                                    "", Toast.LENGTH_SHORT
-                        ).show()
+                        if (distance > plantingRadiusCircle?.radius!!) {
 
-                    } else {
-
-                        val markedCirclePoint = map?.addCircle(
-                            CircleOptions().center(listOfPlantingRadius?.center!!)
-                                .fillColor(Color.YELLOW)
-                                .radius(0.5)
-                                .strokeWidth(1.0f)
-                        )
-
-                        // point is already marked, so ignore it
-                        if (markedCirclePoint!!.center in listOfMarkedPoints) {
-                            return
-                        } else{
-
-                            savePoints(markedCirclePoint)
-                        }
-
-
-                        listofmarkedcircles.add(markedCirclePoint)
-
-                        if (listofmarkedcircles.isNotEmpty()) {
-                            val last = listofmarkedcircles[listofmarkedcircles.lastIndex]
-                            val color = last.fillColor
-                            if (color != Color.YELLOW) {
-                                Toast.makeText(
-                                    applicationContext,
-                                    "Was not yellow",
-                                    Toast.LENGTH_LONG
-                                ).show()
-
-                                map?.addCircle(
-                                    CircleOptions().center(markedCirclePoint.center)
-                                        .fillColor(Color.YELLOW)
-                                        .radius(0.5)
-                                        .strokeWidth(1.0f)
-                                )
-                            }
-                        }
-
-                        if (markedCirclePoint.center == listOfPlantingRadius?.center) {
-
-                            listOfPlantingRadius?.remove()   //remove planting radius, marker and clear list
-
-                            if (markers != null) {
-                                markers!!.remove()
-
-                            }
-
-                            if (tempListMarker.isNotEmpty()) {
-                                tempListMarker.clear()
-                            }
-
-
-                        } else {
                             Toast.makeText(
-                                applicationContext, "ERROR " +
+                                applicationContext, "Outside planting zone" +
                                         "", Toast.LENGTH_SHORT
                             ).show()
-                        }
-                        if (templist.isNotEmpty()) {
-                            templist.clear()
-                        }
-                        if (tempClosestPoint.isNotEmpty()) {
-                            tempClosestPoint.clear()
-                        }
 
-                        walkingMode = true
+                        } else {
 
+                            val markedCirclePoint = map?.addCircle(
+                                CircleOptions().center(plantingRadiusCircle?.center!!)
+                                    .fillColor(Color.YELLOW)
+                                    .radius(0.5)
+                                    .strokeWidth(1.0f)
+                            )
+
+                            // point is already marked, so ignore it
+                            if (markedCirclePoint!!.center in listOfMarkedPoints) {
+                                return
+                            }
+
+                            listOfMarkedPoints.add(markedCirclePoint.center)
+                            listofmarkedcircles.add(markedCirclePoint)
+                            savePoints(markedCirclePoint)
+
+                            if (listofmarkedcircles.isNotEmpty()) {
+                                val last = listofmarkedcircles[listofmarkedcircles.lastIndex]
+                                val color = last.fillColor
+                                if (color != Color.YELLOW) {
+                                    Toast.makeText(
+                                        applicationContext,
+                                        "Was not yellow",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+
+                                    map?.addCircle(
+                                        CircleOptions().center(markedCirclePoint.center)
+                                            .fillColor(Color.YELLOW)
+                                            .radius(0.5)
+                                            .strokeWidth(1.0f)
+                                    )
+                                }
+                            }
+
+                            if (markedCirclePoint.center == plantingRadiusCircle?.center) {
+
+                                plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
+
+                                if (markers != null) {
+                                    markers!!.remove()
+
+                                }
+
+                                if (tempListMarker.isNotEmpty()) {
+                                    tempListMarker.clear()
+                                }
+
+
+                            } else {
+                                Toast.makeText(
+                                    applicationContext, "ERROR " +
+                                            "", Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            if (templist.isNotEmpty()) {
+                                templist.clear()
+                            }
+                            if (tempClosestPoint.isNotEmpty()) {
+                                tempClosestPoint.clear()
+                            }
+
+                            plantingMode = true
+                        }
                     }
-                }
                 } catch (e: Exception) {
                     Toast.makeText(
                         applicationContext, "Can't find point to mark" +
@@ -1676,7 +1815,7 @@ progressBar.isVisible =false
         super.onPause()
     }
 
-    fun saveBasepoints(loc:LongLat){
+    private fun saveBasepoints(loc: LongLat) {
         val lat = loc.getLatitude()
         val lng = loc.getLongitude()
 
@@ -1685,12 +1824,9 @@ progressBar.isVisible =false
             Context.MODE_PRIVATE
         )!!
 
-       // val userIDString:String? = sharedPreferences.getString("userid_key", "defaultValue")!!
-        val ProjectIDString:String? = sharedPreferences.getString("productID_key", "default")
+        val ProjectIDString: String? = sharedPreferences.getString("productID_key", "default")
 
-        //val userID = userIDString!!.toInt()
         val ProjectID = ProjectIDString!!.toInt()
-
 
         val modal = SaveBasePointsClass(lat, lng, ProjectID)
         val retrofitDataObject = AppModule.retrofitInstance()
@@ -1701,26 +1837,24 @@ progressBar.isVisible =false
                 call: Call<SaveBasePointsResponse?>,
                 response: Response<SaveBasePointsResponse?>
             ) {
-               if(response.isSuccessful){
-                   if(response.body() != null)
-                   {
-                       if(response.body()!!.message == "success"){
-
-                           Toast.makeText(
-                               applicationContext, "Saved!! " +
-                                       "", Toast.LENGTH_SHORT
-                           ).show()
-                       } else{
-                           val m = response.body()!!.meta
-                           alertfail(m)
-                       }
-                   }else{
-                       alertfail("BODY IS NULL")
-                   }
-                   }
-               else{
-                   alertfail("An error has occured")
-               }
+                if (response.isSuccessful) {
+                    if (response.body() != null) {
+                        if (response.body()!!.message == "success") {
+//
+//                            Toast.makeText(
+//                                applicationContext, "Bpoints Saved!! " +
+//                                        "", Toast.LENGTH_SHORT
+//                            ).show()
+                        } else {
+                            val m = response.body()!!.meta
+                            alertfail(m)
+                        }
+                    } else {
+                        alertfail("BODY IS NULL")
+                    }
+                } else {
+                    alertfail("An error has occured")
+                }
             }
 
             override fun onFailure(call: Call<SaveBasePointsResponse?>, t: Throwable) {
@@ -1729,7 +1863,7 @@ progressBar.isVisible =false
         })
     }
 
-//saving points in the db
+    //saving points in the db
     fun savePoints(circle: Circle) {
         val latlng = circle.center
         val lat = latlng.latitude
@@ -1741,8 +1875,8 @@ progressBar.isVisible =false
         )!!
 
 
-        val userIDString:String? = sharedPreferences.getString("userid_key", "defaultValue")!!
-        val ProjectIDString:String? = sharedPreferences.getString("productID_key", "default")
+        val userIDString: String? = sharedPreferences.getString("userid_key", "defaultValue")!!
+        val ProjectIDString: String? = sharedPreferences.getString("productID_key", "default")
 
         val userID = userIDString!!.toInt()
         val ProjectID = ProjectIDString!!.toInt()
@@ -1760,7 +1894,7 @@ progressBar.isVisible =false
                 if (response.isSuccessful) {
                     if (response.body() != null) {
                         if (response.body()!!.message == "success") {
-                            listOfMarkedPoints.add(circle.center)
+
                             Toast.makeText(
                                 applicationContext, "Point Marked " +
                                         "", Toast.LENGTH_SHORT
@@ -1772,18 +1906,20 @@ progressBar.isVisible =false
                             ).show()
                         }
                     }
+                } else {
+                    alertfail("Not saved!")
                 }
             }
 
             override fun onFailure(call: Call<savePointsResponse?>, t: Throwable) {
-          alertfail("Server not responsive")
+                alertfail("Point not saved! ${t.message}")
             }
         })
 
 
     }
 
-    fun radius(size: Int): Double {
+    private fun radius(size: Int): Double {
         val sizeInCentimeters = size * 100
         return ((0.1 * sizeInCentimeters) / 100) + 1.0
     }
@@ -1819,7 +1955,7 @@ progressBar.isVisible =false
 //        }
 //    }
 
-     val callback = OnMapReadyCallback { googleMap ->
+    val callback = OnMapReadyCallback { googleMap ->
         map = googleMap
         googleMap.setLocationSource(NmeaReader.listener)
         googleMap.setOnMapClickListener(onMapClick)
@@ -1827,7 +1963,7 @@ progressBar.isVisible =false
         googleMap.setInfoWindowAdapter(CustomInfoWindowAdapter())
         //googleMap.setOnCircleClickListener(onClickingPoint)
         // googleMap.setOnMapLongClickListener(onLongMapPress)
-        //googleMap.isMyLocationEnabled = true
+
         val isl = LatLng(-.366044, 32.441599) // LatLng(0.0,32.44) //
         googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
         googleMap.addMarker(MarkerOptions().position(isl).title("Marker in N Residence"))
@@ -1837,33 +1973,6 @@ progressBar.isVisible =false
         val fab = findViewById<FloatingActionButton>(R.id.fab_map)
         fab.hide()
 
-    }
-
-
-    override fun onMyLocationClick(location: Location) {
-        Toast.makeText(this, "Current location:\n$location", Toast.LENGTH_LONG)
-            .show()
-    }
-
-    override fun onMyLocationButtonClick(): Boolean {
-        Toast.makeText(this, "MyLocation button clicked", Toast.LENGTH_SHORT)
-            .show()
-        // Return false so that we don't consume the event and the default behavior still occurs
-        // (the camera animates to the user's current position).
-        return false
-    }
-
-    companion object {
-        /**
-         * Request code for location permission request.
-         *
-         * @see .onRequestPermissionsResult
-         */
-        private const val LOCATION_PERMISSION_REQUEST_CODE = 1
-    }
-
-    override fun onMapReady(p0: GoogleMap) {
-        TODO("Not yet implemented")
     }
 
     internal inner class CustomInfoWindowAdapter : GoogleMap.InfoWindowAdapter {

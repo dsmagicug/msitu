@@ -26,27 +26,20 @@ import retrofit2.Callback
 import retrofit2.Response
 
 //Returning a layout as a dialog box
-class firstActivity : DialogFragment() {
+class firstActivity: DialogFragment() {
 
     @SuppressLint("SetTextI18n")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
         return activity?.let {
-           //l
 
-          //  var l = MainActivity().getProjects()
-            // Log.d("list","$l")
             val ar: Array<String> = MainActivity().projectList.toTypedArray()
            var selectedProject: String = ""
 
-           //val ar = arrayOf("Project one","Project two","Project three")
-           // var ar = MainActivity().l
-           // val ar = emptyArray<String>()
             var checkedItemIndex = -1
             val builder = AlertDialog.Builder(it)
             val inflater = requireActivity().layoutInflater
-//            val mDialogView: View = inflater.inflate(layout.activity_main, null)
-//              builder.setView(mDialogView)
+
             if (ar.isEmpty()) {
                 builder.setView(inflater.inflate(layout.activity_create_project, null))
                     // Add action buttons
@@ -65,8 +58,7 @@ class firstActivity : DialogFragment() {
                 builder.create()
 
             } else {
-               // val mDialogView: View = MainActivity().setContentView(layout.activity_main)
-//              builder.setView(mDialogView)
+
                 builder.setTitle("Choose Project")
                     .setSingleChoiceItems(ar, checkedItemIndex,
                         DialogInterface.OnClickListener { dialog, which ->
@@ -74,29 +66,6 @@ class firstActivity : DialogFragment() {
                             selectedProject = ar[which]
                         })
 
-//                    .setNeutralButton("New Project",
-//                        DialogInterface.OnClickListener { dialog, id ->
-//                            dialog.dismiss()
-//
-//                                val builder = AlertDialog.Builder(it)
-//                                val inflater = requireActivity().layoutInflater
-//
-//
-//                                builder.setView(inflater.inflate(layout.create_project, null))
-//                                    // Add action buttons
-//
-//                                    .setNegativeButton(string.cancel,DialogInterface.OnClickListener{ dialog, id ->
-//
-//
-//                                    })
-//                                    .setPositiveButton(string.create_new_project, DialogInterface.OnClickListener { dialog: DialogInterface?, id: Int ->
-//
-//                                        oncreateclick()
-//
-//                                    })
-//                                builder.create()
-//
-//                        })
                     .setNegativeButton(R.string.cancel,
                         DialogInterface.OnClickListener { dialog, id ->
                             // User cancelled the dialog
@@ -112,15 +81,6 @@ class firstActivity : DialogFragment() {
                                 val displayProjectName: TextView? = activity?.findViewById(R.id.display_project_name)
                                 displayProjectName?.text = selectedProject
                             }
-                          crea(selectedProject)
-
-//                            val intent = Intent(context,Geometry::class.java)
-//                            intent.putExtra("values",project2)
-//                            startActivity(intent)
-
-
-
-Log.d("selected","$selectedProject")
 
                         })
 
@@ -131,36 +91,9 @@ Log.d("selected","$selectedProject")
         } ?: throw IllegalStateException("Activity cannot be null")
     }
 
-fun crea(name:String) {
-    val newvalues = "[\n" +
-            "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
-            "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
-            "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
-            "  },\n" +
-            "  {\"name\":\"Project one\"},\n" +
-            "  {\"gap size\":4},\n" +
-            "  {\"mesh\":600.0}\n" +
-            "\n" +
-            "\n" +
-            "]"
-    val project2 =  "[\n" +
-            "  [{\"lat\":8.4,\"lng\":43.9},{\"lat\":8,\"lng\":80}],\n" +
-            "  {\"Base points\":{\"first\":[{\"lat\":8,\"lng\":9}],\n" +
-            "    \"second\":[{\"lat\":9,\"lng\":10}]}\n" +
-            "  },\n" +
-            "  {\"name\":\"Project two\"},\n" +
-            "  {\"gap size\":4},\n" +
-            "  {\"mesh\":600.0}\n" +
-            "\n" +
-            "\n" +
-            "]"
-
-}
-
     fun oncreateclick() {
 
          val sharedPrefFile = "kibirasharedfile"
-
 
         val projectname = dialog?.findViewById<EditText>(R.id.projectName)
         val meshSize = dialog?.findViewById<EditText>(R.id.MeshSize)
@@ -218,11 +151,7 @@ fun crea(name:String) {
                                     editor.putString("productID_key", ProjectID)
                                     editor.apply()
                                     editor.commit()
-
-//                                    var act = MainActivity()
-//                                    val mapFragment =
-//                                        act.supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
-//                                    mapFragment?.getMapAsync(act.callback)
+MainActivity().freshFragment(true)
 
 
                                 }else{

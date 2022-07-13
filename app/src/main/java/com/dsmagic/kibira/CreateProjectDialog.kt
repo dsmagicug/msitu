@@ -45,27 +45,30 @@ class CreateProjectDialog : DialogFragment() {
             // Inflate and set the layout for the dialog
             // Pass null as the parent view because its going in the dialog layout
 
-            if(tag == "create"){
+            if (tag == "create") {
 
                 builder.setView(inflater.inflate(layout.activity_create_project, null))
                     // Add action buttons
 
-                    .setNegativeButton(string.cancel,DialogInterface.OnClickListener{ dialog, id ->
+                    .setNegativeButton(
+                        string.cancel,
+                        DialogInterface.OnClickListener { dialog, id ->
 
 
-                    })
-                    .setPositiveButton(string.create_new_project, DialogInterface.OnClickListener { dialog: DialogInterface?, id: Int ->
+                        })
+                    .setPositiveButton(
+                        string.create_new_project,
+                        DialogInterface.OnClickListener { dialog: DialogInterface?, id: Int ->
 
-                        oncreateclick()
-                        //dismiss()
+                            oncreateclick()
+                            //dismiss()
 
 
-                    })
+                        })
 
                 builder.create()
 
-            }
-            else {
+            } else {
                 val projects = activity?.findViewById<TextView>(R.id.projectOne)
 
                 builder.setView(inflater.inflate(layout.list_projects, null))
@@ -76,12 +79,11 @@ class CreateProjectDialog : DialogFragment() {
         } ?: throw IllegalStateException("Activity cannot be null")
 
 
-
     }
 
     fun oncreateclick() {
 
-       // val sharedPrefFile = "kibirasharedfile"
+        // val sharedPrefFile = "kibirasharedfile"
 
 
         val projectname = dialog?.findViewById<EditText>(R.id.projectName)
@@ -96,101 +98,100 @@ class CreateProjectDialog : DialogFragment() {
         val project_name: String = projectname?.text.toString()
         val mesh_size: String = meshSize?.text.toString()
 
-      if(project_name =="" || gap_size_string == ""){
-          alertfail("Please fill all fields")
-      }
-      else{
+        if (project_name == "" || gap_size_string == "") {
+            alertfail("Please fill all fields")
+        } else {
 
-          val sharedPreferences: SharedPreferences =
-              activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
+            val sharedPreferences: SharedPreferences =
+                activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
 
-          val editor = sharedPreferences.edit()
-          editor.putString("size_key", gap_size_string)
-          editor.putString("name_key", project_name)
-          editor.putString("mesh_key", mesh_size)
-          editor.apply()
-          editor.commit()
-
-          if(editor.commit()){
-              val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
-              val gap_size: String? = sharedPreferences.getString("size_key","defaultValue")
-              val saved_gap_size =  gap_size!!.toInt()
-              val UID: String? = sharedPreferences.getString("userid_key", "defaultValue")
-              val userID = UID!!.toInt()
-              val mesh_size_string: String? = sharedPreferences.getString("mesh_key","defaultValue")
-              val MeshSize = mesh_size_string!!.toInt()
-              Geogmesh_size = MeshSize.toDouble()
-              Geoggapsize = saved_gap_size
-              val CreateProjectRetrofitObject = AppModule.retrofitInstance()
-              val modal = createProjectDataClass(saved_gap_size,saved_project_name!!,userID, MeshSize)
-              val retrofitData =  CreateProjectRetrofitObject.createProject(modal)
-              retrofitData.enqueue(object : Callback<ResponseProjectDataClass?> {
-                  override fun onResponse(
-                      call: Call<ResponseProjectDataClass?>,
-                      response: Response<ResponseProjectDataClass?>
-                  ) {
-                      if(response.isSuccessful){
-                          if(response.body() != null){
-                              val ProjectName = response.body()!!.name
-                              val ProjectIDInt = response.body()!!.projectID
-                              val ProjectID = ProjectIDInt.toString()
-
-                              if(response.body()!!.message == "created"){
-
-            editor.putString("productID_key", ProjectID)
+            val editor = sharedPreferences.edit()
+            editor.putString("size_key", gap_size_string)
+            editor.putString("name_key", project_name)
+            editor.putString("mesh_key", mesh_size)
             editor.apply()
             editor.commit()
-MainActivity().mapFragment
-//var act = MainActivity()
-//                                  val mapFragment =
-//                                      act.supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
-//                                  mapFragment?.getMapAsync(act.callback)
-                                  SuccessAlert("Project $ProjectName created")
 
-                              }else{
+            if (editor.commit()) {
+                val saved_project_name: String? =
+                    sharedPreferences.getString("name_key", "defaultValue")
+                val gap_size: String? = sharedPreferences.getString("size_key", "defaultValue")
+                val saved_gap_size = gap_size!!.toInt()
+                val UID: String? = sharedPreferences.getString("userid_key", "defaultValue")
+                val userID = UID!!.toInt()
+                val mesh_size_string: String? =
+                    sharedPreferences.getString("mesh_key", "defaultValue")
+                val MeshSize = mesh_size_string!!.toInt()
+                Geogmesh_size = MeshSize.toDouble()
+                Geoggapsize = saved_gap_size
+                val CreateProjectRetrofitObject = AppModule.retrofitInstance()
+                val modal =
+                    createProjectDataClass(saved_gap_size, saved_project_name!!, userID, MeshSize)
+                val retrofitData = CreateProjectRetrofitObject.createProject(modal)
+                retrofitData.enqueue(object : Callback<ResponseProjectDataClass?> {
+                    override fun onResponse(
+                        call: Call<ResponseProjectDataClass?>,
+                        response: Response<ResponseProjectDataClass?>
+                    ) {
+                        if (response.isSuccessful) {
+                            if (response.body() != null) {
+                                val ProjectName = response.body()!!.name
+                                val ProjectIDInt = response.body()!!.projectID
+                                val ProjectID = ProjectIDInt.toString()
 
-                                  alertfail("Project $ProjectName not created")
-                              }
-                          }else{
+                                if (response.body()!!.message == "created") {
 
-                              alertfail("Project not created")
-                          }
+                                    editor.putString("productID_key", ProjectID)
+                                    editor.apply()
+                                    editor.commit()
 
-                      }else{
+                                    MainActivity().freshFragment(true)
 
-                          alertfail("Project not created")
-                      }
-                  }
+                                    SuccessAlert("Project $ProjectName created")
 
-                  override fun onFailure(call: Call<ResponseProjectDataClass?>, t: Throwable) {
-                      alertfail(("Response failed, invalid data"))
-                  }
-              })
-             //createProject(saved_project_name!!,saved_gap_size,userID)
+                                } else {
 
-              displayProjectName?.text = saved_project_name
+                                    alertfail("Project $ProjectName not created")
+                                }
+                            } else {
 
-              Log.d("values","Project name is: $saved_project_name")
+                                alertfail("Project not created")
+                            }
 
-          } else{
-              Log.d("not","Not saved")
-          }
-      }
+                        } else {
+
+                            alertfail("Project not created")
+                        }
+                    }
+
+                    override fun onFailure(call: Call<ResponseProjectDataClass?>, t: Throwable) {
+                        alertfail(("Response failed, invalid data"))
+                    }
+                })
+
+                displayProjectName?.text = saved_project_name
+
+                Log.d("values", "Project name is: $saved_project_name")
+
+            } else {
+                Log.d("not", "Not saved")
+            }
+        }
 
     }
 
-//val c = dialog?.context
-    fun alertfail(S:String){
-    this.activity?.let {
-        AlertDialog.Builder(it)
-            .setTitle("Error")
-            .setIcon(R.drawable.cross)
-            .setMessage(S)
-            .show()
-    }
+    //val c = dialog?.context
+    fun alertfail(S: String) {
+        this.activity?.let {
+            AlertDialog.Builder(it)
+                .setTitle("Error")
+                .setIcon(R.drawable.cross)
+                .setMessage(S)
+                .show()
+        }
     }
 
-    fun SuccessAlert(S:String){
+    fun SuccessAlert(S: String) {
 
 
         this.activity?.let {
@@ -205,8 +206,5 @@ MainActivity().mapFragment
     }
 
 
-
 }
-class AnotherOne : DialogFragment() {
 
-}
