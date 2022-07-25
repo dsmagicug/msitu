@@ -9,14 +9,12 @@
         <entry key="app/src/main/res/drawable/ic_baseline_map_24.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_baseline_playlist_add_24.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/ic_baseline_sync_24.xml" value="0.1565" />
-        <entry key="app/src/main/res/drawable/switch_tub.xml" value="0.1" />
-        <entry key="app/src/main/res/drawable/switch_tucks.xml" value="0.1" />
         <entry key="app/src/main/res/drawable/walk_mode.xml" value="0.1" />
         <entry key="app/src/main/res/layout-w1240dp/activity_login.xml" value="0.10776439089692101" />
         <entry key="app/src/main/res/layout-w936dp/activity_login.xml" value="0.12578125" />
-        <entry key="app/src/main/res/layout/activity_create_project.xml" value="0.22" />
+        <entry key="app/src/main/res/layout/activity_create_project.xml" value="0.15942028985507245" />
         <entry key="app/src/main/res/layout/activity_first.xml" value="0.1" />
-        <entry key="app/src/main/res/layout/activity_login.xml" value="0.33" />
+        <entry key="app/src/main/res/layout/activity_login.xml" value="0.25" />
         <entry key="app/src/main/res/layout/activity_main.xml" value="0.22178217821782178" />
         <entry key="app/src/main/res/layout/activity_maps.xml" value="0.335" />
         <entry key="app/src/main/res/layout/activity_register.xml" value="0.21" />
@@ -29,7 +27,6 @@
         <entry key="app/src/main/res/layout/first_activity.xml" value="0.14175724637681159" />
         <entry key="app/src/main/res/layout/fragment_first.xml" value="0.375" />
         <entry key="app/src/main/res/layout/fragment_second.xml" value="0.45" />
-        <entry key="app/src/main/res/layout/gapsizeunits.xml" value="0.15489130434782608" />
         <entry key="app/src/main/res/layout/list_projects.xml" value="0.16770833333333332" />
         <entry key="app/src/main/res/layout/spinner_icon.xml" value="0.14175724637681159" />
         <entry key="app/src/main/res/layout/view_on_app_launch.xml" value="0.33" />
@@ -37,7 +34,7 @@
       </map>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17_PREVIEW" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">

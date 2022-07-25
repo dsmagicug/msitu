@@ -304,7 +304,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                                     return
                                 }
                                 if (pt in listOfMarkedPoints) {
-                                    l.remove(pt)
                                     return
                                 }
                                 tempClosestPoint.add(pt)
@@ -335,8 +334,13 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                                         .strokeColor(Color.GREEN)
                                         .strokeWidth(1.0f)
                                 )
-
+                                for(c in unmarkedCirclesList){
+                                    if(c.center == pt){
+                                        c.isVisible = true
+                                    }
+                                }
                             }
+
 
                             if (tempClosestPoint.isNotEmpty()) {
                                 tempClosestPoint.clear()
@@ -891,116 +895,122 @@ private var pressedTime: Long = 0
     private fun distanceToPoint(loc: LatLng) {
         if (plantingMode && listOfMarkedPoints.isNotEmpty()) {
 
-            val locationOfNextPoint = Location(LocationManager.GPS_PROVIDER)
-            val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
-            var line = listOfPlantingLines[listOfPlantingLines.lastIndex]
-            var l = line.tag as MutableList<*>
-            var size = listOfMarkedPoints.size
-            refPoint = listOfMarkedPoints[listOfMarkedPoints.lastIndex]
-            var index = 0
+            try {
+                val locationOfNextPoint = Location(LocationManager.GPS_PROVIDER)
+                val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
+                var line = listOfPlantingLines[listOfPlantingLines.lastIndex]
+                var l = line.tag as MutableList<*>
+                var size = listOfMarkedPoints.size
+                refPoint = listOfMarkedPoints[listOfMarkedPoints.lastIndex]
+                var index = 0
 
-            if (tempListMarker.isNotEmpty()) {
-                var last = tempListMarker[tempListMarker.lastIndex]
-                last.remove()
-                tempListMarker.clear()
-            }
-            for (point in l) {
-                if (point == refPoint) {
-                    index = l.indexOf(point)
-                }
-            }
-
-            if (lastRotateDegree in (-180.0..90.0)) {
-                Log.d("north", "$lastRotateDegree")
-                distance = 0f
-                var nextIndex = index + 1
-                latLng = l[nextIndex] as LatLng
-
-                if (latLng in listOfMarkedPoints) {
-                    nextIndex = index - 1
-                    latLng = l[nextIndex] as LatLng
-                }
-
-                locationOfNextPoint.latitude = latLng!!.latitude
-                locationOfNextPoint.longitude = latLng!!.longitude
-
-                locationOfRoverLatLng.latitude = loc.latitude
-                locationOfRoverLatLng.longitude = loc.longitude
-
-                distance = locationOfRoverLatLng.distanceTo(locationOfNextPoint)
-
-
-            } else {
-                distance = 0f
-                var nextIndex = index - 1
-                latLng = l[nextIndex] as LatLng
-
-                if (latLng in listOfMarkedPoints) {
-                    nextIndex = index + 1
-                    latLng = l[nextIndex] as LatLng
-                }
-
-
-                locationOfNextPoint.latitude = latLng!!.latitude
-                locationOfNextPoint.longitude = latLng!!.longitude
-
-                locationOfRoverLatLng.latitude = loc.latitude
-                locationOfRoverLatLng.longitude = loc.longitude
-
-                distance = locationOfRoverLatLng.distanceTo(locationOfNextPoint)
                 if (tempListMarker.isNotEmpty()) {
-                    for (m in tempListMarker) {
-                        if (m.position == latLng) {
-                            return    //do nothing if a marker is already drawn at that point
-                        }
+                    var last = tempListMarker[tempListMarker.lastIndex]
+                    last.remove()
+                    tempListMarker.clear()
+                }
+                for (point in l) {
+                    if (point == refPoint) {
+                        index = l.indexOf(point)
                     }
                 }
 
-            }
-            markers = map?.addMarker(
-                MarkerOptions().position(latLng!!)
-                    .title("Point Stats!")
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
-                    .snippet("Marked Points : $size" + "\nDistance : $distance (m)")
-            )
+                if (lastRotateDegree in (-180.0..90.0)) {
+                    Log.d("north", "$lastRotateDegree")
+                    distance = 0f
+                    var nextIndex = index + 1
+                    latLng = l[nextIndex] as LatLng
 
-            if (distance > (Geoggapsize!!)) {
-                Toast.makeText(
-                    applicationContext,
-                    "Straying from Line or away from Point",
-                    Toast.LENGTH_SHORT
-                ).show()
-                showLine(line)
-                polyline1 = map?.addPolyline(
-                    PolylineOptions()
-                        .color(Color.BLACK)
-                        .jointType(JointType.DEFAULT)
-                        .width(3.5f)
-                        .geodesic(true)
-                        .startCap(RoundCap())
-                        .add(
-                            LatLng(loc.latitude, loc.longitude),   //roverpoint
-                            LatLng(latLng!!.latitude, latLng!!.longitude), //nextPoint
-                        )
-                )
-                polyline1!!.endCap = CustomCap(
-                    BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
-                )
-                //  showLine()
-            } else {
-                polyline1?.remove()
-            }
+                    if (latLng in listOfMarkedPoints) {
+                        nextIndex = index - 1
+                        latLng = l[nextIndex] as LatLng
+                    }
 
-            markers!!.showInfoWindow()
-            for (x in unmarkedCirclesList) {
-                if (x.center == latLng) {
-                    x.isVisible = true
+                    locationOfNextPoint.latitude = latLng!!.latitude
+                    locationOfNextPoint.longitude = latLng!!.longitude
+
+                    locationOfRoverLatLng.latitude = loc.latitude
+                    locationOfRoverLatLng.longitude = loc.longitude
+
+                    distance = locationOfRoverLatLng.distanceTo(locationOfNextPoint)
+
                 } else {
-                    return
-                    //Toast.makeText(this, "point not drawn", Toast.LENGTH_SHORT).show()
+                    distance = 0f
+                    var nextIndex = index - 1
+
+                    latLng = l[nextIndex] as LatLng
+
+                    if (latLng in listOfMarkedPoints) {
+                        nextIndex = index + 1
+                        latLng = l[nextIndex] as LatLng
+                    }
+
+
+                    locationOfNextPoint.latitude = latLng!!.latitude
+                    locationOfNextPoint.longitude = latLng!!.longitude
+
+                    locationOfRoverLatLng.latitude = loc.latitude
+                    locationOfRoverLatLng.longitude = loc.longitude
+
+                    distance = locationOfRoverLatLng.distanceTo(locationOfNextPoint)
+                    if (tempListMarker.isNotEmpty()) {
+                        for (m in tempListMarker) {
+                            if (m.position == latLng) {
+                                return    //do nothing if a marker is already drawn at that point
+                            }
+                        }
+                    }
+
                 }
+                markers = map?.addMarker(
+                    MarkerOptions().position(latLng!!)
+                        .title("Point Stats!")
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
+                        .snippet("Marked Points : $size" + "\nDistance : $distance (m)")
+                )
+
+                if (distance > (Geoggapsize!!)) {
+                    Toast.makeText(
+                        applicationContext,
+                        "Straying from Line or away from Point",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    showLine(line)
+                    polyline1 = map?.addPolyline(
+                        PolylineOptions()
+                            .color(Color.BLACK)
+                            .jointType(JointType.DEFAULT)
+                            .width(3.5f)
+                            .geodesic(true)
+                            .startCap(RoundCap())
+                            .add(
+                                LatLng(loc.latitude, loc.longitude),   //roverpoint
+                                LatLng(latLng!!.latitude, latLng!!.longitude), //nextPoint
+                            )
+                    )
+                    polyline1!!.endCap = CustomCap(
+                        BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
+                    )
+                    //  showLine()
+                } else {
+                    polyline1?.remove()
+                }
+
+                markers!!.showInfoWindow()
+                for (x in unmarkedCirclesList) {
+                    if (x.center == latLng) {
+                        x.isVisible = true
+                    } else {
+                        return
+                        //Toast.makeText(this, "point not drawn", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                tempListMarker.add(markers!!)
+            } catch (e:Exception){
+                Log.d("ERROR","frOM SWITCHING ${e.message}")
             }
-            tempListMarker.add(markers!!)
+
+
 
 
         }
@@ -2121,8 +2131,8 @@ val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         )!!
 
 
-        val userIDString: String? = sharedPreferences.getString("userid_key", "defaultValue")!!
-        val ProjectIDString: String? = sharedPreferences.getString("productID_key", "default")
+        val userIDString: String? = sharedPreferences.getString("userid_key", "0")!!
+        val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
 
         val userID = userIDString!!.toInt()
         val ProjectID = ProjectIDString!!.toInt()
