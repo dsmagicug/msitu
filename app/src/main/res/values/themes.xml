@@ -25,6 +25,7 @@
 
 
     <style name="Theme.Snack.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
     <style name="Theme.Snack.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
 

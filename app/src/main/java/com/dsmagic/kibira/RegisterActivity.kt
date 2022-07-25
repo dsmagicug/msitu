@@ -10,11 +10,9 @@ import android.provider.Contacts
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
 
 import androidx.lifecycle.ViewModelProvider
 import com.dsmagic.kibira.databinding.ActivityLoginBinding
@@ -28,6 +26,11 @@ import com.dsmagic.kibira.ui.login.LoginViewModel
 import com.dsmagic.kibira.ui.login.LoginViewModelFactory
 import com.dsmagic.kibira.ui.login.afterTextChanged
 import kotlinx.android.synthetic.main.activity_login.*
+import kotlinx.android.synthetic.main.activity_login.loginLayout
+import kotlinx.android.synthetic.main.activity_login.signUp
+import kotlinx.android.synthetic.main.activity_login.signupLayout
+import kotlinx.android.synthetic.main.activity_login.thelogin
+import kotlinx.android.synthetic.main.activity_register.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -36,23 +39,32 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class RegisterActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityRegisterBinding
+    private lateinit var loginViewModel: LoginViewModel
+    private lateinit var binding: ActivityLoginBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
 
-        binding = ActivityRegisterBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        //binding = ActivityLoginBinding.inflate(layoutInflater)
+        setContentView(R.layout.activity_register)
+        signUp.setOnClickListener{
+            signUp.background = resources.getDrawable(R.drawable.switch_tucks,null)
+            thelogin.background = null
+            loginLayout.visibility = View.GONE
+            signupLayout.visibility = View.VISIBLE
+            thelogin.setTextColor(resources.getColor(com.google.android.libraries.places.R.color.quantum_grey))
+            signUp.setTextColor(resources.getColor(R.color.white))
 
-var login = binding.login
-        var registerName = binding.registerName
-        var registerEmail = binding.registerEmail
-        var registerPassword = binding.registerPassword
-        var registerConfirmPassword = binding.registerConfirmPassword
-        var registerButton = binding.registerButton
-        var register_loading = binding.registerLoading
+        }
 
+        var login = findViewById<TextView>(R.id.thelogin)
+        var registerName = findViewById<EditText>(R.id.register_name)
+        var registerEmail = findViewById<EditText>(R.id.register_email)
+        var registerPassword = findViewById<EditText>(R.id.register_password)
+        var registerConfirmPassword =findViewById<EditText>(R.id.register_confirm_password)
+        var registerButton = findViewById<Button>(R.id.register_button)
+        var register_loading = findViewById<ProgressBar>(R.id.register_loading)
 
         lateinit var name: String
         lateinit var email: String
@@ -60,20 +72,27 @@ var login = binding.login
         lateinit var password_confirm: String
 
         registerButton.setOnClickListener{
-
+            register_loading.isVisible = true
            name = registerName.text.toString()
             email = registerEmail.text.toString()
             password = registerPassword.text.toString()
            password_confirm = registerConfirmPassword.text.toString()
             if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
+                register_loading.isVisible = false
                 alertfail("Fields can not be empty")
 
             }
+            if(password.length <4){
+                register_loading.isVisible = false
+                alertfail("Password should be >4")
+            }
             else if(!password.equals(password_confirm)){
+                register_loading.isVisible = false
                 alertfail("Passwords don't match")
             }
             else{
                 //MainActivity().registerUser(name,email,password,password_confirm)
+
                 registerUser(name,email,password,password_confirm)
             }
 
@@ -98,7 +117,9 @@ var login = binding.login
                 ) {
 if(response.isSuccessful){
     if(response.body()!!.message == "Success"){
+        register_loading.isVisible = false
         SuccessAlert("Successfully Registered")
+       lo()
     }else{
 
         alertfail("Email already taken")
@@ -118,7 +139,10 @@ if(response.isSuccessful){
             })
         }
 
-
+    fun lo(){
+        val intent = Intent(this, LoginActivity::class.java)
+        startActivity(intent)
+    }
 
 fun alertfail(S:String){
     AlertDialog.Builder(this)

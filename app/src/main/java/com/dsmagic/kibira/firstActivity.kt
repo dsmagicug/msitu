@@ -7,41 +7,111 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.os.Bundle
-
 import android.util.Log
 import android.view.View
-import android.widget.EditText
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.get
 import androidx.fragment.app.DialogFragment
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
-import com.dsmagic.kibira.services.AppModule
-import com.dsmagic.kibira.services.ResponseProjectDataClass
-import com.dsmagic.kibira.services.createProjectDataClass
-import com.google.android.gms.maps.SupportMapFragment
-import l
+import com.dsmagic.kibira.services.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import kotlin.math.roundToInt
 
+
+var projectList = ArrayList<String>()
+var projectIDList = mutableListOf<Int>()
+var projectSizeList = mutableListOf<Int>()
+var projectMeshSizeList = mutableListOf<Int>()
 //Returning a layout as a dialog box
-class firstActivity: DialogFragment() {
 
+
+class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
+
+    fun getProjects():ArrayList<String> {
+
+        val sharedPreferences: SharedPreferences = activity?.getSharedPreferences(
+            CreateProjectDialog().sharedPrefFile,
+            Context.MODE_PRIVATE
+        )!!
+        val apiToken: String? = sharedPreferences.getString("apiToken_key", "defaultValue")
+
+        val retrofitDataObject = ServiceInterceptor("Bearer", apiToken!!).httpClient(apiToken)
+        val retrofitData = retrofitDataObject.getProjectsList(apiToken)
+        retrofitData.enqueue(object : Callback<List<ResponseProjectsDataClass>?> {
+            override fun onResponse(
+                call: Call<List<ResponseProjectsDataClass>?>,
+                response: Response<List<ResponseProjectsDataClass>?>
+            ) {
+                val responseBody = response.body()
+
+                if (responseBody != null) {
+                    //Crude: clear the lists to avoid duplicates
+                    // or! Make name unique, and check its existance before adding i to list to avoid duplicates.
+                    projectList.clear()
+                    projectIDList.clear()
+                    projectMeshSizeList.clear()
+                    projectSizeList.clear()
+                    for (data in responseBody) {
+                        projectList.add(data.name)
+                        projectIDList.add(data.id)
+                        projectMeshSizeList.add(data.mesh_size)
+                        projectSizeList.add(data.gap_size)
+                    }
+
+                    Log.d("Projects", "$projectList")
+
+                } else {
+                    firstActivity().alertfail("No response got from server")
+                }
+            }
+
+            override fun onFailure(call: Call<List<ResponseProjectsDataClass>?>, t: Throwable) {
+                Log.d("error", "${t.message}")
+            }
+        })
+        return projectList
+    }
+    var gapsize_units: Array<String>? = null
     @SuppressLint("SetTextI18n")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val projects =  getProjects()
 
         return activity?.let {
 
-            val ar: Array<String> = MainActivity().projectList.toTypedArray()
-           var selectedProject: String = ""
+            var selectedProject: String = ""
 
             var checkedItemIndex = -1
             val builder = AlertDialog.Builder(it)
             val inflater = requireActivity().layoutInflater
+            val r  = inflater.inflate(layout.activity_create_project,null)
 
-            if (ar.isEmpty()) {
-                builder.setView(inflater.inflate(layout.activity_create_project, null))
+            //dropdown menu
+             gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
+            val arrayAdapter1 = ArrayAdapter(requireContext(), layout.gapsizeunits,gapsize_units!!)
+          val viewGapSize = r.findViewById<AutoCompleteTextView>(R.id.gapsizeDropDown)
+            val viewPlotSize = r.findViewById<AutoCompleteTextView>(R.id.plotsizeDropDown)
+           // viewGapSize.setAdapter(arrayAdapter1)
+            viewPlotSize.setAdapter(arrayAdapter1)
+
+            viewPlotSize.onItemClickListener = this
+
+            val l: Array<String> = projects.toTypedArray().reversedArray()
+            val ar: Array<String>
+//                l = projects.toTypedArray().reversedArray()
+
+            if(l.size > 5 || l.size == 5){
+                ar = l.sliceArray(0..4)
+            }else{
+                ar = l
+            }
+
+
+            if (l.isEmpty()) {
+                builder.setView(r)
                     // Add action buttons
 
                     .setNegativeButton(string.cancel,
@@ -57,7 +127,9 @@ class firstActivity: DialogFragment() {
 
                 builder.create()
 
-            } else {
+
+            }
+            else {
 
                 builder.setTitle("Choose Project")
                     .setSingleChoiceItems(ar, checkedItemIndex,
@@ -70,7 +142,7 @@ class firstActivity: DialogFragment() {
                         DialogInterface.OnClickListener { dialog, id ->
                             // User cancelled the dialog
                         })
-                    .setPositiveButton("ok",
+                    .setPositiveButton("Open",
 
                         DialogInterface.OnClickListener { dialog, id ->
 
@@ -80,6 +152,7 @@ class firstActivity: DialogFragment() {
                             {
                                 val displayProjectName: TextView? = activity?.findViewById(R.id.display_project_name)
                                 displayProjectName?.text = selectedProject
+
                             }
 
                         })
@@ -91,11 +164,12 @@ class firstActivity: DialogFragment() {
         } ?: throw IllegalStateException("Activity cannot be null")
     }
 
+var unit = ""
     fun oncreateclick() {
 
          val sharedPrefFile = "kibirasharedfile"
 
-        val projectname = dialog?.findViewById<EditText>(R.id.projectName)
+        val projectname = dialog?.findViewById<EditText>(R.id.ProjectName)
         val meshSize = dialog?.findViewById<EditText>(R.id.MeshSize)
 
         val gapsize = dialog?.findViewById<EditText>(R.id.gapSize)
@@ -122,16 +196,46 @@ class firstActivity: DialogFragment() {
             editor.apply()
             editor.commit()
 
+
             if(editor.commit()){
                 val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
                 val gap_size: String? = sharedPreferences.getString("size_key","defaultValue")
                 val saved_gap_size =  gap_size!!.toInt()
                 val UID: String? = sharedPreferences.getString("userid_key", "defaultValue")
                 val userID = UID!!.toInt()
-                val mesh_size_string: String? = sharedPreferences.getString("mesh_key","defaultValue")
-                val MeshSize = mesh_size_string!!.toInt()
-                Geogmesh_size = MeshSize.toDouble()
+                val mesh_size_string: String? = sharedPreferences.getString("mesh_key","0")
+//                val MeshSize = mesh_size_string!!.toInt()
+                var MeshSize:Int? = 0
+
+                val n = unit
+                if(unit == ""){
+                    MeshSize = mesh_size_string!!.toInt()
+                }
+
+                when (n) {
+                    "Metres"-> {
+                        MeshSize = mesh_size_string!!.toInt()
+                    }
+                    "Ft"-> {
+                        var r = mesh_size_string!!.toInt()
+                       MeshSize = (r * 0.3048).roundToInt()
+                    }
+                    "Miles"-> {
+                        var r = mesh_size_string!!.toInt()
+                        MeshSize = (r * 1609.34).roundToInt()
+
+                    }
+                    "Acres"-> {
+                        var r = mesh_size_string!!.toInt()
+                        MeshSize = (r * 4046.86).roundToInt()
+
+                    }
+                }
+
+
+                Geogmesh_size = MeshSize!!.toDouble()
                 Geoggapsize = saved_gap_size
+
                 val CreateProjectRetrofitObject = AppModule.retrofitInstance()
                 val modal = createProjectDataClass(saved_gap_size,saved_project_name!!,userID, MeshSize)
                 val retrofitData =  CreateProjectRetrofitObject.createProject(modal)
@@ -194,5 +298,19 @@ MainActivity().freshFragment(true)
                 .show()
         }
     }
+
+
+    override fun onItemClick(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+        // fetch the user selected value
+        val item = p0!!.getItemAtPosition(p2).toString()
+       unit = item
+
+
+        // create Toast with user selected value
+        Toast.makeText(context, "Clicked gapsizeunit is: \t$item  " , Toast.LENGTH_LONG).show()
+
+    }
+
+
 }
 

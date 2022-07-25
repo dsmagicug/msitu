@@ -8,7 +8,7 @@
     <string name="project_name">Project Name</string>
     <string name="gap_size">Gap Size(m)</string>
     <string name="list_projects">Choose Project</string>
-    <string name="create_new_project">create</string>
+    <string name="create_new_project">Create Project</string>
     <string name="cancel">cancel</string>
     <string name="pair">Pair</string>
 
@@ -29,7 +29,7 @@
     <string name="action_sign_in_short">Sign in</string>
     <string name="welcome">"Welcome !"</string>
     <string name="invalid_username">Not a valid Email</string>
-    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="invalid_password">Password must be >4 characters</string>
     <string name="login_failed">"Login failed"</string>
     <string name="register">REGISTER</string>
     <string name="confirm_password">Confirm Password</string>
@@ -41,5 +41,14 @@
     <string name="compass">compass</string>
     <string name="directionarrow">DirectionArrow</string>
     <string name="login">LOGIN</string>
+    <string name="title_activity_main2">MainActivity2</string>
+    <string name="units">Units</string>
+    <string name="metres">Metres</string>
+    <string-array name="gapsizeUnits">
+        <item>Metres</item>
+        <item>Ft</item>
+        <item>Acres</item>
+        <item>Miles</item>
+    </string-array>
 
 </resources>

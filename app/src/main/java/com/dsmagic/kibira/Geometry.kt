@@ -302,6 +302,36 @@ class Geometry {
             Log.d("theta", "Angle between horizontal and point is $x (or $y°)")
             return x
         }
+        const val SINE_60 = 0.86602540378 // Sine of 60 degrees...
+
+
+        fun generateTriangleMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
+            val MAX_MESH_SIZE:Double = Geogmesh_size!!// In metres
+            val GAP_SIZE:Double = Geoggapsize!! * .95 // In metres (or 12ft)
+            val theta = theta(centre, directionPoint)
+            val mat = rotationMatrix(theta)
+            val l = ArrayList<PlantingLine>()
+            // X starts at the left. We draw the centre line first, then generate the ones below and above in order until we are done...
+            val STARTX = -MAX_MESH_SIZE / 2.0
+
+            // Put in centre/base line
+            l.add(PlantingLine(STARTX, 0.0, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+            val lineSkip = GAP_SIZE * SINE_60 // Skip smaller.
+            var currentY = lineSkip
+
+            var Xskip = 1
+
+            while (currentY < MAX_MESH_SIZE / 2.0) {
+                val startPosX = STARTX - (Xskip * GAP_SIZE)/2
+                l.add(PlantingLine(startPosX, currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+                l.add(PlantingLine(startPosX, -currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+
+                Xskip = (Xskip + 1) % 2 // Every other line starts at 0, every other at half of skip.
+
+                currentY += lineSkip
+            }
+            return l
+        }
 
         fun generateMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
             val MAX_MESH_SIZE:Double = Geogmesh_size!!// In metres

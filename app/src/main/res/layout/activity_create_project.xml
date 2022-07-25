@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     tools:context=".MainActivity">
+
     <TextView
 
         android:layout_width="match_parent"
-        android:layout_height="44dp"
-       android:layout_marginTop="45dp"
-        android:background="#FFFFFF"
-        android:text="@string/description"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="1dp"
         android:textAlignment="center"
+        android:fontFamily="@font/sans"
         android:paddingTop="10dp"
-
+        android:paddingBottom="10dp"
+        android:text="Create Project"
+        android:textSize="30sp"
+        android:textStyle="bold|normal"
 
         >
 
@@ -23,62 +27,135 @@
         android:layout_width="match_parent"
         android:layout_height="2dp"
         android:background="@color/hr"/>
-         />
-    <EditText
-        android:id="@+id/projectName"
-        android:inputType="text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginLeft="4dp"
-        android:layout_marginRight="4dp"
-        android:layout_marginBottom="4dp"
-        android:hint="@string/project_name" />
-    <EditText
-        android:id="@+id/gapSize"
-        android:inputType="number"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginLeft="4dp"
-        android:layout_marginRight="4dp"
-        android:layout_marginBottom="16dp"
-        android:fontFamily="sans-serif"
-        android:hint="@string/gap_size"
-        />
-    <EditText
-        android:id="@+id/MeshSize"
-        android:inputType="number"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:layout_marginLeft="4dp"
-        android:layout_marginRight="4dp"
-        android:layout_marginBottom="16dp"
-        android:fontFamily="sans-serif"
-        android:hint="Plot size (m)"
-        />
-<!--    <LinearLayout-->
-<!--        android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content">-->
-<!--        <Button-->
-<!--            android:id="@+id/createButton"-->
-<!--            android:text="Create"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_marginStart="10dp"-->
-<!--            android:background="@color/green"-->
-<!--            android:backgroundTint="@color/green"-->
-<!--            />-->
 
-<!--        <Button-->
-<!--            android:id="@+id/cancelButton"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_marginStart="145dp"-->
-<!--            android:background="@color/green"-->
-<!--            android:text="Cancel" />-->
-<!--    </LinearLayout>-->
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:hint="Project Name"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="5dp"
+        app:shapeAppearanceOverlay="@style/button1"
+        app:boxStrokeColor="@color/quantum_googgreen"
+        app:boxStrokeWidth="1dp"
+        android:textAlignment="center"
+        android:fontFamily="@font/sans"
+        android:textSize="16sp"
+        android:textStyle="bold|normal"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:id="@+id/ProjectName"
+            android:fontFamily="@font/sans"
+            android:textSize="16sp"
+            android:textStyle="bold|normal"
+            android:layout_marginStart="5dp"
+
+            />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp">
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="200dp"
+            android:layout_height="match_parent"
+            android:layout_marginTop="5dp"
+            android:layout_marginStart="10dp"
+            app:shapeAppearanceOverlay="@style/button1"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/MeshSize"
+                android:hint="Plot Size"
+                android:fontFamily="@font/sans"
+                android:textSize="16sp"
+                android:textStyle="bold|normal"/>
+
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginEnd ="5dp"
+
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu">
+
+            <AutoCompleteTextView
+                android:layout_marginLeft="10dp"
+                android:id="@+id/plotsizeDropDown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/units"
+                android:inputType="none"
+                android:text="@string/metres"
+                />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="horizontal"
+        android:layout_marginTop="5dp"
+        android:layout_marginStart="5dp">
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="200dp"
+            android:layout_height="match_parent"
+            android:layout_marginTop="5dp"
+            android:layout_marginStart="10dp"
+            app:shapeAppearanceOverlay="@style/button1"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/gapSize"
+                android:hint="Gap Size (m)"
+                android:fontFamily="@font/sans"
+                android:textSize="16sp"
+                android:textStyle="bold|normal"/>
+
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+android:layout_marginLeft="10dp"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu">
+
+            <AutoCompleteTextView
+
+                android:id="@+id/gapsizeDropDown"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="@string/metres"
+                android:hint="@string/units"
+                android:inputType="none"
+               />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+
+
+    </LinearLayout>
 
 </LinearLayout>
+
+

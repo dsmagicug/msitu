@@ -112,9 +112,9 @@ class NmeaReader {
                         for (xs in l) {
                             // Hand off to higher level...
                             val longlat = LongLat(xs)
-                            if (longlat.fixType != LongLat.FixType.NoFixData) {
+                            //if (longlat.fixType != LongLat.FixType.NoFixData) {
 
-                               // if(longlat.fixType == LongLat.FixType.RTKFloat || longlat.fixType == LongLat.FixType.RTKFix){
+                                if(longlat.fixType == LongLat.FixType.RTKFloat || longlat.fixType == LongLat.FixType.RTKFix){
                                     // Send it to the Location Source... BUT ONLY when we have rtk data--(more accurate than other fixtypes)
                                     handler.post {
 

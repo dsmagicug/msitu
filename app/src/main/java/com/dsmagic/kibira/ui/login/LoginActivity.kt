@@ -6,10 +6,10 @@ import android.os.Bundle
 import android.provider.Contacts.SettingsColumns.KEY
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
-import android.widget.EditText
-import android.widget.Toast
+import android.widget.*
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -35,26 +35,40 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 class LoginActivity : AppCompatActivity() {
 
-    private lateinit var loginViewModel: LoginViewModel
-    private lateinit var binding: ActivityLoginBinding
+   private lateinit var loginViewModel: LoginViewModel
+//    private lateinit var binding: ActivityLoginBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        binding = ActivityLoginBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+//        binding = ActivityLoginBinding.inflate(layoutInflater)
+//        setContentView(binding.root)
 
-        val username = binding.username
-        val password = binding.password
-        val login = binding.login
-        val loading = binding.loading
-        val register_page = binding.registerPage
+        setContentView(R.layout.activity_login)
+        thelogin.setOnClickListener{
+            thelogin.background = resources.getDrawable(R.drawable.switch_tucks,null)
+            signUp.background = null
+            thelogin.setTextColor(resources.getColor(R.color.white))
+            loginLayout.visibility = View.VISIBLE
+            signupLayout.visibility = View.GONE
+            signUp.setTextColor(resources.getColor(com.google.android.libraries.places.R.color.quantum_grey))
+
+        }
+
+        val username = findViewById<EditText>(R.id.username)
+        val password =findViewById<EditText>(R.id.password)
+        val login = findViewById<Button>(R.id.loginbutton)
+        val loading = findViewById<ProgressBar>(R.id.loading)
+        val register_page = findViewById<TextView>(R.id.signUp)
 
         register_page?.setOnClickListener{
             val intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
 
+
         }
+        lateinit var usernameVal: String
+        lateinit var passwordVal: String
 
         loginViewModel = ViewModelProvider(this, LoginViewModelFactory())
             .get(LoginViewModel::class.java)
@@ -118,6 +132,7 @@ class LoginActivity : AppCompatActivity() {
             login.setOnClickListener {
                 loading.visibility = View.VISIBLE
               loginUser(username.text.toString(), password.text.toString())
+                Log.d("values","${username.text} ${password.text}")
                 //loginViewModel.login(username.text.toString(), password.text.toString())
             }
 
@@ -127,12 +142,7 @@ class LoginActivity : AppCompatActivity() {
 
     fun loginUser(email:String,password: String)
     {
-//        val retrofitBuilder = Retrofit.Builder()
-//            .addConverterFactory(GsonConverterFactory.create())
-//            .baseUrl(MainActivity().BaseUrl)
-//            .build()
-//            .create(apiInterface::class.java)
-
+        Log.d("values","$email $password")
         val retrofitDataObject = AppModule.retrofitInstance()
 
         val modal = LoginDataClassX(email,password)
@@ -167,7 +177,7 @@ class LoginActivity : AppCompatActivity() {
                     }
                 }
                 else{
-                    alertfail("Response not successful!")
+                    alertfail("Response not successful! ${response}")
                 }
 
 

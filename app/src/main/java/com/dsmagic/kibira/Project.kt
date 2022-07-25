@@ -622,7 +622,24 @@ import java.util.ArrayList
 //////                    }
 //////                }
 
-
+//    var mWindow = layoutInflater.inflate(R.layout.custom_info_window, null)
+//    private fun rendowWindowText(marker: Marker, view: View){
+//        val title = view.findViewById<TextView>(R.id.title)
+//        val snippet = view.findViewById<TextView>(R.id.snippet)
+//
+//        title.text = marker.title
+//        snippet.text = marker.snippet
+//
+//    }
+//    override fun getInfoContents(p0: Marker): View? {
+//        rendowWindowText(p0, mWindow)
+//        return mWindow
+//    }
+//
+//    override fun getInfoWindow(p0: Marker): View? {
+//        rendowWindowText(p0, mWindow)
+//        return mWindow
+//    }
 val l = ArrayList<String>()
 //   private fun discover(){
 //

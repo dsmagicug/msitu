@@ -9,9 +9,7 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.util.Log
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
@@ -45,9 +43,20 @@ class CreateProjectDialog : DialogFragment() {
             // Inflate and set the layout for the dialog
             // Pass null as the parent view because its going in the dialog layout
 
+            val r  = inflater.inflate(layout.activity_create_project,null)
+
+            //dropdown menu
+         val gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
+            val arrayAdapter1 = ArrayAdapter(requireContext(), layout.gapsizeunits,gapsize_units)
+//            val viewGapSize = r.findViewById<AutoCompleteTextView>(R.id.gapsizeDropDown)
+            val viewPlotSize = r.findViewById<AutoCompleteTextView>(R.id.plotsizeDropDown)
+            //viewGapSize.setAdapter(arrayAdapter1)
+            viewPlotSize.setAdapter(arrayAdapter1)
+
+
             if (tag == "create") {
 
-                builder.setView(inflater.inflate(layout.activity_create_project, null))
+                builder.setView(r)
                     // Add action buttons
 
                     .setNegativeButton(
@@ -86,7 +95,7 @@ class CreateProjectDialog : DialogFragment() {
         // val sharedPrefFile = "kibirasharedfile"
 
 
-        val projectname = dialog?.findViewById<EditText>(R.id.projectName)
+        val projectname = dialog?.findViewById<EditText>(R.id.ProjectName)
         val meshSize = dialog?.findViewById<EditText>(R.id.MeshSize)
 
         val gapsize = dialog?.findViewById<EditText>(R.id.gapSize)
@@ -145,7 +154,7 @@ class CreateProjectDialog : DialogFragment() {
                                     editor.apply()
                                     editor.commit()
 
-                                    MainActivity().freshFragment(true)
+                                    MainActivity().clearFragment = true
 
                                     SuccessAlert("Project $ProjectName created")
 
