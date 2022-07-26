@@ -640,6 +640,35 @@ import java.util.ArrayList
 //        rendowWindowText(p0, mWindow)
 //        return mWindow
 //    }
+//
+//    private fun showLineForFewSeconds() {
+//
+//        Toast.makeText(this@MainActivity,
+//            "Far from line, zoom in to see line",
+//            Toast.LENGTH_SHORT)
+//            .show()
+//        object : CountDownTimer(30000, 1000) {
+//
+//            // Callback function, fired on regular interval
+//            override fun onTick(millisUntilFinished: Long) {
+//                showLine()
+//            }
+//
+//            // Callback function, fired
+//            // when the time is up
+//            override fun onFinish() {
+//                var currentPlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
+//                currentPlantingLine.isVisible = false
+//                if (unmarkedCirclesList.isNotEmpty()) {
+//                    for (c in unmarkedCirclesList) {
+//                        c.isVisible = false
+//                    }
+//                }
+//            }
+//
+//        }
+//            .start()
+//    }
 val l = ArrayList<String>()
 //   private fun discover(){
 //

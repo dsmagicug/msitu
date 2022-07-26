@@ -57,6 +57,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var firstPoint: LongLat? = null
     var secondPoint: LongLat? = null
     val handler = Handler(Looper.getMainLooper())
+    val handler2 = Handler(Looper.getMainLooper())
     var meshDone = false
     var linesIndex = MutableS2ShapeIndex() // S2 index of lines...
 
@@ -214,6 +215,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
 //pulsing effect when line is switched
                 if (switchedLines) {
+
                     val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
                     val tempPoint = mutableListOf<LatLng>()
                     val r = lineOfInterest.tag as MutableList<*>
@@ -246,23 +248,20 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                             distance =
                                 LocationOfPointOfInterestOnPolyline.distanceTo(locationOfRoverLatLng)
 
-                            val d = 3
-                            val half = d / 2
+                            val d = Geoggapsize
+                            val half = d!! / 2
                             val halfhalf = half / 2
-                            if (distance < half && distance > halfhalf) {
-                                // lineOfInterest.color = Color.YELLOW
-                            } else {
+
                                 if (distance < halfhalf || halfhalf == 0) {
                                     lineOfInterest.color = Color.GREEN
                                     tempPoint.clear()
+
                                     switchedLines = false
-                                    handler.removeMessages(0)
+                                    handler2.removeMessages(0)
                                     lineOfInterest.width = 3f
                                     tempPoint.clear()
                                     r.clear()
                                 }
-                            }
-
 
                         }
                     }
@@ -384,6 +383,7 @@ markPoint()
         scantBlueTooth()
         fab_map.setOnClickListener {
             try {
+                val activePlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
                 if (!fabFlag) {
 
                     fab_map.setImageDrawable(
@@ -401,7 +401,7 @@ markPoint()
 
                     }
 
-                    val activePlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
+
                     activePlantingLine.isVisible = true
 
                     fabFlag = true
@@ -417,6 +417,7 @@ markPoint()
                     for (c in polyLines) {
                         c?.isVisible = true
                     }
+                    activePlantingLine.isVisible = true
                     fabFlag = false
 
                 }
@@ -556,7 +557,8 @@ private var pressedTime: Long = 0
         var l: Array<String>
         var checkedItemIndex = -1
 
-        val larray = projectList.toTypedArray().reversedArray()
+
+        val larray = projectList.toTypedArray()
         if (larray.size > 5 || larray.size == 5) {
             l = larray.sliceArray(0..4)
         } else {
@@ -575,7 +577,7 @@ private var pressedTime: Long = 0
                     for (j in larray) {
                         if (j == selectedProject) {
                             val index = larray.indexOf(j)
-                            val id = projectIDList.reversed()[index]
+                            val id = projectIDList[index]
 
                             DeleteAlert(
                                 "\nProject '$selectedProject' $id  will be deleted permanently.\n\nAre you sure?",
@@ -603,7 +605,7 @@ private var pressedTime: Long = 0
                                 for (j in larray) {
                                     if (j == selectedProject) {
                                         val index = larray.indexOf(j)
-                                        val id = projectIDList.reversed()[index]
+                                        val id = projectIDList[index]
 
                                         DeleteAlert(
                                             "\nProject '$selectedProject' $id will be deleted permanently.\n\nAre you sure?",
@@ -625,7 +627,7 @@ private var pressedTime: Long = 0
                                     for (j in larray) {
                                         if (j == selectedProject) {
                                             val index = larray.indexOf(j)
-                                            val id = projectIDList.reversed()[index]
+                                            val id = projectIDList[index]
                                             var gap_size = projectSizeList[index]
                                             var mesh_size = projectMeshSizeList[index]
                                             getPoints(id)
@@ -673,13 +675,12 @@ private var pressedTime: Long = 0
     private fun loadProject(ProjectID: Int, Meshsize: Int, Gapsize: Int) {
         val displayProjectName: TextView? = findViewById(R.id.display_project_name)
 
+        progressBar.isVisible = true
+
         Toast.makeText(
             applicationContext, "Loading project, This may take some few minutes time." +
                     "", Toast.LENGTH_LONG
         ).show()
-
-        progressBar.isVisible = true
-
 
         val retrofitGetPointsObject = AppModule.retrofitInstance()
 
@@ -865,6 +866,13 @@ private var pressedTime: Long = 0
        for(c in unmarkedCirclesList){
            c.isVisible = true
        }
+
+        for(p in listOfMarkedPoints){
+            map?.addCircle(
+                        CircleOptions().center(p).fillColor(Color.YELLOW).radius(0.5)
+                            .strokeWidth(1.0f)
+                    )
+        }
 //            for (loc in line) {
 //                val xloc = loc as LatLng
 //                // Draw the points...
@@ -1073,18 +1081,13 @@ private var pressedTime: Long = 0
             val action: String? = intent.action
             when(action) {
                 BluetoothDevice.ACTION_FOUND -> {
-                    // Discovery has found a device. Get the BluetoothDevice
-                    // object and its info from the Intent.
                     val device: BluetoothDevice? =
                         intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
 
-
-                    if (this.let {
-                            androidx.core.app.ActivityCompat.checkSelfPermission(
-                                this@MainActivity,
-                                android.Manifest.permission.BLUETOOTH_CONNECT
-                            )
-                        } != android.content.pm.PackageManager.PERMISSION_GRANTED
+                    if (ActivityCompat.checkSelfPermission(
+                            applicationContext,
+                            Manifest.permission.BLUETOOTH_CONNECT
+                        ) != PackageManager.PERMISSION_GRANTED
                     ) {
                         // TODO: Consider calling
                         //    ActivityCompat#requestPermissions
@@ -1093,9 +1096,11 @@ private var pressedTime: Long = 0
                         //                                          int[] grantResults)
                         // to handle the case where the user grants the permission. See the documentation
                         // for ActivityCompat#requestPermissions for more details.
-                        // return
+                        return
                     }
-                        device?.name
+
+                    device?.name
+                    Log.d("Devices","${device?.name}")
                     val deviceHardwareAddress = device?.address // MAC address
                 }
             }
@@ -1109,8 +1114,6 @@ private var pressedTime: Long = 0
         // Don't forget to unregister the ACTION_FOUND receiver.
         unregisterReceiver(receiver)
     }
-
-
 
 
     // Display the menu layout
@@ -1146,34 +1149,34 @@ private var pressedTime: Long = 0
             return true
 
         } else if (item.itemId == R.id.map_view) {
-val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-            if (this.let {
-                    androidx.core.app.ActivityCompat.checkSelfPermission(
-                        it,
-                        android.Manifest.permission.BLUETOOTH_SCAN
-                    )
-                } != android.content.pm.PackageManager.PERMISSION_GRANTED
-            ) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                // return
-            }
+discover()
 
-            bluetoothAdapter.startDiscovery()
-
-            //return true
+            return true
         } else {
             // If we got here, the user's action was not recognized.
             // Invoke the superclass to handle it.
             super.onOptionsItemSelected(item)
         }
     }
+private fun discover(){
+    val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+    if (ActivityCompat.checkSelfPermission(
+            this,
+            Manifest.permission.BLUETOOTH_SCAN
+        ) != PackageManager.PERMISSION_GRANTED
+    ) {
+        // TODO: Consider calling
+        //    ActivityCompat#requestPermissions
+        // here to request the missing permissions, and then overriding
+        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+        //                                          int[] grantResults)
+        // to handle the case where the user grants the permission. See the documentation
+        // for ActivityCompat#requestPermissions for more details.
+        return
+    }
 
+    bluetoothAdapter.startDiscovery()
+}
     private fun showmap() {
 
 
@@ -1381,6 +1384,11 @@ val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
         }
 
+        runOnUiThread {
+            if (meshDone) {
+                progressBar.isVisible = true
+            }
+        }
         asyncExecutor.execute {
 
             val c = Point(cp)
@@ -1391,11 +1399,6 @@ val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
             meshDone = true
 
-            runOnUiThread {
-                if (meshDone) {
-                    progressBar.isVisible = false
-                }
-            }
             handler.post { // Centre it...
 
                 map?.moveCamera(
@@ -1428,7 +1431,11 @@ val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         }
 
 
-        progressBar.isVisible = false
+        runOnUiThread {
+            if (meshDone) {
+                progressBar.isVisible = false
+            }
+        }
     }
 
     fun freshFragment(v: Boolean) {
@@ -1446,7 +1453,8 @@ val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
     private val onPolyClick = GoogleMap.OnPolylineClickListener {
 
-        handler.removeMessages(0)
+        handler2.removeMessages(0)
+
         it.isClickable = false
 
         if (listOfPlantingLines.isEmpty()) {
@@ -1457,7 +1465,11 @@ val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
                 .show()
 
         } else {
-
+for(l in listOfPlantingLines){
+    l.width = 3f
+    l.isVisible = true
+    handler2.removeMessages(0)
+}
             val recentLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
             recentLine.color = Color.BLUE
             recentLine.isClickable = true
@@ -1469,6 +1481,7 @@ val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
             Toast.makeText(applicationContext, "Switching Lines..", Toast.LENGTH_LONG)
                 .show()
+
             val runnableCode = object : Runnable {
                 override fun run() {
                     var w = it.width;
@@ -1477,11 +1490,11 @@ val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
                         w = 1.0f;
                     }
                     it.width = w;
-                    handler.postDelayed(this, 50)
+                    handler2.postDelayed(this, 50)
                 }
             }
 
-            handler.postDelayed(runnableCode, 50)   //enqueue the impulsing effect function
+            handler2.postDelayed(runnableCode, 50)   //enqueue the impulsing effect function
 
             //remove the planting radius circle if it exists
             if (templist.isNotEmpty()) {
@@ -1556,8 +1569,8 @@ val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
             unmarkedCirclesList.clear()
 
         }
-//        listOfMarkedPoints
-//        Log.d("Points"," plot line $listOfMarkedPoints")
+        listOfMarkedPoints
+        Log.d("Points"," plot line $listOfMarkedPoints")
         var lastp: LatLng? = null
         handler.post {
             for (loc in line) {
@@ -1803,35 +1816,6 @@ val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
             }
         }
     }
-//
-//    private fun showLineForFewSeconds() {
-//
-//        Toast.makeText(this@MainActivity,
-//            "Far from line, zoom in to see line",
-//            Toast.LENGTH_SHORT)
-//            .show()
-//        object : CountDownTimer(30000, 1000) {
-//
-//            // Callback function, fired on regular interval
-//            override fun onTick(millisUntilFinished: Long) {
-//                showLine()
-//            }
-//
-//            // Callback function, fired
-//            // when the time is up
-//            override fun onFinish() {
-//                var currentPlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
-//                currentPlantingLine.isVisible = false
-//                if (unmarkedCirclesList.isNotEmpty()) {
-//                    for (c in unmarkedCirclesList) {
-//                        c.isVisible = false
-//                    }
-//                }
-//            }
-//
-//        }
-//            .start()
-//    }
 
     var bearing: Double? = null
     var diff: Float? = null
