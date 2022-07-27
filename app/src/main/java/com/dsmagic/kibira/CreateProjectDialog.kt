@@ -126,12 +126,12 @@ progressBar.isVisible = true
             if (editor.commit()) {
                 val saved_project_name: String? =
                     sharedPreferences.getString("name_key", "defaultValue")
-                val gap_size: String? = sharedPreferences.getString("size_key", "defaultValue")
+                val gap_size: String? = sharedPreferences.getString("size_key", "0")
                 val saved_gap_size = gap_size!!.toInt()
-                val UID: String? = sharedPreferences.getString("userid_key", "defaultValue")
+                val UID: String? = sharedPreferences.getString("userid_key", "0")
                 val userID = UID!!.toInt()
                 val mesh_size_string: String? =
-                    sharedPreferences.getString("mesh_key", "defaultValue")
+                    sharedPreferences.getString("mesh_key", "0")
                 val MeshSize = mesh_size_string!!.toInt()
                 Geogmesh_size = MeshSize.toDouble()
                 Geoggapsize = saved_gap_size

@@ -2,6 +2,9 @@ package com.dsmagic.kibira
 
 
 import android.Manifest
+import android.animation.ArgbEvaluator
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.*
@@ -21,9 +24,11 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.animation.Animation
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -103,6 +108,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var projectMeshSizeList = mutableListOf<Int>()
 
     lateinit var debugXloc:LatLng
+    lateinit var txt:TextView
+    lateinit var colortext:EditText
+    lateinit var card:androidx.cardview.widget.CardView
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -112,6 +120,19 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
         setSupportActionBar(findViewById(R.id.appToolbar))
         supportActionBar?.setDisplayShowTitleEnabled(false)
+
+        txt = findViewById<TextView>(R.id.myTextView);
+        var btn = findViewById<Button>(R.id.btnColor)
+        colortext = findViewById<EditText>(R.id.setColor)
+        card = findViewById<CardView>(R.id.cardView2)
+
+
+        card.setOnClickListener{
+            stopBlink()
+        }
+        btn.setOnClickListener{
+            getContent()
+        }
 
         extras = getIntent().extras
 
@@ -386,6 +407,7 @@ markPoint()
                 }
             }
         })
+
 
         scantBlueTooth()
         fab_map.setOnClickListener {
@@ -905,9 +927,14 @@ private var pressedTime: Long = 0
     var distance = 0.0f
     var latLng: LatLng? = null
 
+
     private fun distanceToPoint(loc: LatLng) {
         if (plantingMode && listOfMarkedPoints.isNotEmpty()) {
-
+card.isVisible = true
+            var displayedDistance = findViewById<TextView>(R.id.distance)
+            var displayedPoints = findViewById<TextView>(R.id.numberOfPoints)
+          displayedDistance.text = ""
+            displayedPoints.text = " "
             try {
                 val locationOfNextPoint = Location(LocationManager.GPS_PROVIDER)
                 val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
@@ -975,6 +1002,9 @@ private var pressedTime: Long = 0
                     }
 
                 }
+                displayedDistance.text = distance.toString()
+                displayedPoints.text = size.toString()
+
                 markers = map?.addMarker(
                     MarkerOptions().position(latLng!!)
                         .title("Point Stats!")
@@ -1030,7 +1060,46 @@ private var pressedTime: Long = 0
 
 
     }
+    fun getContent(){
+        var colorValue = colortext.text.toString()
+        blink(colorValue)
 
+    }
+    lateinit var anim: ObjectAnimator
+    fun blink(c:String) {
+        val n = c
+        var animationColor:Int = 0
+        when (n) {
+            "Green"-> {
+                animationColor= Color.GREEN
+            }
+            "Yellow"-> {
+                animationColor= Color.YELLOW
+            }
+            "Red"-> {
+                animationColor= Color.RED
+
+            }
+            "Cyan"-> {
+                animationColor= Color.CYAN
+
+            }
+        }
+        anim = ObjectAnimator.ofInt(card,
+            "backgroundColor",animationColor,Color.WHITE,animationColor,Color.GRAY)
+        anim.duration = 1500;
+        anim.setEvaluator(ArgbEvaluator())
+        anim.repeatMode = ValueAnimator.RESTART;
+        anim.repeatCount = Animation.INFINITE;
+        anim.start()
+
+    }
+    fun stopBlink(){
+
+        anim.end()
+
+
+    }
     private fun scantBlueTooth() {
         val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
 
@@ -2259,6 +2328,7 @@ for(l in listOfPlantingLines){
 
         val fab = findViewById<FloatingActionButton>(R.id.fab_map)
         fab.hide()
+        card.isVisible = false
 
     }
 

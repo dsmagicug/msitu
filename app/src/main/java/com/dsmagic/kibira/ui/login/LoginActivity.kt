@@ -1,7 +1,9 @@
 package com.dsmagic.kibira.ui.login
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.provider.Contacts.SettingsColumns.KEY
 import android.text.Editable
@@ -19,7 +21,7 @@ import com.dsmagic.kibira.MainActivity
 //import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.R
 import com.dsmagic.kibira.RegisterActivity
-import com.dsmagic.kibira.databinding.ActivityLoginBinding
+import com.dsmagic.kibira.databinding.ActivityMainBinding
 import com.dsmagic.kibira.services.AppModule
 import com.dsmagic.kibira.services.LoginDataClassX
 import com.dsmagic.kibira.services.apiInterface
@@ -36,14 +38,18 @@ import retrofit2.converter.gson.GsonConverterFactory
 class LoginActivity : AppCompatActivity() {
 
    private lateinit var loginViewModel: LoginViewModel
-//    private lateinit var binding: ActivityLoginBinding
+
+val sharedPrefFile = "LoginShareFile"
+    lateinit var sharedPreferences: SharedPreferences
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
 //        binding = ActivityLoginBinding.inflate(layoutInflater)
 //        setContentView(binding.root)
-
+        sharedPreferences =
+            this.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
+       checkIfLoggedIn()
         setContentView(R.layout.activity_login)
         thelogin.setOnClickListener{
             thelogin.background = resources.getDrawable(R.drawable.switch_tucks,null)
@@ -54,6 +60,7 @@ class LoginActivity : AppCompatActivity() {
             signUp.setTextColor(resources.getColor(com.google.android.libraries.places.R.color.quantum_grey))
 
         }
+
 
         val username = findViewById<EditText>(R.id.username)
         val password =findViewById<EditText>(R.id.password)
@@ -140,6 +147,18 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    fun checkIfLoggedIn(){
+        val userEmail: String? =
+            sharedPreferences.getString("loggedUserEmail", "defaultValue")
+        var a = 6
+        if(userEmail != "defaultValue"){
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+        } else{
+Log.d("WEIRD","WEIRD")
+        }
+    }
+
     fun loginUser(email:String,password: String)
     {
         Log.d("values","$email $password")
@@ -208,6 +227,13 @@ class LoginActivity : AppCompatActivity() {
         val displayEmail = email
         val user_id = user_id
         val apiToken = token
+
+
+
+        val editor = sharedPreferences.edit()
+        editor.putString("loggedUserEmail", email)
+        editor.apply()
+        editor.commit()
 
         val intent = Intent(this, MainActivity::class.java)
         intent.putExtra("userID","$user_id")

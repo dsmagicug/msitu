@@ -36,6 +36,122 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
+            <Button
+                android:id="@+id/btnColor"
+                android:layout_marginTop="40dp"
+                android:layout_width="wrap_content"
+                android:layout_gravity="center"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="17dp"
+                android:text="SET" />
+
+            <EditText
+                android:id="@+id/setColor"
+                android:layout_width="wrap_content"
+                android:layout_height="126dp"
+                android:layout_marginStart="67dp"
+                android:layout_marginEnd="67dp"
+                android:autofillHints=""
+                android:layout_marginTop = "70dp"
+                android:hint="  Enter color"
+                android:inputType="text"
+                android:text="" />
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardView2"
+                android:layout_width="268dp"
+                android:layout_height="207dp"
+
+                android:layout_gravity="start|bottom"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="10dp"
+                app:cardMaxElevation="20dp"
+                app:cardPreventCornerOverlap="true"
+                app:cardUseCompatPadding="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/button_first">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/myTextView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_margin="5dp"
+                            android:padding="5dp"
+                            android:text="Points marked"
+                            android:textAlignment="center"
+
+                            />
+
+                        <TextView
+                            android:id="@+id/numberOfPoints"
+
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_margin="5dp"
+                            android:autofillHints=""
+
+                            android:padding="5dp"
+                            android:text=""
+                            android:textAlignment="center" />
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/myTextView2"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_margin="5dp"
+                            android:padding="5dp"
+                            android:text="Distance"
+                            android:textAlignment="center"
+
+                            />
+
+                        <TextView
+                            android:id="@+id/distance"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_margin="5dp"
+                            android:autofillHints=""
+
+                            android:padding="5dp"
+                            android:text=""
+                            android:textAlignment="center" />
+
+                    </LinearLayout>
+
+                    <!--           -->
+
+                    <!--            <TextView-->
+                    <!--                android:id="@+id/size"-->
+                    <!--                android:layout_width="match_parent"-->
+                    <!--                android:layout_height="153dp"-->
+                    <!--                android:layout_marginTop="5dp"-->
+
+
+                    <!--                android:text="Size" />-->
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fab_map"
                 android:layout_width="wrap_content"
@@ -62,23 +178,23 @@
                 app:rippleColor="#EDE8E8" />
 
 
-<!--            <ImageView-->
-<!--                android:id="@+id/compass"-->
-<!--                android:layout_width="100dp"-->
-<!--                android:layout_height="127dp"-->
-<!--                android:layout_marginTop="85dp"-->
-<!--                android:contentDescription="@string/directionarrow"-->
-<!--                android:src="@drawable/slimarrow" />-->
+            <!--            <ImageView-->
+            <!--                android:id="@+id/compass"-->
+            <!--                android:layout_width="100dp"-->
+            <!--                android:layout_height="127dp"-->
+            <!--                android:layout_marginTop="85dp"-->
+            <!--                android:contentDescription="@string/directionarrow"-->
+            <!--                android:src="@drawable/slimarrow" />-->
 
-<!--            <ImageView-->
-<!--                android:id="@+id/headTo"-->
-<!--                android:layout_width="393dp"-->
-<!--                android:layout_height="127dp"-->
-<!--                android:layout_marginStart="0dp"-->
-<!--                android:layout_marginTop="85dp"-->
-<!--                android:layout_marginEnd="0dp"-->
-<!--                android:contentDescription="@string/directionarrow"-->
-<!--                android:src="@drawable/slimarrow" />-->
+            <!--            <ImageView-->
+            <!--                android:id="@+id/headTo"-->
+            <!--                android:layout_width="393dp"-->
+            <!--                android:layout_height="127dp"-->
+            <!--                android:layout_marginStart="0dp"-->
+            <!--                android:layout_marginTop="85dp"-->
+            <!--                android:layout_marginEnd="0dp"-->
+            <!--                android:contentDescription="@string/directionarrow"-->
+            <!--                android:src="@drawable/slimarrow" />-->
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/appToolbar"
@@ -147,18 +263,6 @@
                         app:layout_constraintGuide_percent="0.06393862" />
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <!--                <Spinner-->
-                <!--                    android:id="@+id/spinner"-->
-                <!--                    android:layout_width="wrap_content"-->
-                <!--                    android:layout_height="wrap_content"-->
-                <!--android:-->
-                <!--                    android:layout_marginTop="16dp"-->
-                <!--                    android:layout_weight="1"-->
-                <!--                    android:dropDownWidth="200dp"-->
-                <!--                    android:visibility="invisible"-->
-                <!--                    app:layout_constraintTop_toTopOf="parent"-->
-                <!--                    app:popupTheme="@style/ThemeOverlay.AppCompat.Light"-->
-                <!--                    tools:layout_editor_absoluteX="2dp" />-->
 
             </androidx.appcompat.widget.Toolbar>
 
