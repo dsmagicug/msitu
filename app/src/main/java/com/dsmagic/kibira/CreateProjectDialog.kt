@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
 import com.dsmagic.kibira.R.layout
@@ -18,6 +19,7 @@ import com.dsmagic.kibira.R.string
 import com.dsmagic.kibira.services.*
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.gson.Gson
+import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONException
 import org.json.JSONObject
 import retrofit2.Call
@@ -94,7 +96,7 @@ class CreateProjectDialog : DialogFragment() {
 
         // val sharedPrefFile = "kibirasharedfile"
 
-
+progressBar.isVisible = true
         val projectname = dialog?.findViewById<EditText>(R.id.ProjectName)
         val meshSize = dialog?.findViewById<EditText>(R.id.MeshSize)
 
@@ -154,7 +156,9 @@ class CreateProjectDialog : DialogFragment() {
                                     editor.apply()
                                     editor.commit()
 
-                                    MainActivity().clearFragment = true
+                                    progressBar.isVisible = false
+
+                                    MainActivity().freshFragment(true)
 
                                     SuccessAlert("Project $ProjectName created")
 

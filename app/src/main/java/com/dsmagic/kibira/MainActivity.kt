@@ -28,6 +28,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.dsmagic.kibira.services.*
+import com.dsmagic.kibira.utils.GeneralHelper
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -35,6 +36,8 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dilivia.s2.S2LatLng
+import dilivia.s2.S2Point
+import dilivia.s2.index.point.PointData
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
 import kotlinx.android.synthetic.main.activity_main.*
@@ -69,6 +72,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var currentLocation = mutableListOf<LatLng>()
     var clearFragment = false
 
+    lateinit var lineInS2Format:S2PointIndex<S2LatLng>
+
     // Declaring sensorManager
     // and acceleration constants
     private var sensorManager: SensorManager? = null
@@ -96,6 +101,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var projectIDList = mutableListOf<Int>()
     var projectSizeList = mutableListOf<Int>()
     var projectMeshSizeList = mutableListOf<Int>()
+
+    lateinit var debugXloc:LatLng
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -400,8 +407,6 @@ markPoint()
                         item!!.isVisible = false
 
                     }
-
-
                     activePlantingLine.isVisible = true
 
                     fabFlag = true
@@ -675,8 +680,6 @@ private var pressedTime: Long = 0
     private fun loadProject(ProjectID: Int, Meshsize: Int, Gapsize: Int) {
         val displayProjectName: TextView? = findViewById(R.id.display_project_name)
 
-        progressBar.isVisible = true
-
         Toast.makeText(
             applicationContext, "Loading project, This may take some few minutes time." +
                     "", Toast.LENGTH_LONG
@@ -709,6 +712,8 @@ private var pressedTime: Long = 0
                             clearFragment = true
 //
                             plotMesh(firstPoint, secondPoint)
+
+
                         } else {
 
                             warningAlert(
@@ -1637,12 +1642,16 @@ for(l in listOfPlantingLines){
         val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
 
         val l = lineOfInterest.tag as MutableList<*>
+        val l2 = lineOfInterest.tag as Collection<LatLng>
 
-        val xloc = S2Helper.findClosestPointOnLine(pointsIndex, roverPoint) as S2LatLng?
+        lineInS2Format = GeneralHelper.convertLineToS2(l2);
+
+        //val xloc = S2Helper.findClosestPointOnLine(pointsIndex, roverPoint) as S2LatLng?
+        val xloc = S2Helper.findClosestPointOnLine(lineInS2Format, roverPoint) as S2LatLng?
 
         if (xloc != null) {
             val pt = LatLng(xloc.latDegrees(), xloc.lngDegrees())
-
+            debugXloc = pt
             if (pt !in l) {
                 return
             }
@@ -1830,6 +1839,8 @@ for(l in listOfPlantingLines){
 
         override fun onSensorChanged(event: SensorEvent) {
 
+
+
             if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
                 // Pay attention to call the clone() method when assigning
                 accelerometerValues = event.values.clone()
@@ -1905,6 +1916,34 @@ for(l in listOfPlantingLines){
 
                     val l = plantingLine.tag as MutableList<*>
                     var pointOfInterestOnPolyline: LatLng? = null
+
+                    var indexOfXloc = l.indexOf(debugXloc)
+
+
+
+                    var lastMarkedIndex = listOfMarkedPoints.lastIndex
+                    var lastMarkedPoint = listOfMarkedPoints[lastMarkedIndex]
+                    var indexOfInterest = l.indexOf(lastMarkedPoint)
+                    var nextPoint = l[indexOfInterest+1] as LatLng
+                    var previousPoint = l[indexOfInterest-1] as LatLng
+
+                    var ourGuy:LatLng? = null
+
+                    //var pointOfInterest
+                    if(nextPoint in listOfMarkedPoints){
+                        ourGuy = previousPoint
+                    }else{
+                        ourGuy = nextPoint
+                    }
+                    var a = debugXloc
+                    var indexOfOurGuy = l.indexOf(ourGuy)
+                    if (debugXloc != ourGuy){
+                        Log.d("SKIP", "GATCH!!!")
+
+                        var b = debugXloc
+
+                    }
+
 
                     l.forEach { loc ->
                         loc as LatLng
@@ -2002,12 +2041,12 @@ for(l in listOfPlantingLines){
                                 tempClosestPoint.clear()
                             }
 
-                            //plantingMode = true
+                            plantingMode = true
                         }
                     }
                 } catch (e: Exception) {
                     Toast.makeText(
-                        applicationContext, "Can't find point to mark" +
+                        applicationContext, "Can't find point to mark {$e.message}"  +
                                 "", Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -2139,6 +2178,14 @@ for(l in listOfPlantingLines){
                                 applicationContext, "Point Marked " +
                                         "", Toast.LENGTH_SHORT
                             ).show()
+
+                            // convert to S2 and remove it from queryset
+                            var set =  lineInS2Format
+                            val point = S2LatLng.fromDegrees(lat, lng)
+                            val pointData = PointData(point.toPoint(), point)
+                            lineInS2Format.remove(pointData)
+                            var s = lineInS2Format
+
                         } else {
                             Toast.makeText(
                                 applicationContext, "Something Went wrong!! " +
@@ -2228,7 +2275,6 @@ for(l in listOfPlantingLines){
             render(markers!!, window)
             return window
         }
-
         private fun render(marker: Marker, view: View) {
 
             // Set the title and snippet for the custom info window
