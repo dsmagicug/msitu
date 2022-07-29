@@ -41,7 +41,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dilivia.s2.S2LatLng
-import dilivia.s2.S2Point
 import dilivia.s2.index.point.PointData
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
@@ -49,11 +48,12 @@ import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.sqrt
 
 
-class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener {
+open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener {
     var deviceList = ArrayList<BluetoothDevice>()
     var device: BluetoothDevice? = null
     private var map: GoogleMap? = null
@@ -72,11 +72,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     var pointsIndex = S2PointIndex<S2LatLng>()
     var polyLines = ArrayList<Polyline?>()
 
-    var asyncExecutor = Executors.newCachedThreadPool()
+    var asyncExecutor: ExecutorService = Executors.newCachedThreadPool()
 
     var currentLocation = mutableListOf<LatLng>()
     var clearFragment = false
 
+    lateinit var lineInS2FormatforSwitch:S2PointIndex<S2LatLng>
     lateinit var lineInS2Format:S2PointIndex<S2LatLng>
 
     // Declaring sensorManager
@@ -111,6 +112,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
     lateinit var txt:TextView
     lateinit var colortext:EditText
     lateinit var card:androidx.cardview.widget.CardView
+    lateinit var left:TextView
+    lateinit var right:TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -121,19 +124,21 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         setSupportActionBar(findViewById(R.id.appToolbar))
         supportActionBar?.setDisplayShowTitleEnabled(false)
 
+        val displayProjectName: TextView? = findViewById(R.id.display_project_name)
         txt = findViewById<TextView>(R.id.myTextView);
-        var btn = findViewById<Button>(R.id.btnColor)
-        colortext = findViewById<EditText>(R.id.setColor)
-        card = findViewById<CardView>(R.id.cardView2)
 
+        card = findViewById<CardView>(R.id.cardView2)
+        left = findViewById(R.id.strayingLeft)
 
         card.setOnClickListener{
             stopBlink()
         }
-        btn.setOnClickListener{
-            getContent()
-        }
+        //dropdown menu for project settings
+        val arrayForProjectDetails = resources.getStringArray(R.array.ProjectDetails)
+        val arrayAdapterForProjectDetails = ArrayAdapter(this, R.layout.projectdetails,arrayForProjectDetails)
 
+        var x =  displayProjectName as AutoCompleteTextView
+        x.setAdapter(arrayAdapterForProjectDetails)
         extras = getIntent().extras
 
         //retrieve userid and token from intent, then store it in a shared preferences file for access
@@ -180,18 +185,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         currentAcceleration = SensorManager.GRAVITY_EARTH
         lastAcceleration = SensorManager.GRAVITY_EARTH
 
-//        if (magneticSensor != null) {
-//
-//        } else {
-//
-//            Toast.makeText(
-//                applicationContext,
-//                "No Geomagnetic sensor, so some features have been disabled",
-//                Toast.LENGTH_LONG
-//            ).show()
-//            //compass.isVisible = false
-//
-//        }
 
         NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
             override fun onLocationChanged(loc: Location) {
@@ -222,7 +215,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     directionMarker?.remove()
                     directionMarker = map?.addMarker(
                         MarkerOptions().position(xloc)
-                            //.icon(BitmapDescriptorFactory.fromResource(R.drawable.smallman))
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.smallman))
 
                     )
 
@@ -234,69 +227,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     }
                     val location = currentLocation[currentLocation.lastIndex]
 
-                    distanceToPoint(location)
+                    //distanceToPoint(location)
 
                 }
                 if (currentLocation.distinct().size == 1) {
                     plotFunc()
                 }
 
-//pulsing effect when line is switched
-                if (switchedLines) {
-
-                    val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
-                    val tempPoint = mutableListOf<LatLng>()
-                    val r = lineOfInterest.tag as MutableList<*>
-
-                    if (currentLocation.isNotEmpty()) {
-
-                        val cl = currentLocation[currentLocation.lastIndex]
-                        val closeloc =
-                            cl.let { S2Helper.findClosestPointOnLine(pointsIndex, it) } as S2LatLng?
-
-                        val pt = closeloc?.let { LatLng(it.latDegrees(), closeloc.lngDegrees()) }
-                        tempPoint.add(pt!!)
-                        if (pt !in r) {
-                            tempPoint.remove(pt)
-                        }
-                        if (pt in r) {
-                            val LocationOfPointOfInterestOnPolyline =
-                                Location(LocationManager.GPS_PROVIDER)
-
-                            LocationOfPointOfInterestOnPolyline.latitude =
-                                pt.latitude
-                            LocationOfPointOfInterestOnPolyline.longitude =
-                                pt.longitude
-
-                            val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
-
-                            locationOfRoverLatLng.latitude = cl.latitude
-                            locationOfRoverLatLng.longitude = cl.longitude
-                            var distance = 0.0F
-                            distance =
-                                LocationOfPointOfInterestOnPolyline.distanceTo(locationOfRoverLatLng)
-
-                            val d = Geoggapsize
-                            val half = d!! / 2
-                            val halfhalf = half / 2
-
-                                if (distance < halfhalf || halfhalf == 0) {
-                                    lineOfInterest.color = Color.GREEN
-                                    tempPoint.clear()
-
-                                    switchedLines = false
-                                    handler2.removeMessages(0)
-                                    lineOfInterest.width = 3f
-                                    tempPoint.clear()
-                                    r.clear()
-                                }
-
-                        }
-                    }
-
-                }
                 markPoint()
-//                //controlling visibility given the zoom level on the map
+               //controlling visibility given the zoom level on the map
                 if (zoomMode) {
                     val zmlevel = map?.cameraPosition?.zoom
                     val maxZmLevel = map?.maxZoomLevel
@@ -304,7 +243,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
                     if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
                         return
                     }
-//                    //get current line person is walking on, lat/lng and find closest point on line as they are moving
+                   //get current line person is walking on, lat/lng and find closest point on line as they are moving
                     val currentPlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
                     val roverPoint = currentLocation[currentLocation.lastIndex]
                     val l = currentPlantingLine.tag as MutableList<*>
@@ -403,11 +342,9 @@ markPoint()
                     if (currentLocation.distinct().size == 1) {
                         plotFunc()
                     }
-                    //plotFunc()
                 }
             }
         })
-
 
         scantBlueTooth()
         fab_map.setOnClickListener {
@@ -508,11 +445,6 @@ markPoint()
 
     }
 
-//    override fun onBackPressed() {
-//        super.onBackPressed()
-//        exitAlert("Quitting app! \n Are you sure?")
-//
-//    }
 private var pressedTime: Long = 0
     override fun onBackPressed() {
         if (pressedTime + 2000 > System.currentTimeMillis()) {
@@ -577,10 +509,7 @@ private var pressedTime: Long = 0
 
     var selectedProject: String = " "
 
-    fun displayProjects(
-
-
-    ) {
+    fun displayProjects() {
         var l: Array<String>
         var checkedItemIndex = -1
 
@@ -758,6 +687,8 @@ private var pressedTime: Long = 0
                 alertfail("Could not load the project. It could be empty")
             }
         })
+
+
     }
 
     fun alertfail(S: String) {
@@ -887,7 +818,7 @@ private var pressedTime: Long = 0
 
     }
 
-    private fun showLine(L:Polyline) {
+    fun showLine(L:Polyline) {
         L.isVisible = true
 //        val line = L.tag as MutableList<*>
        for(c in unmarkedCirclesList){
@@ -930,11 +861,12 @@ private var pressedTime: Long = 0
 
     private fun distanceToPoint(loc: LatLng) {
         if (plantingMode && listOfMarkedPoints.isNotEmpty()) {
-card.isVisible = true
+            card.isVisible = true
             var displayedDistance = findViewById<TextView>(R.id.distance)
             var displayedPoints = findViewById<TextView>(R.id.numberOfPoints)
           displayedDistance.text = ""
             displayedPoints.text = " "
+
             try {
                 val locationOfNextPoint = Location(LocationManager.GPS_PROVIDER)
                 val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
@@ -956,7 +888,7 @@ card.isVisible = true
                 }
 
                 if (lastRotateDegree in (-180.0..90.0)) {
-                    Log.d("north", "$lastRotateDegree")
+
                     distance = 0f
                     var nextIndex = index + 1
                     latLng = l[nextIndex] as LatLng
@@ -1011,32 +943,29 @@ card.isVisible = true
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
                         .snippet("Marked Points : $size" + "\nDistance : $distance (m)")
                 )
-
-                if (distance > (Geoggapsize!!)) {
-                    Toast.makeText(
-                        applicationContext,
-                        "Straying from Line or away from Point",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                polyline1 = map?.addPolyline(
+                    PolylineOptions()
+                        .color(Color.BLACK)
+                        .jointType(JointType.DEFAULT)
+                        .width(3.5f)
+                        .geodesic(true)
+                        .startCap(RoundCap())
+                        .add(
+                            LatLng(loc.latitude, loc.longitude),   //roverpoint
+                            LatLng(latLng!!.latitude, latLng!!.longitude), //nextPoint
+                        )
+                )
+                polyline1!!.endCap = CustomCap(
+                    BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
+                )
+                if (distance < (Geoggapsize!! + 1)) {
+                    blink("Red")
                     showLine(line)
-                    polyline1 = map?.addPolyline(
-                        PolylineOptions()
-                            .color(Color.BLACK)
-                            .jointType(JointType.DEFAULT)
-                            .width(3.5f)
-                            .geodesic(true)
-                            .startCap(RoundCap())
-                            .add(
-                                LatLng(loc.latitude, loc.longitude),   //roverpoint
-                                LatLng(latLng!!.latitude, latLng!!.longitude), //nextPoint
-                            )
-                    )
-                    polyline1!!.endCap = CustomCap(
-                        BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
-                    )
+
                     //  showLine()
                 } else {
-                    polyline1?.remove()
+                    //polyline1?.remove()
+                    stopBlink()
                 }
 
                 markers!!.showInfoWindow()
@@ -1060,11 +989,7 @@ card.isVisible = true
 
 
     }
-    fun getContent(){
-        var colorValue = colortext.text.toString()
-        blink(colorValue)
 
-    }
     lateinit var anim: ObjectAnimator
     fun blink(c:String) {
         val n = c
@@ -1085,7 +1010,7 @@ card.isVisible = true
 
             }
         }
-        anim = ObjectAnimator.ofInt(card,
+        anim = ObjectAnimator.ofInt(left,
             "backgroundColor",animationColor,Color.WHITE,animationColor,Color.GRAY)
         anim.duration = 1500;
         anim.setEvaluator(ArgbEvaluator())
@@ -1093,11 +1018,20 @@ card.isVisible = true
         anim.repeatCount = Animation.INFINITE;
         anim.start()
 
+//        anim = ObjectAnimator.ofInt(right,
+//            "backgroundColor",animationColor,Color.WHITE,animationColor,Color.GRAY)
+//        anim.duration = 1500;
+//        anim.setEvaluator(ArgbEvaluator())
+//        anim.repeatMode = ValueAnimator.RESTART;
+//        anim.repeatCount = Animation.INFINITE;
+//        anim.start()
+
     }
     fun stopBlink(){
 
-        anim.end()
-
+if (anim.isRunning){
+    anim.end()
+}
 
     }
     private fun scantBlueTooth() {
@@ -1182,11 +1116,11 @@ card.isVisible = true
     }
 
     override fun onDestroy() {
-        super.onDestroy()
-
-
         // Don't forget to unregister the ACTION_FOUND receiver.
         unregisterReceiver(receiver)
+        sensorManager!!.unregisterListener(listener)
+        super.onDestroy()
+
     }
 
 
@@ -1394,45 +1328,12 @@ private fun discover(){
             )
                 .show()
 
-            pBar.isVisible = true
         }
 
         saveBasepoints(firstPoint!!)
         saveBasepoints(secondPoint!!)
         plotMesh(firstPoint!!, secondPoint!!)
 
-//
-//        asyncExecutor.execute {
-////        val c = Point(LongLat( 32.46332991868300,0.04710796689723))
-////            val p =Point(LongLat(32.46333260089200,0.04699799636470))
-//
-//            val c = Point(firstPoint!!)
-//            val p = Point(secondPoint!!)
-//            val lines = Geometry.generateMesh(c, p)
-//            Geometry.generateLongLat(c, lines, drawLine)
-//            meshDone = true
-//
-//            runOnUiThread {
-//                if (meshDone) {
-//                    pBar.isVisible = false
-//                }
-//
-//            }
-//            handler.post { // Centre it...
-////
-//                map?.moveCamera(
-//                    CameraUpdateFactory.newLatLngZoom(
-//                        LatLng(
-//                            firstPoint!!.getLatitude(),
-//                            firstPoint!!.getLongitude()
-//                        ), 21.0f
-//                    )
-//                )
-//
-//
-//            }
-//
-//        }
 
         l?.remove()
         // marker?.remove()
@@ -1458,11 +1359,8 @@ private fun discover(){
 
         }
 
-        runOnUiThread {
-            if (meshDone) {
                 progressBar.isVisible = true
-            }
-        }
+
         asyncExecutor.execute {
 
             val c = Point(cp)
@@ -1505,11 +1403,9 @@ private fun discover(){
         }
 
 
-        runOnUiThread {
-            if (meshDone) {
                 progressBar.isVisible = false
-            }
-        }
+
+
     }
 
     fun freshFragment(v: Boolean) {
@@ -1542,7 +1438,7 @@ private fun discover(){
 for(l in listOfPlantingLines){
     l.width = 3f
     l.isVisible = true
-    handler2.removeMessages(0)
+   // handler2.removeMessages(0)
 }
             val recentLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
             recentLine.color = Color.BLUE
@@ -1556,19 +1452,19 @@ for(l in listOfPlantingLines){
             Toast.makeText(applicationContext, "Switching Lines..", Toast.LENGTH_LONG)
                 .show()
 
-            val runnableCode = object : Runnable {
-                override fun run() {
-                    var w = it.width;
-                    w += 0.5f;
-                    if (w > 13.0) {
-                        w = 1.0f;
-                    }
-                    it.width = w;
-                    handler2.postDelayed(this, 50)
-                }
-            }
-
-            handler2.postDelayed(runnableCode, 50)   //enqueue the impulsing effect function
+//            val runnableCode = object : Runnable {
+//                override fun run() {
+//                    var w = it.width;
+//                    w += 0.5f;
+//                    if (w > 13.0) {
+//                        w = 1.0f;
+//                    }
+//                    it.width = w;
+//                    handler2.postDelayed(this, 50)
+//                }
+//            }
+//
+//            handler2.postDelayed(runnableCode, 50)   //enqueue the impulsing effect function
 
             //remove the planting radius circle if it exists
             if (templist.isNotEmpty()) {
@@ -1694,16 +1590,12 @@ for(l in listOfPlantingLines){
     val templist = mutableListOf<Circle>()
     val tempClosestPoint = mutableListOf<LatLng>()
 
-    fun toS2(loc: LatLng): S2LatLng {
-        return S2LatLng((loc.latitude / Math.PI).toFloat(), (loc.longitude / Math.PI).toFloat())
-    }
-
     private fun plotFunc() {
 
         if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
             return
         }
-
+Log.d("LoperPlot","${Thread().name}")
         var plantingRadius: Circle? = null
 
         val roverPoint = currentLocation[currentLocation.lastIndex]
@@ -1758,12 +1650,30 @@ for(l in listOfPlantingLines){
 
 
         }
+        if(switchedLines){
+            val runnableCode = object : Runnable {
+                override fun run() {
+                    var w = lineOfInterest.width;
+                    w += 0.5f;
+                    if (w > 13.0) {
+                        w = 1.0f;
+                    }
+                    lineOfInterest.width = w;
+                    handler2.postDelayed(this, 50)
+                }
+            }
 
+            handler2.postDelayed(runnableCode, 50)
+
+            switchedLines = false
+
+        }
         if (tempClosestPoint.isNotEmpty()) {
             tempClosestPoint.clear()
         }
 
         if (plantingRadius != null) {
+            handler2.removeMessages(0)
             if (templist.isNotEmpty()) {
                 for (c in templist) {
                     c.remove()
@@ -1780,7 +1690,7 @@ for(l in listOfPlantingLines){
 
     }
 
-    private fun markPoint() {
+    fun markPoint() {
 
         if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
             return
@@ -1801,7 +1711,7 @@ for(l in listOfPlantingLines){
             if (pointOfInterestOnPolyline == null) {
                 return
             }
-
+            Log.d("Loper"," markpoINT ${Thread().name}")
             if (currentLocation.isNotEmpty()) {
                 val cl = currentLocation[currentLocation.lastIndex]
 
@@ -1908,8 +1818,6 @@ for(l in listOfPlantingLines){
 
         override fun onSensorChanged(event: SensorEvent) {
 
-
-
             if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
                 // Pay attention to call the clone() method when assigning
                 accelerometerValues = event.values.clone()
@@ -1948,17 +1856,6 @@ for(l in listOfPlantingLines){
 //                animation.fillAfter = true
                 //compass.startAnimation(animation)
                 lastRotateDegree = rotateDegree
-//                ready = true
-//
-//                //wait till lines are drawn then check closeness to line
-//                if (zoomMode) {
-//                    if (bearingAngle > threshold) {
-//                        // showLineForFewSeconds()
-//
-//
-//                    }
-//                }
-
 
             }
 
@@ -1986,32 +1883,32 @@ for(l in listOfPlantingLines){
                     val l = plantingLine.tag as MutableList<*>
                     var pointOfInterestOnPolyline: LatLng? = null
 
-                    var indexOfXloc = l.indexOf(debugXloc)
-
-
-
-                    var lastMarkedIndex = listOfMarkedPoints.lastIndex
-                    var lastMarkedPoint = listOfMarkedPoints[lastMarkedIndex]
-                    var indexOfInterest = l.indexOf(lastMarkedPoint)
-                    var nextPoint = l[indexOfInterest+1] as LatLng
-                    var previousPoint = l[indexOfInterest-1] as LatLng
-
-                    var ourGuy:LatLng? = null
-
-                    //var pointOfInterest
-                    if(nextPoint in listOfMarkedPoints){
-                        ourGuy = previousPoint
-                    }else{
-                        ourGuy = nextPoint
-                    }
-                    var a = debugXloc
-                    var indexOfOurGuy = l.indexOf(ourGuy)
-                    if (debugXloc != ourGuy){
-                        Log.d("SKIP", "GATCH!!!")
-
-                        var b = debugXloc
-
-                    }
+//                    var indexOfXloc = l.indexOf(debugXloc)
+//
+//
+//
+//                    var lastMarkedIndex = listOfMarkedPoints.lastIndex
+//                    var lastMarkedPoint = listOfMarkedPoints[lastMarkedIndex]
+//                    var indexOfInterest = l.indexOf(lastMarkedPoint)
+//                    var nextPoint = l[indexOfInterest+1] as LatLng
+//                    var previousPoint = l[indexOfInterest-1] as LatLng
+//
+//                    var ourGuy:LatLng? = null
+//
+//                    //var pointOfInterest
+//                    if(nextPoint in listOfMarkedPoints){
+//                        ourGuy = previousPoint
+//                    }else{
+//                        ourGuy = nextPoint
+//                    }
+//                    var a = debugXloc
+//                    var indexOfOurGuy = l.indexOf(ourGuy)
+//                    if (debugXloc != ourGuy){
+//                        Log.d("SKIP", "GATCH!!!")
+//
+//                        var b = debugXloc
+//
+//                    }
 
 
                     l.forEach { loc ->
@@ -2247,7 +2144,7 @@ for(l in listOfPlantingLines){
                                 applicationContext, "Point Marked " +
                                         "", Toast.LENGTH_SHORT
                             ).show()
-
+                            Log.d("Loper", Thread().name +"savedb")
                             // convert to S2 and remove it from queryset
                             var set =  lineInS2Format
                             val point = S2LatLng.fromDegrees(lat, lng)

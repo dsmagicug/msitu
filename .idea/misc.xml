@@ -27,7 +27,9 @@
         <entry key="app/src/main/res/layout/first_activity.xml" value="0.14175724637681159" />
         <entry key="app/src/main/res/layout/fragment_first.xml" value="0.375" />
         <entry key="app/src/main/res/layout/fragment_second.xml" value="0.45" />
+        <entry key="app/src/main/res/layout/gapsizeunits.xml" value="0.14175724637681159" />
         <entry key="app/src/main/res/layout/list_projects.xml" value="0.16770833333333332" />
+        <entry key="app/src/main/res/layout/projectdetails.xml" value="0.33" />
         <entry key="app/src/main/res/layout/spinner_icon.xml" value="0.14175724637681159" />
         <entry key="app/src/main/res/layout/view_on_app_launch.xml" value="0.33" />
         <entry key="app/src/main/res/menu/appmenu.xml" value="0.14537037037037037" />

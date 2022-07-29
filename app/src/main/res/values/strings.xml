@@ -51,4 +51,9 @@
         <item>Miles</item>
     </string-array>
 
+    <string-array name="ProjectDetails">
+        <item>Measurements</item>
+        <item>Reset</item>
+    </string-array>
+
 </resources>

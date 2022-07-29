@@ -1,7 +1,64 @@
+import com.google.android.gms.maps.model.LatLng
 import java.util.ArrayList
 
 
 
+//pulsing effect when line is switched
+//if (switchedLines) {
+//
+//    val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
+//    val tempPoint = mutableListOf<LatLng>()
+//    val lineAsCollection = lineOfInterest.tag as Collection<LatLng>
+//    val r = lineOfInterest.tag as MutableList<*>
+////
+////                    if (currentLocation.isNotEmpty()) {
+////
+////                        val cl = currentLocation[currentLocation.lastIndex]
+////                        lineInS2FormatforSwitch = GeneralHelper.convertLineToS2(lineAsCollection)
+////                        val closeloc =
+////                            cl.let { S2Helper.findClosestPointOnLine(lineInS2FormatforSwitch, it) } as S2LatLng?
+////
+////                        val pt = closeloc?.let { LatLng(it.latDegrees(), closeloc.lngDegrees()) }
+////                        tempPoint.add(pt!!)
+////                        if (pt !in r) {
+////                       return
+////                        }
+////                        if (pt in r) {
+////                            val LocationOfPointOfInterestOnPolyline =
+////                                Location(LocationManager.GPS_PROVIDER)
+////
+////                            LocationOfPointOfInterestOnPolyline.latitude =
+////                                pt.latitude
+////                            LocationOfPointOfInterestOnPolyline.longitude =
+////                                pt.longitude
+////
+////                            val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
+////
+////                            locationOfRoverLatLng.latitude = cl.latitude
+////                            locationOfRoverLatLng.longitude = cl.longitude
+////                            var distance = 0.0F
+////                            distance =
+////                                LocationOfPointOfInterestOnPolyline.distanceTo(locationOfRoverLatLng)
+////
+////                            val d = Geoggapsize
+////                            val half = d!! / 2
+////                            val halfhalf = half / 2
+////
+////                                if (distance < halfhalf || halfhalf == 0) {
+////                                    lineOfInterest.color = Color.GREEN
+////                                    tempPoint.clear()
+////
+////                                    switchedLines = false
+////                                    handler2.removeMessages(0)
+////                                    lineOfInterest.width = 3f
+////                                    tempPoint.clear()
+////                                    r.clear()
+////                                }
+////
+////                        }
+////                    }
+////
+//}
 //
 //    var bDegrees: Double? = null
 //    var bring: Int? = null

@@ -29,6 +29,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.FileWriter
 import java.io.PrintWriter
+import kotlin.math.roundToInt
 
 //Returning a layout as a dialog box
 class CreateProjectDialog : DialogFragment() {
@@ -92,17 +93,18 @@ class CreateProjectDialog : DialogFragment() {
 
     }
 
+    var unit = ""
+
     fun oncreateclick() {
 
         // val sharedPrefFile = "kibirasharedfile"
 
-progressBar.isVisible = true
+//progressBar.isVisible = true
         val projectname = dialog?.findViewById<EditText>(R.id.ProjectName)
         val meshSize = dialog?.findViewById<EditText>(R.id.MeshSize)
 
         val gapsize = dialog?.findViewById<EditText>(R.id.gapSize)
         val displayProjectName = activity?.findViewById<TextView>(R.id.display_project_name)
-
 
         val gap_size_string = gapsize?.text.toString()
 
@@ -132,7 +134,32 @@ progressBar.isVisible = true
                 val userID = UID!!.toInt()
                 val mesh_size_string: String? =
                     sharedPreferences.getString("mesh_key", "0")
-                val MeshSize = mesh_size_string!!.toInt()
+                var MeshSize:Int = 0
+
+                val n = unit
+                if(unit == ""){
+                    MeshSize = mesh_size_string!!.toInt()
+                }
+
+                when (n) {
+                    "Metres"-> {
+                        MeshSize = mesh_size_string!!.toInt()
+                    }
+                    "Ft"-> {
+                        var r = mesh_size_string!!.toInt()
+                        MeshSize = (r * 0.3048).roundToInt()
+                    }
+                    "Miles"-> {
+                        var r = mesh_size_string!!.toInt()
+                        MeshSize = (r * 1609.34).roundToInt()
+
+                    }
+                    "Acres"-> {
+                        var r = mesh_size_string!!.toInt()
+                        MeshSize = (r * 4046.86).roundToInt()
+
+                    }
+                }
                 Geogmesh_size = MeshSize.toDouble()
                 Geoggapsize = saved_gap_size
                 val CreateProjectRetrofitObject = AppModule.retrofitInstance()
@@ -155,9 +182,6 @@ progressBar.isVisible = true
                                     editor.putString("productID_key", ProjectID)
                                     editor.apply()
                                     editor.commit()
-
-                                    progressBar.isVisible = false
-
                                     MainActivity().freshFragment(true)
 
                                     SuccessAlert("Project $ProjectName created")
@@ -184,7 +208,7 @@ progressBar.isVisible = true
 
                 displayProjectName?.text = saved_project_name
 
-                Log.d("values", "Project name is: $saved_project_name")
+
 
             } else {
                 Log.d("not", "Not saved")

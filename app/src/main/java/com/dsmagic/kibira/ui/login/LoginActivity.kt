@@ -248,7 +248,9 @@ Log.d("WEIRD","WEIRD")
 //        ).show()
     }
 
-
+    override fun onDestroy() {
+        super.onDestroy()
+    }
     private fun showLoginFailed(@StringRes errorString: Int) {
         Toast.makeText(applicationContext, errorString, Toast.LENGTH_SHORT).show()
     }
@@ -267,4 +269,6 @@ fun EditText.afterTextChanged(afterTextChanged: (String) -> Unit) {
 
         override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
     })
+
+
 }

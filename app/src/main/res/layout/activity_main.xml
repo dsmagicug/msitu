@@ -36,33 +36,25 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-            <Button
-                android:id="@+id/btnColor"
-                android:layout_marginTop="40dp"
-                android:layout_width="wrap_content"
-                android:layout_gravity="center"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="17dp"
-                android:text="SET" />
 
-            <EditText
-                android:id="@+id/setColor"
-                android:layout_width="wrap_content"
-                android:layout_height="126dp"
-                android:layout_marginStart="67dp"
-                android:layout_marginEnd="67dp"
-                android:autofillHints=""
-                android:layout_marginTop = "70dp"
-                android:hint="  Enter color"
-                android:inputType="text"
-                android:text="" />
+<!--            <EditText-->
+<!--                android:id="@+id/setColor"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="126dp"-->
+<!--                android:layout_marginStart="67dp"-->
+<!--                android:layout_marginEnd="67dp"-->
+<!--                android:autofillHints=""-->
+<!--                android:layout_marginTop = "70dp"-->
+<!--                android:hint="  Enter color"-->
+<!--                android:inputType="text"-->
+<!--                android:text="" />-->
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/cardView2"
-                android:layout_width="268dp"
-                android:layout_height="207dp"
-
-                android:layout_gravity="start|bottom"
+                android:layout_width="407dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|center"
+                android:layout_marginTop="70dp"
                 app:cardBackgroundColor="@color/white"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="10dp"
@@ -85,11 +77,14 @@
 
                         <TextView
                             android:id="@+id/myTextView"
-                            android:layout_width="wrap_content"
+                            android:layout_width="203dp"
                             android:layout_height="match_parent"
                             android:layout_margin="5dp"
+                            android:layout_gravity="center"
                             android:padding="5dp"
-                            android:text="Points marked"
+                            android:textSize="10sp"
+                            android:textStyle="bold|normal"
+                            android:text="Points marked:"
                             android:textAlignment="center"
 
                             />
@@ -100,8 +95,9 @@
                             android:layout_width="wrap_content"
                             android:layout_height="match_parent"
                             android:layout_margin="5dp"
+                            android:layout_gravity="center"
                             android:autofillHints=""
-
+android:textStyle="bold|normal"
                             android:padding="5dp"
                             android:text=""
                             android:textAlignment="center" />
@@ -116,11 +112,13 @@
 
                         <TextView
                             android:id="@+id/myTextView2"
-                            android:layout_width="wrap_content"
+                            android:layout_width="203dp"
                             android:layout_height="match_parent"
                             android:layout_margin="5dp"
                             android:padding="5dp"
-                            android:text="Distance"
+                            android:textSize="10sp"
+                            android:text="Distance From Next \n Point(m):"
+                            android:textStyle="bold|normal"
                             android:textAlignment="center"
 
                             />
@@ -131,9 +129,43 @@
                             android:layout_height="match_parent"
                             android:layout_margin="5dp"
                             android:autofillHints=""
-
+                            android:textStyle="bold|normal"
+                            android:layout_gravity="center"
+                            android:textSize="10sp"
                             android:padding="5dp"
                             android:text=""
+                            android:textAlignment="center" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/strayingLeft"
+                            android:layout_width="200dp"
+                            android:layout_height="match_parent"
+                            android:layout_margin="5dp"
+                            android:padding="5dp"
+                            android:textStyle="bold|normal"
+                            android:textSize="10sp"
+                            android:text="TOO MUCH ON \n THE LEFT!!"
+                            android:textAlignment="center"
+
+                            />
+
+                        <TextView
+                            android:id="@+id/strayingRight"
+                            android:layout_width="200dp"
+                            android:layout_height="match_parent"
+                            android:layout_margin="5dp"
+                            android:autofillHints=""
+                            android:textSize="10sp"
+                            android:padding="5dp"
+                            android:textStyle="bold|normal"
+                            android:text="TOO MUCH ON \n THE RIGHT"
                             android:textAlignment="center" />
 
                     </LinearLayout>
@@ -214,25 +246,46 @@
                     android:layout_height="wrap_content"
                     app:layout_constraintEnd_toStartOf="@+id/spinner"
                     app:layout_constraintStart_toStartOf="@+id/spinner">
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd ="5dp"
 
-                    <TextView
-                        android:id="@+id/display_project_name"
-                        android:layout_width="110dp"
-                        android:layout_height="38dp"
-                        android:layout_marginStart="4dp"
-                        android:layout_marginTop="8dp"
-                        android:text=" "
-                        android:textAllCaps="true"
-                        android:textSize="15sp"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu">
+
+                        <AutoCompleteTextView
+                            android:id="@+id/display_project_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="5dp"
+                            android:layout_weight="1"
+                            android:inputType="none"
+                            android:text=""
+                            android:textAllCaps="true"
+                            android:textSize="10sp"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+<!--                    <TextView-->
+<!--                        android:id="@+id/display_project_name"-->
+<!--                        android:layout_width="110dp"-->
+<!--                        android:layout_height="38dp"-->
+<!--                        android:layout_marginStart="4dp"-->
+<!--                        android:layout_marginTop="8dp"-->
+<!--                        android:text=" "-->
+<!--                        android:textAllCaps="true"-->
+<!--                        android:textSize="15sp"-->
+<!--                        app:layout_constraintStart_toStartOf="parent"-->
+<!--                        app:layout_constraintTop_toTopOf="parent" />-->
 
                     <Button
                         android:id="@+id/buttonConnect"
                         android:layout_width="89dp"
                         android:layout_height="51dp"
 
-                        android:layout_marginStart="53dp"
+                        android:layout_marginStart="55dp"
                         android:layout_marginEnd="11dp"
                         android:layout_marginBottom="4dp"
                         android:backgroundTint="@color/green"
