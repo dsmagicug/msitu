@@ -1,8 +1,9 @@
 package com.dsmagic.kibira.utils;
 
-import com.google.android.gms.maps.model.LatLng;
+import android.location.Location;
+import android.location.LocationManager;
 
-import org.apache.commons.math3.geometry.spherical.twod.S2Point;
+import com.google.android.gms.maps.model.LatLng;
 
 import java.util.Collection;
 
@@ -19,5 +20,18 @@ public class GeneralHelper {
 
        }
        return querySet;
+    }
+
+    public static float findDistanceBtnTwoPoints(LatLng pt1, LatLng pt2){
+        Location firstPoint = new Location(LocationManager.GPS_PROVIDER);
+        Location secondPoint = new Location(LocationManager.GPS_PROVIDER);
+        // set latLong for first point
+        firstPoint.setLatitude(pt1.latitude);
+        firstPoint.setLongitude(pt1.longitude);
+        // set latLong for second point
+        secondPoint.setLatitude(pt2.latitude);
+        secondPoint.setLongitude(pt2.longitude);
+
+        return firstPoint.distanceTo(secondPoint); // in metres
     }
 }

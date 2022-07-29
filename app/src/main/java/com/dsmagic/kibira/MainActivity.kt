@@ -51,9 +51,11 @@ import retrofit2.Response
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.sqrt
+import kotlin.properties.Delegates
 
 
-open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, View.OnClickListener {
+open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
+    View.OnClickListener {
     var deviceList = ArrayList<BluetoothDevice>()
     var device: BluetoothDevice? = null
     private var map: GoogleMap? = null
@@ -77,8 +79,12 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     var currentLocation = mutableListOf<LatLng>()
     var clearFragment = false
 
-    lateinit var lineInS2FormatforSwitch:S2PointIndex<S2LatLng>
-    lateinit var lineInS2Format:S2PointIndex<S2LatLng>
+    var closestPointRadius = ArrayList<Any>()
+    var tempPlantingRadius by Delegates.notNull<Float>()
+
+    lateinit var lineInS2FormatforSwitch: S2PointIndex<S2LatLng>
+    lateinit var lineInS2Format: S2PointIndex<S2LatLng>
+    private lateinit var fromRTKFeed:LatLng
 
     // Declaring sensorManager
     // and acceleration constants
@@ -108,12 +114,12 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     var projectSizeList = mutableListOf<Int>()
     var projectMeshSizeList = mutableListOf<Int>()
 
-    lateinit var debugXloc:LatLng
-    lateinit var txt:TextView
-    lateinit var colortext:EditText
-    lateinit var card:androidx.cardview.widget.CardView
-    lateinit var left:TextView
-    lateinit var right:TextView
+    lateinit var debugXloc: LatLng
+    lateinit var txt: TextView
+    lateinit var colortext: EditText
+    lateinit var card: androidx.cardview.widget.CardView
+    lateinit var left: TextView
+    lateinit var right: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -130,14 +136,15 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         card = findViewById<CardView>(R.id.cardView2)
         left = findViewById(R.id.strayingLeft)
 
-        card.setOnClickListener{
+        card.setOnClickListener {
             stopBlink()
         }
         //dropdown menu for project settings
         val arrayForProjectDetails = resources.getStringArray(R.array.ProjectDetails)
-        val arrayAdapterForProjectDetails = ArrayAdapter(this, R.layout.projectdetails,arrayForProjectDetails)
+        val arrayAdapterForProjectDetails =
+            ArrayAdapter(this, R.layout.projectdetails, arrayForProjectDetails)
 
-        var x =  displayProjectName as AutoCompleteTextView
+        var x = displayProjectName as AutoCompleteTextView
         x.setAdapter(arrayAdapterForProjectDetails)
         extras = getIntent().extras
 
@@ -191,10 +198,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
                 if (map == null)
                     return // Not yet...
-                val xloc = LatLng(loc.latitude, loc.longitude)
+                 fromRTKFeed = LatLng(loc.latitude, loc.longitude)
 
                 if (marker == null) {
-                    map?.moveCamera(CameraUpdateFactory.newLatLngZoom(xloc, zoomLevel))
+                    map?.moveCamera(CameraUpdateFactory.newLatLngZoom(fromRTKFeed, zoomLevel))
                     firstPoint = loc as LongLat // Grab it
 
                 }
@@ -208,42 +215,56 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     markers?.remove()
 
                     marker = map?.addCircle(
-                        CircleOptions().center(xloc).fillColor(Color.GREEN).radius(0.5)
+                        CircleOptions().center(fromRTKFeed).fillColor(Color.GREEN).radius(0.5)
                             .strokeWidth(1.0f)
 
                     )
                     directionMarker?.remove()
                     directionMarker = map?.addMarker(
-                        MarkerOptions().position(xloc)
+                        MarkerOptions().position(fromRTKFeed)
                             .icon(BitmapDescriptorFactory.fromResource(R.drawable.smallman))
 
                     )
 
-                    if (currentLocation.isNotEmpty()) {
-                        currentLocation.clear()
-                    }
-                    marker?.let {
-                        currentLocation.add(it.center)
-                    }
-                    val location = currentLocation[currentLocation.lastIndex]
 
-                    //distanceToPoint(location)
-
-                }
-                if (currentLocation.distinct().size == 1) {
                     plotFunc()
-                }
+                    distanceToPoint(fromRTKFeed)
+                    // We need to calculate distance of where we are to point to be marked
+                    if (closestPointRadius.size > 0) {
+                        val pointOfInterest = closestPointRadius[0] as LatLng
+                        val acceptedPlantingRadius = tempPlantingRadius
+                        val distanceAway =
+                            GeneralHelper.findDistanceBtnTwoPoints(fromRTKFeed, pointOfInterest) /// 2  // divide by 2 means we want to mark when user is closer to the point
+                        if (distanceAway < acceptedPlantingRadius) {
+                            // mark point
+                            markPoint(pointOfInterest)
+                        }
+                    }
 
-                markPoint()
-               //controlling visibility given the zoom level on the map
-                if (zoomMode) {
+                    /* if (currentLocation.isNotEmpty()) {
+                         currentLocation.clear()
+                     }
+                     marker?.let {
+                         currentLocation.add(it.center)
+                     }
+                     val location = currentLocation[currentLocation.lastIndex]*/
+
+
+                }
+                /*if (currentLocation.distinct().size == 1) {
+                    plotFunc()
+                }*/
+
+                //markPoint()
+                //controlling visibility given the zoom level on the map
+                /*if (zoomMode) {
                     val zmlevel = map?.cameraPosition?.zoom
                     val maxZmLevel = map?.maxZoomLevel
 
                     if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
                         return
                     }
-                   //get current line person is walking on, lat/lng and find closest point on line as they are moving
+                    //get current line person is walking on, lat/lng and find closest point on line as they are moving
                     val currentPlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
                     val roverPoint = currentLocation[currentLocation.lastIndex]
                     val l = currentPlantingLine.tag as MutableList<*>
@@ -252,7 +273,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                         if (zmlevel == maxZmLevel) {
                             currentPlantingLine.isVisible = false
 
-                            for(c in unmarkedCirclesList){
+                            for (c in unmarkedCirclesList) {
                                 c.isVisible = false
                             }
 
@@ -300,8 +321,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                                         .strokeColor(Color.GREEN)
                                         .strokeWidth(1.0f)
                                 )
-                                for(c in unmarkedCirclesList){
-                                    if(c.center == pt){
+                                for (c in unmarkedCirclesList) {
+                                    if (c.center == pt) {
                                         c.isVisible = true
                                     }
                                 }
@@ -324,15 +345,15 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                                 }
                                 plantingRadiusCircle = templist[templist.lastIndex]
 
-                                for(c in unmarkedCirclesList){
-                                    if(c.center == plantingRadius.center){
+                                for (c in unmarkedCirclesList) {
+                                    if (c.center == plantingRadius.center) {
                                         c.isVisible = true
                                     }
                                 }
 
                             }
                             plantingMode = true
-markPoint()
+                            markPoint()
                         } else {
                             showLine(currentPlantingLine)
                             //plotLine(l)
@@ -342,7 +363,7 @@ markPoint()
                     if (currentLocation.distinct().size == 1) {
                         plotFunc()
                     }
-                }
+                }*/
             }
         })
 
@@ -445,7 +466,7 @@ markPoint()
 
     }
 
-private var pressedTime: Long = 0
+    private var pressedTime: Long = 0
     override fun onBackPressed() {
         if (pressedTime + 2000 > System.currentTimeMillis()) {
             super.onBackPressed()
@@ -730,8 +751,8 @@ private var pressedTime: Long = 0
                 "Exit",
 
                 DialogInterface.OnClickListener { dialog, id ->
-                   // SuccessAlert("Exiting App")
-            finish()
+                    // SuccessAlert("Exiting App")
+                    finish()
 
                 })
             .setNegativeButton("Stay",
@@ -818,18 +839,18 @@ private var pressedTime: Long = 0
 
     }
 
-    fun showLine(L:Polyline) {
+    fun showLine(L: Polyline) {
         L.isVisible = true
 //        val line = L.tag as MutableList<*>
-       for(c in unmarkedCirclesList){
-           c.isVisible = true
-       }
+        for (c in unmarkedCirclesList) {
+            c.isVisible = true
+        }
 
-        for(p in listOfMarkedPoints){
+        for (p in listOfMarkedPoints) {
             map?.addCircle(
-                        CircleOptions().center(p).fillColor(Color.YELLOW).radius(0.5)
-                            .strokeWidth(1.0f)
-                    )
+                CircleOptions().center(p).fillColor(Color.YELLOW).radius(0.5)
+                    .strokeWidth(1.0f)
+            )
         }
 //            for (loc in line) {
 //                val xloc = loc as LatLng
@@ -853,6 +874,7 @@ private var pressedTime: Long = 0
 //
 //        }
     }
+
     var polyline1: Polyline? = null
     var refPoint: LatLng? = null
     var distance = 0.0f
@@ -864,7 +886,7 @@ private var pressedTime: Long = 0
             card.isVisible = true
             var displayedDistance = findViewById<TextView>(R.id.distance)
             var displayedPoints = findViewById<TextView>(R.id.numberOfPoints)
-          displayedDistance.text = ""
+            displayedDistance.text = ""
             displayedPoints.text = " "
 
             try {
@@ -943,22 +965,23 @@ private var pressedTime: Long = 0
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
                         .snippet("Marked Points : $size" + "\nDistance : $distance (m)")
                 )
-                polyline1 = map?.addPolyline(
-                    PolylineOptions()
-                        .color(Color.BLACK)
-                        .jointType(JointType.DEFAULT)
-                        .width(3.5f)
-                        .geodesic(true)
-                        .startCap(RoundCap())
-                        .add(
-                            LatLng(loc.latitude, loc.longitude),   //roverpoint
-                            LatLng(latLng!!.latitude, latLng!!.longitude), //nextPoint
-                        )
-                )
+
                 polyline1!!.endCap = CustomCap(
                     BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
                 )
-                if (distance < (Geoggapsize!! + 1)) {
+                if (distance > (Geoggapsize!! + 1)) {
+                    polyline1 = map?.addPolyline(
+                        PolylineOptions()
+                            .color(Color.BLACK)
+                            .jointType(JointType.DEFAULT)
+                            .width(3.5f)
+                            .geodesic(true)
+                            .startCap(RoundCap())
+                            .add(
+                                LatLng(loc.latitude, loc.longitude),   //roverpoint
+                                LatLng(latLng!!.latitude, latLng!!.longitude), //nextPoint
+                            )
+                    )
                     blink("Red")
                     showLine(line)
 
@@ -978,11 +1001,9 @@ private var pressedTime: Long = 0
                     }
                 }
                 tempListMarker.add(markers!!)
-            } catch (e:Exception){
-                Log.d("ERROR","frOM SWITCHING ${e.message}")
+            } catch (e: Exception) {
+                Log.d("ERROR", "frOM SWITCHING ${e.message}")
             }
-
-
 
 
         }
@@ -991,27 +1012,29 @@ private var pressedTime: Long = 0
     }
 
     lateinit var anim: ObjectAnimator
-    fun blink(c:String) {
+    fun blink(c: String) {
         val n = c
-        var animationColor:Int = 0
+        var animationColor: Int = 0
         when (n) {
-            "Green"-> {
-                animationColor= Color.GREEN
+            "Green" -> {
+                animationColor = Color.GREEN
             }
-            "Yellow"-> {
-                animationColor= Color.YELLOW
+            "Yellow" -> {
+                animationColor = Color.YELLOW
             }
-            "Red"-> {
-                animationColor= Color.RED
+            "Red" -> {
+                animationColor = Color.RED
 
             }
-            "Cyan"-> {
-                animationColor= Color.CYAN
+            "Cyan" -> {
+                animationColor = Color.CYAN
 
             }
         }
-        anim = ObjectAnimator.ofInt(left,
-            "backgroundColor",animationColor,Color.WHITE,animationColor,Color.GRAY)
+        anim = ObjectAnimator.ofInt(
+            left,
+            "backgroundColor", animationColor, Color.WHITE, animationColor, Color.GRAY
+        )
         anim.duration = 1500;
         anim.setEvaluator(ArgbEvaluator())
         anim.repeatMode = ValueAnimator.RESTART;
@@ -1027,13 +1050,15 @@ private var pressedTime: Long = 0
 //        anim.start()
 
     }
-    fun stopBlink(){
 
-if (anim.isRunning){
-    anim.end()
-}
+    fun stopBlink() {
+
+        if (anim.isRunning) {
+            anim.end()
+        }
 
     }
+
     private fun scantBlueTooth() {
         val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
 
@@ -1082,12 +1107,13 @@ if (anim.isRunning){
         Log.d("bt", "Bluetooth scan complete")
         buttonConnect.setOnClickListener(this)
     }
+
     // Create a BroadcastReceiver for ACTION_FOUND.
     private val receiver = object : BroadcastReceiver() {
 
         override fun onReceive(context: Context, intent: Intent) {
             val action: String? = intent.action
-            when(action) {
+            when (action) {
                 BluetoothDevice.ACTION_FOUND -> {
                     val device: BluetoothDevice? =
                         intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
@@ -1108,7 +1134,7 @@ if (anim.isRunning){
                     }
 
                     device?.name
-                    Log.d("Devices","${device?.name}")
+                    Log.d("Devices", "${device?.name}")
                     val deviceHardwareAddress = device?.address // MAC address
                 }
             }
@@ -1145,19 +1171,17 @@ if (anim.isRunning){
             createNewProject.show(supportFragmentManager, "create")
 
             return true
-        }
-        else if (item.itemId == R.id.action_view_projects) {
+        } else if (item.itemId == R.id.action_view_projects) {
 
             ViewProjects = true
             getProjects()
             return true
-        }
-        else if (item.itemId == R.id.bluetooth_spinner) {
+        } else if (item.itemId == R.id.bluetooth_spinner) {
             toggleWidgets()
             return true
 
         } else if (item.itemId == R.id.map_view) {
-discover()
+            discover()
 
             return true
         } else {
@@ -1166,25 +1190,27 @@ discover()
             super.onOptionsItemSelected(item)
         }
     }
-private fun discover(){
-    val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-    if (ActivityCompat.checkSelfPermission(
-            this,
-            Manifest.permission.BLUETOOTH_SCAN
-        ) != PackageManager.PERMISSION_GRANTED
-    ) {
-        // TODO: Consider calling
-        //    ActivityCompat#requestPermissions
-        // here to request the missing permissions, and then overriding
-        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-        //                                          int[] grantResults)
-        // to handle the case where the user grants the permission. See the documentation
-        // for ActivityCompat#requestPermissions for more details.
-        return
+
+    private fun discover() {
+        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.BLUETOOTH_SCAN
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return
+        }
+
+        bluetoothAdapter.startDiscovery()
     }
 
-    bluetoothAdapter.startDiscovery()
-}
     private fun showmap() {
 
 
@@ -1353,13 +1379,13 @@ private fun discover(){
             for (l in unmarkedCirclesList) {
                 l.remove()
             }
-            if(listOfPlantingLines.isNotEmpty()){
+            if (listOfPlantingLines.isNotEmpty()) {
                 listOfPlantingLines.clear()
             }
 
         }
 
-                progressBar.isVisible = true
+        progressBar.isVisible = true
 
         asyncExecutor.execute {
 
@@ -1403,7 +1429,7 @@ private fun discover(){
         }
 
 
-                progressBar.isVisible = false
+        progressBar.isVisible = false
 
 
     }
@@ -1435,11 +1461,11 @@ private fun discover(){
                 .show()
 
         } else {
-for(l in listOfPlantingLines){
-    l.width = 3f
-    l.isVisible = true
-   // handler2.removeMessages(0)
-}
+            for (l in listOfPlantingLines) {
+                l.width = 3f
+                l.isVisible = true
+                // handler2.removeMessages(0)
+            }
             val recentLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
             recentLine.color = Color.BLUE
             recentLine.isClickable = true
@@ -1540,7 +1566,7 @@ for(l in listOfPlantingLines){
 
         }
         listOfMarkedPoints
-        Log.d("Points"," plot line $listOfMarkedPoints")
+        Log.d("Points", " plot line $listOfMarkedPoints")
         var lastp: LatLng? = null
         handler.post {
             for (loc in line) {
@@ -1592,13 +1618,14 @@ for(l in listOfPlantingLines){
 
     private fun plotFunc() {
 
+        closestPointRadius.clear()
         if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
             return
         }
-Log.d("LoperPlot","${Thread().name}")
+        Log.d("LoperPlot", "${Thread().name}")
         var plantingRadius: Circle? = null
 
-        val roverPoint = currentLocation[currentLocation.lastIndex]
+        val roverPoint = fromRTKFeed
 
         val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
 
@@ -1612,6 +1639,7 @@ Log.d("LoperPlot","${Thread().name}")
 
         if (xloc != null) {
             val pt = LatLng(xloc.latDegrees(), xloc.lngDegrees())
+            closestPointRadius.add(pt)
             debugXloc = pt
             if (pt !in l) {
                 return
@@ -1650,7 +1678,7 @@ Log.d("LoperPlot","${Thread().name}")
 
 
         }
-        if(switchedLines){
+        if (switchedLines) {
             val runnableCode = object : Runnable {
                 override fun run() {
                     var w = lineOfInterest.width;
@@ -1673,6 +1701,7 @@ Log.d("LoperPlot","${Thread().name}")
         }
 
         if (plantingRadius != null) {
+            closestPointRadius.add(plantingRadius.radius.toFloat())
             handler2.removeMessages(0)
             if (templist.isNotEmpty()) {
                 for (c in templist) {
@@ -1685,122 +1714,84 @@ Log.d("LoperPlot","${Thread().name}")
             }
             plantingRadiusCircle = templist[templist.lastIndex]
             plantingMode = true
+            tempPlantingRadius = plantingRadius.radius.toFloat()
 
         }
 
     }
 
-    fun markPoint() {
+    fun markPoint(pointOfInterestOnPolyline: LatLng) {
 
         if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
             return
         }
         if (plantingMode) {
 
-            val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
+            //val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
 
-            val l = lineOfInterest.tag as MutableList<*>
+            //val l = lineOfInterest.tag as MutableList<*>
 
-            var pointOfInterestOnPolyline: LatLng? = null
+            Log.d("Loper", " markpoINT ${Thread().name}")
 
-            l.forEach { loc ->
-                loc as LatLng
-                if (loc == plantingRadiusCircle!!.center)
-                    pointOfInterestOnPolyline = loc
-            }
-            if (pointOfInterestOnPolyline == null) {
+            val markedCirclePoint = map?.addCircle(
+                CircleOptions().center(pointOfInterestOnPolyline)
+                    .fillColor(Color.YELLOW)
+                    .radius(0.5)
+                    .strokeWidth(1.0f)
+            )
+
+            if (markedCirclePoint!!.center in listOfMarkedPoints) {
                 return
             }
-            Log.d("Loper"," markpoINT ${Thread().name}")
-            if (currentLocation.isNotEmpty()) {
-                val cl = currentLocation[currentLocation.lastIndex]
 
-                val LocationOfPointOfInterestOnPolyline =
-                    Location(LocationManager.GPS_PROVIDER)
+            listOfMarkedPoints.add(markedCirclePoint.center)
+            listofmarkedcircles.add(markedCirclePoint)
+           // savePoints(markedCirclePoint)
 
-                LocationOfPointOfInterestOnPolyline.latitude =
-                    pointOfInterestOnPolyline!!.latitude
-                LocationOfPointOfInterestOnPolyline.longitude =
-                    pointOfInterestOnPolyline!!.longitude
+            /*if (listofmarkedcircles.isNotEmpty()) {
+                val last = listofmarkedcircles[listofmarkedcircles.lastIndex]
+                val color = last.fillColor
+                if (color != Color.YELLOW) {
+                    Toast.makeText(
+                        applicationContext,
+                        "Was not yellow",
+                        Toast.LENGTH_LONG
+                    ).show()
 
-                val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
-
-                locationOfRoverLatLng.latitude = cl.latitude
-                locationOfRoverLatLng.longitude = cl.longitude
-                var distance = 0.0F
-                distance =
-                    LocationOfPointOfInterestOnPolyline.distanceTo(locationOfRoverLatLng)
-                val delta = plantingRadiusCircle!!.radius / 2
-
-                if (distance < delta ) {
-//                    if(ll in listOfMarkedPoints){
-//                        map?.addMarker(MarkerOptions().position(ll))
-//
-//                    }
-
-                    val markedCirclePoint = map?.addCircle(
-                        CircleOptions().center(plantingRadiusCircle?.center!!)
+                    map?.addCircle(
+                        CircleOptions().center(markedCirclePoint.center)
                             .fillColor(Color.YELLOW)
                             .radius(0.5)
                             .strokeWidth(1.0f)
                     )
+                }
+            }*/
 
-                    if (markedCirclePoint!!.center in listOfMarkedPoints) {
-                        return
-                    }
+            if (markedCirclePoint.center == plantingRadiusCircle?.center) {
 
-                    listOfMarkedPoints.add(markedCirclePoint.center)
-                    listofmarkedcircles.add(markedCirclePoint)
-                    savePoints(markedCirclePoint)
+                plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
 
-                    if (listofmarkedcircles.isNotEmpty()) {
-                        val last = listofmarkedcircles[listofmarkedcircles.lastIndex]
-                        val color = last.fillColor
-                        if (color != Color.YELLOW) {
-                            Toast.makeText(
-                                applicationContext,
-                                "Was not yellow",
-                                Toast.LENGTH_LONG
-                            ).show()
-
-                            map?.addCircle(
-                                CircleOptions().center(markedCirclePoint.center)
-                                    .fillColor(Color.YELLOW)
-                                    .radius(0.5)
-                                    .strokeWidth(1.0f)
-                            )
-                        }
-                    }
-
-                    if (markedCirclePoint.center == plantingRadiusCircle?.center) {
-
-                        plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
-
-                        if (markers != null) {
-                            markers!!.remove()
-
-                        }
-
-                        if (tempListMarker.isNotEmpty()) {
-                            tempListMarker.clear()
-                        }
-
-
-                    } else {
-                        Toast.makeText(
-                            applicationContext, "ERROR " +
-                                    "", Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                    if (templist.isNotEmpty()) {
-                        templist.clear()
-                    }
-                    if (tempClosestPoint.isNotEmpty()) {
-                        tempClosestPoint.clear()
-                    }
-
+                if (markers != null) {
+                    markers!!.remove()
 
                 }
+
+                if (tempListMarker.isNotEmpty()) {
+                    tempListMarker.clear()
+                }
+
+
+            } else {
+                Toast.makeText(
+                    applicationContext, "ERROR " +
+                            "", Toast.LENGTH_SHORT
+                ).show()
+            }
+            if (templist.isNotEmpty()) {
+                templist.clear()
+            }
+            if (tempClosestPoint.isNotEmpty()) {
+                tempClosestPoint.clear()
             }
         }
     }
@@ -1959,7 +1950,7 @@ Log.d("LoperPlot","${Thread().name}")
 
                             listOfMarkedPoints.add(markedCirclePoint.center)
                             listofmarkedcircles.add(markedCirclePoint)
-                            savePoints(markedCirclePoint)
+                           // savePoints(markedCirclePoint)
 
                             if (listofmarkedcircles.isNotEmpty()) {
                                 val last = listofmarkedcircles[listofmarkedcircles.lastIndex]
@@ -2012,7 +2003,7 @@ Log.d("LoperPlot","${Thread().name}")
                     }
                 } catch (e: Exception) {
                     Toast.makeText(
-                        applicationContext, "Can't find point to mark {$e.message}"  +
+                        applicationContext, "Can't find point to mark {$e.message}" +
                                 "", Toast.LENGTH_SHORT
                     ).show()
                 }
@@ -2052,7 +2043,11 @@ Log.d("LoperPlot","${Thread().name}")
         val ProjectID = ProjectIDString!!.toInt()
 
         if (ProjectID == 0) {
-          Toast.makeText(applicationContext,"You did not create a project!! \n create one and continue",Toast.LENGTH_LONG).show()
+            Toast.makeText(
+                applicationContext,
+                "You did not create a project!! \n create one and continue",
+                Toast.LENGTH_LONG
+            ).show()
             return
         }
 
@@ -2144,9 +2139,9 @@ Log.d("LoperPlot","${Thread().name}")
                                 applicationContext, "Point Marked " +
                                         "", Toast.LENGTH_SHORT
                             ).show()
-                            Log.d("Loper", Thread().name +"savedb")
+                            Log.d("Loper", Thread().name + "savedb")
                             // convert to S2 and remove it from queryset
-                            var set =  lineInS2Format
+                            var set = lineInS2Format
                             val point = S2LatLng.fromDegrees(lat, lng)
                             val pointData = PointData(point.toPoint(), point)
                             lineInS2Format.remove(pointData)
@@ -2242,6 +2237,7 @@ Log.d("LoperPlot","${Thread().name}")
             render(markers!!, window)
             return window
         }
+
         private fun render(marker: Marker, view: View) {
 
             // Set the title and snippet for the custom info window
