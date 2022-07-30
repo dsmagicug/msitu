@@ -32,6 +32,8 @@ import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.lifecycleScope
+import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
 import com.dsmagic.kibira.services.*
 import com.dsmagic.kibira.utils.GeneralHelper
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -45,6 +47,9 @@ import dilivia.s2.index.point.PointData
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -120,6 +125,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var card: androidx.cardview.widget.CardView
     lateinit var left: TextView
     lateinit var right: TextView
+    lateinit var ahead: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -135,6 +141,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         card = findViewById<CardView>(R.id.cardView2)
         left = findViewById(R.id.strayingLeft)
+        ahead = findViewById(R.id.ahead)
+        right = findViewById(R.id.strayingRight)
 
         card.setOnClickListener {
             stopBlink()
@@ -431,39 +439,30 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         val retrofitGetPointsObject = AppModule.retrofitInstance()
         val modal = RequestPoints(id, userID)
 
-        val retrofitData = retrofitGetPointsObject.retrievePoints(modal)
-        retrofitData.enqueue(object : Callback<ResponsePoints?> {
-            override fun onResponse(
-                call: Call<ResponsePoints?>,
-                response: Response<ResponsePoints?>
-            ) {
-                if (response.isSuccessful) {
-                    if (response.body()!!.message == "Success") {
-                        Log.d("results", "$response")
-                        val result = response.body()!!.results
-                        if (result.isNotEmpty()) {
-                            for (r in result) {
-                                val point = LatLng(r.Lat.toDouble(), r.Long.toDouble())
+        GlobalScope.launch(Dispatchers.IO){
 
-                                listOfMarkedPoints.add(point)
-                            }
+            val retrofitData = retrofitGetPointsObject.retrievePoints(modal)
+            if (retrofitData.isSuccessful) {
+                if (retrofitData.body()!!.message == "Success") {
 
-                        } else {
-                            listOfMarkedPoints.clear()
+                    val result = retrofitData.body()!!.results
+                    if (result.isNotEmpty()) {
+                        for (r in result) {
+                            val point = LatLng(r.Lat.toDouble(), r.Long.toDouble())
+
+                            listOfMarkedPoints.add(point)
                         }
 
-                        Log.d("points", "$listOfMarkedPoints")
+                    } else {
+                        listOfMarkedPoints.clear()
                     }
-                } else {
-                    alertfail("Could not retrieve points at this time!")
+
+                    Log.d("points", "${Thread().name}")
                 }
+            } else {
+                alertfail("Could not retrieve points at this time!")
             }
-
-            override fun onFailure(call: Call<ResponsePoints?>, t: Throwable) {
-                Log.d("points", "Can't retrieve points at this time")
-            }
-        })
-
+        }
     }
 
     private var pressedTime: Long = 0
@@ -478,7 +477,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         pressedTime = System.currentTimeMillis()
     }
 
-    fun getProjects(): ArrayList<String> {
+     fun getProjects(): ArrayList<String> {
 
         val sharedPreferences: SharedPreferences = this.getSharedPreferences(
             CreateProjectDialog().sharedPrefFile,
@@ -486,45 +485,38 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         )!!
         val apiToken: String? = sharedPreferences.getString("apiToken_key", "defaultValue")
 
-        val retrofitDataObject = ServiceInterceptor("Bearer", apiToken!!).httpClient(apiToken)
-        val retrofitData = retrofitDataObject.getProjectsList(apiToken)
-        retrofitData.enqueue(object : Callback<List<ResponseProjectsDataClass>?> {
-            override fun onResponse(
-                call: Call<List<ResponseProjectsDataClass>?>,
-                response: Response<List<ResponseProjectsDataClass>?>
-            ) {
-                val responseBody = response.body()
+        GlobalScope.launch(Dispatchers.IO){
+            val retrofitDataObject = ServiceInterceptor("Bearer", apiToken!!).httpClient(apiToken)
+            val retrofitData = retrofitDataObject.getProjectsList(apiToken)
 
-                if (responseBody != null) {
-                    //Crude: clear the lists to avoid duplicates
-                    // or! Make name unique, and check its existance before adding i to list to avoid duplicates.
-                    projectList.clear()
-                    projectIDList.clear()
-                    projectMeshSizeList.clear()
-                    projectSizeList.clear()
-                    for (data in responseBody) {
-                        projectList.add(data.name)
-                        projectIDList.add(data.id)
-                        projectMeshSizeList.add(data.mesh_size)
-                        projectSizeList.add(data.gap_size)
-                    }
-                    if (ViewProjects) {
-                        displayProjects(
+            if (retrofitData.isSuccessful) {
+                //Crude: clear the lists to avoid duplicates
+                // or! Make name unique, and check its existance before adding i to list to avoid duplicates.
+                projectList.clear()
+                projectIDList.clear()
+                projectMeshSizeList.clear()
+                projectSizeList.clear()
 
-                        )
-                    }
-
-                    Log.d("Projects", "$projectList")
-
-                } else {
-                    alertfail("No response got from server")
+                for (data in retrofitData.body()!!) {
+                    projectList.add(data.name)
+                    projectIDList.add(data.id)
+                    projectMeshSizeList.add(data.mesh_size)
+                    projectSizeList.add(data.gap_size)
                 }
+                if (ViewProjects) {
+                    displayProjects(
+
+                    )
+                }
+
+                Log.d("Projects", "$projectList")
+
+            } else {
+                alertfail("No response got from server")
             }
 
-            override fun onFailure(call: Call<List<ResponseProjectsDataClass>?>, t: Throwable) {
-                Log.d("error", "${t.message}")
-            }
-        })
+        }
+
         return projectList
     }
 
@@ -541,111 +533,113 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         } else {
             l = larray
         }
+        runOnUiThread {
 
-        AlertDialog.Builder(this)
-            .setTitle("Projects")
-            .setSingleChoiceItems(l, checkedItemIndex,
-                DialogInterface.OnClickListener { dialog, which ->
-                    checkedItemIndex = which
-                    selectedProject = larray[which]
-                })
-            .setNegativeButton("Delete",
-                DialogInterface.OnClickListener { dialog, id ->
-                    for (j in larray) {
-                        if (j == selectedProject) {
-                            val index = larray.indexOf(j)
-                            val id = projectIDList[index]
-
-                            DeleteAlert(
-                                "\nProject '$selectedProject' $id  will be deleted permanently.\n\nAre you sure?",
-                                id
-                            )
-                        }
-
-                    }
-
-
-                })
-            .setNeutralButton("More..",
-                DialogInterface.OnClickListener { dialog, id ->
-
-                    AlertDialog.Builder(this)
-                        .setTitle("All Projects")
-                        // .setMessage(s)
-                        .setSingleChoiceItems(larray, checkedItemIndex,
-                            DialogInterface.OnClickListener { dialog, which ->
-                                checkedItemIndex = which
-                                selectedProject = larray[which]
-                            })
-                        .setNegativeButton("Delete",
-                            DialogInterface.OnClickListener { dialog, id ->
-                                for (j in larray) {
-                                    if (j == selectedProject) {
-                                        val index = larray.indexOf(j)
-                                        val id = projectIDList[index]
-
-                                        DeleteAlert(
-                                            "\nProject '$selectedProject' $id will be deleted permanently.\n\nAre you sure?",
-                                            id
-                                        )
-                                    }
-
-                                }
-
-
-                            })
-                        .setPositiveButton("Open",
-
-                            DialogInterface.OnClickListener { dialog, id ->
-
-                                if (selectedProject == "") {
-
-                                } else {
-                                    for (j in larray) {
-                                        if (j == selectedProject) {
-                                            val index = larray.indexOf(j)
-                                            val id = projectIDList[index]
-                                            var gap_size = projectSizeList[index]
-                                            var mesh_size = projectMeshSizeList[index]
-                                            getPoints(id)
-                                            loadProject(id, mesh_size, gap_size)
-                                        }
-
-                                    }
-
-
-                                }
-
-                            })
-
-                        .show()
-
-                })
-            .setPositiveButton("Open",
-
-                DialogInterface.OnClickListener { dialog, id ->
-
-                    if (selectedProject == "") {
-
-                    } else {
-                        for (j in l) {
+            AlertDialog.Builder(this)
+                .setTitle("Projects")
+                .setSingleChoiceItems(l, checkedItemIndex,
+                    DialogInterface.OnClickListener { dialog, which ->
+                        checkedItemIndex = which
+                        selectedProject = larray[which]
+                    })
+                .setNegativeButton("Delete",
+                    DialogInterface.OnClickListener { dialog, id ->
+                        for (j in larray) {
                             if (j == selectedProject) {
-                                val index = l.indexOf(j)
+                                val index = larray.indexOf(j)
                                 val id = projectIDList[index]
-                                var gap_size = projectSizeList[index]
-                                var mesh_size = projectMeshSizeList[index]
-                                getPoints(id)
-                                loadProject(id, mesh_size, gap_size)
+
+                                DeleteAlert(
+                                    "\nProject '$selectedProject' $id  will be deleted permanently.\n\nAre you sure?",
+                                    id
+                                )
                             }
 
                         }
 
 
-                    }
+                    })
+                .setNeutralButton("More..",
+                    DialogInterface.OnClickListener { dialog, id ->
 
-                })
+                        AlertDialog.Builder(this)
+                            .setTitle("All Projects")
+                            // .setMessage(s)
+                            .setSingleChoiceItems(larray, checkedItemIndex,
+                                DialogInterface.OnClickListener { dialog, which ->
+                                    checkedItemIndex = which
+                                    selectedProject = larray[which]
+                                })
+                            .setNegativeButton("Delete",
+                                DialogInterface.OnClickListener { dialog, id ->
+                                    for (j in larray) {
+                                        if (j == selectedProject) {
+                                            val index = larray.indexOf(j)
+                                            val id = projectIDList[index]
 
-            .show()
+                                            DeleteAlert(
+                                                "\nProject '$selectedProject' $id will be deleted permanently.\n\nAre you sure?",
+                                                id
+                                            )
+                                        }
+
+                                    }
+
+
+                                })
+                            .setPositiveButton("Open",
+
+                                DialogInterface.OnClickListener { dialog, id ->
+
+                                    if (selectedProject == "") {
+
+                                    } else {
+                                        for (j in larray) {
+                                            if (j == selectedProject) {
+                                                val index = larray.indexOf(j)
+                                                val id = projectIDList[index]
+                                                var gap_size = projectSizeList[index]
+                                                var mesh_size = projectMeshSizeList[index]
+                                                 getPoints(id)
+                                                loadProject(id, mesh_size, gap_size)
+                                            }
+
+                                        }
+
+
+                                    }
+
+                                })
+
+                            .show()
+
+                    })
+                .setPositiveButton("Open",
+
+                    DialogInterface.OnClickListener { dialog, id ->
+
+                        if (selectedProject == "") {
+
+                        } else {
+                            for (j in l) {
+                                if (j == selectedProject) {
+                                    val index = l.indexOf(j)
+                                    val id = projectIDList[index]
+                                    var gap_size = projectSizeList[index]
+                                    var mesh_size = projectMeshSizeList[index]
+                                    getPoints(id)
+                                    loadProject(id, mesh_size, gap_size)
+                                }
+
+                            }
+
+
+                        }
+
+                    })
+
+                .show()
+        }
     }
 
 
@@ -657,22 +651,20 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     "", Toast.LENGTH_LONG
         ).show()
 
-        val retrofitGetPointsObject = AppModule.retrofitInstance()
 
-        val modal = RequestBasePointsDataClass(ProjectID)
+        GlobalScope.launch(Dispatchers.IO){
+            val retrofitGetPointsObject = AppModule.retrofitInstance()
 
-        val retrofitData = retrofitGetPointsObject.retrieveBasePoints(modal)
+            val modal = RequestBasePointsDataClass(ProjectID)
 
-        retrofitData.enqueue(object : Callback<RetrieveBasePointsDataClass?> {
-            override fun onResponse(
-                call: Call<RetrieveBasePointsDataClass?>,
-                response: Response<RetrieveBasePointsDataClass?>
-            ) {
-                if (response.isSuccessful) {
-                    if (response.body() != null) {
-                        val results = response.body()!!.points
-                        if (results.isNotEmpty()) {
+            val retrofitData = retrofitGetPointsObject.retrieveBasePoints(modal)
+            if(retrofitData.isSuccessful) {
+                if (retrofitData.body() != null) {
+                    val results = retrofitData.body()!!.points
+                    if (results.isNotEmpty()) {
+                        runOnUiThread {
                             displayProjectName?.text = selectedProject
+
                             Log.d("results", "$results")
                             val l = results[0]
                             val y = results[1]
@@ -684,6 +676,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                             clearFragment = true
 //
                             plotMesh(firstPoint, secondPoint)
+                        }
 
 
                         } else {
@@ -693,24 +686,16 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                                 ProjectID
                             )
                         }
-
-
                     }
                 } else {
 
                     Log.d("results", "Failed")
 
                 }
+
             }
+        }
 
-
-            override fun onFailure(call: Call<RetrieveBasePointsDataClass?>, t: Throwable) {
-                alertfail("Could not load the project. It could be empty")
-            }
-        })
-
-
-    }
 
     fun alertfail(S: String) {
         AlertDialog.Builder(this)
@@ -878,7 +863,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     var polyline1: Polyline? = null
     var refPoint: LatLng? = null
     var distance = 0.0f
-    var latLng: LatLng? = null
+     var  latLng: LatLng? = null
 
 
     private fun distanceToPoint(loc: LatLng) {
@@ -888,6 +873,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             var displayedPoints = findViewById<TextView>(R.id.numberOfPoints)
             displayedDistance.text = ""
             displayedPoints.text = " "
+            var position:String = ""
 
             try {
                 val locationOfNextPoint = Location(LocationManager.GPS_PROVIDER)
@@ -956,6 +942,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     }
 
                 }
+                //lifecycleScope.launch(Dispatchers.IO){
+                    position = LocationDependantFunctions().getBearing(locationOfNextPoint,locationOfRoverLatLng)
+var s = 6
+                //}
                 displayedDistance.text = distance.toString()
                 displayedPoints.text = size.toString()
 
@@ -963,13 +953,16 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     MarkerOptions().position(latLng!!)
                         .title("Point Stats!")
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
-                        .snippet("Marked Points : $size" + "\nDistance : $distance (m)")
+                       // .snippet("Marked Points : $size" + "\nDistance : $distance (m)")
                 )
 
-                polyline1!!.endCap = CustomCap(
-                    BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
-                )
-                if (distance > (Geoggapsize!! + 1)) {
+
+                distance
+                Geoggapsize
+
+                if (distance > (Geoggapsize!!)) {
+                    var s =7
+
                     polyline1 = map?.addPolyline(
                         PolylineOptions()
                             .color(Color.BLACK)
@@ -982,25 +975,25 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                                 LatLng(latLng!!.latitude, latLng!!.longitude), //nextPoint
                             )
                     )
-                    blink("Red")
+                    polyline1!!.endCap = CustomCap(
+                        BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
+                    )
+
+                    blink("Red",position)
                     showLine(line)
 
                     //  showLine()
-                } else {
+                }
+
+                else {
                     //polyline1?.remove()
                     stopBlink()
                 }
 
-                markers!!.showInfoWindow()
-                for (x in unmarkedCirclesList) {
-                    if (x.center == latLng) {
-                        x.isVisible = true
-                    } else {
-                        return
-                        //Toast.makeText(this, "point not drawn", Toast.LENGTH_SHORT).show()
-                    }
-                }
+               // markers!!.showInfoWindow()
+
                 tempListMarker.add(markers!!)
+
             } catch (e: Exception) {
                 Log.d("ERROR", "frOM SWITCHING ${e.message}")
             }
@@ -1012,9 +1005,11 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     }
 
     lateinit var anim: ObjectAnimator
-    fun blink(c: String) {
-        val n = c
+    fun blink(color: String,p:String) {
+        val n = color
+        val textViewToBlink = p
         var animationColor: Int = 0
+        lateinit var textViewToBlinkValue:TextView
         when (n) {
             "Green" -> {
                 animationColor = Color.GREEN
@@ -1031,8 +1026,19 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
             }
         }
+        when(textViewToBlink){
+            "Left" ->{
+                textViewToBlinkValue = left
+            }
+            "Right" -> {
+                textViewToBlinkValue = right
+            }
+            "Straight"->{
+                textViewToBlinkValue = ahead
+            }
+        }
         anim = ObjectAnimator.ofInt(
-            left,
+            textViewToBlinkValue,
             "backgroundColor", animationColor, Color.WHITE, animationColor, Color.GRAY
         )
         anim.duration = 1500;
@@ -1746,7 +1752,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
             listOfMarkedPoints.add(markedCirclePoint.center)
             listofmarkedcircles.add(markedCirclePoint)
-           // savePoints(markedCirclePoint)
+            savePoints(markedCirclePoint)
 
             /*if (listofmarkedcircles.isNotEmpty()) {
                 val last = listofmarkedcircles[listofmarkedcircles.lastIndex]
@@ -2121,49 +2127,41 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         val userID = userIDString!!.toInt()
         val ProjectID = ProjectIDString!!.toInt()
 
-        val modal = savePointsDataClass(lat, lng, ProjectID, userID)
-        val retrofitDataObject = AppModule.retrofitInstance()
 
-        val retrofitData = retrofitDataObject.storePoints(modal)
+        GlobalScope.launch(Dispatchers.IO){
+            val modal = savePointsDataClass(lat, lng, ProjectID, userID)
+            val retrofitDataObject = AppModule.retrofitInstance()
 
-        retrofitData.enqueue(object : Callback<savePointsResponse?> {
-            override fun onResponse(
-                call: Call<savePointsResponse?>,
-                response: Response<savePointsResponse?>
-            ) {
-                if (response.isSuccessful) {
-                    if (response.body() != null) {
-                        if (response.body()!!.message == "success") {
+            val retrofitData = retrofitDataObject.storePoints(modal)
+            if (retrofitData.isSuccessful) {
+                if (retrofitData.body() != null) {
+                    if (retrofitData.body()!!.message == "success") {
+runOnUiThread{
+    Toast.makeText(
+        applicationContext, "Point Marked " +
+                "", Toast.LENGTH_SHORT
+    ).show()
+}
 
-                            Toast.makeText(
-                                applicationContext, "Point Marked " +
-                                        "", Toast.LENGTH_SHORT
-                            ).show()
-                            Log.d("Loper", Thread().name + "savedb")
-                            // convert to S2 and remove it from queryset
-                            var set = lineInS2Format
-                            val point = S2LatLng.fromDegrees(lat, lng)
-                            val pointData = PointData(point.toPoint(), point)
-                            lineInS2Format.remove(pointData)
-                            var s = lineInS2Format
+                        Log.d("Loper", Thread().name + "savedb")
+                        // convert to S2 and remove it from queryset
+                        var set = lineInS2Format
+                        val point = S2LatLng.fromDegrees(lat, lng)
+                        val pointData = PointData(point.toPoint(), point)
+                        lineInS2Format.remove(pointData)
+                        var s = lineInS2Format
 
-                        } else {
-                            Toast.makeText(
-                                applicationContext, "Something Went wrong!! " +
-                                        "", Toast.LENGTH_SHORT
-                            ).show()
-                        }
+                    } else {
+                        Toast.makeText(
+                            applicationContext, "Something Went wrong!! " +
+                                    "", Toast.LENGTH_SHORT
+                        ).show()
                     }
-                } else {
-                    alertfail("Not saved!")
                 }
+            } else {
+                alertfail("Not saved!")
             }
-
-            override fun onFailure(call: Call<savePointsResponse?>, t: Throwable) {
-                alertfail("Point not saved! ${t.message}")
-            }
-        })
-
+        }
 
     }
 

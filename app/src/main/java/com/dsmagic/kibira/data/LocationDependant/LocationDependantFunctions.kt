@@ -2,6 +2,7 @@ package com.dsmagic.kibira.data.LocationDependant
 
 import android.graphics.Color
 import android.location.Location
+import android.location.LocationManager
 import android.os.Looper
 import com.dsmagic.kibira.Geoggapsize
 import com.dsmagic.kibira.MainActivity
@@ -23,5 +24,18 @@ class LocationDependantFunctions {
 var plotfuncLooper = Looper.getMainLooper()
 
          }
+    }
+
+    fun getBearing(roverPoint:Location, nextPoint:Location):String{
+        var position:String
+
+        val bearing = roverPoint.bearingTo(nextPoint)
+
+        if(bearing > 0 ){
+            position = "Left"
+        }else{
+            position = "Right"
+        }
+return position
     }
 }

@@ -1,6 +1,7 @@
 package com.dsmagic.kibira.services
 
 import retrofit2.Call
+import retrofit2.Response
 import retrofit2.http.*
 
 
@@ -23,19 +24,19 @@ interface apiInterface {
  //UserProjects
 
  @GET("myProjects")
- fun getProjectsList(@Header("Token" ) ApiToken:String):Call<List<ResponseProjectsDataClass>>
+ suspend fun getProjectsList(@Header("Token" ) ApiToken:String): Response<List<ResponseProjectsDataClass>>
 
- @POST("savePoints")
- fun storePoints( @Body dataModal: savePointsDataClass ):Call<savePointsResponse>
+    @POST("savePoints")
+ suspend fun storePoints( @Body dataModal: savePointsDataClass ):Response<savePointsResponse>
 
     @POST("savebasepoints")
     fun storeBasePoints( @Body dataModal: SaveBasePointsClass ):Call<SaveBasePointsResponse>
 
  @POST("points")
- fun retrievePoints(@Body dataModal: RequestPoints):Call<ResponsePoints>
+ suspend fun retrievePoints(@Body dataModal: RequestPoints):Response<ResponsePoints>
 
     @POST("getBasepoints")
- fun retrieveBasePoints(@Body dataClass: RequestBasePointsDataClass):Call<RetrieveBasePointsDataClass>
+ suspend fun retrieveBasePoints(@Body dataClass: RequestBasePointsDataClass):Response<RetrieveBasePointsDataClass>
 
  @POST("deleteProject")
  fun deleteProject(@Body dataClass: deleteProjectDataClass):Call<deleteProjectResponse>

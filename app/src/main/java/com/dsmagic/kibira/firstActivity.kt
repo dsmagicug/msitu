@@ -11,7 +11,6 @@ import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
-import androidx.core.view.get
 import androidx.fragment.app.DialogFragment
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
@@ -31,54 +30,55 @@ var projectMeshSizeList = mutableListOf<Int>()
 
 class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
 
-    fun getProjects():ArrayList<String> {
-
-        val sharedPreferences: SharedPreferences = activity?.getSharedPreferences(
-            CreateProjectDialog().sharedPrefFile,
-            Context.MODE_PRIVATE
-        )!!
-        val apiToken: String? = sharedPreferences.getString("apiToken_key", "defaultValue")
-
-        val retrofitDataObject = ServiceInterceptor("Bearer", apiToken!!).httpClient(apiToken)
-        val retrofitData = retrofitDataObject.getProjectsList(apiToken)
-        retrofitData.enqueue(object : Callback<List<ResponseProjectsDataClass>?> {
-            override fun onResponse(
-                call: Call<List<ResponseProjectsDataClass>?>,
-                response: Response<List<ResponseProjectsDataClass>?>
-            ) {
-                val responseBody = response.body()
-
-                if (responseBody != null) {
-                    //Crude: clear the lists to avoid duplicates
-                    // or! Make name unique, and check its existance before adding i to list to avoid duplicates.
-                    projectList.clear()
-                    projectIDList.clear()
-                    projectMeshSizeList.clear()
-                    projectSizeList.clear()
-                    for (data in responseBody) {
-                        projectList.add(data.name)
-                        projectIDList.add(data.id)
-                        projectMeshSizeList.add(data.mesh_size)
-                        projectSizeList.add(data.gap_size)
-                    }
-
-                    Log.d("Projects", "$projectList")
-
-                } else {
-                    firstActivity().alertfail("No response got from server")
-                }
-            }
-
-            override fun onFailure(call: Call<List<ResponseProjectsDataClass>?>, t: Throwable) {
-                Log.d("error", "${t.message}")
-            }
-        })
-        return projectList
-    }
+//    fun getProjects():ArrayList<String> {
+//
+//        val sharedPreferences: SharedPreferences = activity?.getSharedPreferences(
+//            CreateProjectDialog().sharedPrefFile,
+//            Context.MODE_PRIVATE
+//        )!!
+//        val apiToken: String? = sharedPreferences.getString("apiToken_key", "defaultValue")
+//
+//        val retrofitDataObject = ServiceInterceptor("Bearer", apiToken!!).httpClient(apiToken)
+//        val retrofitData = retrofitDataObject.getProjectsList(apiToken)
+//        retrofitData.enqueue(object : Callback<List<ResponseProjectsDataClass>?> {
+//            override fun onResponse(
+//                call: Call<List<ResponseProjectsDataClass>?>,
+//                response: Response<List<ResponseProjectsDataClass>?>
+//            ) {
+//                val responseBody = response.body()
+//
+//                if (responseBody != null) {
+//                    //Crude: clear the lists to avoid duplicates
+//                    // or! Make name unique, and check its existance before adding i to list to avoid duplicates.
+//                    projectList.clear()
+//                    projectIDList.clear()
+//                    projectMeshSizeList.clear()
+//                    projectSizeList.clear()
+//                    for (data in responseBody) {
+//                        projectList.add(data.name)
+//                        projectIDList.add(data.id)
+//                        projectMeshSizeList.add(data.mesh_size)
+//                        projectSizeList.add(data.gap_size)
+//                    }
+//
+//                    Log.d("Projects", "$projectList")
+//
+//                } else {
+//                    firstActivity().alertfail("No response got from server")
+//                }
+//            }
+//
+//            override fun onFailure(call: Call<List<ResponseProjectsDataClass>?>, t: Throwable) {
+//                Log.d("error", "${t.message}")
+//            }
+//        })
+//        return projectList
+//    }
     var gapsize_units: Array<String>? = null
     @SuppressLint("SetTextI18n")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val projects =  getProjects()
+       // val projects =  getProjects()
+       val projects = ArrayList<String>()
 
         return activity?.let {
 

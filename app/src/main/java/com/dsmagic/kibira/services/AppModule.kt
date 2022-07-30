@@ -22,7 +22,7 @@ object AppModule {
 
     }
 
-    fun g(){
+  /*  fun g(){
         // Define the interceptor, add authentication headers
         val interceptor = Interceptor { chain ->
             val newRequest: Request =
@@ -39,5 +39,5 @@ object AppModule {
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()
-    }
+    }*/
 }
