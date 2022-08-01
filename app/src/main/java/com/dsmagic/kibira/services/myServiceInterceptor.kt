@@ -17,9 +17,7 @@ class ServiceInterceptor constructor(
         var request = chain.request()
         request = request.newBuilder().header("Authorization", "$tokenType $sessionToken")
             .build()
-        return chain.proceed(request)
-
-
+               return chain.proceed(request)
     }
 
 

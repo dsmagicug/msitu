@@ -17,6 +17,7 @@ import android.hardware.SensorManager
 import android.location.Location
 import android.location.Location.distanceBetween
 import android.location.LocationManager
+import android.net.ConnectivityManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -24,7 +25,6 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.animation.Animation
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -32,10 +32,12 @@ import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.lifecycle.lifecycleScope
+import androidx.datastore.dataStore
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
 import com.dsmagic.kibira.services.*
 import com.dsmagic.kibira.utils.GeneralHelper
+import com.dsmagic.kibira.utils.pointsDataClass
+import com.dsmagic.kibira.utils.pointsDataserializer
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -43,13 +45,16 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dilivia.s2.S2LatLng
+import dilivia.s2.S2LatLng.Companion.center
 import dilivia.s2.index.point.PointData
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.collections.immutable.mutate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -58,7 +63,7 @@ import java.util.concurrent.Executors
 import kotlin.math.sqrt
 import kotlin.properties.Delegates
 
-
+val Context.dataStore by dataStore("pointsFile",pointsDataserializer)
 open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     View.OnClickListener {
     var deviceList = ArrayList<BluetoothDevice>()
@@ -86,6 +91,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     var closestPointRadius = ArrayList<Any>()
     var tempPlantingRadius by Delegates.notNull<Float>()
+   var internetAvailable:Boolean = false
 
     lateinit var lineInS2FormatforSwitch: S2PointIndex<S2LatLng>
     lateinit var lineInS2Format: S2PointIndex<S2LatLng>
@@ -135,7 +141,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         setSupportActionBar(findViewById(R.id.appToolbar))
         supportActionBar?.setDisplayShowTitleEnabled(false)
-
         val displayProjectName: TextView? = findViewById(R.id.display_project_name)
         txt = findViewById<TextView>(R.id.myTextView);
 
@@ -144,6 +149,9 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         ahead = findViewById(R.id.ahead)
         right = findViewById(R.id.strayingRight)
 
+        save.setOnClickListener{
+            savePoints(listOfMarkedPoints)
+        }
         card.setOnClickListener {
             stopBlink()
         }
@@ -421,6 +429,32 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             }
         }
 
+    }
+
+    fun locallySavePoints(circle:Circle) {
+        GlobalScope.launch(Dispatchers.Main) {
+            dataStore.updateData { it ->
+                val coords = circle.center
+                val lat = coords.latitude
+                val lng = coords.longitude
+
+it.copy(listOfPoints = it.listOfPoints.mutate {
+    it.add(com.dsmagic.kibira.utils.Location(lat,lng))
+})
+       // it.copy(listOfPoints = it.listOfPoint.s.add(com.dsmagic.kibira.utils.Location(lat,lng)))
+
+            }
+            var d = dataStore.data
+        }
+
+    }
+    private fun CheckConnectivity(): Boolean {
+        val connectivity =
+            this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val wifiConnection = connectivity.getNetworkInfo(ConnectivityManager.TYPE_WIFI)
+        val mobileConnection = connectivity.getNetworkInfo(ConnectivityManager.TYPE_MOBILE)
+
+        return wifiConnection!!.isConnected || mobileConnection!!.isConnected
     }
 
     private fun getPoints(id: Int) {
@@ -944,24 +978,21 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 }
                 //lifecycleScope.launch(Dispatchers.IO){
                     position = LocationDependantFunctions().getBearing(locationOfNextPoint,locationOfRoverLatLng)
-var s = 6
+
                 //}
                 displayedDistance.text = distance.toString()
                 displayedPoints.text = size.toString()
 
                 markers = map?.addMarker(
                     MarkerOptions().position(latLng!!)
-                        .title("Point Stats!")
+                        .title("Plant here")
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
+                        .flat(true)
                        // .snippet("Marked Points : $size" + "\nDistance : $distance (m)")
                 )
 
 
-                distance
-                Geoggapsize
-
                 if (distance > (Geoggapsize!!)) {
-                    var s =7
 
                     polyline1 = map?.addPolyline(
                         PolylineOptions()
@@ -982,11 +1013,10 @@ var s = 6
                     blink("Red",position)
                     showLine(line)
 
-                    //  showLine()
                 }
 
                 else {
-                    //polyline1?.remove()
+                    polyline1?.remove()
                     stopBlink()
                 }
 
@@ -1041,19 +1071,11 @@ var s = 6
             textViewToBlinkValue,
             "backgroundColor", animationColor, Color.WHITE, animationColor, Color.GRAY
         )
-        anim.duration = 1500;
+        anim.duration = 1500
         anim.setEvaluator(ArgbEvaluator())
-        anim.repeatMode = ValueAnimator.RESTART;
-        anim.repeatCount = Animation.INFINITE;
+        anim.repeatMode = ValueAnimator.RESTART
+        anim.repeatCount = 4
         anim.start()
-
-//        anim = ObjectAnimator.ofInt(right,
-//            "backgroundColor",animationColor,Color.WHITE,animationColor,Color.GRAY)
-//        anim.duration = 1500;
-//        anim.setEvaluator(ArgbEvaluator())
-//        anim.repeatMode = ValueAnimator.RESTART;
-//        anim.repeatCount = Animation.INFINITE;
-//        anim.start()
 
     }
 
@@ -1752,7 +1774,14 @@ var s = 6
 
             listOfMarkedPoints.add(markedCirclePoint.center)
             listofmarkedcircles.add(markedCirclePoint)
-            savePoints(markedCirclePoint)
+
+            if(listOfMarkedPoints.add(markedCirclePoint.center)){
+                Toast.makeText(
+                    this,"Point Marked",Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            //savePoints(markedCirclePoint)
 
             /*if (listofmarkedcircles.isNotEmpty()) {
                 val last = listofmarkedcircles[listofmarkedcircles.lastIndex]
@@ -1949,13 +1978,22 @@ var s = 6
                                     .strokeWidth(1.0f)
                             )
 
-                            // point is already marked, so ignore it
-                            if (markedCirclePoint!!.center in listOfMarkedPoints) {
-                                return
+                            // point is already marked, yhen unmark it
+                            if(markedCirclePoint?.center in listOfMarkedPoints){
+                                listOfMarkedPoints.remove(markedCirclePoint!!.center)
+                                map?.addCircle(
+                                    CircleOptions().center(markedCirclePoint.center)
+                                        .fillColor(Color.RED)
+                                        .radius(0.5)
+                                        .strokeWidth(1.0f)
+                                )
+
+                                Toast.makeText(applicationContext,"Point unMarked",Toast.LENGTH_SHORT).show()
                             }
 
-                            listOfMarkedPoints.add(markedCirclePoint.center)
+                            listOfMarkedPoints.add(markedCirclePoint!!.center)
                             listofmarkedcircles.add(markedCirclePoint)
+
                            // savePoints(markedCirclePoint)
 
                             if (listofmarkedcircles.isNotEmpty()) {
@@ -2110,58 +2148,67 @@ var s = 6
     }
 
     //saving points in the db
-    fun savePoints(circle: Circle) {
-        val latlng = circle.center
-        val lat = latlng.latitude
-        val lng = latlng.longitude
-
+    fun savePoints(l:MutableList<LatLng>) {
         val sharedPreferences: SharedPreferences = this.getSharedPreferences(
             CreateProjectDialog().sharedPrefFile,
             Context.MODE_PRIVATE
         )!!
-
 
         val userIDString: String? = sharedPreferences.getString("userid_key", "0")!!
         val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
 
         val userID = userIDString!!.toInt()
         val ProjectID = ProjectIDString!!.toInt()
+        for(point in l){
 
+            val lat = point.latitude
+            val lng = point.longitude
 
-        GlobalScope.launch(Dispatchers.IO){
-            val modal = savePointsDataClass(lat, lng, ProjectID, userID)
-            val retrofitDataObject = AppModule.retrofitInstance()
-
-            val retrofitData = retrofitDataObject.storePoints(modal)
-            if (retrofitData.isSuccessful) {
-                if (retrofitData.body() != null) {
-                    if (retrofitData.body()!!.message == "success") {
-runOnUiThread{
-    Toast.makeText(
-        applicationContext, "Point Marked " +
-                "", Toast.LENGTH_SHORT
-    ).show()
-}
-
-                        Log.d("Loper", Thread().name + "savedb")
-                        // convert to S2 and remove it from queryset
-                        var set = lineInS2Format
-                        val point = S2LatLng.fromDegrees(lat, lng)
-                        val pointData = PointData(point.toPoint(), point)
-                        lineInS2Format.remove(pointData)
-                        var s = lineInS2Format
-
-                    } else {
-                        Toast.makeText(
-                            applicationContext, "Something Went wrong!! " +
-                                    "", Toast.LENGTH_SHORT
-                        ).show()
-                    }
+            GlobalScope.launch(Dispatchers.IO){
+                val modal = savePointsDataClass(lat, lng, ProjectID, userID)
+                runOnUiThread{
+                   progressBar.isVisible = true
+                    Toast.makeText(
+                        applicationContext, "Saving points " +
+                                "", Toast.LENGTH_SHORT
+                    ).show()
                 }
-            } else {
-                alertfail("Not saved!")
+                val retrofitDataObject = AppModule.retrofitInstance()
+
+                val retrofitData = retrofitDataObject.storePoints(modal)
+                if (retrofitData.isSuccessful) {
+                    if (retrofitData.body() != null) {
+                        if (retrofitData.body()!!.message == "success") {
+                            runOnUiThread{
+                             progressBar.isVisible = false
+                            }
+
+                            Log.d("Loper", Thread().name + "savedb")
+                            // convert to S2 and remove it from queryset
+                            var set = lineInS2Format
+                            val point = S2LatLng.fromDegrees(lat, lng)
+                            val pointData = PointData(point.toPoint(), point)
+                            lineInS2Format.remove(pointData)
+                            var s = lineInS2Format
+
+                        } else {
+                            Toast.makeText(
+                                applicationContext, "Something Went wrong!! " +
+                                        "", Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                } else {
+                    alertfail("Not saved!")
+                }
             }
         }
+
+
+
+
+
+
 
     }
 

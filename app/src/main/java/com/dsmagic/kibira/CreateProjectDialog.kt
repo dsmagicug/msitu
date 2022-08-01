@@ -182,7 +182,7 @@ class CreateProjectDialog : DialogFragment() {
                                     editor.putString("productID_key", ProjectID)
                                     editor.apply()
                                     editor.commit()
-                                    MainActivity().freshFragment(true)
+
 
                                     SuccessAlert("Project $ProjectName created")
 

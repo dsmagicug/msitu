@@ -18,13 +18,13 @@ class LocationDependantFunctions {
        lateinit var currentLocation: Location
         lateinit var currentPlantingLine:Polyline
 
-
-
          fun plotFunc(){
 var plotfuncLooper = Looper.getMainLooper()
 
          }
     }
+
+
 
     fun getBearing(roverPoint:Location, nextPoint:Location):String{
         var position:String
