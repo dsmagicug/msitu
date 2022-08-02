@@ -558,10 +558,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 //
                             plotMesh(firstPoint, secondPoint)
                         }
-
-
                         } else {
-
                             warningAlert(
                                 "\nProject is empty!! Might be best to delete it.",
                                 ProjectID
@@ -593,18 +590,13 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             .setMessage(S)
             .setPositiveButton(
                 "Delete",
-
                 DialogInterface.OnClickListener { dialog, id ->
-
                     deleteProjectFunc(I)
-
                 })
             .setNegativeButton("Just leave it alone",
-
                 DialogInterface.OnClickListener { dialog, id ->
                     progressBar.isVisible = false
                 })
-
             .show()
     }
 
@@ -1523,8 +1515,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     .strokeColor(Color.GREEN)
                     .strokeWidth(1.0f)
             )
-
-
         }
         if (switchedLines) {
             val runnableCode = object : Runnable {
@@ -1540,7 +1530,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             }
 
             handler2.postDelayed(runnableCode, 50)
-
             switchedLines = false
 
         }
