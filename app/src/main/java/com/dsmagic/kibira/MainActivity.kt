@@ -121,6 +121,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var left: TextView
     lateinit var right: TextView
     lateinit var ahead: TextView
+    lateinit var fabCampus:FloatingActionButton;
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -133,6 +135,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         val displayProjectName: TextView? = findViewById(R.id.display_project_name)
         txt = findViewById<TextView>(R.id.myTextView)
 
+        fabCampus = findViewById(R.id.fab_compass)
         card = findViewById<CardView>(R.id.cardView2)
         left = findViewById(R.id.strayingLeft)
         ahead = findViewById(R.id.ahead)
@@ -143,6 +146,15 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         }
         card.setOnClickListener {
             stopBlink()
+        }
+
+        fabCampus.setOnClickListener{
+            // rotate the map accordingly
+            val newAngel =  GeneralHelper.sanitizeMagnetometerBearing(lastRotateDegree)
+            if(map != null){
+
+                GeneralHelper.changeMapPosition(map, newAngel)
+            }
         }
         //dropdown menu for project settings
         val arrayForProjectDetails = resources.getStringArray(R.array.ProjectDetails)
@@ -1627,7 +1639,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 magneticValues = event.values.clone()
             }
 
-
             //I don't remember why i was doing this :( Always comment your code!!!!
 
             current_measured_bearing = (magneticValues.get(0) * 180 / Math.PI).toFloat()
@@ -1648,6 +1659,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 lastRotateDegree = rotateDegree
 
             }
+
+
 
             //******** The shake event for marking points starts here *******//
 
@@ -1672,34 +1685,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
                     val l = plantingLine.tag as MutableList<*>
                     var pointOfInterestOnPolyline: LatLng? = null
-
-//                    var indexOfXloc = l.indexOf(debugXloc)
-//
-//
-//
-//                    var lastMarkedIndex = listOfMarkedPoints.lastIndex
-//                    var lastMarkedPoint = listOfMarkedPoints[lastMarkedIndex]
-//                    var indexOfInterest = l.indexOf(lastMarkedPoint)
-//                    var nextPoint = l[indexOfInterest+1] as LatLng
-//                    var previousPoint = l[indexOfInterest-1] as LatLng
-//
-//                    var ourGuy:LatLng? = null
-//
-//                    //var pointOfInterest
-//                    if(nextPoint in listOfMarkedPoints){
-//                        ourGuy = previousPoint
-//                    }else{
-//                        ourGuy = nextPoint
-//                    }
-//                    var a = debugXloc
-//                    var indexOfOurGuy = l.indexOf(ourGuy)
-//                    if (debugXloc != ourGuy){
-//                        Log.d("SKIP", "GATCH!!!")
-//
-//                        var b = debugXloc
-//
-//                    }
-
 
                     l.forEach { loc ->
                         loc as LatLng

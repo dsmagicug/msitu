@@ -3,9 +3,14 @@ package com.dsmagic.kibira.utils;
 import android.location.Location;
 import android.location.LocationManager;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import dilivia.s2.S2LatLng;
 import dilivia.s2.index.point.S2PointIndex;
@@ -33,5 +38,23 @@ public class GeneralHelper {
         secondPoint.setLongitude(pt2.longitude);
 
         return firstPoint.distanceTo(secondPoint); // in metres
+    }
+
+    public static float sanitizeMagnetometerBearing(Float bearing){
+        if (bearing < 0) {
+            return -1 * bearing;
+        }
+        return 360f - bearing;
+    }
+
+    public static void changeMapPosition(GoogleMap map, Float angle)  {
+        CameraPosition position = map.getCameraPosition();
+        CameraPosition cameraPosition = CameraPosition.builder()
+                .target(position.target)
+                .zoom(position.zoom)
+                .tilt(position.tilt)
+                .bearing(angle+5) // tilt if further more by 5
+                .build();
+        map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 }
