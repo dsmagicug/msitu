@@ -157,7 +157,6 @@ class CreateProjectDialog : DialogFragment() {
                     "Acres"-> {
                         var r = mesh_size_string!!.toInt()
                         MeshSize = (r * 4046.86).roundToInt()
-
                     }
                 }
                 Geogmesh_size = MeshSize.toDouble()

@@ -10,7 +10,7 @@ import javax.inject.Singleton
 
 
 object AppModule {
-    var BaseUrl = "http://192.168.100.17:8000/api/"
+    var BaseUrl = "http://192.168.100.2:8000/api/"
 
 
     fun retrofitInstance(): apiInterface {

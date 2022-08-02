@@ -48,8 +48,8 @@ class RegisterActivity : AppCompatActivity() {
 
         //binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(R.layout.activity_register)
-        signUp.setOnClickListener{
-            signUp.background = resources.getDrawable(R.drawable.switch_tucks,null)
+        signUp.setOnClickListener {
+            signUp.background = resources.getDrawable(R.drawable.switch_tucks, null)
             thelogin.background = null
             loginLayout.visibility = View.GONE
             signupLayout.visibility = View.VISIBLE
@@ -62,7 +62,7 @@ class RegisterActivity : AppCompatActivity() {
         var registerName = findViewById<EditText>(R.id.register_name)
         var registerEmail = findViewById<EditText>(R.id.register_email)
         var registerPassword = findViewById<EditText>(R.id.register_password)
-        var registerConfirmPassword =findViewById<EditText>(R.id.register_confirm_password)
+        var registerConfirmPassword = findViewById<EditText>(R.id.register_confirm_password)
         var registerButton = findViewById<Button>(R.id.register_button)
         var register_loading = findViewById<ProgressBar>(R.id.register_loading)
 
@@ -71,86 +71,83 @@ class RegisterActivity : AppCompatActivity() {
         lateinit var password: String
         lateinit var password_confirm: String
 
-        registerButton.setOnClickListener{
+        registerButton.setOnClickListener {
             register_loading.isVisible = true
-           name = registerName.text.toString()
+            name = registerName.text.toString()
             email = registerEmail.text.toString()
             password = registerPassword.text.toString()
-           password_confirm = registerConfirmPassword.text.toString()
+            password_confirm = registerConfirmPassword.text.toString()
             if (name.isEmpty() || email.isEmpty() || password.isEmpty()) {
                 register_loading.isVisible = false
                 alertfail("Fields can not be empty")
 
             }
-            if(password.length <4){
+            if (password.length < 4) {
                 register_loading.isVisible = false
                 alertfail("Password should be >4")
-            }
-            else if(!password.equals(password_confirm)){
+            } else if (!password.equals(password_confirm)) {
                 register_loading.isVisible = false
                 alertfail("Passwords don't match")
-            }
-            else{
+            } else {
                 //MainActivity().registerUser(name,email,password,password_confirm)
 
-                registerUser(name,email,password,password_confirm)
+                registerUser(name, email, password, password_confirm)
             }
 
 
         }
 
-        login.setOnClickListener{
+        login.setOnClickListener {
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
         }
     }
 
-        fun registerUser(name:String, email:String,password:String,password_confirm:String)
-        {
+    fun registerUser(name: String, email: String, password: String, password_confirm: String) {
         val retrofitDataObject = AppModule.retrofitInstance()
-            val modal = RegisterDataclassX(email,name,password,password_confirm)
-            val retrofitData = retrofitDataObject.registerUser(modal)
-            retrofitData.enqueue(object : Callback<ResponseRegister?> {
-                override fun onResponse(
-                    call: Call<ResponseRegister?>,
-                    response: Response<ResponseRegister?>
-                ) {
-if(response.isSuccessful){
-    if(response.body()!!.message == "Success"){
-        register_loading.isVisible = false
-        SuccessAlert("Successfully Registered")
-       lo()
-    }else{
+        val modal = RegisterDataclassX(email, name, password, password_confirm)
+        val retrofitData = retrofitDataObject.registerUser(modal)
+        retrofitData.enqueue(object : Callback<ResponseRegister?> {
+            override fun onResponse(
+                call: Call<ResponseRegister?>,
+                response: Response<ResponseRegister?>
+            ) {
+                if (response.isSuccessful) {
+                    if (response.body()!!.message == "Success") {
+                        register_loading.isVisible = false
+                        SuccessAlert("Successfully Registered")
+                        lo()
+                    } else {
 
-        alertfail("Email already taken")
+                        alertfail("Email already taken")
+                    }
+                } else {
+                    alertfail("$response")
+                }
+
+
+            }
+
+            override fun onFailure(call: Call<ResponseRegister?>, t: Throwable) {
+
+                alertfail("Something went wrong")
+            }
+        })
     }
-} else{
-    alertfail("$response")
-}
 
-
-
-                }
-
-                override fun onFailure(call: Call<ResponseRegister?>, t: Throwable) {
-
-                    alertfail("Something went wrong")
-                }
-            })
-        }
-
-    fun lo(){
+    fun lo() {
         val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
     }
 
-fun alertfail(S:String){
-    AlertDialog.Builder(this)
-        .setTitle("Error")
-        .setMessage(S)
-        .show()
-}
-    fun SuccessAlert(S:String){
+    fun alertfail(S: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Error")
+            .setMessage(S)
+            .show()
+    }
+
+    fun SuccessAlert(S: String) {
         AlertDialog.Builder(this)
             .setTitle("Success")
             .setIcon(R.drawable.tick)

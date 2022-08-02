@@ -393,7 +393,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 Log.d("Projects", "$projectList")
 
             } else {
-                alertfail("No response got from server")
+                runOnUiThread {
+                    alertfail("No response got from server")
+                }
+
             }
 
         }
@@ -1622,7 +1625,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
             } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
                 magneticValues = event.values.clone()
-
             }
 
 
