@@ -26,6 +26,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
+import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
@@ -41,6 +42,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.navigation.NavigationView
 import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.PointData
 import dilivia.s2.index.point.S2PointIndex
@@ -57,7 +59,7 @@ import java.util.concurrent.Executors
 import kotlin.math.sqrt
 
 open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
-    View.OnClickListener {
+    View.OnClickListener,NavigationView.OnNavigationItemSelectedListener {
     var deviceList = ArrayList<BluetoothDevice>()
     var device: BluetoothDevice? = null
     private var map: GoogleMap? = null
@@ -121,7 +123,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var left: TextView
     lateinit var right: TextView
     lateinit var ahead: TextView
-    lateinit var fabCampus:FloatingActionButton;
+    lateinit var fabCampus:FloatingActionButton
+    lateinit var toggle:ActionBarDrawerToggle
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -132,6 +135,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         setSupportActionBar(findViewById(R.id.appToolbar))
         supportActionBar?.setDisplayShowTitleEnabled(false)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
         val displayProjectName: TextView? = findViewById(R.id.display_project_name)
         txt = findViewById<TextView>(R.id.myTextView)
 
@@ -140,6 +144,13 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         left = findViewById(R.id.strayingLeft)
         ahead = findViewById(R.id.ahead)
         right = findViewById(R.id.strayingRight)
+
+        toggle = ActionBarDrawerToggle(this,drawerlayout,R.string.open,R.string.close)
+        drawerlayout.addDrawerListener(toggle)
+        toggle.syncState()
+
+        navView.setNavigationItemSelectedListener(this)
+
 
         save.setOnClickListener{
             savePoints(listOfMarkedPoints)
@@ -1027,30 +1038,34 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     //Handling the options in the menu layout
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if (item.itemId == R.id.action_create) {
-
-            val createNewProject = CreateProjectDialog()
-            createNewProject.show(supportFragmentManager, "create")
-
+        var s = 7
+        if(toggle.onOptionsItemSelected(item)){
             return true
-        } else if (item.itemId == R.id.action_view_projects) {
-
-            ViewProjects = true
-            getProjects()
-            return true
-        } else if (item.itemId == R.id.bluetooth_spinner) {
-            toggleWidgets()
-            return true
-
-        } else if (item.itemId == R.id.map_view) {
-            discover()
-
-            return true
-        } else {
+        }
+//        return if (item.itemId == R.id.action_create) {
+//
+//            val createNewProject = CreateProjectDialog()
+//            createNewProject.show(supportFragmentManager, "create")
+//
+//            return true
+//        }
+//        else if (item.itemId == R.id.action_view_projects) {
+//
+//            ViewProjects = true
+//            getProjects()
+//            return true
+//        } else if (item.itemId == R.id.bluetooth_spinner) {
+//            toggleWidgets()
+//            return true
+//
+//        } else if (toggle.onOptionsItemSelected(item)) {
+//
+//            return true
+//        } else {
             // If we got here, the user's action was not recognized.
             // Invoke the superclass to handle it.
-            super.onOptionsItemSelected(item)
-        }
+           return super.onOptionsItemSelected(item)
+        //}
     }
 
     private fun discover() {
@@ -2051,6 +2066,17 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             snippetUi.text = snippet
 
         }
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        var  s = 7
+        when(item.itemId){
+            R.id.item1 -> Toast.makeText(applicationContext,"Item 1 selected",Toast.LENGTH_SHORT).show()
+            R.id.item2 -> Toast.makeText(applicationContext,"Item 2 selected",Toast.LENGTH_SHORT).show()
+            R.id.item3 -> Toast.makeText(applicationContext,"Item 3 selected",Toast.LENGTH_SHORT).show()
+            R.id.item4 -> Toast.makeText(applicationContext,"Item 4 selected",Toast.LENGTH_SHORT).show()
+        }
+        return true
     }
 
 }

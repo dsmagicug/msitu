@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/projectDetails"
+        android:title="About Project">
+        <menu>
+            <item
+                android:id="@+id/meshType"
+                android:title="MeshType" />
+            <item
+                android:id="@+id/item1"
+                android:title="Measurements" />
+            <item
+                android:id="@+id/item2"
+                android:title="Reset" />
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/Display"
+        android:title="Display Settings">
+        <menu>
+            <item
+                android:id="@+id/item3"
+                android:title="Mode" />
+            <item
+                android:id="@+id/item4"
+                android:title="LogOut" />
+        </menu>
+
+
+    </item>
+
+
+    <item
+        android:id="@+id/project_options"
+        android:icon="@drawable/ic_baseline_playlist_add_24"
+        android:title="Projects"
+
+        >
+
+        <menu>
+
+            <item
+                android:id="@+id/action_create"
+                android:icon="@drawable/ic_baseline_create_new_folder_24"
+                android:title="@string/create"
+
+                />
+
+            <item
+                android:id="@+id/action_view_projects"
+                android:icon="@drawable/ic_baseline_sync_24"
+                android:title="@string/view_projects" />
+        </menu>
+    </item>
+
+</menu>

@@ -55,5 +55,8 @@
         <item>Measurements</item>
         <item>Reset</item>
     </string-array>
+    <string name="close">Close</string>
+    <string name="open">Open</string>
+
 
 </resources>
