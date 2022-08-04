@@ -21,7 +21,6 @@ object AppModule {
             .baseUrl(BaseUrl)
             .build()
            .create(apiInterface::class.java)
-
     }
 
   /*  fun g(){

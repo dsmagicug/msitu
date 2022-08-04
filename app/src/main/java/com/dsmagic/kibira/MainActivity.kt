@@ -1063,7 +1063,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     //Handling the options in the menu layout
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-x
         if (toggle.onOptionsItemSelected(item)) {
            // drawerlayout.openDrawer(GravityCompat.START)
            return  true
