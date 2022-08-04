@@ -102,6 +102,7 @@ class CreateProjectDialog : DialogFragment() {
 //progressBar.isVisible = true
         val projectname = dialog?.findViewById<EditText>(R.id.ProjectName)
         val meshSize = dialog?.findViewById<EditText>(R.id.MeshSize)
+        var progressbar = activity?.findViewById<ProgressBar>(R.id.progressBar)
 
         val gapsize = dialog?.findViewById<EditText>(R.id.gapSize)
         val displayProjectName = activity?.findViewById<TextView>(R.id.display_project_name)
@@ -114,7 +115,7 @@ class CreateProjectDialog : DialogFragment() {
         if (project_name == "" || gap_size_string == "") {
             alertfail("Please fill all fields")
         } else {
-
+            progressbar?.isVisible = true
             val sharedPreferences: SharedPreferences =
                 activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
 
@@ -124,7 +125,7 @@ class CreateProjectDialog : DialogFragment() {
             editor.putString("mesh_key", mesh_size)
             editor.apply()
             editor.commit()
-
+            progressbar?.isVisible = true
             if (editor.commit()) {
                 val saved_project_name: String? =
                     sharedPreferences.getString("name_key", "defaultValue")
@@ -204,9 +205,24 @@ class CreateProjectDialog : DialogFragment() {
                         alertfail(("Response failed, invalid data"))
                     }
                 })
+                progressbar?.isVisible = false
 
                 displayProjectName?.text = saved_project_name
-
+//                val mapFragment =
+//                    activity?.supportFragmentManager?.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
+//                mapFragment?.getMapAsync(MainActivity().callback)
+//                for (line in MainActivity().polyLines) {
+//                    line!!.remove()
+//                }
+//                for (l in MainActivity().listofmarkedcircles) {
+//                    l.remove()
+//                }
+//                for (l in MainActivity().unmarkedCirclesList) {
+//                    l.remove()
+//                }
+//                if (MainActivity().listOfPlantingLines.isNotEmpty()) {
+//                    MainActivity().listOfPlantingLines.clear()
+//                }
 
 
             } else {

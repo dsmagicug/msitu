@@ -19,13 +19,13 @@ class ProjectController extends Controller
     public function UserProjects(){
 
        if(Auth::check()){
-      
+
         $userID = Auth::user()->id;
         $query = DB::table('projects')
-    
+
         ->select('name','id','gap_size','mesh_size','user_id')
         ->orderBy('id','DESC')
-    
+
         ->where('user_id',$userID)->get();
 
         $result = response()->json([
@@ -41,8 +41,8 @@ class ProjectController extends Controller
         ]);
             return $result;
        }
-       
-     
+
+
     }
     //NOT USED
     public function list(){
@@ -56,15 +56,15 @@ class ProjectController extends Controller
             $request->validate([
                 'project_id' => 'required',
                 'user_id'=>'required',
-               
+
             ]);
 
         $userID = $request->user_id;
             $projectid = $request->project_id;
             $query = DB::table('coordinates')
-    
+
         ->select('lat as Lat','lng as Long')
-    
+
         ->where('user_id',$userID)
      ->where('project_id',$projectid)
      ->distinct()
@@ -83,7 +83,7 @@ if($query){
             return $result;
 }
 
-    
+
         // }else{
         //     $result = response()->json([
         //         'message' => 'Failed',
@@ -126,16 +126,16 @@ $projectID = $request->project_id;
             'gap_size' => 'required',
             'user_id'=>'required',
             'mesh_size' =>'required'
-           
+
         ]);
         $result = Project::Create([
             'name' =>$request->name,
             'gap_size'=>$request->gap_size,
             'user_id'=>$request->user_id,
             'mesh_size'=>$request->mesh_size,
-       
+
         ]);
-     
+
             $jsonResult = response()->json([
                 'message'=>"created",
                 'tag'=>"V",
@@ -145,12 +145,12 @@ $projectID = $request->project_id;
                 'projectID'=>$result->id,
                 'createdAt'=>$result->created_at,
                 'mesh_size'=>$result->mesh_size,
-               
+
             ]);
-          
+
             return $jsonResult;
         }
-       
+
         public function saveBasePoints(Request $request){
         $request->validate([
             'lat' => 'required',
@@ -164,7 +164,7 @@ $projectID = $request->project_id;
             'project_id' => $request->project_id
         ]);
 if($query){
-                
+
         $result = response()->json([
             'message' => 'success',
 
@@ -181,7 +181,7 @@ if($query){
         return $result;
     }
 }
-        
+
       public function SaveCoordinates(Request $request){
         // if (Auth::check()){
         //     $user_id = Auth::user()->id;
@@ -190,22 +190,23 @@ if($query){
                 'lat' => 'required',
                 'lng' => 'required',
                 'user_id'=>'required',
-                'project_id'=>'required'  
-               
+                'project_id'=>'required'
+
             ]);
+
             $result = Coordinates::Create([
                 'lat' =>$request->lat,
                 'lng'=>$request->lng,
                 'project_id'=>$request->project_id,
                 'user_id'=>$request->user_id
-              
+
             ]);
             if($result){
-                
+
                 $result = response()->json([
                     'message' => 'success',
 
-    
+
                 ]);
                 return $result;
             }
@@ -213,7 +214,7 @@ if($query){
                 $result = response()->json([
                     'message' => 'Failed',
                     'meta'=>'could not save'
-    
+
                 ]);
                 return $result;
             }
@@ -237,14 +238,14 @@ if($query){
                 'message' => 'failed',
             ]);
            }
-      
+
         }
 
         public function deleteCoords(Request $request){
             $request->validate([
                 'coordinates_id' => 'required'
              ]);
-    
+
                 $id = $request->coordinates_id;
                $results = Coordinates::find($id)->delete();
                if($results){
@@ -259,5 +260,5 @@ if($query){
         }
 
     }
-    
+
 

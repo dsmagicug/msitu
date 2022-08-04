@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
@@ -175,7 +176,7 @@ var unit = ""
         val gapsize = dialog?.findViewById<EditText>(R.id.gapSize)
         val displayProjectName = activity?.findViewById<TextView>(R.id.display_project_name)
 
-
+        var progressbar = activity?.findViewById<ProgressBar>(R.id.progressBar)
         val gap_size_string = gapsize?.text.toString()
 
         val project_name: String = projectname?.text.toString()
@@ -199,9 +200,9 @@ var unit = ""
 
             if(editor.commit()){
                 val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
-                val gap_size: String? = sharedPreferences.getString("size_key","defaultValue")
+                val gap_size: String? = sharedPreferences.getString("size_key","0")
                 val saved_gap_size =  gap_size!!.toInt()
-                val UID: String? = sharedPreferences.getString("userid_key", "defaultValue")
+                val UID: String? = sharedPreferences.getString("userid_key", "0")
                 val userID = UID!!.toInt()
                 val mesh_size_string: String? = sharedPreferences.getString("mesh_key","0")
 //                val MeshSize = mesh_size_string!!.toInt()
@@ -255,7 +256,7 @@ var unit = ""
                                     editor.putString("productID_key", ProjectID)
                                     editor.apply()
                                     editor.commit()
-MainActivity().freshFragment(true)
+
 
 
                                 }else{
@@ -278,7 +279,7 @@ MainActivity().freshFragment(true)
                     }
                 })
                 //createProject(saved_project_name!!,saved_gap_size,userID)
-
+                progressbar?.isVisible = false
                 displayProjectName?.text = saved_project_name
 
                 Log.d("values","Project name is: $saved_project_name")

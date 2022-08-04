@@ -1,20 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity"
-    android:id="@+id/drawerlayout">
+    >
 
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/navView"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        app:headerLayout = "@layout/navheader"
-        app:menu="@menu/navmenu"
-        android:layout_gravity="start"
-        android:fitsSystemWindows="true"/>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -44,6 +36,20 @@
                 android:name="com.google.android.gms.maps.SupportMapFragment"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
+            <androidx.drawerlayout.widget.DrawerLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/drawerlayout"
+                >
+                <com.google.android.material.navigation.NavigationView
+                    android:id="@+id/navView"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:headerLayout = "@layout/navheader"
+                    app:menu="@menu/navmenu"
+                    android:layout_gravity="start"
+                    android:fitsSystemWindows="true"/>
+            </androidx.drawerlayout.widget.DrawerLayout>
 
 
 
@@ -80,7 +86,7 @@
                             android:layout_margin="5dp"
                             android:layout_gravity="center"
                             android:padding="5dp"
-                            android:textSize="10sp"
+                            android:textSize="15sp"
                             android:textStyle="bold|normal"
                             android:text="Points marked:"
                             android:textAlignment="center"
@@ -114,8 +120,8 @@ android:textStyle="bold|normal"
                             android:layout_height="match_parent"
                             android:layout_margin="5dp"
                             android:padding="5dp"
-                            android:textSize="10sp"
-                            android:text="Distance From Next \n Point(m):"
+                            android:textSize="15sp"
+                            android:text="Distance From Next \n Point (meters):"
                             android:textStyle="bold|normal"
                             android:textAlignment="center"
 
@@ -141,44 +147,31 @@ android:textStyle="bold|normal"
                         android:layout_height="match_parent"
                         android:orientation="horizontal">
 
-                        <TextView
+                        <ImageView
                             android:id="@+id/strayingLeft"
                             android:layout_width="200dp"
                             android:layout_height="match_parent"
                             android:layout_margin="5dp"
                             android:padding="5dp"
                             android:textStyle="bold|normal"
-                            android:textSize="10sp"
-                            android:text="TOO LEFT!!"
+                           app:srcCompat="@drawable/leftarrow"
                             android:textAlignment="center"
-
+                            android:visibility="invisible"
                             />
 
-                        <TextView
+                        <ImageView
                             android:id="@+id/strayingRight"
-                            android:layout_width="200dp"
+                            android:layout_width="150dp"
                             android:layout_height="match_parent"
                             android:layout_margin="5dp"
-                            android:autofillHints=""
-                            android:textSize="10sp"
+                           app:srcCompat="@drawable/rightarraw"
                             android:padding="5dp"
-                            android:textStyle="bold|normal"
-                            android:text="TOO RIGHT"
-                            android:textAlignment="center" />
+                            android:textAlignment="center"
+                            android:visibility = "invisible"/>
 
 
                     </LinearLayout>
-                    <TextView
-                        android:id="@+id/ahead"
-                        android:layout_width="200dp"
-                        android:layout_height="match_parent"
-                        android:layout_margin="5dp"
-                        android:autofillHints=""
-                        android:textSize="10sp"
-                        android:padding="5dp"
-                        android:textStyle="bold|normal"
-                        android:text="On Track"
-                        android:textAlignment="center" />
+
                     <Button
                         android:id="@+id/save"
                         android:layout_width="200dp"
@@ -250,6 +243,7 @@ android:textStyle="bold|normal"
             <!--                android:contentDescription="@string/directionarrow"-->
             <!--                android:src="@drawable/slimarrow" />-->
 
+
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/appToolbar"
                 android:layout_width="match_parent"
@@ -269,39 +263,39 @@ android:textStyle="bold|normal"
                     app:layout_constraintEnd_toStartOf="@+id/spinner"
                     app:layout_constraintStart_toStartOf="@+id/spinner">
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_marginEnd ="5dp"
+<!--                    <com.google.android.material.textfield.TextInputLayout-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="match_parent"-->
+<!--                        android:layout_marginEnd ="5dp"-->
 
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu">
+<!--                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu">-->
 
-                        <AutoCompleteTextView
-                            android:id="@+id/display_project_name"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="5dp"
-                            android:layout_weight="1"
-                            android:inputType="none"
-                            android:text=""
-                            android:textAllCaps="true"
-                            android:textSize="10sp"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent" />
+<!--                        <AutoCompleteTextView-->
+<!--                            android:id="@+id/display_project_name"-->
+<!--                            android:layout_width="wrap_content"-->
+<!--                            android:layout_height="wrap_content"-->
+<!--                            android:layout_marginStart="5dp"-->
+<!--                            android:layout_weight="1"-->
+<!--                            android:inputType="none"-->
+<!--                            android:text=""-->
+<!--                            android:textAllCaps="true"-->
+<!--                            android:textSize="10sp"-->
+<!--                            app:layout_constraintStart_toStartOf="parent"-->
+<!--                            app:layout_constraintTop_toTopOf="parent" />-->
 
-                    </com.google.android.material.textfield.TextInputLayout>
+<!--                    </com.google.android.material.textfield.TextInputLayout>-->
 
-<!--                    <TextView-->
-<!--                        android:id="@+id/display_project_name"-->
-<!--                        android:layout_width="110dp"-->
-<!--                        android:layout_height="38dp"-->
-<!--                        android:layout_marginStart="4dp"-->
-<!--                        android:layout_marginTop="8dp"-->
-<!--                        android:text=" "-->
-<!--                        android:textAllCaps="true"-->
-<!--                        android:textSize="15sp"-->
-<!--                        app:layout_constraintStart_toStartOf="parent"-->
-<!--                        app:layout_constraintTop_toTopOf="parent" />-->
+                    <TextView
+                        android:id="@+id/display_project_name"
+                        android:layout_width="110dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginTop="8dp"
+                        android:text=" "
+                        android:textAllCaps="true"
+                        android:textSize="15sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
 
                     <Button
                         android:id="@+id/buttonConnect"
@@ -355,4 +349,4 @@ android:textStyle="bold|normal"
         android:layout_marginTop="320dp"
         android:visibility="gone" />
 
-</androidx.drawerlayout.widget.DrawerLayout>
+</RelativeLayout>

@@ -4,14 +4,12 @@
         android:id="@+id/projectDetails"
         android:title="About Project">
         <menu>
+
             <item
-                android:id="@+id/meshType"
-                android:title="MeshType" />
-            <item
-                android:id="@+id/item1"
+                android:id="@+id/measurements"
                 android:title="Measurements" />
             <item
-                android:id="@+id/item2"
+                android:id="@+id/reset"
                 android:title="Reset" />
         </menu>
     </item>
@@ -21,11 +19,13 @@
         android:title="Display Settings">
         <menu>
             <item
-                android:id="@+id/item3"
-                android:title="Mode" />
+                android:id="@+id/mode"
+                android:title="Mode"
+                />
             <item
-                android:id="@+id/item4"
-                android:title="LogOut" />
+                android:id="@+id/meshType"
+                android:title="MeshType" />
+
         </menu>
 
 
@@ -54,5 +54,8 @@
                 android:title="@string/view_projects" />
         </menu>
     </item>
+    <item
+        android:id="@+id/logOut"
+        android:title="Log Out" />
 
 </menu>

@@ -131,4 +131,5 @@ class NmeaReader {
             thread!!.start()
         }
     }
+
 }

@@ -1,8 +1,9 @@
 package com.dsmagic.kibira.services
 
+import com.google.android.gms.maps.model.LatLng
+
 data class savePointsDataClass(
-    val lat: Double,
-    val lng: Double,
+    val list:List<LatLng>,
     val project_id: Int,
     val user_id: Int
 )
