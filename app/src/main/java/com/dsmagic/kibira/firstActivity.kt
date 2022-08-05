@@ -165,7 +165,8 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
         } ?: throw IllegalStateException("Activity cannot be null")
     }
 
-var unit = ""
+    var plotUnit = ""
+    var gapUnit = ""
     fun oncreateclick() {
 
          val sharedPrefFile = "kibirasharedfile"
@@ -206,11 +207,16 @@ var unit = ""
                 val userID = UID!!.toInt()
                 val mesh_size_string: String? = sharedPreferences.getString("mesh_key","0")
 //                val MeshSize = mesh_size_string!!.toInt()
-                var MeshSize:Int? = 0
+                var MeshSize: Int = 0
+                var GapSize: Int = 0
 
-                val n = unit
-                if(unit == ""){
+                val n = plotUnit
+                val gp = gapUnit
+                if (plotUnit == "") {
                     MeshSize = mesh_size_string!!.toInt()
+                }
+                if (gapUnit == "") {
+                    GapSize = saved_gap_size.toInt()
                 }
 
                 when (n) {
@@ -232,10 +238,25 @@ var unit = ""
 
                     }
                 }
+                when (gp) {
+                    "metres" -> {
+                        GapSize = saved_gap_size.toInt()
+                    }
+                    "ft" -> {
+                        var r = saved_gap_size.toInt()
+                        GapSize = (r * 0.3048).roundToInt()
+                    }
+                    "Inches" -> {
+                        var r = saved_gap_size.toInt()
+                        GapSize = (r * 0.0254).roundToInt()
+
+                    }
+
+                }
 
 
                 Geogmesh_size = MeshSize!!.toDouble()
-                Geoggapsize = saved_gap_size
+                Geoggapsize = GapSize
 
                 val CreateProjectRetrofitObject = AppModule.retrofitInstance()
                 val modal = createProjectDataClass(saved_gap_size,saved_project_name!!,userID, MeshSize)
@@ -304,11 +325,7 @@ var unit = ""
     override fun onItemClick(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
         // fetch the user selected value
         val item = p0!!.getItemAtPosition(p2).toString()
-       unit = item
 
-
-        // create Toast with user selected value
-        Toast.makeText(context, "Clicked gapsizeunit is: \t$item  " , Toast.LENGTH_LONG).show()
 
     }
 

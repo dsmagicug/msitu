@@ -362,16 +362,14 @@ class Geometry {
         ): List<List<LongLat>> {
             val al = ArrayList<List<LongLat>>()
             var xl:List<LongLat>
-            var count = 0
+
             for (l in a) {
                 xl = l.fromUTM(c)
                 al.add(xl) // Use UTM centre...
 
-                if (count < 100){
 
                        printline(xl)  //Cause it to be printed
-                }
-               count+=1
+
 
             }
 

@@ -125,11 +125,15 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     var projectSizeList = mutableListOf<Int>()
     var projectMeshSizeList = mutableListOf<Int>()
 
+    var DirectionToHead:Boolean = false
     lateinit var debugXloc: LatLng
     lateinit var txt: TextView
     lateinit var card: CardView
     lateinit var left: ImageView
     lateinit var right: ImageView
+    lateinit var pace:TextView
+    lateinit var linesMarked:TextView
+
     lateinit var fabCampus: FloatingActionButton
     lateinit var toggle: ActionBarDrawerToggle
     var projectID: Int = 0
@@ -147,15 +151,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
          supportActionBar?.setDisplayShowTitleEnabled(false)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-
-        val displayProjectName: TextView? = findViewById(R.id.display_project_name)
-        txt = findViewById<TextView>(R.id.myTextView)
-
         fabCampus = findViewById(R.id.fab_compass)
         card = findViewById<CardView>(R.id.cardView2)
-        left = findViewById(R.id.strayingLeft)
-
-        right = findViewById(R.id.strayingRight)
+        pace = findViewById(R.id.paceValue)
+        linesMarked = findViewById(R.id.linesMarkedValue)
 
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
         drawerlayout.addDrawerListener(toggle)
@@ -163,10 +162,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         navView.setNavigationItemSelectedListener(this)
 
-
-        save.setOnClickListener {
-         savePoints(listOfMarkedPoints)
-        }
         card.setOnClickListener {
             stopBlink()
         }
@@ -269,7 +264,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                             GeneralHelper.findDistanceBtnTwoPoints(
                                 fromRTKFeed,
                                 pointOfInterest
-                            ) /// 2  // divide by 2 means we want to mark when user is closer to the point
+                            ) / 2  // divide by 2 means we want to mark when user is closer to the point
                         if ((distanceAway < acceptedPlantingRadius) && (pointOfInterest !in listOfMarkedPoints)) {
                             // mark point
                             markPoint(pointOfInterest)
@@ -588,8 +583,12 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                         Geoggapsize = Gapsize
                         Geogmesh_size = Meshsize.toDouble()
                         clearFragment = true
+
+                        runOnUiThread{
+                            plotMesh(firstPoint, secondPoint)
+                        }
 //
-                        plotMesh(firstPoint, secondPoint)
+
                     } else {
                         warningAlert(
                             "\nProject is empty!! Might be best to delete it.",
@@ -758,6 +757,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             var displayedPoints = findViewById<TextView>(R.id.numberOfPoints)
             displayedDistance.text = ""
             displayedPoints.text = " "
+
             var position = "None"
 
             try {
@@ -832,21 +832,22 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     locationOfNextPoint,
                     locationOfRoverLatLng
                 )
-
+                DirectionToHead = true
                 //}
                 displayedDistance.text = distance.toString()
                 displayedPoints.text = size.toString()
+                blinkEffectOfMarkedPoints("Green",displayedPoints)
 
                 markers = map?.addMarker(
                     MarkerOptions().position(latLng!!)
                         .title("Plant here")
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.pin))
-                        .flat(true)
+                        //.flat(true)
                     // .snippet("Marked Points : $size" + "\nDistance : $distance (m)")
                 )
 
 
-                if (distance > (Geoggapsize!!)) {
+                if (distance > (Geoggapsize!! * 0.02)) {
 
                     polyline1 = map?.addPolyline(
                         PolylineOptions()
@@ -892,6 +893,45 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         val textViewToBlink = p
         var animationColor: Int = 0
         lateinit var textViewToBlinkValue: ImageView
+        lateinit var displayTextView:TextView
+
+            when (textViewToBlink) {
+                "Left" -> {
+                    textViewToBlinkValue = left
+                }
+                "Right" -> {
+                    textViewToBlinkValue = right
+                }
+                else ->{
+                    textViewToBlinkValue.isVisible = false
+                }
+
+            }
+            if(textViewToBlinkValue.isVisible == true){
+                textViewToBlinkValue.isVisible = false
+            }
+            textViewToBlinkValue.isVisible = true
+
+            val animation = RotateAnimation(
+                0f,
+                10f,
+                Animation.RELATIVE_TO_SELF,
+                0.5f,
+                Animation.RELATIVE_TO_SELF,
+                0.5f
+            )
+            animation.fillAfter = true
+            textViewToBlinkValue.startAnimation(animation)
+
+
+    }
+
+    fun blinkEffectOfMarkedPoints(color:String,T:TextView){
+        val n = color
+        val textViewToBlink = T
+        var animationColor: Int = 0
+
+        lateinit var displayTextView:TextView
         when (n) {
             "Green" -> {
                 animationColor = Color.GREEN
@@ -908,45 +948,17 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
             }
         }
-        when (textViewToBlink) {
-            "Left" -> {
-                textViewToBlinkValue = left
-            }
-            "Right" -> {
-                textViewToBlinkValue = right
-            }
-            else ->{
-                textViewToBlinkValue.isVisible = false
-            }
-
-        }
-        if(textViewToBlinkValue.isVisible == true){
-            textViewToBlinkValue.isVisible = false
-        }
-        textViewToBlinkValue.isVisible = true
-        val animation = RotateAnimation(
-            0f,
-            10f,
-            Animation.RELATIVE_TO_SELF,
-            0.5f,
-            Animation.RELATIVE_TO_SELF,
-            0.5f
-        )
-        animation.fillAfter = true
-        textViewToBlinkValue.startAnimation(animation)
 
         anim = ObjectAnimator.ofInt(
-            textViewToBlinkValue,
-            "backgroundColor", animationColor, Color.WHITE, animationColor, Color.GRAY
+            textViewToBlink,
+            "backgroundColor", animationColor, Color.WHITE, animationColor, animationColor
         )
         anim.duration = 1500
         anim.setEvaluator(ArgbEvaluator())
         anim.repeatMode = ValueAnimator.RESTART
-        anim.repeatCount = 4
-        //anim.start()
-
+        anim.repeatCount = 1
+        anim.start()
     }
-
     fun stopBlink() {
 
         if (anim.isRunning) {
@@ -1050,7 +1062,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     // Display the menu layout
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-       // menuInflater.inflate(R.menu.navmenu, menu)
+        menuInflater.inflate(R.menu.appmenu1, menu)
         return true
     }
 
@@ -1068,12 +1080,12 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
            return  true
         }
 
-//
-//        if (item.itemId == R.id.bluetooth_spinner) {
-//            toggleWidgets()
-//            return true
-//
-//        }
+
+        if (item.itemId == R.id.bluetooth_spinner) {
+            toggleWidgets()
+            return true
+
+        }
             //{
 //
 //            val createNewProject = CreateProjectDialog()
@@ -1385,6 +1397,12 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             listOfPlantingLines.add(it)
             it.color = Color.GREEN
 
+            // rotate the map accordingly
+            val newAngel = GeneralHelper.sanitizeMagnetometerBearing(lastRotateDegree)
+            if (map != null) {
+
+                GeneralHelper.changeMapPosition(map, newAngel)
+            }
             Toast.makeText(applicationContext, "Switching Lines..", Toast.LENGTH_LONG)
                 .show()
 
@@ -1743,6 +1761,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
             if (acceleration > 10) {
 
+                ForcefullyMarkOrUnmarkPoint()
+
                 try {
                     val plantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
 
@@ -1889,6 +1909,50 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         super.onPause()
     }
 
+    private fun ForcefullyMarkOrUnmarkPoint(){
+        try {
+
+            val roverPoint = fromRTKFeed
+
+            val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
+
+            val l2 = lineOfInterest.tag as Collection<LatLng>
+
+            val S2Lineformat = GeneralHelper.convertLineToS2(l2)
+
+            val xloc = S2Helper.findClosestPointOnLine(S2Lineformat, roverPoint) as S2LatLng?
+
+            if (xloc != null) {
+                val pt = LatLng(xloc.latDegrees(), xloc.lngDegrees())
+                val distanceAway =
+                    GeneralHelper.findDistanceBtnTwoPoints(
+                        fromRTKFeed,
+                        pt
+                    )
+                if (pt !in listOfMarkedPoints) {
+                    val acceptedPlantingRadius = tempPlantingRadius
+                    if ((distanceAway / 2 < acceptedPlantingRadius) && (pt !in listOfMarkedPoints)) {
+
+                        markPoint(pt)
+                    }
+                } else {
+                    //circles drawn on the map are 0.5 in radius, thus the 1.5
+                    if ((distanceAway < 1.0) && pt in listOfMarkedPoints) {
+                        Toast.makeText(
+                            applicationContext,
+                            "Point unMarked",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+
+            }
+        }
+        catch(e:Exception){
+            Log.d("error","${e.message}")
+
+        }
+    }
     private fun saveBasepoints(loc: LongLat) {
         val lat = loc.getLatitude()
         val lng = loc.getLongitude()
@@ -2112,7 +2176,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         when (item.itemId) {
             R.id.measurements -> Toast.makeText(
                 applicationContext,
-                "Item 1 selected",
+                "TO DO",
                 Toast.LENGTH_SHORT
             ).show()
             R.id.reset -> {

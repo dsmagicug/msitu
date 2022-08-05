@@ -44,17 +44,19 @@
     <string name="title_activity_main2">MainActivity2</string>
     <string name="units">Units</string>
     <string name="metres">Metres</string>
-    <string-array name="gapsizeUnits">
+    <string-array name="plotSizeUnits">
         <item>Metres</item>
         <item>Ft</item>
         <item>Acres</item>
         <item>Miles</item>
     </string-array>
+    <string-array name="gapsizeUnits">
+        <item>metres</item>
+        <item>ft</item>
+        <item>Inches</item>
 
-    <string-array name="ProjectDetails">
-        <item>Measurements</item>
-        <item>Reset</item>
     </string-array>
+
     <string name="close">Close</string>
     <string name="open">Open</string>
 

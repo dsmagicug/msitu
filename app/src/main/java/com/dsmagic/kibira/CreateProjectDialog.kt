@@ -46,15 +46,19 @@ class CreateProjectDialog : DialogFragment() {
             // Inflate and set the layout for the dialog
             // Pass null as the parent view because its going in the dialog layout
 
-            val r  = inflater.inflate(layout.activity_create_project,null)
+            val r = inflater.inflate(layout.activity_create_project, null)
 
             //dropdown menu
-         val gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
-            val arrayAdapter1 = ArrayAdapter(requireContext(), layout.gapsizeunits,gapsize_units)
-//            val viewGapSize = r.findViewById<AutoCompleteTextView>(R.id.gapsizeDropDown)
+            val gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
+            val plotsize_units = resources.getStringArray(R.array.plotSizeUnits)
+
+            val plotsizeAdapter = ArrayAdapter(requireContext(), layout.plotsize_layout, plotsize_units)
+            val gapsizeAdapter = ArrayAdapter(requireContext(), layout.gapsizeunits, gapsize_units)
+
+            val viewGapSize = r.findViewById<AutoCompleteTextView>(R.id.gapsizeDropDown)
             val viewPlotSize = r.findViewById<AutoCompleteTextView>(R.id.plotsizeDropDown)
-            //viewGapSize.setAdapter(arrayAdapter1)
-            viewPlotSize.setAdapter(arrayAdapter1)
+            viewGapSize.setAdapter(gapsizeAdapter)
+            viewPlotSize.setAdapter(plotsizeAdapter)
 
 
             if (tag == "create") {
@@ -93,7 +97,8 @@ class CreateProjectDialog : DialogFragment() {
 
     }
 
-    var unit = ""
+    var plotUnit = ""
+    var gapUnit = ""
 
     fun oncreateclick() {
 
@@ -115,7 +120,7 @@ class CreateProjectDialog : DialogFragment() {
         if (project_name == "" || gap_size_string == "") {
             alertfail("Please fill all fields")
         } else {
-            progressbar?.isVisible = true
+            //  progressbar?.isVisible = true
             val sharedPreferences: SharedPreferences =
                 activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
 
@@ -125,7 +130,7 @@ class CreateProjectDialog : DialogFragment() {
             editor.putString("mesh_key", mesh_size)
             editor.apply()
             editor.commit()
-            progressbar?.isVisible = true
+            // progressbar?.isVisible = true
             if (editor.commit()) {
                 val saved_project_name: String? =
                     sharedPreferences.getString("name_key", "defaultValue")
@@ -135,33 +140,54 @@ class CreateProjectDialog : DialogFragment() {
                 val userID = UID!!.toInt()
                 val mesh_size_string: String? =
                     sharedPreferences.getString("mesh_key", "0")
-                var MeshSize:Int = 0
+                var MeshSize: Int = 0
+                var GapSize: Int = 0
 
-                val n = unit
-                if(unit == ""){
+                val n = plotUnit
+                val gp = gapUnit
+                if (plotUnit == "") {
                     MeshSize = mesh_size_string!!.toInt()
                 }
+                if (gapUnit == "") {
+                    GapSize = saved_gap_size.toInt()
+                }
+
 
                 when (n) {
-                    "Metres"-> {
+                    "Metres" -> {
                         MeshSize = mesh_size_string!!.toInt()
                     }
-                    "Ft"-> {
+                    "Ft" -> {
                         var r = mesh_size_string!!.toInt()
                         MeshSize = (r * 0.3048).roundToInt()
                     }
-                    "Miles"-> {
+                    "Miles" -> {
                         var r = mesh_size_string!!.toInt()
                         MeshSize = (r * 1609.34).roundToInt()
 
                     }
-                    "Acres"-> {
+                    "Acres" -> {
                         var r = mesh_size_string!!.toInt()
                         MeshSize = (r * 4046.86).roundToInt()
                     }
                 }
+                when (gp) {
+                    "metres" -> {
+                        GapSize = saved_gap_size.toInt()
+                    }
+                    "ft" -> {
+                        var r = saved_gap_size.toInt()
+                        GapSize = (r * 0.3048).roundToInt()
+                    }
+                    "Inches" -> {
+                        var r = saved_gap_size.toInt()
+                        GapSize = (r * 0.0254).roundToInt()
+
+                    }
+
+                }
                 Geogmesh_size = MeshSize.toDouble()
-                Geoggapsize = saved_gap_size
+                Geoggapsize = GapSize
                 val CreateProjectRetrofitObject = AppModule.retrofitInstance()
                 val modal =
                     createProjectDataClass(saved_gap_size, saved_project_name!!, userID, MeshSize)
@@ -205,7 +231,7 @@ class CreateProjectDialog : DialogFragment() {
                         alertfail(("Response failed, invalid data"))
                     }
                 })
-                progressbar?.isVisible = false
+                // progressbar?.isVisible = false
 
                 displayProjectName?.text = saved_project_name
 //                val mapFragment =
