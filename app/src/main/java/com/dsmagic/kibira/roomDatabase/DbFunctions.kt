@@ -1,21 +1,10 @@
-package com.dsmagic.kibira.dbFuctions
+package com.dsmagic.kibira.roomDatabase
 
 import android.content.Context
-import android.content.SharedPreferences
-import android.util.Log
 import android.widget.Toast
-import androidx.core.view.isVisible
-import com.dsmagic.kibira.CreateProjectDialog
 import com.dsmagic.kibira.LongLat
 import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.services.*
-import com.google.android.gms.maps.model.LatLng
-import dilivia.s2.S2LatLng
-import dilivia.s2.index.point.PointData
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response

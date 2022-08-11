@@ -81,6 +81,7 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
        // val projects =  getProjects()
        val projects = ArrayList<String>()
 
+
         return activity?.let {
 
             var selectedProject: String = ""
@@ -91,14 +92,16 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
             val r  = inflater.inflate(layout.activity_create_project,null)
 
             //dropdown menu
-             gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
-            val arrayAdapter1 = ArrayAdapter(requireContext(), layout.gapsizeunits,gapsize_units!!)
-          val viewGapSize = r.findViewById<AutoCompleteTextView>(R.id.gapsizeDropDown)
-            val viewPlotSize = r.findViewById<AutoCompleteTextView>(R.id.plotsizeDropDown)
-           // viewGapSize.setAdapter(arrayAdapter1)
-            viewPlotSize.setAdapter(arrayAdapter1)
+            val gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
+            val plotsize_units = resources.getStringArray(R.array.plotSizeUnits)
 
-            viewPlotSize.onItemClickListener = this
+            val plotsizeAdapter = ArrayAdapter(requireContext(), layout.plotsize_layout, plotsize_units)
+            val gapsizeAdapter = ArrayAdapter(requireContext(), layout.gapsizeunits, gapsize_units)
+
+            val viewGapSize = r.findViewById<AutoCompleteTextView>(R.id.gapsizeDropDown)
+            val viewPlotSize = r.findViewById<AutoCompleteTextView>(R.id.plotsizeDropDown)
+            viewGapSize.setAdapter(gapsizeAdapter)
+            viewPlotSize.setAdapter(plotsizeAdapter)
 
             val l: Array<String> = projects.toTypedArray().reversedArray()
             val ar: Array<String>
@@ -213,10 +216,12 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
                 val n = plotUnit
                 val gp = gapUnit
                 if (plotUnit == "") {
-                    MeshSize = mesh_size_string!!.toInt()
+                    var r = mesh_size_string!!.toInt()
+                    MeshSize = (r * 0.3048).roundToInt()
                 }
                 if (gapUnit == "") {
-                    GapSize = saved_gap_size.toInt()
+                    var r = saved_gap_size.toInt()
+                    GapSize = (r * 0.3048).roundToInt()
                 }
 
                 when (n) {

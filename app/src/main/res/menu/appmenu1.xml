@@ -7,7 +7,17 @@
     android:icon="@drawable/ic_baseline_bluetooth_24"
     android:title="Devices"
     app:showAsAction="ifRoom"
+
     />
+    <item
+        android:id="@+id/d2"
+        android:textColor="@color/white"
+        android:title="Bluetooth"
+        app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/d3"
+
+        app:showAsAction="ifRoom"/>
 
 <!--<item-->
 

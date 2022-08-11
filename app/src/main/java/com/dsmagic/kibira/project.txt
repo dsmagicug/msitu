@@ -11,6 +11,77 @@ import android.widget.Toast
 import java.util.*
 import kotlin.math.sqrt
 
+
+    internal inner class CustomInfoWindowAdapter : GoogleMap.InfoWindowAdapter {
+
+        private val window: View = layoutInflater.inflate(R.layout.custom_info_contents, null)
+
+        override fun getInfoWindow(marker: Marker): View? {
+            render(markers!!, window)
+            return window
+        }
+
+        override fun getInfoContents(marker: Marker): View? {
+            render(markers!!, window)
+            return window
+        }
+
+        private fun render(marker: Marker, view: View) {
+
+            // Set the title and snippet for the custom info window
+
+            val titleUi = view.findViewById<TextView>(R.id.title)
+            if (marker.title != "") {
+                titleUi.text = marker.title
+            }
+
+            val snippet: String? = marker.snippet
+            val snippetUi = view.findViewById<TextView>(R.id.snippet)
+
+            if (marker.snippet != "") {
+                snippetUi.text = marker.snippet
+            }
+
+            snippetUi.text = snippet
+
+        }
+    }
+
+      //googleMap.setOnCircleClickListener(onClickingPoint)
+        // googleMap.setOnMapLongClickListener(onLongMapPress)
+
+//    private val onLongMapPress = GoogleMap.OnMapLongClickListener {
+//        if (polyLines.size == 0)
+//            return@OnMapLongClickListener // Not yet...
+//
+//        map?.addMarker(MarkerOptions().title("Landing").position(it)
+//
+//        )
+//
+//
+//        val loc = S2Helper.makeS2PointFromLngLat(it) // Get the point
+//        val p = S2Helper.findClosestLine(linesIndex, it, polyLines)
+//        Log.d("closest", "Closest l" +
+//                "ine found, will look for closest point!")
+//        if (p != null) {
+//            (p as Polyline).color = Color.CYAN // change its colour..
+//        }
+//
+//        val xloc = S2Helper.findClosestPointOnLine(pointsIndex, it) as S2LatLng?
+//        if (xloc != null) {
+//            val pt = LatLng(xloc.latDegrees(), xloc.lngDegrees())
+//            // Draw the point on the line...
+//            map?.addCircle(
+//                CircleOptions().center(pt).fillColor(Color.CYAN).radius(0.5)
+//                    .strokeWidth(1.0f)
+//
+//            )
+//
+//            Log.d("closest", "Closest point drawn")
+//        }
+//    }
+
+
 class MainActivity : AppCompatActivity() {
 
 	// Declaring sensorManager

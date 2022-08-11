@@ -14,6 +14,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
 import com.dsmagic.kibira.services.*
@@ -31,10 +32,12 @@ import java.io.FileWriter
 import java.io.PrintWriter
 import kotlin.math.roundToInt
 
+
 //Returning a layout as a dialog box
-class CreateProjectDialog : DialogFragment() {
+object CreateProjectDialog : DialogFragment() {
 
     val sharedPrefFile = "kibirasharedfile"
+    var clean = false
 
     @SuppressLint("SetTextI18n")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -145,11 +148,15 @@ class CreateProjectDialog : DialogFragment() {
 
                 val n = plotUnit
                 val gp = gapUnit
+
+                //if nothing is selected then ft is the default
                 if (plotUnit == "") {
-                    MeshSize = mesh_size_string!!.toInt()
+                    var r = mesh_size_string!!.toInt()
+                    MeshSize = (r * 0.3048).roundToInt()
                 }
                 if (gapUnit == "") {
-                    GapSize = saved_gap_size.toInt()
+                    var r = saved_gap_size.toInt()
+                    GapSize = (r * 0.3048).roundToInt()
                 }
 
 
@@ -187,7 +194,7 @@ class CreateProjectDialog : DialogFragment() {
 
                 }
                 Geogmesh_size = MeshSize.toDouble()
-                Geoggapsize = GapSize
+                 Geoggapsize = GapSize
                 val CreateProjectRetrofitObject = AppModule.retrofitInstance()
                 val modal =
                     createProjectDataClass(saved_gap_size, saved_project_name!!, userID, MeshSize)
@@ -209,7 +216,7 @@ class CreateProjectDialog : DialogFragment() {
                                     editor.apply()
                                     editor.commit()
 
-
+clean = true
                                     SuccessAlert("Project $ProjectName created")
 
                                 } else {
@@ -234,21 +241,12 @@ class CreateProjectDialog : DialogFragment() {
                 // progressbar?.isVisible = false
 
                 displayProjectName?.text = saved_project_name
-//                val mapFragment =
-//                    activity?.supportFragmentManager?.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
-//                mapFragment?.getMapAsync(MainActivity().callback)
-//                for (line in MainActivity().polyLines) {
-//                    line!!.remove()
-//                }
-//                for (l in MainActivity().listofmarkedcircles) {
-//                    l.remove()
-//                }
-//                for (l in MainActivity().unmarkedCirclesList) {
-//                    l.remove()
-//                }
-//                if (MainActivity().listOfPlantingLines.isNotEmpty()) {
-//                    MainActivity().listOfPlantingLines.clear()
-//                }
+                activity?.finish()
+                val intent = Intent(activity?.applicationContext,MainActivity::class.java)
+                startActivity(intent)
+
+
+clean = true
 
 
             } else {

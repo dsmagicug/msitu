@@ -3,11 +3,8 @@ package com.dsmagic.kibira.data
 import android.content.Context
 import android.content.DialogInterface
 import androidx.appcompat.app.AlertDialog
-import androidx.core.view.isVisible
-import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.R
-import com.dsmagic.kibira.dbFuctions.DbFunctions
-import kotlinx.android.synthetic.main.activity_main.*
+import com.dsmagic.kibira.roomDatabase.DbFunctions
 
 class alerts {
     fun warningAlert(S: String, I: Int,c: Context,PID:Int) {

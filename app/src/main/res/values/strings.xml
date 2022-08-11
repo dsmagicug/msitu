@@ -45,20 +45,21 @@
     <string name="units">Units</string>
     <string name="metres">Metres</string>
     <string-array name="plotSizeUnits">
-        <item>Metres</item>
         <item>Ft</item>
+        <item>Meters</item>
         <item>Acres</item>
         <item>Miles</item>
     </string-array>
     <string-array name="gapsizeUnits">
-        <item>metres</item>
         <item>ft</item>
+        <item>meters</item>
         <item>Inches</item>
 
     </string-array>
 
     <string name="close">Close</string>
     <string name="open">Open</string>
+    <string name="scanning_for_devices">Scanning for devices...</string>
 
 
 </resources>
