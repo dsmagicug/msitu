@@ -121,7 +121,7 @@
                                 android:layout_marginStart="0dp"
                                 android:fontFamily="@font/sans"
                                 android:padding="5dp"
-                                android:text="Next Point is in:(meters):"
+                                android:text="Next Point in:"
                                 android:textAlignment="textStart"
                                 android:textSize="25sp"
                                 android:textStyle="bold|normal"
@@ -197,7 +197,7 @@
                                 android:fontFamily="@font/sans"
                                 android:padding="5dp"
                                 android:text="Pace (Points per Minute):"
-                                android:textAlignment="center"
+                                android:textAlignment="textStart"
                                 android:textSize="25sp"
 
                                 android:textStyle="bold|normal" />
@@ -234,7 +234,7 @@
                                 android:padding="5dp"
                                 android:layout_marginStart="5dp"
                                 android:text="Points on Line:"
-                                android:textAlignment="center"
+                                android:textAlignment="textStart"
                                 android:textSize="20sp"
 
                                 android:textStyle="bold|normal" />

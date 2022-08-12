@@ -137,12 +137,19 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     //lateinit var appdb:AppDatabase
 
+    //-------------compass----------//
     lateinit var fabCampus: FloatingActionButton
     lateinit var directionLeft: ImageView
     lateinit var directionRight: ImageView
     lateinit var directionLeftText: TextView
     lateinit var directionRightText: TextView
     lateinit var directionAheadText: TextView
+     var facingDirection:Float = 0.0f
+
+    //---------------Time---------//
+    lateinit var initialTime: SimpleDateFormat
+    lateinit var initialTimeValue: String
+
     lateinit var card: CardView
     lateinit var left: ImageView
     lateinit var right: ImageView
@@ -153,9 +160,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     var delta = 1.0
     var projectLoaded = false
 
-    //---------------Time---------//
-    lateinit var initialTime: SimpleDateFormat
-    lateinit var initialTimeValue: String
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -196,6 +201,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
                 GeneralHelper.changeMapPosition(map, newAngel)
             }
+            facingDirection = newAngel
         }
 
         extras = intent.extras
@@ -921,10 +927,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 //                    locationOfNextPoint,
 //                    locationOfRoverLatLng
 //                )
-                val b2c = LocationDependantFunctions().getBearing(
-                    locationOfCurrentPoint,
-                    locationOfNextPoint
-                )
+
                 val b = LocationDependantFunctions().getBearing(
                     locationOfNextPoint,
                     locationOfRoverLatLng
@@ -938,8 +941,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 val dist = decimalFormat.format(distance)
                 val d = dist.toString()
                 pace()
-
-                displayedDistance.text = d
+var m = "(m)"
+                displayedDistance.text = d + m
                 displayedPoints.text = size.toString()
                 totalPoints.text = l.size.toString()
                 blinkEffectOfMarkedPoints("Green", displayedPoints)
@@ -961,7 +964,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     polyline1!!.endCap = CustomCap(
                         BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
                     )
-                    Toast.makeText(this, "$b debug-$b2c", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "$b", Toast.LENGTH_SHORT).show()
 
                     blink("Red", position)
                     showLine(line)
@@ -1050,11 +1053,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         val n = color
         val textViewToBlink = T
         var animationColor: Int = 0
-
-        if (anim.isRunning) {
-            anim.end()
-        }
-
         lateinit var displayTextView: TextView
         when (n) {
             "Green" -> {
