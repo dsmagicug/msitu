@@ -5,8 +5,6 @@ import android.Manifest
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
-import android.annotation.SuppressLint
-import android.app.Dialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.*
@@ -37,9 +35,7 @@ import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
-import androidx.fragment.app.DialogFragment
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
-
 import com.dsmagic.kibira.services.*
 import com.dsmagic.kibira.utils.GeneralHelper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -63,6 +59,8 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.math.RoundingMode
 import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.roundToInt
@@ -142,9 +140,9 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var fabCampus: FloatingActionButton
     lateinit var directionLeft: ImageView
     lateinit var directionRight: ImageView
-    lateinit var directionLeftText:TextView
-    lateinit var directionRightText:TextView
-    lateinit var directionAheadText:TextView
+    lateinit var directionLeftText: TextView
+    lateinit var directionRightText: TextView
+    lateinit var directionAheadText: TextView
     lateinit var card: CardView
     lateinit var left: ImageView
     lateinit var right: ImageView
@@ -154,6 +152,11 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     val bluetoothList = ArrayList<String>()
     var delta = 1.0
     var projectLoaded = false
+
+    //---------------Time---------//
+    lateinit var initialTime: SimpleDateFormat
+    lateinit var initialTimeValue: String
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -173,7 +176,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         directionRight = findViewById(R.id.rightDirectionValue)
         directionLeftText = findViewById(R.id.directionLeft)
         directionRightText = findViewById(R.id.directionRight)
-        directionAheadText =findViewById(R.id.aheadDirection)
+        directionAheadText = findViewById(R.id.aheadDirection)
 
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
         drawerlayout.addDrawerListener(toggle)
@@ -226,7 +229,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             mapFragment?.getMapAsync(callback)
         }
 
-        if(CreateProjectDialog.clean){
+        if (CreateProjectDialog.clean) {
             freshFragment(true)
         }
 
@@ -324,11 +327,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                         )
                     )
                     map?.mapType = GoogleMap.MAP_TYPE_NORMAL
-//                    map?.setMapStyle(
-//                        MapStyleOptions.loadRawResourceStyle(this, R.raw.style_json)
-//                    )
+
                     for (item in polyLines) {
                         item!!.isVisible = false
+                        item.isClickable = false
 
                     }
                     activePlantingLine.isVisible = true
@@ -345,6 +347,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     map?.mapType = GoogleMap.MAP_TYPE_SATELLITE
                     for (c in polyLines) {
                         c?.isVisible = true
+                        c?.isClickable = true
                     }
                     activePlantingLine.isVisible = true
                     fabFlag = false
@@ -823,6 +826,12 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     private fun distanceToPoint(loc: LatLng) {
         if (plantingMode && listOfMarkedPoints.isNotEmpty()) {
+            when {
+                listOfMarkedPoints.size == 1 -> {
+                    initialTime = SimpleDateFormat(" HH:mm:ss ")
+                    initialTimeValue = initialTime.format(Date())
+                }
+            }
             card.isVisible = true
             directionsLayout.isVisible = true
             var displayedDistance = findViewById<TextView>(R.id.distance)
@@ -835,6 +844,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             try {
                 val locationOfNextPoint = Location(LocationManager.GPS_PROVIDER)
                 val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
+                val locationOfCurrentPoint = Location(LocationManager.GPS_PROVIDER)
+
                 val line = listOfPlantingLines[listOfPlantingLines.lastIndex]
                 val l = line.tag as MutableList<*>
                 val size = listOfMarkedPoints.size
@@ -889,6 +900,9 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     locationOfRoverLatLng.latitude = loc.latitude
                     locationOfRoverLatLng.longitude = loc.longitude
 
+                    locationOfCurrentPoint.latitude = refPoint!!.latitude
+                    locationOfCurrentPoint.longitude = refPoint!!.longitude
+
 
                     distance = locationOfRoverLatLng.distanceTo(locationOfNextPoint)
 
@@ -907,6 +921,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 //                    locationOfNextPoint,
 //                    locationOfRoverLatLng
 //                )
+                val b2c = LocationDependantFunctions().getBearing(
+                    locationOfCurrentPoint,
+                    locationOfNextPoint
+                )
                 val b = LocationDependantFunctions().getBearing(
                     locationOfNextPoint,
                     locationOfRoverLatLng
@@ -919,6 +937,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
                 val dist = decimalFormat.format(distance)
                 val d = dist.toString()
+                pace()
 
                 displayedDistance.text = d
                 displayedPoints.text = size.toString()
@@ -942,7 +961,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     polyline1!!.endCap = CustomCap(
                         BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
                     )
-                    Toast.makeText(this, "$b", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "$b debug-$b2c", Toast.LENGTH_SHORT).show()
 
                     blink("Red", position)
                     showLine(line)
@@ -966,10 +985,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     }
 
-    lateinit var anim:ObjectAnimator
+    lateinit var anim: ObjectAnimator
     lateinit var animForDirectionText: ObjectAnimator
     lateinit var animForPoint: ObjectAnimator
-    lateinit var animation:RotateAnimation
+    lateinit var animation: RotateAnimation
     fun blink(color: String, p: String) {
 
         val n = color
@@ -999,10 +1018,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         textViewToBlinkValue.isVisible = true
 
-if(animation.hasStarted()){
-    animation.cancel()
-}
-         animation = RotateAnimation(
+        if (animation.hasStarted()) {
+            animation.cancel()
+        }
+        animation = RotateAnimation(
             0f,
             10f,
             Animation.RELATIVE_TO_SELF,
@@ -1013,13 +1032,13 @@ if(animation.hasStarted()){
         animation.fillAfter = true
         textViewToBlinkValue.startAnimation(animation)
 
-        if(animForDirectionText.isRunning){
+        if (animForDirectionText.isRunning) {
             animForDirectionText.end()
         }
 
         animForDirectionText = ObjectAnimator.ofInt(
             displayTextView,
-            "backgroundColor",R.color.green, R.color.green, Color.WHITE, R.color.green
+            "backgroundColor", R.color.green, R.color.green, Color.WHITE, R.color.green
         )
         animForDirectionText.duration = 1500
         animForDirectionText.setEvaluator(ArgbEvaluator())
@@ -1031,6 +1050,10 @@ if(animation.hasStarted()){
         val n = color
         val textViewToBlink = T
         var animationColor: Int = 0
+
+        if (anim.isRunning) {
+            anim.end()
+        }
 
         lateinit var displayTextView: TextView
         when (n) {
@@ -1513,8 +1536,13 @@ if(animation.hasStarted()){
     }
 
 
-
     private val onPolyClick = GoogleMap.OnPolylineClickListener {
+        // rotate the map accordingly
+        val newAngel = GeneralHelper.sanitizeMagnetometerBearing(lastRotateDegree)
+        if (map != null) {
+
+            GeneralHelper.changeMapPosition(map, newAngel)
+        }
 
         handler2.removeMessages(0)
 
@@ -1533,21 +1561,18 @@ if(animation.hasStarted()){
                 l.isVisible = true
                 // handler2.removeMessages(0)
             }
+
             val recentLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
-            recentLine.color = Color.BLUE
+            recentLine.color = Color.CYAN
             recentLine.isClickable = true
-            recentLine.width =3f   //return to default width after pulse effect and stop the handler
+            recentLine.width =
+                3f   //return to default width after pulse effect and stop the handler
 
             listOfPlantingLines.clear()
             listOfPlantingLines.add(it)
             it.color = Color.GREEN
 
-            // rotate the map accordingly
-            val newAngel = GeneralHelper.sanitizeMagnetometerBearing(lastRotateDegree)
-            if (map != null) {
 
-                GeneralHelper.changeMapPosition(map, newAngel)
-            }
             Toast.makeText(applicationContext, "Switching Lines..", Toast.LENGTH_LONG)
                 .show()
 
@@ -1559,7 +1584,6 @@ if(animation.hasStarted()){
 
 
             switchedLines = true
-            
 
 
         }
@@ -1570,6 +1594,7 @@ if(animation.hasStarted()){
             //make the lines and circles on other polylines disaapear, once we have line of interest
             for (item in polyLines) {
                 item!!.isVisible = false
+                item.isClickable = false
             }
 
             if (unmarkedCirclesList.isNotEmpty()) {
@@ -1582,6 +1607,7 @@ if(animation.hasStarted()){
                     circle.isVisible = false
                 }
             }
+            it.isClickable = true
             it.isVisible = true
             val l = it.tag as MutableList<*>
 
@@ -1603,13 +1629,12 @@ if(animation.hasStarted()){
 //            } catch (e: java.lang.Exception) {
 //
 //            }
-            var target = map?.cameraPosition?.target
-            var bearing = map?.cameraPosition?.bearing
+            val target = map?.cameraPosition?.target
+            val bearing = map?.cameraPosition?.bearing
             val cameraPosition = CameraPosition.Builder()
                 .target(target!!)
-                .zoom(20f)
+                .zoom(21f)
                 .bearing(bearing!!)
-                .tilt(45f)
                 .build()
             map?.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
         }
@@ -1909,8 +1934,6 @@ if(animation.hasStarted()){
                 ForcefullyMarkOrUnmarkPoint()
 
 
-
-
             }
         }
 
@@ -1984,6 +2007,36 @@ if(animation.hasStarted()){
             Log.d("error", "${e.message}")
 
         }
+    }
+
+    private fun pace() {
+
+        when {
+            listOfMarkedPoints.size % 5 == 0 -> {
+                val sdf = SimpleDateFormat(" HH:mm:ss ")
+                val time: String = sdf.format(Date())
+                val currentTime = convertToMinutes(time)
+                val startTime = convertToMinutes(initialTimeValue)
+                val diff =  currentTime - startTime
+                val pace = listOfMarkedPoints.size / diff
+                val paceValue = pace.roundToInt()
+                val tx = findViewById<TextView>(R.id.paceValue)
+                tx.text = paceValue.toString()
+
+                //Toast.makeText(this,"$paceValue",Toast.LENGTH_SHORT).show()
+            }
+        }
+
+
+    }
+
+    private fun convertToMinutes(time: String): Double {
+        val timeSplit = time.split(":")
+        val hours = timeSplit[0].toDouble() * 60
+        val minutes = timeSplit[1].toDouble()
+        var seconds = timeSplit[2].toDouble()
+        val totalMinutes = hours + minutes
+        return totalMinutes
     }
 
     private fun saveBasepoints(loc: LongLat) {
@@ -2208,26 +2261,27 @@ if(animation.hasStarted()){
         }
         return true
     }
-//
-fun freshFragment(v: Boolean) {
-    if (v) {
-        val mapFragment =
-            supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
-        mapFragment?.getMapAsync(callback)
+
+    //
+    fun freshFragment(v: Boolean) {
+        if (v) {
+            val mapFragment =
+                supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
+            mapFragment?.getMapAsync(callback)
+        }
+        for (item in polyLines) {
+            item!!.remove()
+        }
+        for (l in listofmarkedcircles) {
+            l.remove()
+        }
+        for (l in unmarkedCirclesList) {
+            l.remove()
+        }
+        if (listOfPlantingLines.isNotEmpty()) {
+            listOfPlantingLines.clear()
+        }
     }
-    for (item in polyLines) {
-        item!!.remove()
-    }
-    for (l in listofmarkedcircles) {
-        l.remove()
-    }
-    for (l in unmarkedCirclesList) {
-        l.remove()
-    }
-    if (listOfPlantingLines.isNotEmpty()) {
-        listOfPlantingLines.clear()
-    }
-}
 
 }
 

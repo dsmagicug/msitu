@@ -74,7 +74,7 @@
                             <TextView
                                 android:id="@+id/myTextView"
                                 android:layout_width="203dp"
-                                android:layout_height="110dp"
+                                android:layout_height="140dp"
                                 android:layout_gravity="center"
                                 android:layout_margin="5dp"
                                 android:fontFamily="@font/sans"
@@ -198,7 +198,7 @@
                                 android:layout_margin="5dp"
                                 android:fontFamily="@font/sans"
                                 android:padding="5dp"
-                                android:text="Pace:"
+                                android:text="Pace\n(Points per Minute):"
                                 android:textAlignment="center"
                                 android:textSize="25sp"
 
