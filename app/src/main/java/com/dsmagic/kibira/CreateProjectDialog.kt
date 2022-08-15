@@ -241,9 +241,22 @@ clean = true
                 // progressbar?.isVisible = false
 
                 displayProjectName?.text = saved_project_name
-                activity?.finish()
-                val intent = Intent(activity?.applicationContext,MainActivity::class.java)
-                startActivity(intent)
+                var meshDone = false
+                for (item in MainActivity.polyLines) {
+                    item!!.remove()
+                }
+                for (l in MainActivity.listofmarkedcircles) {
+                    l.remove()
+                }
+                for (l in MainActivity.unmarkedCirclesList) {
+                    l.remove()
+                }
+                if (MainActivity.listOfPlantingLines.isNotEmpty()) {
+                    MainActivity.listOfPlantingLines.clear()
+                }
+//                activity?.finish()
+//                val intent = Intent(activity?.applicationContext,MainActivity::class.java)
+//                startActivity(intent)
 
 
 clean = true

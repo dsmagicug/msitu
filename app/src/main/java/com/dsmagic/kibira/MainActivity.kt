@@ -84,11 +84,11 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     var secondPoint: LongLat? = null
     val handler = Handler(Looper.getMainLooper())
     val handler2 = Handler(Looper.getMainLooper())
-    var meshDone = false
+
     var linesIndex = MutableS2ShapeIndex() // S2 index of lines...
     var Darkmode = false
     var pointsIndex = S2PointIndex<S2LatLng>()
-    var polyLines = ArrayList<Polyline?>()
+
 
     var asyncExecutor: ExecutorService = Executors.newCachedThreadPool()
 
@@ -116,12 +116,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     private var zoomMode = false
     private var ViewProjects = false
 
-    var listOfMarkedPoints = mutableListOf<LatLng>()
-    var listofmarkedcircles = mutableListOf<Circle>()
 
-    var unmarkedCirclesList = mutableListOf<Circle>()
-
-    var listOfPlantingLines = mutableListOf<Polyline>()
 
     var userID: String? = null
 
@@ -161,6 +156,17 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     val bluetoothList = ArrayList<String>()
     var delta = 1.0
     var projectLoaded = false
+
+   companion object{
+        var listOfMarkedPoints = mutableListOf<LatLng>()
+        var listofmarkedcircles = mutableListOf<Circle>()
+
+        var unmarkedCirclesList = mutableListOf<Circle>()
+
+        var listOfPlantingLines = mutableListOf<Polyline>()
+       var polyLines = ArrayList<Polyline?>()
+       var meshDone = false
+   }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -1713,6 +1719,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                         l!!.remove()
                     }
 
+meshDone = false
                 })
 
 
