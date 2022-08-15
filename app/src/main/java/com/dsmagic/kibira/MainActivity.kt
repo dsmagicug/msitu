@@ -36,6 +36,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
+//import com.dsmagic.kibira.roomDatabase.AppDatabase
+//import com.dsmagic.kibira.roomDatabase.BasePoint
 import com.dsmagic.kibira.services.*
 import com.dsmagic.kibira.utils.GeneralHelper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -135,7 +137,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var toggle: ActionBarDrawerToggle
     lateinit var sharedPreferences: SharedPreferences
 
-    //lateinit var appdb:AppDatabase
+   // lateinit var appdb: AppDatabase
 
     //-------------compass----------//
     lateinit var fabCampus: FloatingActionButton
@@ -144,7 +146,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var directionLeftText: TextView
     lateinit var directionRightText: TextView
     lateinit var directionAheadText: TextView
-     var facingDirection:Float = 0.0f
+    var facingDirection: Float = 0.0f
 
     //---------------Time---------//
     lateinit var initialTime: SimpleDateFormat
@@ -159,7 +161,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     val bluetoothList = ArrayList<String>()
     var delta = 1.0
     var projectLoaded = false
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -187,7 +188,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         drawerlayout.addDrawerListener(toggle)
         toggle.syncState()
 
-        // appdb = AppDatabase.dbInstance(this)
+        //appdb = AppDatabase.dbInstance(this)
         navView.setNavigationItemSelectedListener(this)
 
         card.setOnClickListener {
@@ -202,6 +203,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 GeneralHelper.changeMapPosition(map, newAngel)
             }
             facingDirection = newAngel
+        }
+
+        fab_reset.setOnClickListener {
+            undoDrawingLines()
         }
 
         extras = intent.extras
@@ -941,7 +946,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 val dist = decimalFormat.format(distance)
                 val d = dist.toString()
                 pace()
-var m = "(m)"
+                var m = "(m)"
                 displayedDistance.text = d + m
                 displayedPoints.text = size.toString()
                 totalPoints.text = l.size.toString()
@@ -1436,8 +1441,12 @@ var m = "(m)"
         }
         secondPoint = pt
 
-        if (firstPoint == null || secondPoint == null || meshDone)
+        if (firstPoint == null || secondPoint == null )
             return@OnMapClickListener
+
+        if(meshDone){
+            return@OnMapClickListener
+        }
 
         var l = map?.addCircle(
             CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5).strokeWidth(1.0f)
@@ -1530,6 +1539,7 @@ var m = "(m)"
         progressBar.isVisible = false
 
         projectLoaded = true
+        fab_reset.show()
 
     }
 
@@ -1612,6 +1622,7 @@ var m = "(m)"
             plotLine(l)
             fab_map.show()
 
+
         }
 
         handler.post {
@@ -1686,6 +1697,26 @@ var m = "(m)"
             }
 
         }
+
+    }
+
+    private fun undoDrawingLines() {
+        AlertDialog.Builder(this)
+            .setTitle("Warning")
+            .setIcon(R.drawable.caution)
+            .setMessage("Un do drawn lines? This will clear all current lines!")
+            .setPositiveButton(
+                "Undo",
+
+                DialogInterface.OnClickListener { dialog, id ->
+                    for (l in polyLines) {
+                        l!!.remove()
+                    }
+
+                })
+
+
+            .show()
 
     }
 
@@ -2015,7 +2046,7 @@ var m = "(m)"
                 val time: String = sdf.format(Date())
                 val currentTime = convertToMinutes(time)
                 val startTime = convertToMinutes(initialTimeValue)
-                val diff =  currentTime - startTime
+                val diff = currentTime - startTime
                 val pace = listOfMarkedPoints.size / diff
                 val paceValue = pace.roundToInt()
                 val tx = findViewById<TextView>(R.id.paceValue)
@@ -2059,12 +2090,12 @@ var m = "(m)"
             return
         }
 
-//            val basePoints = BasePoints(null,7.00,8.90,ProjectID)
+//        val basePoints = BasePoints(null, 7.00, 8.90, ProjectID)
 //
-//            GlobalScope.launch (Dispatchers.IO){
-//               val d = appdb.basepointsDAO().addBasePoints(basePoints)
-//                Log.d("data","${d}")
-//            }
+//        GlobalScope.launch(Dispatchers.IO) {
+//            val d = appdb.basepointsDAO().addBasePoints(basePoints)
+//            Log.d("data", "${d}")
+//        }
 
         val modal = SaveBasePointsClass(lat, lng, ProjectID)
         val retrofitDataObject = AppModule.retrofitInstance()

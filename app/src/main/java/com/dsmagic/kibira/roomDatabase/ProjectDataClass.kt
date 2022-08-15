@@ -14,14 +14,14 @@ import java.sql.Timestamp
 //    parentColumns = arrayOf("UID"),
 //    childColumns = arrayOf("user_id"))
 //))
+////
+//@Entity(tableName = "project")
+//data class Project(
+//    @PrimaryKey(autoGenerate = true) val id:Int,
+//    @ColumnInfo(name ="gap_size") val gap_size:Double,
+//    @ColumnInfo(name = "line_length") val line_length:Double,
+//    @ColumnInfo(name = "name") val name:String,
+//    @ColumnInfo(name = "user_id") val user_id:String,
 //
-@Entity(tableName = "project")
-data class Project(
-    @PrimaryKey(autoGenerate = true) val id:Int,
-    @ColumnInfo(name ="gap_size") val gap_size:Double,
-    @ColumnInfo(name = "line_length") val line_length:Double,
-    @ColumnInfo(name = "name") val name:String,
-    @ColumnInfo(name = "user_id") val user_id:String,
-
-
-)
+//
+//)

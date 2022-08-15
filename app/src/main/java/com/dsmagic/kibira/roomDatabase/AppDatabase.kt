@@ -3,10 +3,11 @@ package com.dsmagic.kibira.roomDatabase
 //import android.content.Context
 //import androidx.room.*
 //import com.dsmagic.kibira.roomDatabase.DAO.BasePointsDAO
+//import com.dsmagic.kibira.roomDatabase.DAO.CoordinatesDAO
 //
 //@Database(entities=[Project::class,UserDataClass::class,Coordinates::class,BasePoints::class], version = 1)
 //abstract class AppDatabase:RoomDatabase() {
-//    abstract fun coordinatesDAO():CoordinatesDAO
+//    abstract fun coordinatesDAO(): CoordinatesDAO
 //    abstract fun basepointsDAO(): BasePointsDAO
 //
 //    companion object{
@@ -31,15 +32,5 @@ package com.dsmagic.kibira.roomDatabase
 //
 //        }
 //    }
-//    @Dao
-//    interface CoordinatesDAO {
-//        @Query("SELECT * FROM coordinates WHERE project_id :pid")
-//        suspend fun coordinates(pid: Int): Coordinates
 //
-//        @Insert(onConflict = OnConflictStrategy.IGNORE)
-//        suspend fun addCoordinates(coordinates: Coordinates)
-//
-//        @Delete
-//        suspend fun delete(coordinates: Coordinates)
-//    }
 //}
