@@ -39,6 +39,7 @@ import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
 //import com.dsmagic.kibira.roomDatabase.AppDatabase
 //import com.dsmagic.kibira.roomDatabase.BasePoint
 import com.dsmagic.kibira.services.*
+import com.dsmagic.kibira.services.BasePoints.projectID
 import com.dsmagic.kibira.utils.GeneralHelper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -141,13 +142,13 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var directionLeftText: TextView
     lateinit var directionRightText: TextView
     lateinit var directionAheadText: TextView
-    var facingDirection: Float = 0.0f
+    var BearingPhoneIsFacing: Float = 0.0f
 
     //---------------Time---------//
     lateinit var initialTime: SimpleDateFormat
     lateinit var initialTimeValue: String
 
-    lateinit var card: CardView
+
     lateinit var left: ImageView
     lateinit var right: ImageView
     lateinit var pace: TextView
@@ -166,6 +167,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         var listOfPlantingLines = mutableListOf<Polyline>()
        var polyLines = ArrayList<Polyline?>()
        var meshDone = false
+       lateinit var card: CardView
+      lateinit var layout: LinearLayout
    }
 
 
@@ -208,7 +211,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
                 GeneralHelper.changeMapPosition(map, newAngel)
             }
-            facingDirection = newAngel
+            BearingPhoneIsFacing = newAngel
         }
 
         fab_reset.setOnClickListener {
@@ -249,6 +252,9 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         if (CreateProjectDialog.clean) {
             freshFragment(true)
         }
+        //register bluetooth broadcaster for scanning devices
+        var intent = IntentFilter(BluetoothDevice.ACTION_FOUND)
+        registerReceiver(receiver, intent)
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val accSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -264,9 +270,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         currentAcceleration = SensorManager.GRAVITY_EARTH
         lastAcceleration = SensorManager.GRAVITY_EARTH
 
-        //register bluetooth broadcaster for scanning devices
-        var intent = IntentFilter(BluetoothDevice.ACTION_FOUND)
-        registerReceiver(receiver, intent)
+
 
         NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
             override fun onLocationChanged(loc: Location) {
@@ -331,7 +335,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             }
         })
 
-        scantBlueTooth()
+        //scantBlueTooth()
         fab_map.setOnClickListener {
             try {
                 val activePlantingLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
@@ -843,6 +847,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     private fun distanceToPoint(loc: LatLng) {
         if (plantingMode && listOfMarkedPoints.isNotEmpty()) {
+            fab_reset.isVisible = false
             when {
                 listOfMarkedPoints.size == 1 -> {
                     initialTime = SimpleDateFormat(" HH:mm:ss ")
@@ -939,9 +944,9 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 //                    locationOfRoverLatLng
 //                )
 
-                val b = LocationDependantFunctions().getBearing(
-                    locationOfNextPoint,
-                    locationOfRoverLatLng
+                 position = LocationDependantFunctions().facingDirection(
+                    BearingPhoneIsFacing,
+                    lastRotateDegree
                 )
                 DirectionToHead = true
                 //}
@@ -975,7 +980,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     polyline1!!.endCap = CustomCap(
                         BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
                     )
-                    Toast.makeText(this, "$b", Toast.LENGTH_SHORT).show()
 
                     blink("Red", position)
                     showLine(line)
@@ -1020,39 +1024,39 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 textViewToBlinkValue = directionRight
                 displayTextView = directionRightText
             }
-            "Ahead" -> {
-                textViewToBlinkValue = directionRight
-                displayTextView = directionAheadText
-            }
-            else -> {
-                textViewToBlinkValue.isVisible = false
+            "Stop" -> {
+                directionLeft.isVisible = false
+                directionLeftText.isVisible = false
+                directionRight.isVisible = false
+                directionRightText.isVisible = false
+               // animForDirectionText.end()
+               // animation.cancel()
+
             }
 
         }
 
         textViewToBlinkValue.isVisible = true
+        textViewToBlinkValue.isVisible = true
 
-        if (animation.hasStarted()) {
-            animation.cancel()
-        }
-        animation = RotateAnimation(
-            0f,
-            10f,
-            Animation.RELATIVE_TO_SELF,
-            0.5f,
-            Animation.RELATIVE_TO_SELF,
-            0.5f
-        )
-        animation.fillAfter = true
-        textViewToBlinkValue.startAnimation(animation)
+//        animation = RotateAnimation(
+//            0f,
+//            10f,
+//            Animation.RELATIVE_TO_SELF,
+//            0.5f,
+//            Animation.RELATIVE_TO_SELF,
+//            0.5f
+//        )
+//        animation.fillAfter = true
+//        textViewToBlinkValue.startAnimation(animation)
 
-        if (animForDirectionText.isRunning) {
-            animForDirectionText.end()
-        }
-
+//        if (animForDirectionText.isRunning) {
+//            animForDirectionText.end()
+//        }
+//
         animForDirectionText = ObjectAnimator.ofInt(
             displayTextView,
-            "backgroundColor", R.color.green, R.color.green, Color.WHITE, R.color.green
+            "backgroundColor",Color.GREEN, Color.GREEN, Color.WHITE, Color.GREEN
         )
         animForDirectionText.duration = 1500
         animForDirectionText.setEvaluator(ArgbEvaluator())
@@ -1229,15 +1233,17 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                         //return
                     }
 
-                    if (!bluetoothList.contains(device!!.name)) {
+                    //if (!bluetoothList.contains(device!!.name)) {
 
-                        bluetoothList.add(device.name)
+                        bluetoothList.add(device!!.name)
                         deviceList.add(device)
-                    }
+                    var v = device.name
+                    //}
 
                 }
 
             }
+            scantBlueTooth()
         }
     }
 
@@ -1274,7 +1280,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
 
         if (item.itemId == R.id.bluetooth_spinner) {
+            discover()
             toggleWidgets()
+
+
             return true
 
         }
@@ -1302,11 +1311,14 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             // for ActivityCompat#requestPermissions for more details.
             //return
         }
+
+        //checkLocation()
         if (bluetoothAdapter.isDiscovering) {
             bluetoothAdapter.cancelDiscovery()
             bluetoothAdapter.startDiscovery()
         } else {
             bluetoothAdapter.startDiscovery()
+            progressBar.isVisible = true
         }
 
     }
@@ -1329,9 +1341,9 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             spinner.visibility = Spinner.VISIBLE
             buttonConnect.visibility = Button.VISIBLE
 
-//                checkLocation()
-//                discover()
-//                scantBlueTooth()
+                checkLocation()
+
+                scantBlueTooth()
 
         } else {
             spinner.visibility = Spinner.INVISIBLE
@@ -1707,6 +1719,23 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     }
 
     private fun undoDrawingLines() {
+        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
+            CreateProjectDialog.sharedPrefFile,
+            Context.MODE_PRIVATE
+        )!!
+
+        val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
+
+        val ProjectID = ProjectIDString!!.toInt()
+
+        if (ProjectID == 0) {
+            Toast.makeText(
+                applicationContext,
+                "You did not create a project!! \n create one and continue",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
         AlertDialog.Builder(this)
             .setTitle("Warning")
             .setIcon(R.drawable.caution)
@@ -1718,7 +1747,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     for (l in polyLines) {
                         l!!.remove()
                     }
-
+                    deleteBasePoints(ProjectID)
 meshDone = false
                 })
 
@@ -2075,6 +2104,28 @@ meshDone = false
         return totalMinutes
     }
 
+    private fun deleteBasePoints(id:Int){
+
+        val modal = projectID(id)
+        val retrofitDataObject = AppModule.retrofitInstance()
+
+        val retrofitData = retrofitDataObject.deleteBasePoints(modal)
+      retrofitData.enqueue(object : Callback<DeleteCoordsResponse?> {
+          override fun onResponse(
+              call: Call<DeleteCoordsResponse?>,
+              response: Response<DeleteCoordsResponse?>
+          ) {
+         if(response.isSuccessful){
+
+         }
+          }
+
+          override fun onFailure(call: Call<DeleteCoordsResponse?>, t: Throwable) {
+              TODO("Not yet implemented")
+          }
+      })
+    }
+
     private fun saveBasepoints(loc: LongLat) {
         val lat = loc.getLatitude()
         val lng = loc.getLongitude()
@@ -2129,7 +2180,13 @@ meshDone = false
                         alertfail("BODY IS NULL")
                     }
                 } else {
-                    alertfail("An error has occured")
+                    meshDone = false
+                    Toast.makeText(
+                        applicationContext,
+                        "You did not create a project!! \n create one and continue",
+                        Toast.LENGTH_LONG
+                    ).show()
+                   // alertfail("You did not create a project!! \n create one and continue")
                 }
             }
 

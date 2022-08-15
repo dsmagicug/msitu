@@ -14,6 +14,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+import com.dsmagic.kibira.MainActivity.Companion.card
 
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
@@ -254,6 +255,7 @@ clean = true
                 if (MainActivity.listOfPlantingLines.isNotEmpty()) {
                     MainActivity.listOfPlantingLines.clear()
                 }
+
 //                activity?.finish()
 //                val intent = Intent(activity?.applicationContext,MainActivity::class.java)
 //                startActivity(intent)

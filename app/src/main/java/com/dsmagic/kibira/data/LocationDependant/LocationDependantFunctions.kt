@@ -25,4 +25,26 @@ val n = true
 return bearing.toString()
     }
 
+    fun facingDirection(InitialBearing:Float,CurrentBearing:Float):String{
+        var d = ""
+        var rangeRight = 5 + InitialBearing
+        var rangeLeft = InitialBearing - 5
+        when{
+            //going too far right
+            CurrentBearing > InitialBearing -> {
+                d = "Right"
+            }
+//going too far left
+            CurrentBearing < InitialBearing -> {
+                d ="Left"
+            }
+
+             CurrentBearing <  rangeRight || CurrentBearing  < rangeLeft ->{
+                d = "Stop"
+            }
+        }
+
+        return d
+    }
+
 }

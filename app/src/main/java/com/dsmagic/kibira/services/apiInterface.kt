@@ -1,5 +1,6 @@
 package com.dsmagic.kibira.services
 
+import com.dsmagic.kibira.services.BasePoints.projectID
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.*
@@ -42,6 +43,6 @@ interface apiInterface {
     fun deleteProject(@Body dataClass: deleteProjectDataClass): Call<deleteProjectResponse>
 
     @POST("deleteCoords")
-    fun unmarkPoint(@Body dataClass: DeleteCoords): Call<DeleteCoordsResponse>
+    fun deleteBasePoints(@Body dataClass: projectID): Call<DeleteCoordsResponse>
 
 }

@@ -12,7 +12,7 @@
     <item
         android:id="@+id/d2"
         android:textColor="@color/white"
-        android:title="Bluetooth"
+
         app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/d3"
