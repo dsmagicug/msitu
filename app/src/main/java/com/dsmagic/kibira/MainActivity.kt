@@ -139,10 +139,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     //-------------compass----------//
     lateinit var fabCampus: FloatingActionButton
-    lateinit var directionLeft: ImageView
-    lateinit var directionRight: ImageView
-    lateinit var directionLeftText: TextView
-    lateinit var directionRightText: TextView
+    lateinit var directionImage: ImageView
+    lateinit var directionText: TextView
     lateinit var directionAheadText: TextView
     var BearingPhoneIsFacing: Float = 0.0f
 
@@ -189,10 +187,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         pace = findViewById(R.id.paceValue)
         linesMarked = findViewById(R.id.linesMarkedValue)
         totalPoints = findViewById(R.id.totalPointsValue)
-        directionLeft = findViewById(R.id.leftDirectionValue)
-        directionRight = findViewById(R.id.rightDirectionValue)
-        directionLeftText = findViewById(R.id.directionLeft)
-        directionRightText = findViewById(R.id.directionRight)
+        directionImage = findViewById(R.id.directionImageValue)
+        directionText =  findViewById(R.id.directionText)
         directionAheadText = findViewById(R.id.aheadDirection)
 
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
@@ -687,10 +683,13 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 //
 
                     } else {
-                        warningAlert(
-                            "\nProject is empty!! Might be best to delete it.",
-                            ProjectID
-                        )
+                        runOnUiThread{
+                            warningAlert(
+                                "\nProject is empty!! Might be best to delete it.",
+                                ProjectID
+                            )
+                        }
+
                     }
                 }
             } else {
@@ -1009,6 +1008,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var animForDirectionText: ObjectAnimator
     lateinit var animForPoint: ObjectAnimator
     lateinit var animation: RotateAnimation
+
     fun blink(color: String, p: String) {
 
         val n = color
@@ -1019,18 +1019,20 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         when (textViewToBlink) {
             "Left" -> {
-                textViewToBlinkValue = directionLeft
-                displayTextView = directionLeftText
+                directionImage.setImageResource(R.drawable.rightarraw)
+                directionImage.isVisible=true
+                directionText.text = "Turn Right"
+                directionText.isVisible=true
             }
             "Right" -> {
-                textViewToBlinkValue = directionRight
-                displayTextView = directionRightText
+                directionImage.setImageResource(R.drawable.leftarrow)
+                directionText.text = "Turn Left"
+                directionImage.isVisible=true
+                directionText.isVisible=true
             }
             "Stop" -> {
-                directionLeft.isVisible = false
-                directionLeftText.isVisible = false
-                directionRight.isVisible = false
-                directionRightText.isVisible = false
+                directionText.isVisible=false
+                directionImage.isVisible=false
                // animForDirectionText.end()
                // animation.cancel()
 
@@ -1040,6 +1042,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         textViewToBlinkValue.isVisible = true
         textViewToBlinkValue.isVisible = true
+
 
 //        animation = RotateAnimation(
 //            0f,
