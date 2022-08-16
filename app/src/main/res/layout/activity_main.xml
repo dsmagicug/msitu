@@ -75,14 +75,13 @@
                                 android:id="@+id/myTextView"
                                 android:layout_width="203dp"
                                 android:layout_height="140dp"
-                                android:layout_gravity="center"
                                 android:layout_marginStart="0dp"
                                 android:fontFamily="@font/sans"
-                                android:padding="10dp"
+                                android:padding="5dp"
 
                                 android:text="Marked Pts:"
-                                android:textAlignment="center"
-                                android:textSize="35sp"
+                                android:textAlignment="textStart"
+                                android:textSize="30sp"
                                 android:textStyle="bold|normal"
 
                                 />
