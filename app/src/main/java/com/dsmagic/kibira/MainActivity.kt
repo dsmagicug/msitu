@@ -36,6 +36,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
+import com.dsmagic.kibira.roomDatabase.AppDatabase
+import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 //import com.dsmagic.kibira.roomDatabase.AppDatabase
 //import com.dsmagic.kibira.roomDatabase.BasePoint
 import com.dsmagic.kibira.services.*
@@ -133,7 +135,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var toggle: ActionBarDrawerToggle
     lateinit var sharedPreferences: SharedPreferences
 
-   // lateinit var appdb: AppDatabase
+    lateinit var appdb: AppDatabase
 
     //-------------compass----------//
     lateinit var fabCampus: FloatingActionButton
@@ -197,7 +199,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         drawerlayout.addDrawerListener(toggle)
         toggle.syncState()
 
-        //appdb = AppDatabase.dbInstance(this)
+        appdb = AppDatabase.dbInstance(this)
         navView.setNavigationItemSelectedListener(this)
 
         card.setOnClickListener {
@@ -1318,7 +1320,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             bluetoothAdapter.startDiscovery()
         } else {
             bluetoothAdapter.startDiscovery()
-            progressBar.isVisible = true
+
         }
 
     }
@@ -2148,12 +2150,13 @@ meshDone = false
             return
         }
 
-//        val basePoints = BasePoints(null, 7.00, 8.90, ProjectID)
-//
-//        GlobalScope.launch(Dispatchers.IO) {
-//            val d = appdb.basepointsDAO().addBasePoints(basePoints)
-//            Log.d("data", "${d}")
-//        }
+        val basePoints = Basepoints( null,lat,lng,ProjectID)
+
+        GlobalScope.launch(Dispatchers.IO) {
+            val d = appdb.kibiraDao().insertBasepoints(basePoints)
+            Log.d("data", "${d}")
+            val s = 8
+        }
 
         val modal = SaveBasePointsClass(lat, lng, ProjectID)
         val retrofitDataObject = AppModule.retrofitInstance()

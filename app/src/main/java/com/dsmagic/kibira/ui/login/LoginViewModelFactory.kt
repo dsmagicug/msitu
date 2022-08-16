@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.dsmagic.kibira.data.LoginDataSource
 import com.dsmagic.kibira.data.LoginRepository
+import kotlin.reflect.jvm.jvmName
 
 /**
  * ViewModel provider factory to instantiate LoginViewModel.

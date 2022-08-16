@@ -395,15 +395,15 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
                         android:orientation="vertical"
-                        android:visibility="invisible">
+                        >
 
                         <LinearLayout
                             android:id="@+id/leftLayout"
-                            android:layout_width="307dp"
+                            android:layout_width="357dp"
                             android:layout_height="90dp"
                             android:layout_marginTop="95dp"
                             android:layout_marginStart="5dp"
-                            android:background="@color/white"
+
                             android:orientation="horizontal"
                             android:visibility="invisible"
                             app:layout_constraintBottom_toBottomOf="@+id/appToolbar"
@@ -443,7 +443,7 @@
                         </LinearLayout>
 
                         <View
-                            android:layout_width="307dp"
+                            android:layout_width="357dp"
                             android:layout_height="2dp"
                             android:background="@color/hr" />
 
@@ -452,7 +452,7 @@
                             android:layout_width="407dp"
                             android:layout_height="90dp"
                             android:layout_marginStart="5dp"
-                            android:background="@color/white"
+
                             android:orientation="horizontal"
                             android:visibility="invisible">
 
@@ -491,7 +491,7 @@
                         </LinearLayout>
 
                         <View
-                            android:layout_width="307dp"
+                            android:layout_width="357dp"
                             android:layout_height="2dp"
                             android:background="@color/hr" />
 
