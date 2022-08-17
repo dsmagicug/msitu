@@ -1,6 +1,8 @@
 package com.dsmagic.kibira
 
 
+//import com.dsmagic.kibira.roomDatabase.AppDatabase
+//import com.dsmagic.kibira.roomDatabase.BasePoint
 import android.Manifest
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
@@ -22,10 +24,10 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.animation.Animation
 import android.view.animation.RotateAnimation
 import android.widget.*
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -58,6 +60,7 @@ import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.PointData
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
+import kotlinx.android.synthetic.main.navheader.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -122,7 +125,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     private var ViewProjects = false
 
 
-
     var userID: String? = null
 
     var extras: Bundle? = null
@@ -138,7 +140,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var sharedPreferences: SharedPreferences
 
 
-
     //-------------compass----------//
     lateinit var fabCampus: FloatingActionButton
     lateinit var directionImage: ImageView
@@ -146,13 +147,16 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var directionAheadText: TextView
     var BearingPhoneIsFacing: Float = 0.0f
 
-    lateinit var drawerlayout:DrawerLayout
-    lateinit var navView:NavigationView
-    lateinit var fab_reset:FloatingActionButton
-    lateinit var fab_map:FloatingActionButton
-    lateinit var progressBar:ProgressBar
-    lateinit var spinner:Spinner
-    lateinit var buttonConnect:Button
+    lateinit var drawerlayout: DrawerLayout
+    lateinit var navView: NavigationView
+    lateinit var fab_reset: FloatingActionButton
+    lateinit var fab_map: FloatingActionButton
+    lateinit var progressBar: ProgressBar
+    lateinit var spinner: Spinner
+    lateinit var buttonConnect: Button
+
+    lateinit var btnCloseDrawer :ImageButton
+
     //---------------Time---------//
     lateinit var initialTime: SimpleDateFormat
     lateinit var initialTimeValue: String
@@ -165,17 +169,18 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     var delta = 1.0
     var projectLoaded = false
 
-   companion object{
+    companion object {
         var listOfMarkedPoints = mutableListOf<LatLng>()
         var listofmarkedcircles = mutableListOf<Circle>()
 
         var unmarkedCirclesList = mutableListOf<Circle>()
 
         var listOfPlantingLines = mutableListOf<Polyline>()
+
        var polyLines = ArrayList<Polyline?>()
        var meshDone = false
        lateinit var card: CardView
-      lateinit var directionCardLayout: CardView
+       lateinit var directionCardLayout: CardView
        lateinit var appdb: AppDatabase
        lateinit var lineInS2Format: S2PointIndex<S2LatLng>
        lateinit var mapFragment: SupportMapFragment
@@ -196,17 +201,16 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         drawerlayout = findViewById(R.id.drawerlayout)
         navView = findViewById(R.id.navView)
         fab_map = findViewById(R.id.fab_map)
-        fab_reset=findViewById(R.id.fab_reset)
-
-        progressBar=findViewById(R.id.progressBar)
-        buttonConnect=findViewById(R.id.buttonConnect)
-        spinner =  findViewById(R.id.spinner)
+        fab_reset = findViewById(R.id.fab_reset)
+        progressBar = findViewById(R.id.progressBar)
+        buttonConnect = findViewById(R.id.buttonConnect)
+        spinner = findViewById(R.id.spinner)
         card = findViewById<CardView>(R.id.cardView2)
         pace = findViewById(R.id.paceValue)
         linesMarked = findViewById(R.id.linesMarkedValue)
         totalPoints = findViewById(R.id.totalPointsValue)
         directionImage = findViewById(R.id.directionImageValue)
-        directionText =  findViewById(R.id.directionText)
+        directionText = findViewById(R.id.directionText)
         directionCardLayout = findViewById(R.id.directionsLayout)
 
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
@@ -217,6 +221,11 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         appdb = AppDatabase.dbInstance(this)
         navView.setNavigationItemSelectedListener(this)
+        val headerView: View = navView.getHeaderView(0)
+        val btnCloseDrawer = headerView.findViewById<View>(R.id.btnCloseDrawer) as ImageButton
+        btnCloseDrawer.setOnClickListener {
+            drawerlayout.closeDrawer(Gravity.LEFT)
+        }
 
         fabCampus.setOnClickListener {
             // rotate the map accordingly
@@ -717,7 +726,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 //
 
                     } else {
-                        runOnUiThread{
+                        runOnUiThread {
                             warningAlert(
                                 "\nProject is empty!! Might be best to delete it.",
                                 ProjectID
@@ -975,7 +984,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 }
 
 
-                 position = LocationDependantFunctions().facingDirection(
+                position = LocationDependantFunctions().facingDirection(
                     BearingPhoneIsFacing,
                     lastRotateDegree
                 )
@@ -1045,20 +1054,19 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         when (textViewToBlink) {
             "Left" -> {
                 directionImage.setImageResource(R.drawable.leftarrow)
-                directionImage.isVisible=true
+                directionImage.isVisible = true
                 directionText.text = "Turn Right"
-                directionText.isVisible=true
+                directionText.isVisible = true
             }
             "Right" -> {
                 directionImage.setImageResource(R.drawable.rightarrow)
                 directionText.text = "Turn Left"
-                directionImage.isVisible=true
-                directionText.isVisible=true
+                directionImage.isVisible = true
+                directionText.isVisible = true
             }
             "Stop" -> {
-                directionText.isVisible=false
-                directionImage.isVisible=false
-
+                directionText.isVisible = false
+                directionImage.isVisible = false
 
             }
 
@@ -1245,8 +1253,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
                     //if (!bluetoothList.contains(device!!.name)) {
 
-                        bluetoothList.add(device!!.name)
-                        deviceList.add(device)
+                    bluetoothList.add(device!!.name)
+                    deviceList.add(device)
                     var v = device.name
                     //}
 
@@ -1351,9 +1359,9 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             spinner.visibility = Spinner.VISIBLE
             buttonConnect.visibility = Button.VISIBLE
 
-                checkLocation()
+            checkLocation()
 
-                scantBlueTooth()
+            scantBlueTooth()
 
         } else {
             spinner.visibility = Spinner.INVISIBLE
@@ -1469,10 +1477,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         }
         secondPoint = pt
 
-        if (firstPoint == null || secondPoint == null )
+        if (firstPoint == null || secondPoint == null)
             return@OnMapClickListener
 
-        if(meshDone){
+        if (meshDone) {
             return@OnMapClickListener
         }
 
@@ -1761,7 +1769,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                         l!!.remove()
                     }
                     deleteBasePoints(ProjectID)
-meshDone = false
+                    meshDone = false
                 })
 
 
@@ -2119,26 +2127,26 @@ meshDone = false
         return totalMinutes
     }
 
-    private fun deleteBasePoints(id:Int){
+    private fun deleteBasePoints(id: Int) {
 
         val modal = projectID(id)
         val retrofitDataObject = AppModule.retrofitInstance()
 
         val retrofitData = retrofitDataObject.deleteBasePoints(modal)
-      retrofitData.enqueue(object : Callback<DeleteCoordsResponse?> {
-          override fun onResponse(
-              call: Call<DeleteCoordsResponse?>,
-              response: Response<DeleteCoordsResponse?>
-          ) {
-         if(response.isSuccessful){
+        retrofitData.enqueue(object : Callback<DeleteCoordsResponse?> {
+            override fun onResponse(
+                call: Call<DeleteCoordsResponse?>,
+                response: Response<DeleteCoordsResponse?>
+            ) {
+                if (response.isSuccessful) {
 
-         }
-          }
+                }
+            }
 
-          override fun onFailure(call: Call<DeleteCoordsResponse?>, t: Throwable) {
-              TODO("Not yet implemented")
-          }
-      })
+            override fun onFailure(call: Call<DeleteCoordsResponse?>, t: Throwable) {
+                TODO("Not yet implemented")
+            }
+        })
     }
     fun saveBasepoints(loc: LongLat) {
         val lat = loc.getLatitude()
@@ -2151,6 +2159,15 @@ meshDone = false
         val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
 
         val ProjectID = ProjectIDString!!.toInt()
+
+        if (ProjectID == 0) {
+            Toast.makeText(
+                applicationContext,
+                "You did not create a project!! \n create one and continue",
+                Toast.LENGTH_LONG
+            ).show()
+            return
+        }
 
         val basePoints = Basepoints(null, lat, lng, ProjectID)
 
@@ -2232,7 +2249,6 @@ meshDone = false
 //            }
 //        })
 //    }
-
     private fun alertWarning(s: String) {
         AlertDialog.Builder(this)
             .setTitle("Warning")
@@ -2403,6 +2419,8 @@ meshDone = false
     }
 
 }
+
+
 
 
 
