@@ -169,6 +169,24 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
        var meshDone = false
        lateinit var card: CardView
       lateinit var layout: LinearLayout
+      lateinit var directionCardLayout: CardView
+
+       val callback = OnMapReadyCallback { googleMap ->
+           map = googleMap
+           googleMap.setLocationSource(NmeaReader.listener)
+           googleMap.setOnMapClickListener(onMapClick)
+           googleMap.setOnPolylineClickListener(onPolyClick)
+           //googleMap.setInfoWindowAdapter(CustomInfoWindowAdapter())
+           val isl = LatLng(-.366044, 32.441599)
+           googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
+           googleMap.addMarker(MarkerOptions().position(isl).title("Marker in N Residence"))
+           googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(isl, 21.0f))
+
+           val fab = findViewById<FloatingActionButton>(R.id.fab_map)
+           fab.hide()
+
+
+       }
    }
 
 
@@ -190,6 +208,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         directionImage = findViewById(R.id.directionImageValue)
         directionText =  findViewById(R.id.directionText)
         directionAheadText = findViewById(R.id.aheadDirection)
+        directionCardLayout = findViewById(R.id.directionsLayout)
 
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
         drawerlayout.addDrawerListener(toggle)
@@ -856,7 +875,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 }
             }
             card.isVisible = true
-            directionsLayout.isVisible = true
+            directionCardLayout.isVisible = true
             var displayedDistance = findViewById<TextView>(R.id.distance)
             var displayedPoints = findViewById<TextView>(R.id.numberOfPoints)
             displayedDistance.text = ""
@@ -1010,8 +1029,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var animation: RotateAnimation
 
     fun blink(color: String, p: String) {
-
-        val n = color
         val textViewToBlink = p
         var animationColor: Int = 0
         lateinit var textViewToBlinkValue: ImageView
@@ -1019,7 +1036,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         when (textViewToBlink) {
             "Left" -> {
-                directionImage.setImageResource(R.drawable.rightarraw)
+                directionImage.setImageResource(R.drawable.rightarrow)
                 directionImage.isVisible=true
                 directionText.text = "Turn Right"
                 directionText.isVisible=true
@@ -1040,9 +1057,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         }
 
-        textViewToBlinkValue.isVisible = true
-        textViewToBlinkValue.isVisible = true
-
 
 //        animation = RotateAnimation(
 //            0f,
@@ -1060,7 +1074,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 //        }
 //
         animForDirectionText = ObjectAnimator.ofInt(
-            displayTextView,
+            directionText,
             "backgroundColor",Color.GREEN, Color.GREEN, Color.WHITE, Color.GREEN
         )
         animForDirectionText.duration = 1500
@@ -2281,22 +2295,7 @@ meshDone = false
         return (size * 2)
     }
 
-    val callback = OnMapReadyCallback { googleMap ->
-        map = googleMap
-        googleMap.setLocationSource(NmeaReader.listener)
-        googleMap.setOnMapClickListener(onMapClick)
-        googleMap.setOnPolylineClickListener(onPolyClick)
-        //googleMap.setInfoWindowAdapter(CustomInfoWindowAdapter())
-        val isl = LatLng(-.366044, 32.441599)
-        googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
-        googleMap.addMarker(MarkerOptions().position(isl).title("Marker in N Residence"))
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(isl, 21.0f))
 
-        val fab = findViewById<FloatingActionButton>(R.id.fab_map)
-        fab.hide()
-
-
-    }
 
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {

@@ -14,7 +14,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
+import com.dsmagic.kibira.MainActivity.Companion.callback
 import com.dsmagic.kibira.MainActivity.Companion.card
+import com.dsmagic.kibira.MainActivity.Companion.directionCardLayout
+import com.dsmagic.kibira.MainActivity.Companion.meshDone
 
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
@@ -242,10 +245,14 @@ clean = true
                 // progressbar?.isVisible = false
 
                 displayProjectName?.text = saved_project_name
-                var meshDone = false
+                 meshDone = false
+
                 for (item in MainActivity.polyLines) {
                     item!!.remove()
                 }
+               var mapFragment = activity?.supportFragmentManager!!.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
+                mapFragment?.getMapAsync(callback)
+
                 for (l in MainActivity.listofmarkedcircles) {
                     l.remove()
                 }
@@ -255,6 +262,8 @@ clean = true
                 if (MainActivity.listOfPlantingLines.isNotEmpty()) {
                     MainActivity.listOfPlantingLines.clear()
                 }
+                directionCardLayout.isVisible = false
+                card.isVisible = false
 
 //                activity?.finish()
 //                val intent = Intent(activity?.applicationContext,MainActivity::class.java)
@@ -298,4 +307,5 @@ clean = true
 
 
 }
+
 
