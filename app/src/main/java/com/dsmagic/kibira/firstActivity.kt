@@ -15,6 +15,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
+import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.services.*
 import retrofit2.Call
 import retrofit2.Callback
@@ -260,50 +261,64 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
                 }
 
 
-                Geogmesh_size = MeshSize!!.toDouble()
+                Geogmesh_size = MeshSize.toDouble()
                 Geoggapsize = GapSize
 
-                val CreateProjectRetrofitObject = AppModule.retrofitInstance()
-                val modal = createProjectDataClass(saved_gap_size,saved_project_name!!,userID, MeshSize)
-                val retrofitData =  CreateProjectRetrofitObject.createProject(modal)
-                retrofitData.enqueue(object : Callback<ResponseProjectDataClass?> {
-                    override fun onResponse(
-                        call: Call<ResponseProjectDataClass?>,
-                        response: Response<ResponseProjectDataClass?>
-                    ) {
-                        if(response.isSuccessful){
-                            if(response.body() != null){
-                                val ProjectName = response.body()!!.name
-                                val ProjectIDInt = response.body()!!.projectID
-                                val ProjectID = ProjectIDInt.toString()
+                displayProjectName?.text = saved_project_name
+             var pid =  DbFunctions.saveProject(
+                    saved_project_name!!,
+                    Geoggapsize!!.toDouble(),
+                    Geogmesh_size!!,
+                    userID
+                )
 
-                                if(response.body()!!.message == "created"){
-
-                                    editor.putString("productID_key", ProjectID)
-                                    editor.apply()
-                                    editor.commit()
+              //  var pid = DbFunctions.projectID( Geoggapsize!!.toDouble(),saved_project_name!!)
+                editor.putString("productID_key", pid.toString())
+                editor.apply()
+                editor.commit()
 
 
-
-                                }else{
-
-                                    alertfail("Project $ProjectName not created")
-                                }
-                            }else{
-
-                                alertfail("Project not created")
-                            }
-
-                        }else{
-
-                            alertfail("Project not created")
-                        }
-                    }
-
-                    override fun onFailure(call: Call<ResponseProjectDataClass?>, t: Throwable) {
-                        alertfail(("Response failed, invalid data"))
-                    }
-                })
+//                val CreateProjectRetrofitObject = AppModule.retrofitInstance()
+//                val modal = createProjectDataClass(saved_gap_size,saved_project_name!!,userID, MeshSize)
+//                val retrofitData =  CreateProjectRetrofitObject.createProject(modal)
+//                retrofitData.enqueue(object : Callback<ResponseProjectDataClass?> {
+//                    override fun onResponse(
+//                        call: Call<ResponseProjectDataClass?>,
+//                        response: Response<ResponseProjectDataClass?>
+//                    ) {
+//                        if(response.isSuccessful){
+//                            if(response.body() != null){
+//                                val ProjectName = response.body()!!.name
+//                                val ProjectIDInt = response.body()!!.projectID
+//                                val ProjectID = ProjectIDInt.toString()
+//
+//                                if(response.body()!!.message == "created"){
+//
+//                                    editor.putString("productID_key", ProjectID)
+//                                    editor.apply()
+//                                    editor.commit()
+//
+//
+//
+//                                }else{
+//
+//                                    alertfail("Project $ProjectName not created")
+//                                }
+//                            }else{
+//
+//                                alertfail("Project not created")
+//                            }
+//
+//                        }else{
+//
+//                            alertfail("Project not created")
+//                        }
+//                    }
+//
+//                    override fun onFailure(call: Call<ResponseProjectDataClass?>, t: Throwable) {
+//                        alertfail(("Response failed, invalid data"))
+//                    }
+//                })
                 //createProject(saved_project_name!!,saved_gap_size,userID)
                 progressbar?.isVisible = false
                 displayProjectName?.text = saved_project_name

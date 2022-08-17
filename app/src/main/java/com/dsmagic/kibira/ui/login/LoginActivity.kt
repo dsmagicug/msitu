@@ -155,8 +155,6 @@ val sharedPrefFile = "LoginShareFile"
         if(userEmail != "defaultValue"){
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
-        } else{
-Log.d("WEIRD","WEIRD")
         }
     }
 

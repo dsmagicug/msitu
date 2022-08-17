@@ -6,6 +6,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/navheader"
+        app:menu="@menu/navmenu" />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -427,7 +435,7 @@
                             android:autofillHints=""
                             android:padding="5dp"
                             android:src="@drawable/leftarrow"
-                            android:tint="@color/white"
+                            app:tint="@color/white"
                             android:visibility="visible" />
 
                         <TextView
@@ -512,12 +520,5 @@
 
     </RelativeLayout>
 
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/navView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="start"
-        android:fitsSystemWindows="true"
-        app:headerLayout="@layout/navheader"
-        app:menu="@menu/navmenu" />
+
 </androidx.drawerlayout.widget.DrawerLayout>

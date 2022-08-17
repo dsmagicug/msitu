@@ -38,9 +38,11 @@ import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
 import com.dsmagic.kibira.roomDatabase.AppDatabase
+import com.dsmagic.kibira.roomDatabase.DbFunctions
+import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.getProjects
+
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
-//import com.dsmagic.kibira.roomDatabase.AppDatabase
-//import com.dsmagic.kibira.roomDatabase.BasePoint
+
 import com.dsmagic.kibira.services.*
 import com.dsmagic.kibira.services.BasePoints.projectID
 import com.dsmagic.kibira.utils.GeneralHelper
@@ -176,6 +178,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
       lateinit var directionCardLayout: CardView
        lateinit var appdb: AppDatabase
        lateinit var lineInS2Format: S2PointIndex<S2LatLng>
+       lateinit var mapFragment: SupportMapFragment
    }
 
 
@@ -207,15 +210,13 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         directionCardLayout = findViewById(R.id.directionsLayout)
 
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
+
+
         drawerlayout.addDrawerListener(toggle)
         toggle.syncState()
 
         appdb = AppDatabase.dbInstance(this)
         navView.setNavigationItemSelectedListener(this)
-
-        card.setOnClickListener {
-            stopBlink()
-        }
 
         fabCampus.setOnClickListener {
             // rotate the map accordingly
@@ -251,20 +252,20 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             editor.apply()
             editor.commit()
 
+        } else {
+           var s = null
         }
         // Getting the Sensor Manager instance
 
-        if (savedInstanceState == null) {
-            getProjects()
+        //if (savedInstanceState == null) {
+           // getProjects(userID!!.toInt())
+            //getProjects()
             createDialog(projectList)
-            val mapFragment =
-                supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
-            mapFragment?.getMapAsync(callback)
-        }
+             mapFragment =
+                 (supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?)!!
+            mapFragment.getMapAsync(callback)
+        //}
 
-        if (CreateProjectDialog.clean) {
-            freshFragment(true)
-        }
         //register bluetooth broadcaster for scanning devices
         var intent = IntentFilter(BluetoothDevice.ACTION_FOUND)
         registerReceiver(receiver, intent)
@@ -510,47 +511,49 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         pressedTime = System.currentTimeMillis()
     }
 
-    fun getProjects(): ArrayList<String> {
 
-        val apiToken: String? = sharedPreferences.getString("apiToken_key", "defaultValue")
-
-        GlobalScope.launch(Dispatchers.IO) {
-            val retrofitDataObject = ServiceInterceptor("Bearer", apiToken!!).httpClient(apiToken)
-            val retrofitData = retrofitDataObject.getProjectsList(apiToken)
-
-            if (retrofitData.isSuccessful) {
-                //Crude: clear the lists to avoid duplicates
-                // or! Make name unique, and check its existance before adding i to list to avoid duplicates.
-                projectList.clear()
-                projectIDList.clear()
-                projectMeshSizeList.clear()
-                projectSizeList.clear()
-
-                for (data in retrofitData.body()!!) {
-                    projectList.add(data.name)
-                    projectIDList.add(data.id)
-                    projectMeshSizeList.add(data.mesh_size)
-                    projectSizeList.add(data.gap_size)
-                }
-                if (ViewProjects) {
-                    displayProjects(
-
-                    )
-                }
-
-                Log.d("Projects", "$projectList")
-
-            } else {
-//                runOnUiThread {
-//                    alertfail("No response got from server")
+//
+//    fun getProjects(): ArrayList<String> {
+//
+//        val apiToken: String? = sharedPreferences.getString("apiToken_key", "defaultValue")
+//
+//        GlobalScope.launch(Dispatchers.IO) {
+//            val retrofitDataObject = ServiceInterceptor("Bearer", apiToken!!).httpClient(apiToken)
+//            val retrofitData = retrofitDataObject.getProjectsList(apiToken)
+//
+//            if (retrofitData.isSuccessful) {
+//                //Crude: clear the lists to avoid duplicates
+//                // or! Make name unique, and check its existance before adding i to list to avoid duplicates.
+//                projectList.clear()
+//                projectIDList.clear()
+//                projectMeshSizeList.clear()
+//                projectSizeList.clear()
+//
+//                for (data in retrofitData.body()!!) {
+//                    projectList.add(data.name)
+//                    projectIDList.add(data.id)
+//                    projectMeshSizeList.add(data.mesh_size)
+//                    projectSizeList.add(data.gap_size)
 //                }
-
-            }
-
-        }
-
-        return projectList
-    }
+//                if (ViewProjects) {
+//                    displayProjects(
+//
+//                    )
+//                }
+//
+//                Log.d("Projects", "$projectList")
+//
+//            } else {
+////                runOnUiThread {
+////                    alertfail("No response got from server")
+////                }
+//
+//            }
+//
+//        }
+//
+//        return projectList
+//    }
 
     var selectedProject: String = " "
 
@@ -1489,6 +1492,9 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         saveBasepoints(firstPoint!!)
         saveBasepoints(secondPoint!!)
+
+        //saveBasepoints(firstPoint!!)
+//        saveBasepoints(secondPoint!!)
         plotMesh(firstPoint!!, secondPoint!!)
 
 
@@ -1913,6 +1919,8 @@ meshDone = false
             val jsonArray = mapper.writeValueAsString(pt)
             Log.d("array", "$jsonArray")
 
+          // DbFunctions.savePoints(pointOfInterestOnPolyline,userID!!.toInt(),)
+
 
             if (listOfMarkedPoints.add(markedCirclePoint.center)) {
                 plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
@@ -2132,11 +2140,9 @@ meshDone = false
           }
       })
     }
-
-    private fun saveBasepoints(loc: LongLat) {
+    fun saveBasepoints(loc: LongLat) {
         val lat = loc.getLatitude()
         val lng = loc.getLongitude()
-
         val sharedPreferences: SharedPreferences = this.getSharedPreferences(
             CreateProjectDialog.sharedPrefFile,
             Context.MODE_PRIVATE
@@ -2146,63 +2152,86 @@ meshDone = false
 
         val ProjectID = ProjectIDString!!.toInt()
 
-        if (ProjectID == 0) {
-            Toast.makeText(
-                applicationContext,
-                "You did not create a project!! \n create one and continue",
-                Toast.LENGTH_LONG
-            ).show()
-            return
-        }
-
-        val basePoints = Basepoints( null,lat,lng,ProjectID)
+        val basePoints = Basepoints(null, lat, lng, ProjectID)
 
         GlobalScope.launch(Dispatchers.IO) {
             val d = appdb.kibiraDao().insertBasepoints(basePoints)
-            Log.d("data", "$d")
+            Log.d("data", "${d}")
             val s = 8
         }
 
-        val modal = SaveBasePointsClass(lat, lng, ProjectID)
-        val retrofitDataObject = AppModule.retrofitInstance()
-
-        val retrofitData = retrofitDataObject.storeBasePoints(modal)
-        retrofitData.enqueue(object : Callback<SaveBasePointsResponse?> {
-            override fun onResponse(
-                call: Call<SaveBasePointsResponse?>,
-                response: Response<SaveBasePointsResponse?>
-            ) {
-                if (response.isSuccessful) {
-                    if (response.body() != null) {
-                        if (response.body()!!.message == "success") {
-//
-//                            Toast.makeText(
-//                                applicationContext, "Bpoints Saved!! " +
-//                                        "", Toast.LENGTH_SHORT
-//                            ).show()
-                        } else {
-                            val m = response.body()!!.meta
-                            alertfail(m)
-                        }
-                    } else {
-                        alertfail("BODY IS NULL")
-                    }
-                } else {
-                    meshDone = false
-                    Toast.makeText(
-                        applicationContext,
-                        "You did not create a project!! \n create one and continue",
-                        Toast.LENGTH_LONG
-                    ).show()
-                   // alertfail("You did not create a project!! \n create one and continue")
-                }
-            }
-
-            override fun onFailure(call: Call<SaveBasePointsResponse?>, t: Throwable) {
-                TODO("Not yet implemented")
-            }
-        })
     }
+
+//    private fun saveBasepoints(loc: LongLat) {
+//        val lat = loc.getLatitude()
+//        val lng = loc.getLongitude()
+//
+//        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
+//            CreateProjectDialog.sharedPrefFile,
+//            Context.MODE_PRIVATE
+//        )!!
+//
+//        val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
+//
+//        val ProjectID = ProjectIDString!!.toInt()
+//
+//        if (ProjectID == 0) {
+//            Toast.makeText(
+//                applicationContext,
+//                "You did not create a project!! \n create one and continue",
+//                Toast.LENGTH_LONG
+//            ).show()
+//            return
+//        }
+//
+//        val basePoints = Basepoints( null,lat,lng,ProjectID)
+//
+//        GlobalScope.launch(Dispatchers.IO) {
+//            val d = appdb.kibiraDao().insertBasepoints(basePoints)
+//            Log.d("data", "$d")
+//            val s = 8
+//        }
+//
+//        val modal = SaveBasePointsClass(lat, lng, ProjectID)
+//        val retrofitDataObject = AppModule.retrofitInstance()
+//
+//        val retrofitData = retrofitDataObject.storeBasePoints(modal)
+//        retrofitData.enqueue(object : Callback<SaveBasePointsResponse?> {
+//            override fun onResponse(
+//                call: Call<SaveBasePointsResponse?>,
+//                response: Response<SaveBasePointsResponse?>
+//            ) {
+//                if (response.isSuccessful) {
+//                    if (response.body() != null) {
+//                        if (response.body()!!.message == "success") {
+////
+////                            Toast.makeText(
+////                                applicationContext, "Bpoints Saved!! " +
+////                                        "", Toast.LENGTH_SHORT
+////                            ).show()
+//                        } else {
+//                            val m = response.body()!!.meta
+//                            alertfail(m)
+//                        }
+//                    } else {
+//                        alertfail("BODY IS NULL")
+//                    }
+//                } else {
+//                    meshDone = false
+//                    Toast.makeText(
+//                        applicationContext,
+//                        "You did not create a project!! \n create one and continue",
+//                        Toast.LENGTH_LONG
+//                    ).show()
+//                   // alertfail("You did not create a project!! \n create one and continue")
+//                }
+//            }
+//
+//            override fun onFailure(call: Call<SaveBasePointsResponse?>, t: Throwable) {
+//                TODO("Not yet implemented")
+//            }
+//        })
+//    }
 
     private fun alertWarning(s: String) {
         AlertDialog.Builder(this)
@@ -2345,7 +2374,7 @@ meshDone = false
             }
             R.id.action_view_projects -> {
                 ViewProjects = true
-                getProjects()
+                getProjects(userID!!.toInt())
                 return true
             }
         }

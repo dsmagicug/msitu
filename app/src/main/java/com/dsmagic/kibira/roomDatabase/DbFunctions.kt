@@ -1,14 +1,12 @@
 package com.dsmagic.kibira.roomDatabase
 
-import android.content.Context
 import android.util.Log
 import android.widget.Toast
-import com.dsmagic.kibira.LongLat
-import com.dsmagic.kibira.MainActivity
+import com.dsmagic.kibira.*
 import com.dsmagic.kibira.MainActivity.Companion.appdb
 import com.dsmagic.kibira.MainActivity.Companion.lineInS2Format
-import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
+import com.dsmagic.kibira.roomDatabase.Entities.Project
 import com.dsmagic.kibira.services.*
 import com.google.android.gms.maps.model.LatLng
 import dilivia.s2.S2LatLng
@@ -21,13 +19,15 @@ import retrofit2.Callback
 import retrofit2.Response
 
 class DbFunctions {
+    companion object {
 
-    fun savePoints(point:LatLng, UID:Int, PID:Int) {
 
-        val lat = point.latitude
-        val lng = point.longitude
+        fun savePoints(point: LatLng, UID: Int, PID: Int) {
 
-            val points = Coordinates( null,lat,lng,PID)
+            val lat = point.latitude
+            val lng = point.longitude
+
+            val points = Coordinates(null, lat, lng, PID)
 
             GlobalScope.launch(Dispatchers.IO) {
                 val d = appdb.kibiraDao().insertCoordinates(points)
@@ -39,59 +39,85 @@ class DbFunctions {
             }
 
 
-    }
-
-     fun saveBasepoints(loc: LongLat,PID:Int) {
-        val lat = loc.getLatitude()
-        val lng = loc.getLongitude()
-
-         val basePoints = Basepoints( null,lat,lng,PID)
-
-         GlobalScope.launch(Dispatchers.IO) {
-             val d = appdb.kibiraDao().insertBasepoints(basePoints)
-             Log.d("data", "${d}")
-             val s = 8
-         }
-
-    }
-
-    fun deleteProjectFunc(ID: Int,PID:Int) {
-
-
-        if (PID == 0) {
-            Toast.makeText(
-                MainActivity().applicationContext, "Could not load project" +
-                        "", Toast.LENGTH_SHORT
-            ).show()
         }
 
-        val retrofitDeleteProjectInstance = AppModule.retrofitInstance()
 
-        val modal = deleteProjectDataClass(ID)
-        val retrofitData = retrofitDeleteProjectInstance.deleteProject(modal)
+        fun saveProject(name:String,GAPSIZE:Double,LineLength:Double, UID: Int) {
 
-        retrofitData.enqueue(object : Callback<deleteProjectResponse?> {
-            override fun onResponse(
-                call: Call<deleteProjectResponse?>,
-                response: Response<deleteProjectResponse?>
-            ) {
-                if (response.isSuccessful) {
-                    if (response.body()!!.message == "success") {
-                        Toast.makeText(MainActivity().applicationContext, "Project deleted", Toast.LENGTH_LONG)
-                            .show()
+            val project = Project(null, name, GAPSIZE, LineLength, UID)
 
-                    } else {
-                        MainActivity().alertfail("Could not delete project :(")
-                    }
-                } else {
-                    MainActivity().alertfail("Error!! We all have bad days!! :( $response")
+       GlobalScope.launch(Dispatchers.IO) {
+                var d = appdb.kibiraDao().insertProject(project)
+                Log.d("data", "${d}")
+            }
+        }
+        fun getProjects(UID:Int){
+
+
+            GlobalScope.launch(Dispatchers.IO) {
+                val d = appdb.kibiraDao().getProjectsForUser(UID)
+                for (g in d){
+                  var projects = g.projects
                 }
+
+                Log.d("data", "${d}")
+                val s = 8
             }
 
-            override fun onFailure(call: Call<deleteProjectResponse?>, t: Throwable) {
-                MainActivity().alertfail("Error ${t.message}")
-            }
-        })
+        }
 
+
+        var id: Int = 0
+        fun projectID(gp:Double,name:String):Int {
+            GlobalScope.launch(Dispatchers.IO) {
+                val d = appdb.kibiraDao().getProjectID(gp, name)
+id = d
+            }
+return id
+        }
+
+        fun deleteProjectFunc(ID: Int, PID: Int) {
+
+
+            if (PID == 0) {
+                Toast.makeText(
+                    MainActivity().applicationContext, "Could not load project" +
+                            "", Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            val retrofitDeleteProjectInstance = AppModule.retrofitInstance()
+
+            val modal = deleteProjectDataClass(ID)
+            val retrofitData = retrofitDeleteProjectInstance.deleteProject(modal)
+
+            retrofitData.enqueue(object : Callback<deleteProjectResponse?> {
+                override fun onResponse(
+                    call: Call<deleteProjectResponse?>,
+                    response: Response<deleteProjectResponse?>
+                ) {
+                    if (response.isSuccessful) {
+                        if (response.body()!!.message == "success") {
+                            Toast.makeText(
+                                MainActivity().applicationContext,
+                                "Project deleted",
+                                Toast.LENGTH_LONG
+                            )
+                                .show()
+
+                        } else {
+                            MainActivity().alertfail("Could not delete project :(")
+                        }
+                    } else {
+                        MainActivity().alertfail("Error!! We all have bad days!! :( $response")
+                    }
+                }
+
+                override fun onFailure(call: Call<deleteProjectResponse?>, t: Throwable) {
+                    MainActivity().alertfail("Error ${t.message}")
+                }
+            })
+
+        }
     }
 }
