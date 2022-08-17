@@ -35,6 +35,7 @@ import androidx.cardview.widget.CardView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.drawerlayout.widget.DrawerLayout
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
 import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
@@ -55,7 +56,6 @@ import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.PointData
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -144,13 +144,18 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var directionAheadText: TextView
     var BearingPhoneIsFacing: Float = 0.0f
 
+    lateinit var drawerlayout:DrawerLayout
+    lateinit var navView:NavigationView
+    lateinit var fab_reset:FloatingActionButton
+    lateinit var fab_map:FloatingActionButton
+    lateinit var progressBar:ProgressBar
+    lateinit var spinner:Spinner
+    lateinit var buttonConnect:Button
     //---------------Time---------//
     lateinit var initialTime: SimpleDateFormat
     lateinit var initialTimeValue: String
 
 
-    lateinit var left: ImageView
-    lateinit var right: ImageView
     lateinit var pace: TextView
     lateinit var linesMarked: TextView
     lateinit var totalPoints: TextView
@@ -171,23 +176,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
       lateinit var directionCardLayout: CardView
        lateinit var appdb: AppDatabase
        lateinit var lineInS2Format: S2PointIndex<S2LatLng>
-
-       val callback = OnMapReadyCallback { googleMap ->
-           map = googleMap
-           googleMap.setLocationSource(NmeaReader.listener)
-           googleMap.setOnMapClickListener(onMapClick)
-           googleMap.setOnPolylineClickListener(onPolyClick)
-           //googleMap.setInfoWindowAdapter(CustomInfoWindowAdapter())
-           val isl = LatLng(-.366044, 32.441599)
-           googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
-           googleMap.addMarker(MarkerOptions().position(isl).title("Marker in N Residence"))
-           googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(isl, 21.0f))
-
-           val fab = findViewById<FloatingActionButton>(R.id.fab_map)
-           fab.hide()
-
-
-       }
    }
 
 
@@ -202,13 +190,20 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         fabCampus = findViewById(R.id.fab_compass)
+        drawerlayout = findViewById(R.id.drawerlayout)
+        navView = findViewById(R.id.navView)
+        fab_map = findViewById(R.id.fab_map)
+        fab_reset=findViewById(R.id.fab_reset)
+
+        progressBar=findViewById(R.id.progressBar)
+        buttonConnect=findViewById(R.id.buttonConnect)
+        spinner =  findViewById(R.id.spinner)
         card = findViewById<CardView>(R.id.cardView2)
         pace = findViewById(R.id.paceValue)
         linesMarked = findViewById(R.id.linesMarkedValue)
         totalPoints = findViewById(R.id.totalPointsValue)
         directionImage = findViewById(R.id.directionImageValue)
         directionText =  findViewById(R.id.directionText)
-        directionAheadText = findViewById(R.id.aheadDirection)
         directionCardLayout = findViewById(R.id.directionsLayout)
 
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
@@ -398,6 +393,22 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
             }
         }
+
+    }
+
+    val callback = OnMapReadyCallback { googleMap ->
+        map = googleMap
+        googleMap.setLocationSource(NmeaReader.listener)
+        googleMap.setOnMapClickListener(onMapClick)
+        googleMap.setOnPolylineClickListener(onPolyClick)
+        //googleMap.setInfoWindowAdapter(CustomInfoWindowAdapter())
+        val isl = LatLng(-.366044, 32.441599)
+        googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
+        googleMap.addMarker(MarkerOptions().position(isl).title("Marker in N Residence"))
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(isl, 21.0f))
+
+        val fab = findViewById<FloatingActionButton>(R.id.fab_map)
+        fab.hide()
 
     }
 
@@ -959,11 +970,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     }
 
                 }
-                //lifecycleScope.launch(Dispatchers.IO){
-//                position = LocationDependantFunctions().getBearing(
-//                    locationOfNextPoint,
-//                    locationOfRoverLatLng
-//                )
+
 
                  position = LocationDependantFunctions().facingDirection(
                     BearingPhoneIsFacing,
@@ -978,8 +985,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 val dist = decimalFormat.format(distance)
                 val d = dist.toString()
                 pace()
-                var m = "(m)"
-                displayedDistance.text = d + m
+                displayedDistance.text = d
                 displayedPoints.text = size.toString()
                 totalPoints.text = l.size.toString()
                 blinkEffectOfMarkedPoints("Green", displayedPoints)
@@ -1032,18 +1038,16 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     fun blink(color: String, p: String) {
         val textViewToBlink = p
         var animationColor: Int = 0
-        lateinit var textViewToBlinkValue: ImageView
-        lateinit var displayTextView: TextView
 
         when (textViewToBlink) {
             "Left" -> {
-                directionImage.setImageResource(R.drawable.rightarrow)
+                directionImage.setImageResource(R.drawable.leftarrow)
                 directionImage.isVisible=true
                 directionText.text = "Turn Right"
                 directionText.isVisible=true
             }
             "Right" -> {
-                directionImage.setImageResource(R.drawable.leftarrow)
+                directionImage.setImageResource(R.drawable.rightarrow)
                 directionText.text = "Turn Left"
                 directionImage.isVisible=true
                 directionText.isVisible=true
@@ -1051,47 +1055,30 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             "Stop" -> {
                 directionText.isVisible=false
                 directionImage.isVisible=false
-               // animForDirectionText.end()
-               // animation.cancel()
+
 
             }
 
         }
 
 
-//        animation = RotateAnimation(
-//            0f,
-//            10f,
-//            Animation.RELATIVE_TO_SELF,
-//            0.5f,
-//            Animation.RELATIVE_TO_SELF,
-//            0.5f
-//        )
-//        animation.fillAfter = true
-//        textViewToBlinkValue.startAnimation(animation)
-
-//        if (animForDirectionText.isRunning) {
-//            animForDirectionText.end()
-//        }
-//
-        animForDirectionText = ObjectAnimator.ofInt(
-            directionText,
-            "backgroundColor",Color.GREEN, Color.GREEN, Color.WHITE, Color.GREEN
+        /*animForDirectionText = ObjectAnimator.ofInt(
+            directionCardLayout,
+            "cardBackgroundColor",R.color.teal, R.color.teal, R.color.teal_700, R.color.teal
         )
         animForDirectionText.duration = 1500
         animForDirectionText.setEvaluator(ArgbEvaluator())
-        animForDirectionText.start()
+        animForDirectionText.start()*/
 
     }
 
     fun blinkEffectOfMarkedPoints(color: String, T: TextView) {
-        val n = color
         val textViewToBlink = T
         var animationColor: Int = 0
         lateinit var displayTextView: TextView
-        when (n) {
+        when (color) {
             "Green" -> {
-                animationColor = Color.GREEN
+                animationColor = R.color.teal_700
             }
             "Yellow" -> {
                 animationColor = Color.YELLOW
@@ -1510,6 +1497,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     }
 
     fun plotMesh(cp: LongLat, pp: LongLat) {
+        progressBar.isVisible = true
+
         if (clearFragment) {
             runOnUiThread {
                 val mapFragment =
@@ -1530,8 +1519,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             }
 
         }
-
-        progressBar.isVisible = true
 
         asyncExecutor.execute {
 
@@ -2172,7 +2159,7 @@ meshDone = false
 
         GlobalScope.launch(Dispatchers.IO) {
             val d = appdb.kibiraDao().insertBasepoints(basePoints)
-            Log.d("data", "${d}")
+            Log.d("data", "$d")
             val s = 8
         }
 

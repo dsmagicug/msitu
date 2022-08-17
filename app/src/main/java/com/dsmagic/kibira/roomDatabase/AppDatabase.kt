@@ -8,6 +8,7 @@ import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.roomDatabase.Entities.Project
 import com.dsmagic.kibira.roomDatabase.Entities.User
+import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.internal.synchronized
 
 @Database(entities=[Project::class,
@@ -18,11 +19,11 @@ import kotlinx.coroutines.internal.synchronized
 abstract class AppDatabase:RoomDatabase() {
     abstract fun kibiraDao(): KibiraDao
 
-
     companion object{
         @Volatile
         private var instance :AppDatabase? = null
 
+        @OptIn(InternalCoroutinesApi::class)
         fun dbInstance(c:Context):AppDatabase{
             val tempInstance = instance
             if(tempInstance != null){

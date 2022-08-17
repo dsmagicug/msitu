@@ -14,7 +14,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentActivity
-import com.dsmagic.kibira.MainActivity.Companion.callback
+//import com.dsmagic.kibira.MainActivity.Companion.callback
 import com.dsmagic.kibira.MainActivity.Companion.card
 import com.dsmagic.kibira.MainActivity.Companion.directionCardLayout
 import com.dsmagic.kibira.MainActivity.Companion.meshDone
@@ -24,7 +24,7 @@ import com.dsmagic.kibira.R.string
 import com.dsmagic.kibira.services.*
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.gson.Gson
-import kotlinx.android.synthetic.main.activity_main.*
+//import kotlinx.android.synthetic.main.activity_main.*
 import org.json.JSONException
 import org.json.JSONObject
 import retrofit2.Call
@@ -71,23 +71,23 @@ object CreateProjectDialog : DialogFragment() {
             if (tag == "create") {
 
                 builder.setView(r)
-                    // Add action buttons
+                        // Add action buttons
 
-                    .setNegativeButton(
-                        string.cancel,
-                        DialogInterface.OnClickListener { dialog, id ->
-
-
-                        })
-                    .setPositiveButton(
-                        string.create_new_project,
-                        DialogInterface.OnClickListener { dialog: DialogInterface?, id: Int ->
-
-                            oncreateclick()
-                            //dismiss()
+                        .setNegativeButton(
+                                string.cancel,
+                                DialogInterface.OnClickListener { dialog, id ->
 
 
-                        })
+                                })
+                        .setPositiveButton(
+                                string.create_new_project,
+                                DialogInterface.OnClickListener { dialog: DialogInterface?, id: Int ->
+
+                                    oncreateclick()
+                                    //dismiss()
+
+
+                                })
 
                 builder.create()
 
@@ -129,7 +129,7 @@ object CreateProjectDialog : DialogFragment() {
         } else {
             //  progressbar?.isVisible = true
             val sharedPreferences: SharedPreferences =
-                activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
+                    activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
 
             val editor = sharedPreferences.edit()
             editor.putString("size_key", gap_size_string)
@@ -140,13 +140,13 @@ object CreateProjectDialog : DialogFragment() {
             // progressbar?.isVisible = true
             if (editor.commit()) {
                 val saved_project_name: String? =
-                    sharedPreferences.getString("name_key", "defaultValue")
+                        sharedPreferences.getString("name_key", "defaultValue")
                 val gap_size: String? = sharedPreferences.getString("size_key", "0")
                 val saved_gap_size = gap_size!!.toInt()
                 val UID: String? = sharedPreferences.getString("userid_key", "0")
                 val userID = UID!!.toInt()
                 val mesh_size_string: String? =
-                    sharedPreferences.getString("mesh_key", "0")
+                        sharedPreferences.getString("mesh_key", "0")
                 var MeshSize: Int = 0
                 var GapSize: Int = 0
 
@@ -198,15 +198,15 @@ object CreateProjectDialog : DialogFragment() {
 
                 }
                 Geogmesh_size = MeshSize.toDouble()
-                 Geoggapsize = GapSize
+                Geoggapsize = GapSize
                 val CreateProjectRetrofitObject = AppModule.retrofitInstance()
                 val modal =
-                    createProjectDataClass(saved_gap_size, saved_project_name!!, userID, MeshSize)
+                        createProjectDataClass(saved_gap_size, saved_project_name!!, userID, MeshSize)
                 val retrofitData = CreateProjectRetrofitObject.createProject(modal)
                 retrofitData.enqueue(object : Callback<ResponseProjectDataClass?> {
                     override fun onResponse(
-                        call: Call<ResponseProjectDataClass?>,
-                        response: Response<ResponseProjectDataClass?>
+                            call: Call<ResponseProjectDataClass?>,
+                            response: Response<ResponseProjectDataClass?>
                     ) {
                         if (response.isSuccessful) {
                             if (response.body() != null) {
@@ -220,7 +220,7 @@ object CreateProjectDialog : DialogFragment() {
                                     editor.apply()
                                     editor.commit()
 
-clean = true
+                                    clean = true
                                     SuccessAlert("Project $ProjectName created")
 
                                 } else {
@@ -245,13 +245,13 @@ clean = true
                 // progressbar?.isVisible = false
 
                 displayProjectName?.text = saved_project_name
-                 meshDone = false
+                meshDone = false
 
                 for (item in MainActivity.polyLines) {
                     item!!.remove()
                 }
-               var mapFragment = activity?.supportFragmentManager!!.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
-                mapFragment?.getMapAsync(callback)
+                var mapFragment = activity?.supportFragmentManager!!.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
+                //mapFragment?.getMapAsync(callback)
 
                 for (l in MainActivity.listofmarkedcircles) {
                     l.remove()
@@ -270,7 +270,7 @@ clean = true
 //                startActivity(intent)
 
 
-clean = true
+                clean = true
 
 
             } else {
@@ -284,10 +284,10 @@ clean = true
     fun alertfail(S: String) {
         this.activity?.let {
             AlertDialog.Builder(it)
-                .setTitle("Error")
-                .setIcon(R.drawable.cross)
-                .setMessage(S)
-                .show()
+                    .setTitle("Error")
+                    .setIcon(R.drawable.cross)
+                    .setMessage(S)
+                    .show()
         }
     }
 
@@ -296,10 +296,10 @@ clean = true
 
         this.activity?.let {
             AlertDialog.Builder(it)
-                .setTitle("Success")
-                .setIcon(R.drawable.tick)
-                .setMessage(S)
-                .show()
+                    .setTitle("Success")
+                    .setIcon(R.drawable.tick)
+                    .setMessage(S)
+                    .show()
         }
 
 
