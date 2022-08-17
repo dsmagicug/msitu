@@ -2,18 +2,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     >
-<item
-    android:id="@+id/bluetooth_spinner"
-    android:icon="@drawable/ic_baseline_bluetooth_24"
-    android:title="Devices"
-    app:showAsAction="ifRoom"
+    <item
+        android:id="@+id/bluetooth_spinner"
+        android:icon="@drawable/icon_white_bluetooth"
+        android:title="Devices"
 
-    />
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/d2"
         android:textColor="@color/white"
 
-        app:showAsAction="ifRoom"/>
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/d3"
 

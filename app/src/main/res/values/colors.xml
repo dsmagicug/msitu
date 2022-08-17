@@ -10,6 +10,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="green">#228B22</color>
     <color name="googleGreen">#0F9D58</color>
-
+    <color name="lightGreen">#46b18c</color>
+    <color name="greenish">#348368</color>
     <color name="hr">#c0c0c0</color>
 </resources>
