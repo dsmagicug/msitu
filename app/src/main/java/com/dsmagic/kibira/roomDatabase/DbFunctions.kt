@@ -1,100 +1,58 @@
 package com.dsmagic.kibira.roomDatabase
 
 import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import com.dsmagic.kibira.LongLat
 import com.dsmagic.kibira.MainActivity
+import com.dsmagic.kibira.MainActivity.Companion.appdb
+import com.dsmagic.kibira.MainActivity.Companion.lineInS2Format
+import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
+import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.services.*
+import com.google.android.gms.maps.model.LatLng
+import dilivia.s2.S2LatLng
+import dilivia.s2.index.point.PointData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 class DbFunctions {
-    //saving points in the db
-//    fun savePoints(l:MutableList<LatLng>,UID:Int,PID:Int) {
-//
-//        for(point in l){
-//
-//            val lat = point.latitude
-//            val lng = point.longitude
-//
-//            GlobalScope.launch(Dispatchers.IO){
-//                val modal = savePointsDataClass(lat, lng, PID, UID)
-//
-//                val retrofitDataObject = AppModule.retrofitInstance()
-//
-//                val retrofitData = retrofitDataObject.storePoints(modal)
-//                if (retrofitData.isSuccessful) {
-//                    if (retrofitData.body() != null) {
-//                        if (retrofitData.body()!!.message == "success") {
-//
-//                            Log.d("Loper", Thread().name + "savedb")
-//                            // convert to S2 and remove it from queryset
-//                            val point = S2LatLng.fromDegrees(lat, lng)
-//                            val pointData = PointData(point.toPoint(), point)
-//                           MainActivity().lineInS2Format.remove(pointData)
-//
-//
-//                        } else {
-//                            Toast.makeText(
-//                                MainActivity().applicationContext, "Something Went wrong!! " +
-//                                        "", Toast.LENGTH_SHORT
-//                            ).show()
-//                        }
-//                    }
-//                } else {
-//                    MainActivity().alertfail("Not saved!")
-//                }
-//            }
-//        }
-//    }
 
-     fun saveBasepoints(loc: LongLat,PID: Int,c:Context) {
+    fun savePoints(point:LatLng, UID:Int, PID:Int) {
+
+        val lat = point.latitude
+        val lng = point.longitude
+
+            val points = Coordinates( null,lat,lng,PID)
+
+            GlobalScope.launch(Dispatchers.IO) {
+                val d = appdb.kibiraDao().insertCoordinates(points)
+                Log.d("data", "${d}")
+                val s = 8
+                val S2point = S2LatLng.fromDegrees(lat, lng)
+                val pointData = PointData(S2point.toPoint(), S2point)
+                lineInS2Format.remove(pointData)
+            }
+
+
+    }
+
+     fun saveBasepoints(loc: LongLat,PID:Int) {
         val lat = loc.getLatitude()
         val lng = loc.getLongitude()
 
-        if (PID == 0) {
-            Toast.makeText(
-                c,
-                "You did not create a project!! \n create one and continue",
-                Toast.LENGTH_LONG
-            ).show()
-            return
-        }
+         val basePoints = Basepoints( null,lat,lng,PID)
 
-        val modal = SaveBasePointsClass(lat, lng, PID)
-        val retrofitDataObject = AppModule.retrofitInstance()
+         GlobalScope.launch(Dispatchers.IO) {
+             val d = appdb.kibiraDao().insertBasepoints(basePoints)
+             Log.d("data", "${d}")
+             val s = 8
+         }
 
-        val retrofitData = retrofitDataObject.storeBasePoints(modal)
-        retrofitData.enqueue(object : Callback<SaveBasePointsResponse?> {
-            override fun onResponse(
-                call: Call<SaveBasePointsResponse?>,
-                response: Response<SaveBasePointsResponse?>
-            ) {
-                if (response.isSuccessful) {
-                    if (response.body() != null) {
-                        if (response.body()!!.message == "success") {
-//
-//                            Toast.makeText(
-//                                applicationContext, "Bpoints Saved!! " +
-//                                        "", Toast.LENGTH_SHORT
-//                            ).show()
-                        } else {
-                            val m = response.body()!!.meta
-                           MainActivity().alertfail(m)
-                        }
-                    } else {
-                        MainActivity().alertfail("BODY IS NULL")
-                    }
-                } else {
-                    MainActivity().alertfail("An error has occured")
-                }
-            }
-
-            override fun onFailure(call: Call<SaveBasePointsResponse?>, t: Throwable) {
-                TODO("Not yet implemented")
-            }
-        })
     }
 
     fun deleteProjectFunc(ID: Int,PID:Int) {

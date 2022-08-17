@@ -102,7 +102,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     var tempPlantingRadius = 0.0f
     var tempProximityRadius = 0.0f
 
-    lateinit var lineInS2Format: S2PointIndex<S2LatLng>
+
     private lateinit var fromRTKFeed: LatLng
 
     // Declaring sensorManager
@@ -135,7 +135,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var toggle: ActionBarDrawerToggle
     lateinit var sharedPreferences: SharedPreferences
 
-    lateinit var appdb: AppDatabase
+
 
     //-------------compass----------//
     lateinit var fabCampus: FloatingActionButton
@@ -168,8 +168,9 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
        var polyLines = ArrayList<Polyline?>()
        var meshDone = false
        lateinit var card: CardView
-      lateinit var layout: LinearLayout
       lateinit var directionCardLayout: CardView
+       lateinit var appdb: AppDatabase
+       lateinit var lineInS2Format: S2PointIndex<S2LatLng>
 
        val callback = OnMapReadyCallback { googleMap ->
            map = googleMap
@@ -2246,6 +2247,10 @@ meshDone = false
 
         val userID = userIDString!!.toInt()
         val ProjectID = ProjectIDString!!.toInt()
+
+
+
+
 
         GlobalScope.launch(Dispatchers.IO) {
             val modal = savePointsDataClass(l, ProjectID, userID)

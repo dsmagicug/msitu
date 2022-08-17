@@ -28,7 +28,7 @@ interface KibiraDao {
     suspend fun getProjectsForUser(userID:Int):List<userAndProject>
 
     @Transaction
-    @Query("SELECT * FROM Project  WHERE id = :projectID")
+    @Query("SELECT lat, lng FROM Project  WHERE id = :projectID")
     suspend fun getCoordinatesForProject(projectID:Int):List<projectAndCoordinates>
 
     @Transaction
