@@ -1,36 +1,24 @@
 package com.dsmagic.kibira
 
-import androidx.appcompat.app.AppCompatActivity
 
-
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
-import android.provider.Contacts
-import android.util.Log
 import android.view.View
-import android.view.inputmethod.EditorInfo
-import android.widget.*
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
-
-import androidx.lifecycle.ViewModelProvider
 import com.dsmagic.kibira.databinding.ActivityLoginBinding
-import com.dsmagic.kibira.databinding.ActivityRegisterBinding
-import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
+import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.Entities.User
 import com.dsmagic.kibira.services.AppModule
 import com.dsmagic.kibira.services.RegisterDataclassX
 import com.dsmagic.kibira.services.ResponseRegister
-import com.dsmagic.kibira.services.apiInterface
 import com.dsmagic.kibira.ui.login.LoginActivity
 import com.dsmagic.kibira.ui.login.LoginViewModel
-import com.dsmagic.kibira.ui.login.LoginViewModelFactory
-import com.dsmagic.kibira.ui.login.afterTextChanged
-import com.google.android.gms.maps.model.LatLng
-import dilivia.s2.S2LatLng
-import dilivia.s2.index.point.PointData
-import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_login.loginLayout
 import kotlinx.android.synthetic.main.activity_login.signUp
 import kotlinx.android.synthetic.main.activity_login.signupLayout
@@ -42,13 +30,15 @@ import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 class RegisterActivity : AppCompatActivity() {
 
     private lateinit var loginViewModel: LoginViewModel
     private lateinit var binding: ActivityLoginBinding
+
+    companion object {
+        lateinit var authbd: AppDatabase
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
 
@@ -65,6 +55,7 @@ class RegisterActivity : AppCompatActivity() {
             signUp.setTextColor(resources.getColor(R.color.white))
 
         }
+        authbd = AppDatabase.dbInstance(this)
 
         var login = findViewById<TextView>(R.id.thelogin)
         var registerName = findViewById<EditText>(R.id.register_name)
@@ -99,8 +90,8 @@ class RegisterActivity : AppCompatActivity() {
             } else {
                 //MainActivity().registerUser(name,email,password,password_confirm)
 
-
-                registerUser(name, email, password, password_confirm)
+                saveUser(name, email, password)
+//                registerUser(name, email, password, password_confirm)
             }
 
 
@@ -112,21 +103,26 @@ class RegisterActivity : AppCompatActivity() {
         }
     }
 
-     var UID:Long = 0
-    fun saveUser(name: String, email: String, password: String):Long {
+    var UID: Long = 0
+    fun saveUser(name: String, email: String, password: String) {
 
-        val user = User(null, name, email, password)
+        val user = User(
+            null,
+            name,
+            password,
+            email
+        )  //maintain order the fields are defined in the Entity class.
 
 
         GlobalScope.launch(Dispatchers.IO) {
-          var d = MainActivity.appdb.kibiraDao().insertUser(user)
-            if(d > 0){
+            var d = authbd.kibiraDao().insertUser(user)
+            if (d > 0) {
                 UID = d
+                lo()
             }
 
         }
 
-return UID
     }
 
     fun registerUser(name: String, email: String, password: String, password_confirm: String) {

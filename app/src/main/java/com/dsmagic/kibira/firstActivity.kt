@@ -16,10 +16,6 @@ import androidx.fragment.app.DialogFragment
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
 import com.dsmagic.kibira.roomDatabase.DbFunctions
-import com.dsmagic.kibira.services.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import kotlin.math.roundToInt
 
 
@@ -30,9 +26,9 @@ var projectMeshSizeList = mutableListOf<Int>()
 //Returning a layout as a dialog box
 
 
-class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
+class firstActivity : DialogFragment(), AdapterView.OnItemClickListener {
 
-//    fun getProjects():ArrayList<String> {
+    //    fun getProjects():ArrayList<String> {
 //
 //        val sharedPreferences: SharedPreferences = activity?.getSharedPreferences(
 //            CreateProjectDialog().sharedPrefFile,
@@ -77,10 +73,11 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
 //        return projectList
 //    }
     var gapsize_units: Array<String>? = null
+
     @SuppressLint("SetTextI18n")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-       // val projects =  getProjects()
-       val projects = ArrayList<String>()
+        // val projects =  getProjects()
+        val projects = ArrayList<String>()
 
 
         return activity?.let {
@@ -90,13 +87,14 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
             var checkedItemIndex = -1
             val builder = AlertDialog.Builder(it)
             val inflater = requireActivity().layoutInflater
-            val r  = inflater.inflate(layout.activity_create_project,null)
+            val r = inflater.inflate(layout.activity_create_project, null)
 
             //dropdown menu
             val gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
             val plotsize_units = resources.getStringArray(R.array.plotSizeUnits)
 
-            val plotsizeAdapter = ArrayAdapter(requireContext(), layout.plotsize_layout, plotsize_units)
+            val plotsizeAdapter =
+                ArrayAdapter(requireContext(), layout.plotsize_layout, plotsize_units)
             val gapsizeAdapter = ArrayAdapter(requireContext(), layout.gapsizeunits, gapsize_units)
 
             val viewGapSize = r.findViewById<AutoCompleteTextView>(R.id.gapsizeDropDown)
@@ -108,9 +106,9 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
             val ar: Array<String>
 //                l = projects.toTypedArray().reversedArray()
 
-            if(l.size > 5 || l.size == 5){
+            if (l.size > 5 || l.size == 5) {
                 ar = l.sliceArray(0..4)
-            }else{
+            } else {
                 ar = l
             }
 
@@ -133,8 +131,7 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
                 builder.create()
 
 
-            }
-            else {
+            } else {
 
                 builder.setTitle("Choose Project")
                     .setSingleChoiceItems(ar, checkedItemIndex,
@@ -151,11 +148,11 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
 
                         DialogInterface.OnClickListener { dialog, id ->
 
-                            if(selectedProject == ""){
+                            if (selectedProject == "") {
                                 //MainActivity().showSnackBar(mDialogView)
-                            }else
-                            {
-                                val displayProjectName: TextView? = activity?.findViewById(R.id.display_project_name)
+                            } else {
+                                val displayProjectName: TextView? =
+                                    activity?.findViewById(R.id.display_project_name)
                                 displayProjectName?.text = selectedProject
 
                             }
@@ -173,7 +170,7 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
     var gapUnit = ""
     fun oncreateclick() {
 
-         val sharedPrefFile = "kibirasharedfile"
+        val sharedPrefFile = "kibirasharedfile"
 
         val projectname = dialog?.findViewById<EditText>(R.id.ProjectName)
         val meshSize = dialog?.findViewById<EditText>(R.id.MeshSize)
@@ -187,10 +184,9 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
         val project_name: String = projectname?.text.toString()
         val mesh_size: String = meshSize?.text.toString()
 
-        if(project_name =="" || gap_size_string == ""){
+        if (project_name == "" || gap_size_string == "") {
             alertfail("Please fill all fields")
-        }
-        else{
+        } else {
 
             val sharedPreferences: SharedPreferences =
                 activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
@@ -203,13 +199,14 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
             editor.commit()
 
 
-            if(editor.commit()){
-                val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
-                val gap_size: String? = sharedPreferences.getString("size_key","0")
-                val saved_gap_size =  gap_size!!.toInt()
+            if (editor.commit()) {
+                val saved_project_name: String? =
+                    sharedPreferences.getString("name_key", "defaultValue")
+                val gap_size: String? = sharedPreferences.getString("size_key", "0")
+                val saved_gap_size = gap_size!!.toInt()
                 val UID: String? = sharedPreferences.getString("userid_key", "0")
                 val userID = UID!!.toInt()
-                val mesh_size_string: String? = sharedPreferences.getString("mesh_key","0")
+                val mesh_size_string: String? = sharedPreferences.getString("mesh_key", "0")
 //                val MeshSize = mesh_size_string!!.toInt()
                 var MeshSize: Int = 0
                 var GapSize: Int = 0
@@ -226,19 +223,19 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
                 }
 
                 when (n) {
-                    "Metres"-> {
+                    "Metres" -> {
                         MeshSize = mesh_size_string!!.toInt()
                     }
-                    "Ft"-> {
+                    "Ft" -> {
                         var r = mesh_size_string!!.toInt()
-                       MeshSize = (r * 0.3048).roundToInt()
+                        MeshSize = (r * 0.3048).roundToInt()
                     }
-                    "Miles"-> {
+                    "Miles" -> {
                         var r = mesh_size_string!!.toInt()
                         MeshSize = (r * 1609.34).roundToInt()
 
                     }
-                    "Acres"-> {
+                    "Acres" -> {
                         var r = mesh_size_string!!.toInt()
                         MeshSize = (r * 4046.86).roundToInt()
 
@@ -260,22 +257,50 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
 
                 }
 
-
                 Geogmesh_size = MeshSize.toDouble()
                 Geoggapsize = GapSize
 
                 displayProjectName?.text = saved_project_name
-             var pid =  DbFunctions.saveProject(
+                val PID = DbFunctions.saveProject(
                     saved_project_name!!,
-                    Geoggapsize!!.toDouble(),
-                    Geogmesh_size!!,
+                    GapSize.toDouble(),
+                    MeshSize.toDouble(),
                     userID
                 )
 
-              //  var pid = DbFunctions.projectID( Geoggapsize!!.toDouble(),saved_project_name!!)
-                editor.putString("productID_key", pid.toString())
+                editor.putString("productID_key", PID.toString())
                 editor.apply()
                 editor.commit()
+
+                progressbar?.isVisible = false
+                displayProjectName?.text = saved_project_name
+
+                Log.d("values", "Project name is: $saved_project_name")
+
+            } else {
+                Log.d("not", "Not saved")
+            }
+        }
+
+    }
+
+    fun alertfail(S: String) {
+        this.activity?.let {
+            AlertDialog.Builder(it)
+                .setTitle("Error")
+                .setIcon(R.drawable.cross)
+                .setMessage(S)
+                .show()
+        }
+    }
+
+
+    override fun onItemClick(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
+        // fetch the user selected value
+        val item = p0!!.getItemAtPosition(p2).toString()
+
+
+    }
 
 
 //                val CreateProjectRetrofitObject = AppModule.retrofitInstance()
@@ -319,36 +344,6 @@ class firstActivity() : DialogFragment(), AdapterView.OnItemClickListener{
 //                        alertfail(("Response failed, invalid data"))
 //                    }
 //                })
-                //createProject(saved_project_name!!,saved_gap_size,userID)
-                progressbar?.isVisible = false
-                displayProjectName?.text = saved_project_name
-
-                Log.d("values","Project name is: $saved_project_name")
-
-            } else{
-                Log.d("not","Not saved")
-            }
-        }
-
-    }
-    fun alertfail(S:String){
-        this.activity?.let {
-            AlertDialog.Builder(it)
-                .setTitle("Error")
-                .setIcon(R.drawable.cross)
-                .setMessage(S)
-                .show()
-        }
-    }
-
-
-    override fun onItemClick(p0: AdapterView<*>?, p1: View?, p2: Int, p3: Long) {
-        // fetch the user selected value
-        val item = p0!!.getItemAtPosition(p2).toString()
-
-
-    }
-
-
+    //createProject(saved_project_name!!,saved_gap_size,userID)
 }
 

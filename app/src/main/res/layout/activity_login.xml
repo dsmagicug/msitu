@@ -183,35 +183,35 @@ android:layout_marginTop="55dp"
                     android:layout_marginTop="15dp"
                     android:background="@color/hr" />
 
-                <TextView
-                    android:paddingTop="5dp"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:text="OR"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginRight="5dp"
-                    android:layout_marginTop="0dp"
-                    android:gravity="center"
-                    android:textAlignment="center"
-                    android:fontFamily="@font/sans"
-                    android:textSize="20sp"
-                    android:textStyle="bold|normal"
-                    />
+<!--                <TextView-->
+<!--                    android:paddingTop="5dp"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:text="OR"-->
+<!--                    android:layout_marginLeft="5dp"-->
+<!--                    android:layout_marginRight="5dp"-->
+<!--                    android:layout_marginTop="0dp"-->
+<!--                    android:gravity="center"-->
+<!--                    android:textAlignment="center"-->
+<!--                    android:fontFamily="@font/sans"-->
+<!--                    android:textSize="20sp"-->
+<!--                    android:textStyle="bold|normal"-->
+<!--                    />-->
 
-                <LinearLayout
-                    android:layout_width="121dp"
-                    android:layout_height="42dp"
-                    android:orientation="horizontal"
+<!--                <LinearLayout-->
+<!--                    android:layout_width="121dp"-->
+<!--                    android:layout_height="42dp"-->
+<!--                    android:orientation="horizontal"-->
 
-                    >
+<!--                    >-->
 
-                    <ImageView
-                        android:layout_width="111dp"
-                        android:layout_height="42dp"
-                        android:layout_marginTop="10dp"
-                        android:src="@drawable/common_google_signin_btn_icon_light_normal" />
+<!--                    <ImageView-->
+<!--                        android:layout_width="111dp"-->
+<!--                        android:layout_height="42dp"-->
+<!--                        android:layout_marginTop="10dp"-->
+<!--                        android:src="@drawable/common_google_signin_btn_icon_light_normal" />-->
 
-                </LinearLayout>
+<!--                </LinearLayout>-->
                 <ProgressBar
                     android:id="@+id/loading"
                     android:layout_width="wrap_content"

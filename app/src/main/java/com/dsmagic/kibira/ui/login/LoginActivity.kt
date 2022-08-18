@@ -1,11 +1,11 @@
 package com.dsmagic.kibira.ui.login
 
+//import com.dsmagic.kibira.MainActivity
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.provider.Contacts.SettingsColumns.KEY
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -18,31 +18,31 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.dsmagic.kibira.MainActivity
-//import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.R
 import com.dsmagic.kibira.RegisterActivity
-import com.dsmagic.kibira.databinding.ActivityMainBinding
+import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.services.AppModule
 import com.dsmagic.kibira.services.LoginDataClassX
-import com.dsmagic.kibira.services.apiInterface
 import com.dsmagic.kibira.services.loginDataclass
-import com.google.android.material.textfield.TextInputEditText
 import kotlinx.android.synthetic.main.activity_login.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import kotlin.reflect.jvm.jvmName
 
 
 class LoginActivity : AppCompatActivity() {
 
-   private lateinit var loginViewModel: LoginViewModel
+    private lateinit var loginViewModel: LoginViewModel
 
-val sharedPrefFile = "LoginShareFile"
+    val sharedPrefFile = "LoginShareFile"
     lateinit var sharedPreferences: SharedPreferences
-
+    var loginMode = true
+    companion object {
+        lateinit var authbd: AppDatabase
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -50,10 +50,13 @@ val sharedPrefFile = "LoginShareFile"
 //        setContentView(binding.root)
         sharedPreferences =
             this.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
-       checkIfLoggedIn()
+        if (loginMode) {
+            //  checkIfLoggedIn()
+        }
+       authbd = AppDatabase.dbInstance(this)
         setContentView(R.layout.activity_login)
-        thelogin.setOnClickListener{
-            thelogin.background = resources.getDrawable(R.drawable.switch_tucks,null)
+        thelogin.setOnClickListener {
+            thelogin.background = resources.getDrawable(R.drawable.switch_tucks, null)
             signUp.background = null
             thelogin.setTextColor(resources.getColor(R.color.white))
             loginLayout.visibility = View.VISIBLE
@@ -64,12 +67,12 @@ val sharedPrefFile = "LoginShareFile"
 
 
         val username = findViewById<EditText>(R.id.username)
-        val password =findViewById<EditText>(R.id.password)
+        val password = findViewById<EditText>(R.id.password)
         val login = findViewById<Button>(R.id.loginbutton)
         val loading = findViewById<ProgressBar>(R.id.loading)
         val register_page = findViewById<TextView>(R.id.signUp)
 
-        register_page?.setOnClickListener{
+        register_page?.setOnClickListener {
             val intent = Intent(this, RegisterActivity::class.java)
             startActivity(intent)
 
@@ -91,7 +94,7 @@ val sharedPrefFile = "LoginShareFile"
                 username.error = getString(loginState.usernameError)
             }
             if (loginState.passwordError != null) {
-                password.error= getString(loginState.passwordError)
+                password.error = getString(loginState.passwordError)
             }
         })
 
@@ -139,31 +142,75 @@ val sharedPrefFile = "LoginShareFile"
 
             login.setOnClickListener {
                 loading.visibility = View.VISIBLE
-              loginUser(username.text.toString(), password.text.toString())
-                Log.d("values","${username.text} ${password.text}")
-                //loginViewModel.login(username.text.toString(), password.text.toString())
+
+               // loginUser(username.text.toString(), password.text.toString())
+                offlineLogin(username.text.toString(), password.text.toString())
             }
 
 
         }
     }
 
-    fun checkIfLoggedIn(){
+    fun checkIfLoggedIn() {
         val userEmail: String? =
             sharedPreferences.getString("loggedUserEmail", "defaultValue")
-        var a = 6
-        if(userEmail != "defaultValue"){
+        val userId: Int = sharedPreferences.getInt("userId", 0)
+        val token = sharedPreferences.getString("token", "defaultValue")
+
+        if (userId == 0) {
+            loginMode = false
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+        }
+        if (userEmail != "defaultValue") {
             val intent = Intent(this, MainActivity::class.java)
+            intent.putExtra("userID", "$userId")
+            intent.putExtra("email", userEmail)
+            intent.putExtra("token", token)
+            startActivity(intent)
+        } else {
+            loginMode = false
+            val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
         }
     }
 
-    fun loginUser(email:String,password: String)
-    {
-        Log.d("values","$email $password")
+
+    fun offlineLogin(email: String, password: String) {
+
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                val d = authbd.kibiraDao().getUser(email, password)
+                var s = 70
+                val userPassword = d.password
+                val userEmail = d.email
+                val userid = d.id
+
+                updateUiWithUserOffline(userEmail, userid!!)
+                Toast.makeText(
+                    applicationContext, "Logged in " +
+                            "", Toast.LENGTH_SHORT
+                ).show()
+
+
+            }
+            catch (e: NullPointerException) {
+runOnUiThread {
+    loading.visibility = View.INVISIBLE
+    alertfail("Invalid Credentials!")
+}
+
+            }
+
+
+        }
+    }
+
+    fun loginUser(email: String, password: String) {
+        Log.d("values", "$email $password")
         val retrofitDataObject = AppModule.retrofitInstance()
 
-        val modal = LoginDataClassX(email,password)
+        val modal = LoginDataClassX(email, password)
         val retrofitData = retrofitDataObject.loginUser(modal)
         retrofitData.enqueue(object : Callback<loginDataclass?> {
             override fun onResponse(
@@ -171,21 +218,20 @@ val sharedPrefFile = "LoginShareFile"
                 response: Response<loginDataclass?>
             ) {
                 loading.visibility = View.INVISIBLE
-                if(response.isSuccessful) {
+                if (response.isSuccessful) {
                     if (response.body() != null) {
                         val tag = response.body()!!.tag
                         val myemail = response.body()!!.email
                         val user_id = response.body()!!.user_id
                         val token = response.body()!!.token
                         if (tag == "V") {
-                            updateUiWithUser(myemail, user_id,token)
+                            updateUiWithUser(myemail, user_id, token)
                             Toast.makeText(
                                 applicationContext, "Logged in " +
                                         "", Toast.LENGTH_SHORT
                             ).show()
 //                            SuccessAlert("Successfully Logged in")
-                        }
-                        else {
+                        } else {
                             alertfail("Invalid Credentials!")
                         }
 
@@ -193,8 +239,7 @@ val sharedPrefFile = "LoginShareFile"
                     } else {
                         alertfail("Body null!")
                     }
-                }
-                else{
+                } else {
                     alertfail("Response not successful! ${response}")
                 }
 
@@ -207,37 +252,37 @@ val sharedPrefFile = "LoginShareFile"
             }
         })
     }
-    fun alertfail(S:String){
+
+    fun alertfail(S: String) {
         AlertDialog.Builder(this)
             .setTitle("Error")
             .setIcon(R.drawable.cross)
             .setMessage(S)
             .show()
     }
-    fun SuccessAlert(S:String){
+
+    fun SuccessAlert(S: String) {
         AlertDialog.Builder(this)
             .setTitle("Success")
             .setIcon(R.drawable.tick)
             .setMessage(S)
             .show()
     }
-    private fun updateUiWithUser(email: String,user_id:Int,token:String) {
+
+    private fun updateUiWithUserOffline(email: String, user_id: Int) {
 
         val displayEmail = email
         val user_id = user_id
-        val apiToken = token
-
-
 
         val editor = sharedPreferences.edit()
         editor.putString("loggedUserEmail", email)
+        editor.putInt("userID", user_id)
         editor.apply()
         editor.commit()
 
         val intent = Intent(this, MainActivity::class.java)
-        intent.putExtra("userID","$user_id")
-        intent.putExtra("email", displayEmail)
-        intent.putExtra("token",apiToken)
+        intent.putExtra("userID", "$user_id")
+        intent.putExtra("email", "$displayEmail")
         startActivity(intent)
 //
 //        Toast.makeText(
@@ -247,9 +292,32 @@ val sharedPrefFile = "LoginShareFile"
 //        ).show()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
+    private fun updateUiWithUser(email: String, user_id: Int, token: String) {
+
+        val displayEmail = email
+        val user_id = user_id
+        val apiToken = token
+
+        val editor = sharedPreferences.edit()
+        editor.putString("loggedUserEmail", email)
+        editor.putInt("userID", user_id)
+        editor.putString("token", apiToken)
+        editor.apply()
+        editor.commit()
+
+        val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("userID", "$user_id")
+        intent.putExtra("email", "$displayEmail")
+        intent.putExtra("token", "$apiToken")
+        startActivity(intent)
+//
+//        Toast.makeText(
+//            applicationContext,
+//            "$welcome $displayEmail",
+//            Toast.LENGTH_LONG
+//        ).show()
     }
+
     private fun showLoginFailed(@StringRes errorString: Int) {
         Toast.makeText(applicationContext, errorString, Toast.LENGTH_SHORT).show()
     }

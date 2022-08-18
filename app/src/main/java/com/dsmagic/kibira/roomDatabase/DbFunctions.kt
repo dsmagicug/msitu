@@ -1,13 +1,17 @@
 package com.dsmagic.kibira.roomDatabase
 
+import android.content.DialogInterface
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.dsmagic.kibira.*
 import com.dsmagic.kibira.MainActivity.Companion.appdb
 import com.dsmagic.kibira.MainActivity.Companion.lineInS2Format
 import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.roomDatabase.Entities.Project
-import com.dsmagic.kibira.services.*
+import com.dsmagic.kibira.services.AppModule
+import com.dsmagic.kibira.services.deleteProjectDataClass
+import com.dsmagic.kibira.services.deleteProjectResponse
 import com.google.android.gms.maps.model.LatLng
 import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.PointData
@@ -42,38 +46,174 @@ class DbFunctions {
         }
 
 
-        fun saveProject(name:String,GAPSIZE:Double,LineLength:Double, UID: Int) {
-
+        fun saveProject(name: String, GAPSIZE: Double, LineLength: Double, UID: Int): Int {
+            var ProjectID: Long = 0
             val project = Project(null, name, GAPSIZE, LineLength, UID)
 
-       GlobalScope.launch(Dispatchers.IO) {
-                var d = appdb.kibiraDao().insertProject(project)
-                Log.d("data", "${d}")
-            }
-        }
-        fun getProjects(UID:Int){
-
-
             GlobalScope.launch(Dispatchers.IO) {
-                val d = appdb.kibiraDao().getProjectsForUser(UID)
-                for (g in d){
-                  var projects = g.projects
+                var d = appdb.kibiraDao().insertProject(project)
+                ProjectID = d
+            }
+
+            return ProjectID.toInt()
+        }
+
+
+        fun getProjects(UID: Int) {
+
+            var ProjectList = mutableListOf<Project>()
+            GlobalScope.launch(Dispatchers.IO) {
+                try{
+                    val listOfProjects = appdb.kibiraDao().getAllProjects(UID)
+                  for(project in listOfProjects){
+                      ProjectList.add(project)
+                  }
+
+
+                   MainActivity().displayProjects()
+
+
+                        Log.d("Projects", "$ProjectList")
+
+
+                } catch (e:NullPointerException){
+                    Log.d("Projects", "Empty Project")
+
                 }
 
-                Log.d("data", "${d}")
-                val s = 8
             }
 
-        }
+
+            }
+
+        var selectedProject = " "
+//        fun displayProjects() {
+//            var l: Array<String>
+//            var checkedItemIndex = -1
+//
+//            val larray = projectList.toTypedArray()
+//            if (larray.size > 5 || larray.size == 5) {
+//                l = larray.sliceArray(0..4)
+//            } else {
+//                l = larray
+//            }
+//
+//
+//                AlertDialog.Builder()
+//                    .setTitle("Projects")
+//                    .setSingleChoiceItems(l, checkedItemIndex,
+//                        DialogInterface.OnClickListener { dialog, which ->
+//                            checkedItemIndex = which
+//                            selectedProject = larray[which]
+//                        })
+//                    .setNegativeButton("Delete",
+//                        DialogInterface.OnClickListener { dialog, id ->
+//                            for (j in larray) {
+//                                if (j == selectedProject) {
+//                                    val index = larray.indexOf(j)
+//                                    val id = projectIDList[index]
+//
+//                                    DeleteAlert(
+//                                        "\nProject '$selectedProject' $id  will be deleted permanently.\n\nAre you sure?",
+//                                        id
+//                                    )
+//                                }
+//
+//                            }
+//
+//
+//                        })
+//                    .setNeutralButton("More..",
+//                        DialogInterface.OnClickListener { dialog, id ->
+//
+//                            AlertDialog.Builder(this)
+//                                .setTitle("All Projects")
+//                                // .setMessage(s)
+//                                .setSingleChoiceItems(larray, checkedItemIndex,
+//                                    DialogInterface.OnClickListener { dialog, which ->
+//                                        checkedItemIndex = which
+//                                        selectedProject = larray[which]
+//                                    })
+//                                .setNegativeButton("Delete",
+//                                    DialogInterface.OnClickListener { dialog, id ->
+//                                        for (j in larray) {
+//                                            if (j == selectedProject) {
+//                                                val index = larray.indexOf(j)
+//                                                val id = projectIDList[index]
+//
+//                                                DeleteAlert(
+//                                                    "\nProject '$selectedProject' $id will be deleted permanently.\n\nAre you sure?",
+//                                                    id
+//                                                )
+//                                            }
+//
+//                                        }
+//
+//
+//                                    })
+//                                .setPositiveButton("Open",
+//
+//                                    DialogInterface.OnClickListener { dialog, id ->
+//
+//                                        if (selectedProject == "") {
+//
+//                                        } else {
+//                                            for (j in larray) {
+//                                                if (j == selectedProject) {
+//                                                    val index = larray.indexOf(j)
+//                                                    val id = projectIDList[index]
+//                                                    var gap_size = projectSizeList[index]
+//                                                    var mesh_size = projectMeshSizeList[index]
+//                                                   MainActivity().getPoints(id)
+//                                                    MainActivity().loadProject(id, mesh_size, gap_size)
+//                                                }
+//
+//                                            }
+//
+//
+//                                        }
+//
+//                                    })
+//
+//                                .show()
+//
+//                        })
+//                    .setPositiveButton("Open",
+//
+//                        DialogInterface.OnClickListener { dialog, id ->
+//
+//                            if (selectedProject == "") {
+//
+//                            } else {
+//                                for (j in l) {
+//                                    if (j == selectedProject) {
+//                                        val index = l.indexOf(j)
+//                                        val id = projectIDList[index]
+//                                        var gap_size = projectSizeList[index]
+//                                        var mesh_size = projectMeshSizeList[index]
+//                                        MainActivity().getPoints(id)
+//                                       MainActivity().loadProject(id, mesh_size, gap_size)
+//                                    }
+//
+//                                }
+//
+//
+//                            }
+//
+//                        })
+//
+//                    .show()
+//
+//        }
 
 
-        var id: Int = 0
-        fun projectID(gp:Double,name:String):Int {
+        fun projectID(gp: Double, name: String): Int {
+            var id: Int = 0
             GlobalScope.launch(Dispatchers.IO) {
                 val d = appdb.kibiraDao().getProjectID(gp, name)
-id = d
+                id = d
             }
-return id
+            return id
         }
 
         fun deleteProjectFunc(ID: Int, PID: Int) {

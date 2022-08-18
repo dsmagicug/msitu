@@ -47,6 +47,7 @@ import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 
 import com.dsmagic.kibira.services.*
 import com.dsmagic.kibira.services.BasePoints.projectID
+import com.dsmagic.kibira.ui.login.LoginActivity
 import com.dsmagic.kibira.utils.GeneralHelper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -262,7 +263,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             editor.commit()
 
         } else {
-           var s = null
+
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
+
         }
         // Getting the Sensor Manager instance
 
@@ -466,7 +470,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     }
 
 
-    private fun getPoints(id: Int) {
+     fun getPoints(id: Int) {
         val sharedPreferences: SharedPreferences = this.getSharedPreferences(
             CreateProjectDialog.sharedPrefFile,
             Context.MODE_PRIVATE
@@ -520,6 +524,127 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         pressedTime = System.currentTimeMillis()
     }
 
+    var selectedProject: String = " "
+    fun displayProjects() {
+            var l: Array<String>
+            var checkedItemIndex = -1
+
+            val larray = projectList.toTypedArray()
+            if (larray.size > 5 || larray.size == 5) {
+                l = larray.sliceArray(0..4)
+            } else {
+                l = larray
+            }
+
+
+                AlertDialog.Builder(this)
+                    .setTitle("Projects")
+                    .setSingleChoiceItems(l, checkedItemIndex,
+                        DialogInterface.OnClickListener { dialog, which ->
+                            checkedItemIndex = which
+                            selectedProject = larray[which]
+                        })
+                    .setNegativeButton("Delete",
+                        DialogInterface.OnClickListener { dialog, id ->
+                            for (j in larray) {
+                                if (j == selectedProject) {
+                                    val index = larray.indexOf(j)
+                                    val id = projectIDList[index]
+
+                                    DeleteAlert(
+                                        "\nProject '$selectedProject' $id  will be deleted permanently.\n\nAre you sure?",
+                                        id
+                                    )
+                                }
+
+                            }
+
+
+                        })
+                    .setNeutralButton("More..",
+                        DialogInterface.OnClickListener { dialog, id ->
+
+                            AlertDialog.Builder(this)
+                                .setTitle("All Projects")
+                                // .setMessage(s)
+                                .setSingleChoiceItems(larray, checkedItemIndex,
+                                    DialogInterface.OnClickListener { dialog, which ->
+                                        checkedItemIndex = which
+                                        selectedProject = larray[which]
+                                    })
+                                .setNegativeButton("Delete",
+                                    DialogInterface.OnClickListener { dialog, id ->
+                                        for (j in larray) {
+                                            if (j == selectedProject) {
+                                                val index = larray.indexOf(j)
+                                                val id = projectIDList[index]
+
+                                                DeleteAlert(
+                                                    "\nProject '$selectedProject' $id will be deleted permanently.\n\nAre you sure?",
+                                                    id
+                                                )
+                                            }
+
+                                        }
+
+
+                                    })
+                                .setPositiveButton("Open",
+
+                                    DialogInterface.OnClickListener { dialog, id ->
+
+                                        if (selectedProject == "") {
+
+                                        } else {
+                                            for (j in larray) {
+                                                if (j == selectedProject) {
+                                                    val index = larray.indexOf(j)
+                                                    val id = projectIDList[index]
+                                                    var gap_size = projectSizeList[index]
+                                                    var mesh_size = projectMeshSizeList[index]
+                                                getPoints(id)
+                                              loadProject(id, mesh_size, gap_size)
+                                                }
+
+                                            }
+
+
+                                        }
+
+                                    })
+
+                                .show()
+
+                        })
+                    .setPositiveButton("Open",
+
+                        DialogInterface.OnClickListener { dialog, id ->
+
+                            if (selectedProject == "") {
+
+                            } else {
+                                for (j in l) {
+                                    if (j == selectedProject) {
+                                        val index = l.indexOf(j)
+                                        val id = projectIDList[index]
+                                        var gap_size = projectSizeList[index]
+                                        var mesh_size = projectMeshSizeList[index]
+                                        getPoints(id)
+                                       loadProject(id, mesh_size, gap_size)
+                                    }
+
+                                }
+
+
+                            }
+
+                        })
+
+                    .show()
+
+        }
+
+
 
 //
 //    fun getProjects(): ArrayList<String> {
@@ -564,130 +689,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 //        return projectList
 //    }
 
-    var selectedProject: String = " "
-
-    fun displayProjects() {
-        var l: Array<String>
-        var checkedItemIndex = -1
-
-
-        val larray = projectList.toTypedArray()
-        if (larray.size > 5 || larray.size == 5) {
-            l = larray.sliceArray(0..4)
-        } else {
-            l = larray
-        }
-        runOnUiThread {
-
-            AlertDialog.Builder(this)
-                .setTitle("Projects")
-                .setSingleChoiceItems(l, checkedItemIndex,
-                    DialogInterface.OnClickListener { dialog, which ->
-                        checkedItemIndex = which
-                        selectedProject = larray[which]
-                    })
-                .setNegativeButton("Delete",
-                    DialogInterface.OnClickListener { dialog, id ->
-                        for (j in larray) {
-                            if (j == selectedProject) {
-                                val index = larray.indexOf(j)
-                                val id = projectIDList[index]
-
-                                DeleteAlert(
-                                    "\nProject '$selectedProject' $id  will be deleted permanently.\n\nAre you sure?",
-                                    id
-                                )
-                            }
-
-                        }
-
-
-                    })
-                .setNeutralButton("More..",
-                    DialogInterface.OnClickListener { dialog, id ->
-
-                        AlertDialog.Builder(this)
-                            .setTitle("All Projects")
-                            // .setMessage(s)
-                            .setSingleChoiceItems(larray, checkedItemIndex,
-                                DialogInterface.OnClickListener { dialog, which ->
-                                    checkedItemIndex = which
-                                    selectedProject = larray[which]
-                                })
-                            .setNegativeButton("Delete",
-                                DialogInterface.OnClickListener { dialog, id ->
-                                    for (j in larray) {
-                                        if (j == selectedProject) {
-                                            val index = larray.indexOf(j)
-                                            val id = projectIDList[index]
-
-                                            DeleteAlert(
-                                                "\nProject '$selectedProject' $id will be deleted permanently.\n\nAre you sure?",
-                                                id
-                                            )
-                                        }
-
-                                    }
-
-
-                                })
-                            .setPositiveButton("Open",
-
-                                DialogInterface.OnClickListener { dialog, id ->
-
-                                    if (selectedProject == "") {
-
-                                    } else {
-                                        for (j in larray) {
-                                            if (j == selectedProject) {
-                                                val index = larray.indexOf(j)
-                                                val id = projectIDList[index]
-                                                var gap_size = projectSizeList[index]
-                                                var mesh_size = projectMeshSizeList[index]
-                                                getPoints(id)
-                                                loadProject(id, mesh_size, gap_size)
-                                            }
-
-                                        }
-
-
-                                    }
-
-                                })
-
-                            .show()
-
-                    })
-                .setPositiveButton("Open",
-
-                    DialogInterface.OnClickListener { dialog, id ->
-
-                        if (selectedProject == "") {
-
-                        } else {
-                            for (j in l) {
-                                if (j == selectedProject) {
-                                    val index = l.indexOf(j)
-                                    val id = projectIDList[index]
-                                    var gap_size = projectSizeList[index]
-                                    var mesh_size = projectMeshSizeList[index]
-                                    getPoints(id)
-                                    loadProject(id, mesh_size, gap_size)
-                                }
-
-                            }
-
-
-                        }
-
-                    })
-
-                .show()
-        }
-    }
-
-
-    private fun loadProject(ProjectID: Int, Meshsize: Int, Gapsize: Int) {
+     fun loadProject(ProjectID: Int, Meshsize: Int, Gapsize: Int) {
         val displayProjectName: TextView? = findViewById(R.id.display_project_name)
 
         Toast.makeText(
@@ -1501,8 +1503,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         saveBasepoints(firstPoint!!)
         saveBasepoints(secondPoint!!)
 
-        //saveBasepoints(firstPoint!!)
-//        saveBasepoints(secondPoint!!)
         plotMesh(firstPoint!!, secondPoint!!)
 
 
