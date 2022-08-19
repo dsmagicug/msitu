@@ -26,14 +26,14 @@ interface KibiraDao {
 
     /*Queries for the project */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertProject(project: Project): Long
+    suspend fun insertProject(project: Project):Long
 
     @Transaction
     @Query("SELECT * FROM Project WHERE id = :PID ")   //gives me a single project
     suspend fun getParticularProject(PID: Int): Project
 
     @Transaction
-    @Query("SELECT * FROM Project WHERE userID = :UID ")   //gives me all projects for that User
+    @Query("SELECT * FROM Project WHERE userID = :UID ORDER BY id DESC ")   //gives me all projects for that User, latest first
     suspend fun getAllProjects(UID: Int): List<Project>
 
     @Transaction
@@ -54,5 +54,8 @@ interface KibiraDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBasepoints(basepoints: Basepoints): Long
+
+    @Query("DELETE FROM Basepoints WHERE projectID = :PID")
+    suspend fun deleteBasePoints(PID:Int)
 
 }

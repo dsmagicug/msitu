@@ -3,6 +3,7 @@ package com.dsmagic.kibira
 
 //import com.dsmagic.kibira.roomDatabase.AppDatabase
 //import com.dsmagic.kibira.roomDatabase.BasePoint
+
 import android.Manifest
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
@@ -41,13 +42,16 @@ import androidx.drawerlayout.widget.DrawerLayout
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
 import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
-import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.getProjects
 
+import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.retrieveMarkedpoints
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
-
+import com.dsmagic.kibira.roomDatabase.Entities.Project
 import com.dsmagic.kibira.services.*
 import com.dsmagic.kibira.services.BasePoints.projectID
 import com.dsmagic.kibira.ui.login.LoginActivity
+import com.dsmagic.kibira.utils.Alerts
+import com.dsmagic.kibira.utils.Alerts.Companion.alertfail
+import com.dsmagic.kibira.utils.Alerts.Companion.undoAlertWarning
 import com.dsmagic.kibira.utils.GeneralHelper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -61,10 +65,10 @@ import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.PointData
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
-import kotlinx.android.synthetic.main.navheader.view.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -101,7 +105,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     var asyncExecutor: ExecutorService = Executors.newCachedThreadPool()
 
-    var currentLocation = mutableListOf<LatLng>()
     var clearFragment = false
 
     var closestPointRadius = ArrayList<Any>()
@@ -131,8 +134,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     var extras: Bundle? = null
     var projectList = ArrayList<String>()
     var projectIDList = mutableListOf<Int>()
-    var projectSizeList = mutableListOf<Int>()
-    var projectMeshSizeList = mutableListOf<Int>()
+    var projectSizeList = mutableListOf<Double>()
+    var projectMeshSizeList = mutableListOf<Double>()
 
     var DirectionToHead: Boolean = false
     lateinit var debugXloc: LatLng
@@ -145,7 +148,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var fabCampus: FloatingActionButton
     lateinit var directionImage: ImageView
     lateinit var directionText: TextView
-    lateinit var directionAheadText: TextView
+
     var BearingPhoneIsFacing: Float = 0.0f
 
     lateinit var drawerlayout: DrawerLayout
@@ -156,7 +159,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var spinner: Spinner
     lateinit var buttonConnect: Button
 
-    lateinit var btnCloseDrawer :ImageButton
 
     //---------------Time---------//
     lateinit var initialTime: SimpleDateFormat
@@ -178,14 +180,16 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         var listOfPlantingLines = mutableListOf<Polyline>()
 
-       var polyLines = ArrayList<Polyline?>()
-       var meshDone = false
-       lateinit var card: CardView
-       lateinit var directionCardLayout: CardView
-       lateinit var appdb: AppDatabase
-       lateinit var lineInS2Format: S2PointIndex<S2LatLng>
-       lateinit var mapFragment: SupportMapFragment
-   }
+        var polyLines = ArrayList<Polyline?>()
+        var meshDone = false
+        lateinit var card: CardView
+        lateinit var directionCardLayout: CardView
+        lateinit var appdb: AppDatabase
+        lateinit var lineInS2Format: S2PointIndex<S2LatLng>
+        lateinit var mapFragment: SupportMapFragment
+        var plantingRadius: Circle? = null
+        lateinit var context:Context
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -198,6 +202,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         supportActionBar?.setDisplayShowTitleEnabled(false)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
+        context = this
         fabCampus = findViewById(R.id.fab_compass)
         drawerlayout = findViewById(R.id.drawerlayout)
         navView = findViewById(R.id.navView)
@@ -271,16 +276,16 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         // Getting the Sensor Manager instance
 
         //if (savedInstanceState == null) {
-           // getProjects(userID!!.toInt())
-            //getProjects()
-            createDialog(projectList)
-             mapFragment =
-                 (supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?)!!
-            mapFragment.getMapAsync(callback)
+        // getProjects(userID!!.toInt())
+        //getProjects()
+        createDialog(projectList)
+        mapFragment =
+            (supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment?)!!
+        mapFragment.getMapAsync(callback)
         //}
 
         //register bluetooth broadcaster for scanning devices
-        var intent = IntentFilter(BluetoothDevice.ACTION_FOUND)
+        val intent = IntentFilter(BluetoothDevice.ACTION_FOUND)
         registerReceiver(receiver, intent)
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -338,8 +343,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     if (closestPointRadius.size > 0) {
                         val pointOfInterest = closestPointRadius[0] as LatLng
                         val acceptedPlantingRadius = tempPlantingRadius
-                        val closeToPoint = tempProximityRadius
-
                         val distanceAway =
                             GeneralHelper.findDistanceBtnTwoPoints(
                                 fromRTKFeed,
@@ -426,6 +429,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     }
 
+
     fun blinkEffectForPoint(color: String, T: Circle) {
         val n = color
         val CirclePoint = T
@@ -470,46 +474,41 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     }
 
 
-     fun getPoints(id: Int) {
-        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
-            CreateProjectDialog.sharedPrefFile,
-            Context.MODE_PRIVATE
-        )!!
+    fun getPoints(id: Int) {
 
         if (listOfMarkedPoints.isNotEmpty()) {
             listOfMarkedPoints.clear()
         }
-        val userIDString: String? = sharedPreferences.getString("userid_key", "0")!!
 
-        val userID = userIDString!!.toInt()
+        retrieveMarkedpoints(id!!)
 
-        val retrofitGetPointsObject = AppModule.retrofitInstance()
-        val modal = RequestPoints(id, userID)
-
-        GlobalScope.launch(Dispatchers.IO) {
-
-            val retrofitData = retrofitGetPointsObject.retrievePoints(modal)
-            if (retrofitData.isSuccessful) {
-                if (retrofitData.body()!!.message == "Success") {
-
-                    val result = retrofitData.body()!!.results
-                    if (result.isNotEmpty()) {
-                        for (r in result) {
-                            val point = LatLng(r.Lat.toDouble(), r.Long.toDouble())
-
-                            listOfMarkedPoints.add(point)
-                        }
-
-                    } else {
-                        listOfMarkedPoints.clear()
-                    }
-
-                    Log.d("points", "${Thread().name}")
-                }
-            } else {
-                alertfail("Could not retrieve points at this time!")
-            }
-        }
+//        val retrofitGetPointsObject = AppModule.retrofitInstance()
+//        val modal = RequestPoints(id, userID)
+//
+//        GlobalScope.launch(Dispatchers.IO) {
+//
+//            val retrofitData = retrofitGetPointsObject.retrievePoints(modal)
+//            if (retrofitData.isSuccessful) {
+//                if (retrofitData.body()!!.message == "Success") {
+//
+//                    val result = retrofitData.body()!!.results
+//                    if (result.isNotEmpty()) {
+//                        for (r in result) {
+//                            val point = LatLng(r.Lat.toDouble(), r.Long.toDouble())
+//
+//                            listOfMarkedPoints.add(point)
+//                        }
+//
+//                    } else {
+//                        listOfMarkedPoints.clear()
+//                    }
+//
+//                    Log.d("points", "${Thread().name}")
+//                }
+//            } else {
+//                alertfail("Could not retrieve points at this time!")
+//            }
+//        }
     }
 
     private var pressedTime: Long = 0
@@ -524,125 +523,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         pressedTime = System.currentTimeMillis()
     }
 
+
+
+
     var selectedProject: String = " "
-    fun displayProjects() {
-            var l: Array<String>
-            var checkedItemIndex = -1
-
-            val larray = projectList.toTypedArray()
-            if (larray.size > 5 || larray.size == 5) {
-                l = larray.sliceArray(0..4)
-            } else {
-                l = larray
-            }
-
-
-                AlertDialog.Builder(this)
-                    .setTitle("Projects")
-                    .setSingleChoiceItems(l, checkedItemIndex,
-                        DialogInterface.OnClickListener { dialog, which ->
-                            checkedItemIndex = which
-                            selectedProject = larray[which]
-                        })
-                    .setNegativeButton("Delete",
-                        DialogInterface.OnClickListener { dialog, id ->
-                            for (j in larray) {
-                                if (j == selectedProject) {
-                                    val index = larray.indexOf(j)
-                                    val id = projectIDList[index]
-
-                                    DeleteAlert(
-                                        "\nProject '$selectedProject' $id  will be deleted permanently.\n\nAre you sure?",
-                                        id
-                                    )
-                                }
-
-                            }
-
-
-                        })
-                    .setNeutralButton("More..",
-                        DialogInterface.OnClickListener { dialog, id ->
-
-                            AlertDialog.Builder(this)
-                                .setTitle("All Projects")
-                                // .setMessage(s)
-                                .setSingleChoiceItems(larray, checkedItemIndex,
-                                    DialogInterface.OnClickListener { dialog, which ->
-                                        checkedItemIndex = which
-                                        selectedProject = larray[which]
-                                    })
-                                .setNegativeButton("Delete",
-                                    DialogInterface.OnClickListener { dialog, id ->
-                                        for (j in larray) {
-                                            if (j == selectedProject) {
-                                                val index = larray.indexOf(j)
-                                                val id = projectIDList[index]
-
-                                                DeleteAlert(
-                                                    "\nProject '$selectedProject' $id will be deleted permanently.\n\nAre you sure?",
-                                                    id
-                                                )
-                                            }
-
-                                        }
-
-
-                                    })
-                                .setPositiveButton("Open",
-
-                                    DialogInterface.OnClickListener { dialog, id ->
-
-                                        if (selectedProject == "") {
-
-                                        } else {
-                                            for (j in larray) {
-                                                if (j == selectedProject) {
-                                                    val index = larray.indexOf(j)
-                                                    val id = projectIDList[index]
-                                                    var gap_size = projectSizeList[index]
-                                                    var mesh_size = projectMeshSizeList[index]
-                                                getPoints(id)
-                                              loadProject(id, mesh_size, gap_size)
-                                                }
-
-                                            }
-
-
-                                        }
-
-                                    })
-
-                                .show()
-
-                        })
-                    .setPositiveButton("Open",
-
-                        DialogInterface.OnClickListener { dialog, id ->
-
-                            if (selectedProject == "") {
-
-                            } else {
-                                for (j in l) {
-                                    if (j == selectedProject) {
-                                        val index = l.indexOf(j)
-                                        val id = projectIDList[index]
-                                        var gap_size = projectSizeList[index]
-                                        var mesh_size = projectMeshSizeList[index]
-                                        getPoints(id)
-                                       loadProject(id, mesh_size, gap_size)
-                                    }
-
-                                }
-
-
-                            }
-
-                        })
-
-                    .show()
-
-        }
 
 
 
@@ -689,15 +573,228 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 //        return projectList
 //    }
 
-     fun loadProject(ProjectID: Int, Meshsize: Int, Gapsize: Int) {
+
+
+
+
+    fun warningAlert(S: String, I: Int) {
+        AlertDialog.Builder(this)
+            .setTitle("Warning")
+            .setIcon(R.drawable.caution)
+            .setMessage(S)
+            .setPositiveButton(
+                "Delete",
+                DialogInterface.OnClickListener { dialog, id ->
+                    deleteProjectFunc(I)
+                })
+            .setNegativeButton("Just leave it alone",
+                DialogInterface.OnClickListener { dialog, id ->
+                    progressBar.isVisible = false
+                })
+            .show()
+    }
+
+    fun exitAlert(S: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Warning")
+            .setIcon(R.drawable.caution)
+            .setMessage(S)
+            .setPositiveButton(
+                "Exit",
+
+                DialogInterface.OnClickListener { dialog, id ->
+                    // SuccessAlert("Exiting App")
+                    finish()
+
+                })
+            .setNegativeButton("Stay",
+
+                DialogInterface.OnClickListener { dialog, id ->
+
+                })
+
+            .show()
+    }
+
+
+    fun displayProjects() {
+        var l: Array<String>
+        var checkedItemIndex = -1
+
+        val larray = com.dsmagic.kibira.projectList.toTypedArray()
+        if (larray.size > 5 || larray.size == 5) {
+            l = larray.sliceArray(0..4)
+        } else {
+            l = larray
+        }
+
+        AlertDialog.Builder(context)
+            .setTitle("Projects")
+            .setSingleChoiceItems(l, checkedItemIndex,
+                DialogInterface.OnClickListener { dialog, which ->
+                    checkedItemIndex = which
+                    selectedProject = larray[which]
+                })
+            .setNegativeButton("Delete",
+                DialogInterface.OnClickListener { dialog, id ->
+                    for (j in larray) {
+                        if (j == selectedProject) {
+                            val index = larray.indexOf(j)
+                            val id = com.dsmagic.kibira.projectIDList[index]
+
+                            Alerts.DeleteAlert(
+                                "\nProject '$selectedProject' $id  will be deleted permanently.\n\nAre you sure?",
+                                id
+                            )
+                        }
+
+                    }
+
+
+                })
+            .setNeutralButton("More..",
+                DialogInterface.OnClickListener { dialog, id ->
+
+                    AlertDialog.Builder(context)
+                        .setTitle("All Projects")
+                        // .setMessage(s)
+                        .setSingleChoiceItems(larray, checkedItemIndex,
+                            DialogInterface.OnClickListener { dialog, which ->
+                                checkedItemIndex = which
+                                selectedProject = larray[which]
+                            })
+                        .setNegativeButton("Delete",
+                            DialogInterface.OnClickListener { dialog, id ->
+                                for (j in larray) {
+                                    if (j == selectedProject) {
+                                        val index = larray.indexOf(j)
+                                        val id = com.dsmagic.kibira.projectIDList[index]
+
+                                        Alerts.DeleteAlert(
+                                            "\nProject '$selectedProject' $id will be deleted permanently.\n\nAre you sure?",
+                                            id
+                                        )
+                                    }
+
+                                }
+
+
+                            })
+                        .setPositiveButton("Open",
+
+                            DialogInterface.OnClickListener { dialog, id ->
+
+                                if (selectedProject == "") {
+
+                                } else {
+                                    for (j in larray) {
+                                        if (j == selectedProject) {
+                                            val index = larray.indexOf(j)
+                                            val id = com.dsmagic.kibira.projectIDList[index]
+                                            var gap_size = com.dsmagic.kibira.projectSizeList[index]
+                                            var mesh_size = com.dsmagic.kibira.projectMeshSizeList[index]
+                                            retrieveMarkedpoints(id)
+                                            loadProject(id, mesh_size, gap_size)
+                                        }
+
+                                    }
+
+
+                                }
+
+                            })
+
+                        .show()
+
+                })
+            .setPositiveButton("Open",
+
+                DialogInterface.OnClickListener { dialog, id ->
+
+                    if (selectedProject == "") {
+
+                    } else {
+                        for (j in l) {
+                            if (j == selectedProject) {
+                                val index = l.indexOf(j)
+                                val id = com.dsmagic.kibira.projectIDList[index]
+                                var gap_size = com.dsmagic.kibira.projectSizeList[index]
+                                var mesh_size = com.dsmagic.kibira.projectMeshSizeList[index]
+                                retrieveMarkedpoints(id)
+                                loadProject(id, mesh_size, gap_size)
+                            }
+
+                        }
+
+
+                    }
+
+                })
+
+            .show()
+
+
+    }
+    fun getProjects(UID: Int) {
+
+        var ProjectList = mutableListOf<Project>()
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                val listOfProjects = appdb.kibiraDao().getAllProjects(UID)
+
+                listOfProjects as MutableList<Project>
+                for (project in listOfProjects) {
+                    com.dsmagic.kibira.projectList.add(project.name)
+                    com.dsmagic.kibira.projectIDList.add(project.id!!)
+                    com.dsmagic.kibira.projectMeshSizeList.add(project.lineLength)
+                    com.dsmagic.kibira.projectSizeList.add(project.gapsize)
+                }
+
+                var l = com.dsmagic.kibira.projectList
+                withContext(Dispatchers.Main) {
+                    displayProjects()
+                }
+
+
+
+                Log.d("Projects", "$ProjectList")
+
+
+            } catch (e: NullPointerException) {
+                Log.d("Projects", "Empty Project")
+
+            }
+
+        }
+
+
+    }
+    fun loadProject(ProjectID: Int, Meshsize: Double, Gapsize: Double) {
         val displayProjectName: TextView? = findViewById(R.id.display_project_name)
 
         Toast.makeText(
-            applicationContext, "Loading project, This may take some few minutes time." +
+            context, "Loading project, This may take some few minutes time." +
                     "", Toast.LENGTH_LONG
         ).show()
 
+        var ListOfBasePoints: MutableList<Basepoints>
+        GlobalScope.launch(Dispatchers.IO) {
+            val coordinates = appdb.kibiraDao().getBasepointsForProject(ProjectID)
+            for (c in coordinates) {
+                ListOfBasePoints = c.basepoints as MutableList<Basepoints>
 
+                for (cods in ListOfBasePoints) {
+
+                    val firstPoint = LongLat(cods.lng.toDouble(), cods.lat.toDouble())
+                    val secondPoint = LongLat(cods.lng.toDouble(), cods.lat.toDouble())
+                    plotMesh(firstPoint,secondPoint)
+
+                }
+            }
+
+        }
+
+/*
         GlobalScope.launch(Dispatchers.IO) {
             val retrofitGetPointsObject = AppModule.retrofitInstance()
 
@@ -743,55 +840,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
             }
 
-        }
-    }
-
-
-    fun alertfail(S: String) {
-        AlertDialog.Builder(this)
-            .setTitle("Error")
-            .setIcon(R.drawable.cross)
-            .setMessage(S)
-            .show()
-    }
-
-    fun warningAlert(S: String, I: Int) {
-        AlertDialog.Builder(this)
-            .setTitle("Warning")
-            .setIcon(R.drawable.caution)
-            .setMessage(S)
-            .setPositiveButton(
-                "Delete",
-                DialogInterface.OnClickListener { dialog, id ->
-                    deleteProjectFunc(I)
-                })
-            .setNegativeButton("Just leave it alone",
-                DialogInterface.OnClickListener { dialog, id ->
-                    progressBar.isVisible = false
-                })
-            .show()
-    }
-
-    fun exitAlert(S: String) {
-        AlertDialog.Builder(this)
-            .setTitle("Warning")
-            .setIcon(R.drawable.caution)
-            .setMessage(S)
-            .setPositiveButton(
-                "Exit",
-
-                DialogInterface.OnClickListener { dialog, id ->
-                    // SuccessAlert("Exiting App")
-                    finish()
-
-                })
-            .setNegativeButton("Stay",
-
-                DialogInterface.OnClickListener { dialog, id ->
-
-                })
-
-            .show()
+        }*/
     }
 
     fun SuccessAlert(S: String) {
@@ -802,25 +851,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             .show()
     }
 
-    fun DeleteAlert(S: String, I: Int) {
-        AlertDialog.Builder(this)
-            .setTitle("Caution")
-            .setIcon(R.drawable.caution)
-            .setMessage(S)
-            .setPositiveButton(
-                "Delete",
 
-                DialogInterface.OnClickListener { dialog, id ->
-
-                    deleteProjectFunc(I)
-
-                })
-            .setNegativeButton("Cancel",
-                DialogInterface.OnClickListener { dialog, id ->
-                })
-
-            .show()
-    }
 
     fun deleteProjectFunc(ID: Int) {
 //        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
@@ -1069,6 +1100,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             "Stop" -> {
                 directionText.isVisible = false
                 directionImage.isVisible = false
+                directionCardLayout.isVisible = false
 
             }
 
@@ -1745,36 +1777,9 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             Context.MODE_PRIVATE
         )!!
 
-        val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
-
-        val ProjectID = ProjectIDString!!.toInt()
-
-        if (ProjectID == 0) {
-            Toast.makeText(
-                applicationContext,
-                "You did not create a project!! \n create one and continue",
-                Toast.LENGTH_LONG
-            ).show()
-            return
-        }
-        AlertDialog.Builder(this)
-            .setTitle("Warning")
-            .setIcon(R.drawable.caution)
-            .setMessage("Un do drawn lines? This will clear all current lines!")
-            .setPositiveButton(
-                "Undo",
-
-                DialogInterface.OnClickListener { dialog, id ->
-                    for (l in polyLines) {
-                        l!!.remove()
-                    }
-                    deleteBasePoints(ProjectID)
-                    meshDone = false
-                })
-
-
-            .show()
-
+        val displayProjectName: TextView = findViewById(R.id.display_project_name)
+        val ProjectID =  DbFunctions.projectID(Geogmesh_size!!,displayProjectName.text.toString())
+        undoAlertWarning(ProjectID)
     }
 
     var plantingRadiusCircle: Circle? = null
@@ -1788,7 +1793,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
             return
         }
-        var plantingRadius: Circle? = null
+
         var proximityCircle: Circle? = null
 
 
@@ -1870,20 +1875,20 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         }
 
         if (plantingRadius != null) {
-            closestPointRadius.add(plantingRadius.radius.toFloat())
+            closestPointRadius.add(plantingRadius!!.radius.toFloat())
             handler2.removeMessages(0)
             if (templist.isNotEmpty()) {
                 for (c in templist) {
                     c.remove()
                 }
                 templist.clear()
-                templist.add(plantingRadius)
+                templist.add(plantingRadius!!)
             } else {
-                templist.add((plantingRadius))
+                templist.add((plantingRadius!!))
             }
             plantingRadiusCircle = templist[templist.lastIndex]
             plantingMode = true
-            tempPlantingRadius = plantingRadius.radius.toFloat()
+            tempPlantingRadius = plantingRadius!!.radius.toFloat()
             // tempProximityRadius = proximityCircle!!.radius.toFloat()
 
         }
@@ -1898,8 +1903,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             return
         }
         if (plantingMode) {
-
-            Log.d("Loper", " markpoINT ${Thread().name}")
 
             val markedCirclePoint = map?.addCircle(
                 CircleOptions().center(pointOfInterestOnPolyline)
@@ -1926,8 +1929,16 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
             val jsonArray = mapper.writeValueAsString(pt)
             Log.d("array", "$jsonArray")
+            val sharedPreferences: SharedPreferences = this.getSharedPreferences(
+                CreateProjectDialog.sharedPrefFile,
+                Context.MODE_PRIVATE
+            )!!
 
-          // DbFunctions.savePoints(pointOfInterestOnPolyline,userID!!.toInt(),)
+            val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
+
+            val ProjectID = ProjectIDString!!.toInt()
+
+             DbFunctions.savePoints(pointOfInterestOnPolyline,ProjectID!!.toInt())
 
 
             if (listOfMarkedPoints.add(markedCirclePoint.center)) {
@@ -2148,6 +2159,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             }
         })
     }
+
     fun saveBasepoints(loc: LongLat) {
         val lat = loc.getLatitude()
         val lng = loc.getLongitude()
@@ -2179,7 +2191,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     }
 
-//    private fun saveBasepoints(loc: LongLat) {
+    //    private fun saveBasepoints(loc: LongLat) {
 //        val lat = loc.getLatitude()
 //        val lng = loc.getLongitude()
 //
@@ -2322,17 +2334,15 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     }
 
-    private fun radius(size: Int): Double {
+    private fun radius(size: Double): Double {
         val sizeInCentimeters = size * 100
         return ((0.1 * sizeInCentimeters) / 100) + 1.0
     }
 
-    private fun proximityRadius(size: Int): Double {
-        val size = radius(size)
-        return (size * 2)
-    }
-
-
+//    private fun proximityRadius(size: Int): Double {
+//        val size = radius(size)
+//        return (size * 2)
+//    }
 
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {

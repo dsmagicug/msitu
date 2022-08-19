@@ -2,22 +2,29 @@ package com.dsmagic.kibira.roomDatabase
 
 import android.content.DialogInterface
 import android.util.Log
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.dsmagic.kibira.*
 import com.dsmagic.kibira.MainActivity.Companion.appdb
+import com.dsmagic.kibira.MainActivity.Companion.context
 import com.dsmagic.kibira.MainActivity.Companion.lineInS2Format
+import com.dsmagic.kibira.MainActivity.Companion.listOfMarkedPoints
+import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.roomDatabase.Entities.Project
 import com.dsmagic.kibira.services.AppModule
 import com.dsmagic.kibira.services.deleteProjectDataClass
 import com.dsmagic.kibira.services.deleteProjectResponse
+import com.dsmagic.kibira.utils.Alerts.Companion.DeleteAlert
+import com.dsmagic.kibira.utils.Alerts.Companion.alertfail
 import com.google.android.gms.maps.model.LatLng
 import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.PointData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -26,7 +33,7 @@ class DbFunctions {
     companion object {
 
 
-        fun savePoints(point: LatLng, UID: Int, PID: Int) {
+        fun savePoints(point: LatLng, PID: Int) {
 
             val lat = point.latitude
             val lng = point.longitude
@@ -45,181 +52,84 @@ class DbFunctions {
 
         }
 
+        var ProjectID: Long = 0
+        fun saveProject(name: String, GAPSIZE: Double, LineLength: Double, UID: Int): Long {
 
-        fun saveProject(name: String, GAPSIZE: Double, LineLength: Double, UID: Int): Int {
-            var ProjectID: Long = 0
             val project = Project(null, name, GAPSIZE, LineLength, UID)
 
             GlobalScope.launch(Dispatchers.IO) {
-                var d = appdb.kibiraDao().insertProject(project)
-                ProjectID = d
+                ProjectID = appdb.kibiraDao().insertProject(project)
+                Log.d("PID", "$ProjectID")
+                ProjectID
             }
 
-            return ProjectID.toInt()
+
+            return ProjectID
         }
 
 
-        fun getProjects(UID: Int) {
 
-            var ProjectList = mutableListOf<Project>()
+
+
+
+        fun retrieveMarkedpoints(PID: Int): MutableList<LatLng> {
+            var ListOfProjects: MutableList<Coordinates>
             GlobalScope.launch(Dispatchers.IO) {
-                try{
-                    val listOfProjects = appdb.kibiraDao().getAllProjects(UID)
-                  for(project in listOfProjects){
-                      ProjectList.add(project)
-                  }
-
-
-                   MainActivity().displayProjects()
-
-
-                        Log.d("Projects", "$ProjectList")
-
-
-                } catch (e:NullPointerException){
-                    Log.d("Projects", "Empty Project")
-
+                val coordinates = appdb.kibiraDao().getCoordinatesForProject(PID)
+                for (c in coordinates) {
+                    ListOfProjects = c.coordinates as MutableList<Coordinates>
+                    for (cods in ListOfProjects) {
+                        val point = LatLng(cods.lat, cods.lng)
+                        listOfMarkedPoints.add(point)
+                    }
                 }
 
-            }
-
 
             }
+            return listOfMarkedPoints
+        }
 
-        var selectedProject = " "
-//        fun displayProjects() {
-//            var l: Array<String>
-//            var checkedItemIndex = -1
+//        fun retrieveBasepoints(PID:Int):MutableList<LatLng>{
+//            var ListOfBasePoints: MutableList<Basepoints>
+//            GlobalScope.launch(Dispatchers.IO) {
+//                val coordinates = appdb.kibiraDao().getBasepointsForProject(PID)
+//                for (c in coordinates) {
+//                    ListOfBasePoints = c.basepoints as MutableList<Basepoints>
+//                    for (cods in ListOfBasePoints) {
 //
-//            val larray = projectList.toTypedArray()
-//            if (larray.size > 5 || larray.size == 5) {
-//                l = larray.sliceArray(0..4)
-//            } else {
-//                l = larray
+//                        val firstPoint = LongLat(cods.lng.toDouble(), cods.lat.toDouble())
+//                        val secondPoint = LongLat(cods.lng.toDouble(), cods.lat.toDouble())
+//                    }
+//                }
+//
 //            }
-//
-//
-//                AlertDialog.Builder()
-//                    .setTitle("Projects")
-//                    .setSingleChoiceItems(l, checkedItemIndex,
-//                        DialogInterface.OnClickListener { dialog, which ->
-//                            checkedItemIndex = which
-//                            selectedProject = larray[which]
-//                        })
-//                    .setNegativeButton("Delete",
-//                        DialogInterface.OnClickListener { dialog, id ->
-//                            for (j in larray) {
-//                                if (j == selectedProject) {
-//                                    val index = larray.indexOf(j)
-//                                    val id = projectIDList[index]
-//
-//                                    DeleteAlert(
-//                                        "\nProject '$selectedProject' $id  will be deleted permanently.\n\nAre you sure?",
-//                                        id
-//                                    )
-//                                }
-//
-//                            }
-//
-//
-//                        })
-//                    .setNeutralButton("More..",
-//                        DialogInterface.OnClickListener { dialog, id ->
-//
-//                            AlertDialog.Builder(this)
-//                                .setTitle("All Projects")
-//                                // .setMessage(s)
-//                                .setSingleChoiceItems(larray, checkedItemIndex,
-//                                    DialogInterface.OnClickListener { dialog, which ->
-//                                        checkedItemIndex = which
-//                                        selectedProject = larray[which]
-//                                    })
-//                                .setNegativeButton("Delete",
-//                                    DialogInterface.OnClickListener { dialog, id ->
-//                                        for (j in larray) {
-//                                            if (j == selectedProject) {
-//                                                val index = larray.indexOf(j)
-//                                                val id = projectIDList[index]
-//
-//                                                DeleteAlert(
-//                                                    "\nProject '$selectedProject' $id will be deleted permanently.\n\nAre you sure?",
-//                                                    id
-//                                                )
-//                                            }
-//
-//                                        }
-//
-//
-//                                    })
-//                                .setPositiveButton("Open",
-//
-//                                    DialogInterface.OnClickListener { dialog, id ->
-//
-//                                        if (selectedProject == "") {
-//
-//                                        } else {
-//                                            for (j in larray) {
-//                                                if (j == selectedProject) {
-//                                                    val index = larray.indexOf(j)
-//                                                    val id = projectIDList[index]
-//                                                    var gap_size = projectSizeList[index]
-//                                                    var mesh_size = projectMeshSizeList[index]
-//                                                   MainActivity().getPoints(id)
-//                                                    MainActivity().loadProject(id, mesh_size, gap_size)
-//                                                }
-//
-//                                            }
-//
-//
-//                                        }
-//
-//                                    })
-//
-//                                .show()
-//
-//                        })
-//                    .setPositiveButton("Open",
-//
-//                        DialogInterface.OnClickListener { dialog, id ->
-//
-//                            if (selectedProject == "") {
-//
-//                            } else {
-//                                for (j in l) {
-//                                    if (j == selectedProject) {
-//                                        val index = l.indexOf(j)
-//                                        val id = projectIDList[index]
-//                                        var gap_size = projectSizeList[index]
-//                                        var mesh_size = projectMeshSizeList[index]
-//                                        MainActivity().getPoints(id)
-//                                       MainActivity().loadProject(id, mesh_size, gap_size)
-//                                    }
-//
-//                                }
-//
-//
-//                            }
-//
-//                        })
-//
-//                    .show()
-//
+//            return listOfMarkedPoints
 //        }
 
-
+        var id: Int = 0
         fun projectID(gp: Double, name: String): Int {
-            var id: Int = 0
+            var gp = gp
+            var name = name
+            var d = 10
             GlobalScope.launch(Dispatchers.IO) {
-                val d = appdb.kibiraDao().getProjectID(gp, name)
-                id = d
+               id = appdb.kibiraDao().getProjectID(gp, name)
+
             }
             return id
         }
 
-        fun deleteProjectFunc(ID: Int, PID: Int) {
+        fun deleteBasePoints(ID: Int) {
+            GlobalScope.launch(Dispatchers.IO) {
+                appdb.kibiraDao().deleteBasePoints(ID)
+
+            }
+
+        }
+
+        fun deleteProjectFunc(ID: Int) {
 
 
-            if (PID == 0) {
+            if (ID == 0) {
                 Toast.makeText(
                     MainActivity().applicationContext, "Could not load project" +
                             "", Toast.LENGTH_SHORT
@@ -246,15 +156,15 @@ class DbFunctions {
                                 .show()
 
                         } else {
-                            MainActivity().alertfail("Could not delete project :(")
+                            alertfail("Could not delete project :(")
                         }
                     } else {
-                        MainActivity().alertfail("Error!! We all have bad days!! :( $response")
+                        alertfail("Error!! We all have bad days!! :( $response")
                     }
                 }
 
                 override fun onFailure(call: Call<deleteProjectResponse?>, t: Throwable) {
-                    MainActivity().alertfail("Error ${t.message}")
+                    alertfail("Error ${t.message}")
                 }
             })
 

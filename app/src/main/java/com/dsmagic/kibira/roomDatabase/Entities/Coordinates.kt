@@ -9,5 +9,6 @@ data class Coordinates(
     val id:Int?,
     val lat:Double,
     val lng:Double,
-    val projectID:Int
+    val projectID:Int,
+
 )

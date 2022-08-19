@@ -15,10 +15,13 @@ import androidx.fragment.app.DialogFragment
 import com.dsmagic.kibira.MainActivity.Companion.card
 import com.dsmagic.kibira.MainActivity.Companion.directionCardLayout
 import com.dsmagic.kibira.MainActivity.Companion.meshDone
+import com.dsmagic.kibira.MainActivity.Companion.plantingRadius
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.saveProject
 import com.google.android.gms.maps.SupportMapFragment
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import kotlin.math.roundToInt
 
 
@@ -128,75 +131,84 @@ object CreateProjectDialog : DialogFragment() {
                 val saved_project_name: String? =
                     sharedPreferences.getString("name_key", "defaultValue")
                 val gap_size: String? = sharedPreferences.getString("size_key", "0")
-                val saved_gap_size = gap_size!!.toInt()
+                val saved_gap_size = gap_size!!
                 val UID: String? = sharedPreferences.getString("userid_key", "0")
                 val userID = UID!!.toInt()
                 val mesh_size_string: String? =
                     sharedPreferences.getString("mesh_key", "0")
-                var MeshSize: Int = 0
-                var GapSize: Int = 0
+                var MeshSize: Double = 0.0
+                var GapSize: Double = 0.0
+
+                val decimalFormat = DecimalFormat("##.##")
+                decimalFormat.roundingMode = RoundingMode.DOWN
 
                 val n = plotUnit
                 val gp = gapUnit
 
                 //if nothing is selected then ft is the default
                 if (plotUnit == "") {
-                    var r = mesh_size_string!!.toInt()
-                    MeshSize = (r * 0.3048).roundToInt()
+                    var r = mesh_size_string!!.toDouble()
+                    MeshSize = (r * 0.3048)
                 }
                 if (gapUnit == "") {
-                    var r = saved_gap_size.toInt()
-                    GapSize = (r * 0.3048).roundToInt()
+                    var r = saved_gap_size.toDouble()
+                    GapSize = (r * 0.3048)
                 }
 
 
                 when (n) {
                     "Metres" -> {
-                        MeshSize = mesh_size_string!!.toInt()
+                        MeshSize = mesh_size_string!!.toDouble()
+
                     }
                     "Ft" -> {
-                        var r = mesh_size_string!!.toInt()
-                        MeshSize = (r * 0.3048).roundToInt()
+                        var r = mesh_size_string!!.toDouble()
+                        MeshSize = (r * 0.3048)
                     }
                     "Miles" -> {
-                        var r = mesh_size_string!!.toInt()
-                        MeshSize = (r * 1609.34).roundToInt()
+                        var r = mesh_size_string!!.toDouble()
+                        MeshSize = (r * 1609.34)
 
                     }
                     "Acres" -> {
-                        var r = mesh_size_string!!.toInt()
-                        MeshSize = (r * 4046.86).roundToInt()
+                        var r = mesh_size_string!!.toDouble()
+                        MeshSize = (r * 4046.86)
                     }
                 }
                 when (gp) {
                     "metres" -> {
-                        GapSize = saved_gap_size.toInt()
+                        GapSize = saved_gap_size.toDouble()
                     }
                     "ft" -> {
-                        var r = saved_gap_size.toInt()
-                        GapSize = (r * 0.3048).roundToInt()
+                        var r = saved_gap_size.toDouble()
+                        GapSize = (r * 0.3048)
                     }
                     "Inches" -> {
-                        var r = saved_gap_size.toInt()
-                        GapSize = (r * 0.0254).roundToInt()
+                        var r = saved_gap_size.toDouble()
+                        GapSize = (r * 0.0254)
 
                     }
 
                 }
-                Geogmesh_size = MeshSize.toDouble()
+
+
+                Geogmesh_size = MeshSize
                 Geoggapsize = GapSize
 
                 displayProjectName?.text = saved_project_name
                 val pid = saveProject(
                     saved_project_name!!,
-                    GapSize.toDouble(),
-                    MeshSize.toDouble(),
+                    GapSize,
+                    MeshSize,
                     userID
                 )
                 // var pid = DbFunctions.projectID( Geoggapsize!!.toDouble(),saved_project_name!!)
                 editor.putString("productID_key", pid.toString())
                 editor.apply()
                 editor.commit()
+                if(editor.commit()){
+                    var r = 50
+                }
 
                 meshDone = false
 

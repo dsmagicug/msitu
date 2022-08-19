@@ -22,7 +22,7 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
-var Geoggapsize: Int? = 0
+var Geoggapsize: Double? = 0.0
 var Geogmesh_size:Double? = 0.0
 
 // Represents a point where a tree is planted. Units are metres.
@@ -166,17 +166,24 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
         // s = the value, indicator = N,S,E,W
         // s has the format XXYY.blah
         // https://stackoverflow.com/questions/36254363/how-to-convert-latitude-and-longitude-of-nmea-format-data-to-decimal
-        var offset = v.indexOf('.') - 2
-        if (offset < 0)
-            offset = 0
-        val d = if (offset == 0) 0 else v.substring(0, offset).toLong()
-        val m = v.substring(offset).toDouble() / 60.0
-        val sign = when (indicator) {
-            "N" -> 1
-            "E" -> 1
-            else -> -1
-        }
-        return sign * (d + m)
+
+      try{
+          var offset = v.indexOf('.') - 2
+          if (offset < 0)
+              offset = 0
+          val d = if (offset == 0) 0 else v.substring(0, offset).toLong()
+          val m = v.substring(offset).toDouble() / 60.0
+          val sign = when (indicator) {
+              "N" -> 1
+              "E" -> 1
+              else -> -1
+          }
+          return sign * (d + m)
+
+      }catch (e:NumberFormatException){
+
+      }
+       return 0.0
     }
 
     private fun initGGA(l: List<String>) {

@@ -40,9 +40,11 @@ class LoginActivity : AppCompatActivity() {
     val sharedPrefFile = "LoginShareFile"
     lateinit var sharedPreferences: SharedPreferences
     var loginMode = true
+
     companion object {
         lateinit var authbd: AppDatabase
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -53,7 +55,7 @@ class LoginActivity : AppCompatActivity() {
         if (loginMode) {
             //  checkIfLoggedIn()
         }
-       authbd = AppDatabase.dbInstance(this)
+        authbd = AppDatabase.dbInstance(this)
         setContentView(R.layout.activity_login)
         thelogin.setOnClickListener {
             thelogin.background = resources.getDrawable(R.drawable.switch_tucks, null)
@@ -143,7 +145,7 @@ class LoginActivity : AppCompatActivity() {
             login.setOnClickListener {
                 loading.visibility = View.VISIBLE
 
-               // loginUser(username.text.toString(), password.text.toString())
+                // loginUser(username.text.toString(), password.text.toString())
                 offlineLogin(username.text.toString(), password.text.toString())
             }
 
@@ -185,20 +187,27 @@ class LoginActivity : AppCompatActivity() {
                 val userPassword = d.password
                 val userEmail = d.email
                 val userid = d.id
-
-                updateUiWithUserOffline(userEmail, userid!!)
-                Toast.makeText(
-                    applicationContext, "Logged in " +
-                            "", Toast.LENGTH_SHORT
-                ).show()
+                runOnUiThread {
+                    if (userid == null) {
 
 
-            }
-            catch (e: NullPointerException) {
-runOnUiThread {
-    loading.visibility = View.INVISIBLE
-    alertfail("Invalid Credentials!")
-}
+                        Toast.makeText(
+                            applicationContext, "NO ID FOUND in " +
+                                    "", Toast.LENGTH_SHORT
+                        ).show()
+
+                    } else {
+                        updateUiWithUserOffline(userEmail, userid)
+                    }
+
+                }
+
+
+            } catch (e: NullPointerException) {
+                runOnUiThread {
+                    loading.visibility = View.INVISIBLE
+                    alertfail("Invalid Credentials!")
+                }
 
             }
 

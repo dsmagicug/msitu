@@ -16,63 +16,29 @@ import androidx.fragment.app.DialogFragment
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
 import com.dsmagic.kibira.roomDatabase.DbFunctions
+import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.saveProject
+import com.dsmagic.kibira.roomDatabase.Entities.Project
+import com.google.android.gms.maps.SupportMapFragment
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 
 var projectList = ArrayList<String>()
 var projectIDList = mutableListOf<Int>()
-var projectSizeList = mutableListOf<Int>()
-var projectMeshSizeList = mutableListOf<Int>()
+var projectSizeList = mutableListOf<Double>()
+var projectMeshSizeList = mutableListOf<Double>()
 //Returning a layout as a dialog box
 
 
 class firstActivity : DialogFragment(), AdapterView.OnItemClickListener {
 
-    //    fun getProjects():ArrayList<String> {
-//
-//        val sharedPreferences: SharedPreferences = activity?.getSharedPreferences(
-//            CreateProjectDialog().sharedPrefFile,
-//            Context.MODE_PRIVATE
-//        )!!
-//        val apiToken: String? = sharedPreferences.getString("apiToken_key", "defaultValue")
-//
-//        val retrofitDataObject = ServiceInterceptor("Bearer", apiToken!!).httpClient(apiToken)
-//        val retrofitData = retrofitDataObject.getProjectsList(apiToken)
-//        retrofitData.enqueue(object : Callback<List<ResponseProjectsDataClass>?> {
-//            override fun onResponse(
-//                call: Call<List<ResponseProjectsDataClass>?>,
-//                response: Response<List<ResponseProjectsDataClass>?>
-//            ) {
-//                val responseBody = response.body()
-//
-//                if (responseBody != null) {
-//                    //Crude: clear the lists to avoid duplicates
-//                    // or! Make name unique, and check its existance before adding i to list to avoid duplicates.
-//                    projectList.clear()
-//                    projectIDList.clear()
-//                    projectMeshSizeList.clear()
-//                    projectSizeList.clear()
-//                    for (data in responseBody) {
-//                        projectList.add(data.name)
-//                        projectIDList.add(data.id)
-//                        projectMeshSizeList.add(data.mesh_size)
-//                        projectSizeList.add(data.gap_size)
-//                    }
-//
-//                    Log.d("Projects", "$projectList")
-//
-//                } else {
-//                    firstActivity().alertfail("No response got from server")
-//                }
-//            }
-//
-//            override fun onFailure(call: Call<List<ResponseProjectsDataClass>?>, t: Throwable) {
-//                Log.d("error", "${t.message}")
-//            }
-//        })
-//        return projectList
-//    }
     var gapsize_units: Array<String>? = null
+
 
     @SuppressLint("SetTextI18n")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -170,26 +136,24 @@ class firstActivity : DialogFragment(), AdapterView.OnItemClickListener {
     var gapUnit = ""
     fun oncreateclick() {
 
-        val sharedPrefFile = "kibirasharedfile"
-
         val projectname = dialog?.findViewById<EditText>(R.id.ProjectName)
         val meshSize = dialog?.findViewById<EditText>(R.id.MeshSize)
+        var progressbar = activity?.findViewById<ProgressBar>(R.id.progressBar)
 
         val gapsize = dialog?.findViewById<EditText>(R.id.gapSize)
         val displayProjectName = activity?.findViewById<TextView>(R.id.display_project_name)
 
-        var progressbar = activity?.findViewById<ProgressBar>(R.id.progressBar)
         val gap_size_string = gapsize?.text.toString()
 
         val project_name: String = projectname?.text.toString()
         val mesh_size: String = meshSize?.text.toString()
 
         if (project_name == "" || gap_size_string == "") {
-            alertfail("Please fill all fields")
+            CreateProjectDialog.alertfail("Please fill all fields")
         } else {
-
+            //  progressbar?.isVisible = true
             val sharedPreferences: SharedPreferences =
-                activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
+                activity?.getSharedPreferences(CreateProjectDialog.sharedPrefFile, Context.MODE_PRIVATE)!!
 
             val editor = sharedPreferences.edit()
             editor.putString("size_key", gap_size_string)
@@ -197,91 +161,136 @@ class firstActivity : DialogFragment(), AdapterView.OnItemClickListener {
             editor.putString("mesh_key", mesh_size)
             editor.apply()
             editor.commit()
-
-
+            // progressbar?.isVisible = true
             if (editor.commit()) {
                 val saved_project_name: String? =
                     sharedPreferences.getString("name_key", "defaultValue")
                 val gap_size: String? = sharedPreferences.getString("size_key", "0")
-                val saved_gap_size = gap_size!!.toInt()
+                val saved_gap_size = gap_size!!
                 val UID: String? = sharedPreferences.getString("userid_key", "0")
                 val userID = UID!!.toInt()
-                val mesh_size_string: String? = sharedPreferences.getString("mesh_key", "0")
-//                val MeshSize = mesh_size_string!!.toInt()
-                var MeshSize: Int = 0
-                var GapSize: Int = 0
+                val mesh_size_string: String? =
+                    sharedPreferences.getString("mesh_key", "0")
+                var MeshSize: Double = 0.0
+                var GapSize: Double = 0.0
 
-                val n = plotUnit
-                val gp = gapUnit
-                if (plotUnit == "") {
-                    var r = mesh_size_string!!.toInt()
-                    MeshSize = (r * 0.3048).roundToInt()
+                val decimalFormat = DecimalFormat("##.##")
+                decimalFormat.roundingMode = RoundingMode.DOWN
+
+                val n = CreateProjectDialog.plotUnit
+                val gp = CreateProjectDialog.gapUnit
+
+                //if nothing is selected then ft is the default
+                if (CreateProjectDialog.plotUnit == "") {
+                    var r = mesh_size_string!!.toDouble()
+                    MeshSize = (r * 0.3048)
                 }
-                if (gapUnit == "") {
-                    var r = saved_gap_size.toInt()
-                    GapSize = (r * 0.3048).roundToInt()
+                if (CreateProjectDialog.gapUnit == "") {
+                    var r = saved_gap_size.toDouble()
+                    GapSize = (r * 0.3048)
                 }
+
 
                 when (n) {
                     "Metres" -> {
-                        MeshSize = mesh_size_string!!.toInt()
+                        MeshSize = mesh_size_string!!.toDouble()
+
                     }
                     "Ft" -> {
-                        var r = mesh_size_string!!.toInt()
-                        MeshSize = (r * 0.3048).roundToInt()
+                        var r = mesh_size_string!!.toDouble()
+                        MeshSize = (r * 0.3048)
                     }
                     "Miles" -> {
-                        var r = mesh_size_string!!.toInt()
-                        MeshSize = (r * 1609.34).roundToInt()
+                        var r = mesh_size_string!!.toDouble()
+                        MeshSize = (r * 1609.34)
 
                     }
                     "Acres" -> {
-                        var r = mesh_size_string!!.toInt()
-                        MeshSize = (r * 4046.86).roundToInt()
-
+                        var r = mesh_size_string!!.toDouble()
+                        MeshSize = (r * 4046.86)
                     }
                 }
                 when (gp) {
                     "metres" -> {
-                        GapSize = saved_gap_size.toInt()
+                        GapSize = saved_gap_size.toDouble()
                     }
                     "ft" -> {
-                        var r = saved_gap_size.toInt()
-                        GapSize = (r * 0.3048).roundToInt()
+                        var r = saved_gap_size.toDouble()
+                        GapSize = (r * 0.3048)
                     }
                     "Inches" -> {
-                        var r = saved_gap_size.toInt()
-                        GapSize = (r * 0.0254).roundToInt()
+                        var r = saved_gap_size.toDouble()
+                        GapSize = (r * 0.0254)
 
                     }
 
                 }
 
-                Geogmesh_size = MeshSize.toDouble()
+
+                Geogmesh_size = MeshSize
                 Geoggapsize = GapSize
 
                 displayProjectName?.text = saved_project_name
-                val PID = DbFunctions.saveProject(
+                val pid = DbFunctions.saveProject(
                     saved_project_name!!,
-                    GapSize.toDouble(),
-                    MeshSize.toDouble(),
+                    GapSize,
+                    MeshSize,
                     userID
                 )
-
-                editor.putString("productID_key", PID.toString())
+                // var pid = DbFunctions.projectID( Geoggapsize!!.toDouble(),saved_project_name!!)
+                editor.putString("productID_key", pid.toString())
                 editor.apply()
                 editor.commit()
+                if(editor.commit()){
+                    var r = 50
+                }
 
-                progressbar?.isVisible = false
-                displayProjectName?.text = saved_project_name
+                MainActivity.meshDone = false
 
-                Log.d("values", "Project name is: $saved_project_name")
+                for (item in MainActivity.polyLines) {
+                    item!!.remove()
+                }
+                MainActivity.mapFragment =
+                    (activity?.supportFragmentManager!!.findFragmentById(R.id.mapFragment) as SupportMapFragment?)!!
+                //mapFragment?.getMapAsync(callback)
+
+                for (l in MainActivity.listofmarkedcircles) {
+                    l.remove()
+                }
+               if(MainActivity.listOfMarkedPoints.isNotEmpty()){
+                   MainActivity.listOfMarkedPoints.clear()
+               }
+                for (l in MainActivity.unmarkedCirclesList) {
+                    l.remove()
+                }
+                if (MainActivity.listOfPlantingLines.isNotEmpty()) {
+                    MainActivity.listOfPlantingLines.clear()
+                }
+                MainActivity.directionCardLayout.isVisible = false
+                MainActivity.card.isVisible = false
+
+                CreateProjectDialog.clean = true
+
 
             } else {
                 Log.d("not", "Not saved")
             }
         }
 
+    }
+    var ProjectID: Long = 0
+    fun saveProject(name: String, GAPSIZE: Double, LineLength: Double, UID: Int): Long {
+
+        val project = Project(null, name, GAPSIZE, LineLength, UID)
+
+        GlobalScope.launch(Dispatchers.IO) {
+            ProjectID = MainActivity.appdb.kibiraDao().insertProject(project)
+            Log.d("PID","$ProjectID")
+            ProjectID
+        }
+
+
+        return ProjectID
     }
 
     fun alertfail(S: String) {
