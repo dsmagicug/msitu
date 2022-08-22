@@ -7,7 +7,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.dsmagic.kibira.*
 import com.dsmagic.kibira.MainActivity.Companion.appdb
-import com.dsmagic.kibira.MainActivity.Companion.context
+
 import com.dsmagic.kibira.MainActivity.Companion.lineInS2Format
 import com.dsmagic.kibira.MainActivity.Companion.listOfMarkedPoints
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
@@ -66,11 +66,6 @@ class DbFunctions {
 
             return ProjectID
         }
-
-
-
-
-
 
         fun retrieveMarkedpoints(PID: Int): MutableList<LatLng> {
             var ListOfProjects: MutableList<Coordinates>

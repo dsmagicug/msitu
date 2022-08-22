@@ -15,6 +15,7 @@ import androidx.fragment.app.DialogFragment
 import com.dsmagic.kibira.MainActivity.Companion.card
 import com.dsmagic.kibira.MainActivity.Companion.directionCardLayout
 import com.dsmagic.kibira.MainActivity.Companion.meshDone
+import com.dsmagic.kibira.MainActivity.Companion.onLoad
 import com.dsmagic.kibira.MainActivity.Companion.plantingRadius
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
@@ -58,8 +59,43 @@ object CreateProjectDialog : DialogFragment() {
             viewGapSize.setAdapter(gapsizeAdapter)
             viewPlotSize.setAdapter(plotsizeAdapter)
 
+            val l: Array<String> = projectList.toTypedArray().reversedArray()
+            val ar: Array<String>
 
-            if (tag == "create") {
+            if(onLoad){
+                if(l.isEmpty()){
+                    builder.setView(r)
+                        // Add action buttons
+
+                        .setNegativeButton(
+                            string.cancel,
+                            DialogInterface.OnClickListener { dialog, id ->
+
+
+                            })
+                        .setPositiveButton(
+                            string.create_new_project,
+                            DialogInterface.OnClickListener { dialog: DialogInterface?, id: Int ->
+
+                                oncreateclick()
+                                //dismiss()
+
+
+                            })
+
+                    builder.create()
+                }
+                if (l.size > 5 || l.size == 5) {
+                    ar = l.sliceArray(0..4)
+                } else {
+                    ar = l
+                }
+                MainActivity().displayProjects()
+
+            }
+
+            if (tag == "create"  ) {
+
 
                 builder.setView(r)
                     // Add action buttons
@@ -82,7 +118,8 @@ object CreateProjectDialog : DialogFragment() {
 
                 builder.create()
 
-            } else {
+            } else
+            {
                 val projects = activity?.findViewById<TextView>(R.id.projectOne)
 
                 builder.setView(inflater.inflate(layout.list_projects, null))
@@ -95,9 +132,13 @@ object CreateProjectDialog : DialogFragment() {
 
     }
 
+fun displayCreateDialog(){
+
+}
 
     var plotUnit = ""
     var gapUnit = ""
+
 
     fun oncreateclick() {
 

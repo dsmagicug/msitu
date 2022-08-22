@@ -41,96 +41,97 @@ class firstActivity : DialogFragment(), AdapterView.OnItemClickListener {
 
 
     @SuppressLint("SetTextI18n")
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        // val projects =  getProjects()
-        val projects = ArrayList<String>()
-
-
-        return activity?.let {
-
-            var selectedProject: String = ""
-
-            var checkedItemIndex = -1
-            val builder = AlertDialog.Builder(it)
-            val inflater = requireActivity().layoutInflater
-            val r = inflater.inflate(layout.activity_create_project, null)
-
-            //dropdown menu
-            val gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
-            val plotsize_units = resources.getStringArray(R.array.plotSizeUnits)
-
-            val plotsizeAdapter =
-                ArrayAdapter(requireContext(), layout.plotsize_layout, plotsize_units)
-            val gapsizeAdapter = ArrayAdapter(requireContext(), layout.gapsizeunits, gapsize_units)
-
-            val viewGapSize = r.findViewById<AutoCompleteTextView>(R.id.gapsizeDropDown)
-            val viewPlotSize = r.findViewById<AutoCompleteTextView>(R.id.plotsizeDropDown)
-            viewGapSize.setAdapter(gapsizeAdapter)
-            viewPlotSize.setAdapter(plotsizeAdapter)
-
-            val l: Array<String> = projects.toTypedArray().reversedArray()
-            val ar: Array<String>
-//                l = projects.toTypedArray().reversedArray()
-
-            if (l.size > 5 || l.size == 5) {
-                ar = l.sliceArray(0..4)
-            } else {
-                ar = l
-            }
-
-
-            if (l.isEmpty()) {
-                builder.setView(r)
-                    // Add action buttons
-
-                    .setNegativeButton(string.cancel,
-                        DialogInterface.OnClickListener { dialog, id ->
-
-
-                        })
-                    .setPositiveButton(string.create_new_project,
-                        DialogInterface.OnClickListener { dialog: DialogInterface?, id: Int ->
-                            oncreateclick()
-
-                        })
-
-                builder.create()
-
-
-            } else {
-
-                builder.setTitle("Choose Project")
-                    .setSingleChoiceItems(ar, checkedItemIndex,
-                        DialogInterface.OnClickListener { dialog, which ->
-                            checkedItemIndex = which
-                            selectedProject = ar[which]
-                        })
-
-                    .setNegativeButton(R.string.cancel,
-                        DialogInterface.OnClickListener { dialog, id ->
-                            // User cancelled the dialog
-                        })
-                    .setPositiveButton("Open",
-
-                        DialogInterface.OnClickListener { dialog, id ->
-
-                            if (selectedProject == "") {
-                                //MainActivity().showSnackBar(mDialogView)
-                            } else {
-                                val displayProjectName: TextView? =
-                                    activity?.findViewById(R.id.display_project_name)
-                                displayProjectName?.text = selectedProject
-
-                            }
-
-                        })
-
-                // Create the AlertDialog object and return it
-                builder.create()
-            }
-
-        } ?: throw IllegalStateException("Activity cannot be null")
-    }
+//    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+//        // val projects =  getProjects()
+//        val projects = ArrayList<String>()
+//
+//
+//        return activity?.let {
+//
+//            var selectedProject: String = ""
+//
+//            var checkedItemIndex = -1
+//            val builder = AlertDialog.Builder(it)
+//            val inflater = requireActivity().layoutInflater
+//            val r = inflater.inflate(layout.activity_create_project, null)
+//
+//            //dropdown menu
+//            val gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
+//            val plotsize_units = resources.getStringArray(R.array.plotSizeUnits)
+//
+//            val plotsizeAdapter =
+//                ArrayAdapter(requireContext(), layout.plotsize_layout, plotsize_units)
+//            val gapsizeAdapter = ArrayAdapter(requireContext(), layout.gapsizeunits, gapsize_units)
+//
+//            val viewGapSize = r.findViewById<AutoCompleteTextView>(R.id.gapsizeDropDown)
+//            val viewPlotSize = r.findViewById<AutoCompleteTextView>(R.id.plotsizeDropDown)
+//            viewGapSize.setAdapter(gapsizeAdapter)
+//            viewPlotSize.setAdapter(plotsizeAdapter)
+//
+//            val l: Array<String> = projects.toTypedArray().reversedArray()
+//            val ar: Array<String>
+////                l = projects.toTypedArray().reversedArray()
+//
+//            if (l.size > 5 || l.size == 5) {
+//                ar = l.sliceArray(0..4)
+//            } else {
+//                ar = l
+//            }
+//
+//
+//            if (l.isEmpty()) {
+//                CreateProjectDialog
+////                builder.setView(r)
+////                    // Add action buttons
+////
+////                    .setNegativeButton(string.cancel,
+////                        DialogInterface.OnClickListener { dialog, id ->
+////
+////
+////                        })
+////                    .setPositiveButton(string.create_new_project,
+////                        DialogInterface.OnClickListener { dialog: DialogInterface?, id: Int ->
+////                            oncreateclick()
+////
+////                        })
+////
+////                builder.create()
+//
+//
+//            } else {
+//
+//                builder.setTitle("Choose Project")
+//                    .setSingleChoiceItems(ar, checkedItemIndex,
+//                        DialogInterface.OnClickListener { dialog, which ->
+//                            checkedItemIndex = which
+//                            selectedProject = ar[which]
+//                        })
+//
+//                    .setNegativeButton(R.string.cancel,
+//                        DialogInterface.OnClickListener { dialog, id ->
+//                            // User cancelled the dialog
+//                        })
+//                    .setPositiveButton("Open",
+//
+//                        DialogInterface.OnClickListener { dialog, id ->
+//
+//                            if (selectedProject == "") {
+//                                //MainActivity().showSnackBar(mDialogView)
+//                            } else {
+//                                val displayProjectName: TextView? =
+//                                    activity?.findViewById(R.id.display_project_name)
+//                                displayProjectName?.text = selectedProject
+//
+//                            }
+//
+//                        })
+//
+//                // Create the AlertDialog object and return it
+//                builder.create()
+//            }
+//
+//        } ?: throw IllegalStateException("Activity cannot be null")
+//    }
 
     var plotUnit = ""
     var gapUnit = ""

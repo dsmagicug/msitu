@@ -172,7 +172,9 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     var delta = 1.0
     var projectLoaded = false
 
+
     companion object {
+        lateinit var context:Context
         var listOfMarkedPoints = mutableListOf<LatLng>()
         var listofmarkedcircles = mutableListOf<Circle>()
 
@@ -188,7 +190,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         lateinit var lineInS2Format: S2PointIndex<S2LatLng>
         lateinit var mapFragment: SupportMapFragment
         var plantingRadius: Circle? = null
-        lateinit var context:Context
+        var onLoad = false
+
     }
 
 
@@ -275,14 +278,14 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         }
         // Getting the Sensor Manager instance
 
-        //if (savedInstanceState == null) {
-        // getProjects(userID!!.toInt())
-        //getProjects()
+        if (savedInstanceState == null) {
+         getProjects(userID!!.toInt())
+            onLoad = true
         createDialog(projectList)
         mapFragment =
             (supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment?)!!
         mapFragment.getMapAsync(callback)
-        //}
+        }
 
         //register bluetooth broadcaster for scanning devices
         val intent = IntentFilter(BluetoothDevice.ACTION_FOUND)
@@ -618,6 +621,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
 
     fun displayProjects() {
+        onLoad = false
         var l: Array<String>
         var checkedItemIndex = -1
 
@@ -735,7 +739,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
 
     }
-    fun getProjects(UID: Int) {
+    fun getProjects(UID: Int):MutableList<String> {
 
         var ProjectList = mutableListOf<Project>()
         GlobalScope.launch(Dispatchers.IO) {
@@ -767,7 +771,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         }
 
-
+return projectList
     }
     fun loadProject(ProjectID: Int, Meshsize: Double, Gapsize: Double) {
         val displayProjectName: TextView? = findViewById(R.id.display_project_name)
@@ -1318,8 +1322,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     // display the create dialog if no projects available.
     private fun createDialog(list: ArrayList<String>): Boolean {
-        val openingDialog = firstActivity()
-        openingDialog.show(supportFragmentManager, "openingDialog")
+        val createNewProject = CreateProjectDialog
+        createNewProject.show(supportFragmentManager, "create")
+//        val openingDialog = firstActivity()
+//        openingDialog.show(supportFragmentManager, "openingDialog")
         return true
     }
 
@@ -2394,6 +2400,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 return true
             }
             R.id.action_create -> {
+                onLoad = false
                 val createNewProject = CreateProjectDialog
                 createNewProject.show(supportFragmentManager, "create")
                 return true
