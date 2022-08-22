@@ -8,6 +8,7 @@ import android.Manifest
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.*
@@ -39,9 +40,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
+import com.dsmagic.kibira.bluetooth.bluetoothFunctions
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
 import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
+import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
+import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.deleteSavedPoints
 
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.retrieveMarkedpoints
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
@@ -85,7 +89,7 @@ import kotlin.math.sqrt
 open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     View.OnClickListener, NavigationView.OnNavigationItemSelectedListener {
 
-    var deviceList = ArrayList<BluetoothDevice>()
+
     var device: BluetoothDevice? = null
     private var map: GoogleMap? = null
     private var marker: Circle? = null
@@ -168,19 +172,21 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var pace: TextView
     lateinit var linesMarked: TextView
     lateinit var totalPoints: TextView
-    val bluetoothList = ArrayList<String>()
+
     var delta = 1.0
     var projectLoaded = false
 
 
     companion object {
-        lateinit var context:Context
+        lateinit var context: Context
+        val bluetoothList = ArrayList<String>()
         var listOfMarkedPoints = mutableListOf<LatLng>()
         var listofmarkedcircles = mutableListOf<Circle>()
 
         var unmarkedCirclesList = mutableListOf<Circle>()
 
         var listOfPlantingLines = mutableListOf<Polyline>()
+        var deviceList = ArrayList<BluetoothDevice>()
 
         var polyLines = ArrayList<Polyline?>()
         var meshDone = false
@@ -191,6 +197,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         lateinit var mapFragment: SupportMapFragment
         var plantingRadius: Circle? = null
         var onLoad = false
+      lateinit var thisActivity:Activity
 
     }
 
@@ -206,6 +213,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         context = this
+        thisActivity = this
         fabCampus = findViewById(R.id.fab_compass)
         drawerlayout = findViewById(R.id.drawerlayout)
         navView = findViewById(R.id.navView)
@@ -277,19 +285,18 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         }
         // Getting the Sensor Manager instance
-
+        getProjects(userID!!.toInt())
+        onLoad = true
+        createDialog("onLoad")
         if (savedInstanceState == null) {
-         getProjects(userID!!.toInt())
-            onLoad = true
-        createDialog(projectList)
-        mapFragment =
-            (supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment?)!!
-        mapFragment.getMapAsync(callback)
+            mapFragment =
+                (supportFragmentManager.findFragmentById(R.id.mapFragment) as SupportMapFragment?)!!
+            mapFragment.getMapAsync(callback)
         }
-
+        onLoad = false
         //register bluetooth broadcaster for scanning devices
         val intent = IntentFilter(BluetoothDevice.ACTION_FOUND)
-        registerReceiver(receiver, intent)
+        registerReceiver(bluetoothFunctions.receiver, intent)
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val accSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -483,7 +490,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             listOfMarkedPoints.clear()
         }
 
-        retrieveMarkedpoints(id!!)
+        retrieveMarkedpoints(id)
 
 //        val retrofitGetPointsObject = AppModule.retrofitInstance()
 //        val modal = RequestPoints(id, userID)
@@ -527,10 +534,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     }
 
 
-
-
     var selectedProject: String = " "
-
 
 
 //
@@ -575,9 +579,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 //
 //        return projectList
 //    }
-
-
-
 
 
     fun warningAlert(S: String, I: Int) {
@@ -696,7 +697,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                                             val index = larray.indexOf(j)
                                             val id = com.dsmagic.kibira.projectIDList[index]
                                             var gap_size = com.dsmagic.kibira.projectSizeList[index]
-                                            var mesh_size = com.dsmagic.kibira.projectMeshSizeList[index]
+                                            var mesh_size =
+                                                com.dsmagic.kibira.projectMeshSizeList[index]
                                             retrieveMarkedpoints(id)
                                             loadProject(id, mesh_size, gap_size)
                                         }
@@ -739,7 +741,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
 
     }
-    fun getProjects(UID: Int):MutableList<String> {
+
+    fun getProjects(UID: Int): MutableList<String> {
 
         var ProjectList = mutableListOf<Project>()
         GlobalScope.launch(Dispatchers.IO) {
@@ -771,10 +774,11 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         }
 
-return projectList
+        return projectList
     }
+
     fun loadProject(ProjectID: Int, Meshsize: Double, Gapsize: Double) {
-        val displayProjectName: TextView? = findViewById(R.id.display_project_name)
+        var displayProjectName: TextView? = findViewById(R.id.display_project_name)
 
         Toast.makeText(
             context, "Loading project, This may take some few minutes time." +
@@ -783,20 +787,30 @@ return projectList
 
         var ListOfBasePoints: MutableList<Basepoints>
         GlobalScope.launch(Dispatchers.IO) {
-            val coordinates = appdb.kibiraDao().getBasepointsForProject(ProjectID)
-            for (c in coordinates) {
-                ListOfBasePoints = c.basepoints as MutableList<Basepoints>
+             ListOfBasePoints = appdb.kibiraDao().getBasepointsForProject(ProjectID) as MutableList<Basepoints>
+            ListOfBasePoints.size
+                val l = ListOfBasePoints[0]
+                val y = ListOfBasePoints[1]
+                val firstPoint = LongLat(l.lng, l.lat)
+                val secondPoint = LongLat(y.lng, y.lat)
 
-                for (cods in ListOfBasePoints) {
+                withContext(Dispatchers.Main) {
+                    displayProjectName!!.text = selectedProject
 
-                    val firstPoint = LongLat(cods.lng.toDouble(), cods.lat.toDouble())
-                    val secondPoint = LongLat(cods.lng.toDouble(), cods.lat.toDouble())
-                    plotMesh(firstPoint,secondPoint)
+                    Geoggapsize = Gapsize
+                    Geogmesh_size = Meshsize
+                    freshFragment()
+                    plotMesh(firstPoint, secondPoint)
 
-                }
+
+
+
             }
 
+
         }
+
+    }
 
 /*
         GlobalScope.launch(Dispatchers.IO) {
@@ -845,7 +859,7 @@ return projectList
             }
 
         }*/
-    }
+
 
     fun SuccessAlert(S: String) {
         AlertDialog.Builder(this)
@@ -854,7 +868,6 @@ return projectList
             .setMessage(S)
             .show()
     }
-
 
 
     fun deleteProjectFunc(ID: Int) {
@@ -1026,14 +1039,14 @@ return projectList
                     lastRotateDegree
                 )
                 DirectionToHead = true
-                //}
+
                 val decimalFormat = DecimalFormat("##.##")
                 decimalFormat.roundingMode = RoundingMode.DOWN
 
 
                 val dist = decimalFormat.format(distance)
                 val d = dist.toString()
-                pace()
+
                 displayedDistance.text = d
                 displayedPoints.text = size.toString()
                 totalPoints.text = l.size.toString()
@@ -1111,14 +1124,6 @@ return projectList
         }
 
 
-        /*animForDirectionText = ObjectAnimator.ofInt(
-            directionCardLayout,
-            "cardBackgroundColor",R.color.teal, R.color.teal, R.color.teal_700, R.color.teal
-        )
-        animForDirectionText.duration = 1500
-        animForDirectionText.setEvaluator(ArgbEvaluator())
-        animForDirectionText.start()*/
-
     }
 
     fun blinkEffectOfMarkedPoints(color: String, T: TextView) {
@@ -1141,16 +1146,18 @@ return projectList
 
             }
         }
+        handler.post {
+            anim = ObjectAnimator.ofInt(
+                textViewToBlink,
+                "backgroundColor", animationColor, Color.WHITE, animationColor, animationColor
+            )
+            anim.duration = 1500
+            anim.setEvaluator(ArgbEvaluator())
+            anim.repeatMode = ValueAnimator.RESTART
+            anim.repeatCount = 1
+            anim.start()
+        }
 
-        anim = ObjectAnimator.ofInt(
-            textViewToBlink,
-            "backgroundColor", animationColor, Color.WHITE, animationColor, animationColor
-        )
-        anim.duration = 1500
-        anim.setEvaluator(ArgbEvaluator())
-        anim.repeatMode = ValueAnimator.RESTART
-        anim.repeatCount = 1
-        anim.start()
     }
 
     fun stopBlink() {
@@ -1160,32 +1167,6 @@ return projectList
         }
 
     }
-
-    fun checkLocation() {
-        if (androidx.core.app.ActivityCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            )
-            != android.content.pm.PackageManager.PERMISSION_GRANTED
-        ) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    this@MainActivity,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                )
-            ) {
-                ActivityCompat.requestPermissions(
-                    this@MainActivity,
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1
-                )
-            } else {
-                ActivityCompat.requestPermissions(
-                    this@MainActivity,
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1
-                )
-            }
-        }
-    }
-
 
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<String>,
@@ -1198,22 +1179,23 @@ return projectList
                     PackageManager.PERMISSION_GRANTED
                 ) {
                     if (androidx.core.app.ActivityCompat.checkSelfPermission(
-                            this,
+                            context,
                             android.Manifest.permission.ACCESS_FINE_LOCATION
                         )
                         == android.content.pm.PackageManager.PERMISSION_GRANTED
                     ) {
-                        Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
                 }
                 return
             }
         }
     }
 
-    private fun scantBlueTooth() {
+
+    fun scantBlueTooth() {
         val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
 
         if (!bluetoothAdaptor.isEnabled) {
@@ -1264,48 +1246,9 @@ return projectList
     }
 
 
-    // Create a BroadcastReceiver for ACTION_FOUND.
-    private val receiver = object : BroadcastReceiver() {
-
-        override fun onReceive(context: Context, intent: Intent) {
-            val action: String? = intent.action
-            when (action) {
-                BluetoothDevice.ACTION_FOUND -> {
-                    val device: BluetoothDevice? =
-                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
-
-                    if (ActivityCompat.checkSelfPermission(
-                            applicationContext,
-                            Manifest.permission.BLUETOOTH_CONNECT
-                        ) != PackageManager.PERMISSION_GRANTED
-                    ) {
-                        // TODO: Consider calling
-                        //    ActivityCompat#requestPermissions
-                        // here to request the missing permissions, and then overriding
-                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                        //                                          int[] grantResults)
-                        // to handle the case where the user grants the permission. See the documentation
-                        // for ActivityCompat#requestPermissions for more details.
-                        //return
-                    }
-
-                    //if (!bluetoothList.contains(device!!.name)) {
-
-                    bluetoothList.add(device!!.name)
-                    deviceList.add(device)
-                    var v = device.name
-                    //}
-
-                }
-
-            }
-            scantBlueTooth()
-        }
-    }
-
     override fun onDestroy() {
         // Don't forget to unregister the ACTION_FOUND receiver.
-        unregisterReceiver(receiver)
+        unregisterReceiver(bluetoothFunctions.Companion.receiver)
         NmeaReader.listener.deactivate()
         sensorManager!!.unregisterListener(listener)
         super.onDestroy()
@@ -1321,11 +1264,15 @@ return projectList
     }
 
     // display the create dialog if no projects available.
-    private fun createDialog(list: ArrayList<String>): Boolean {
+    private fun createDialog(UserTag: String): Boolean {
+        var dialogTag = " "
+        if (UserTag == "onLoad") {
+            dialogTag = "onload"
+        } else {
+            dialogTag = "create"
+        }
         val createNewProject = CreateProjectDialog
-        createNewProject.show(supportFragmentManager, "create")
-//        val openingDialog = firstActivity()
-//        openingDialog.show(supportFragmentManager, "openingDialog")
+        createNewProject.show(supportFragmentManager, dialogTag)
         return true
     }
 
@@ -1338,7 +1285,7 @@ return projectList
 
 
         if (item.itemId == R.id.bluetooth_spinner) {
-            discover()
+            bluetoothFunctions.discover()
             toggleWidgets()
 
 
@@ -1352,34 +1299,6 @@ return projectList
 
     }
 
-    private fun discover() {
-
-        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.BLUETOOTH_SCAN
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            //return
-        }
-
-        //checkLocation()
-        if (bluetoothAdapter.isDiscovering) {
-            bluetoothAdapter.cancelDiscovery()
-            bluetoothAdapter.startDiscovery()
-        } else {
-            bluetoothAdapter.startDiscovery()
-
-        }
-
-    }
 
     private fun showmap() {
 
@@ -1399,7 +1318,7 @@ return projectList
             spinner.visibility = Spinner.VISIBLE
             buttonConnect.visibility = Button.VISIBLE
 
-            checkLocation()
+            bluetoothFunctions.checkLocation()
 
             scantBlueTooth()
 
@@ -1551,27 +1470,6 @@ return projectList
     fun plotMesh(cp: LongLat, pp: LongLat) {
         progressBar.isVisible = true
 
-        if (clearFragment) {
-            runOnUiThread {
-                val mapFragment =
-                    supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
-                mapFragment?.getMapAsync(callback)
-            }
-            for (item in polyLines) {
-                item!!.remove()
-            }
-            for (l in listofmarkedcircles) {
-                l.remove()
-            }
-            for (l in unmarkedCirclesList) {
-                l.remove()
-            }
-            if (listOfPlantingLines.isNotEmpty()) {
-                listOfPlantingLines.clear()
-            }
-
-        }
-
         asyncExecutor.execute {
 
             val c = Point(cp)
@@ -1596,7 +1494,6 @@ return projectList
             }
 
         }
-
         if (listOfMarkedPoints.isNotEmpty()) {
             for (latlang in listOfMarkedPoints) {
                 val c = map?.addCircle(
@@ -1611,6 +1508,9 @@ return projectList
         } else {
             Log.d("empty", "empty")
         }
+
+
+
 
 
         progressBar.isVisible = false
@@ -1629,8 +1529,6 @@ return projectList
             GeneralHelper.changeMapPosition(map, newAngel)
         }
 
-        handler2.removeMessages(0)
-
         it.isClickable = false
 
         if (listOfPlantingLines.isEmpty()) {
@@ -1640,25 +1538,16 @@ return projectList
             Toast.makeText(applicationContext, "Planting line selected...", Toast.LENGTH_LONG)
                 .show()
 
-        } else {
-            for (l in listOfPlantingLines) {
-                l.width = 3f
-                l.isVisible = true
-                // handler2.removeMessages(0)
-            }
+        }
+        else {
 
             val recentLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
             recentLine.color = Color.CYAN
             recentLine.isClickable = true
-            recentLine.width =
-                3f   //return to default width after pulse effect and stop the handler
-
             listOfPlantingLines.clear()
             listOfPlantingLines.add(it)
             it.color = Color.GREEN
-
-
-            Toast.makeText(applicationContext, "Switching Lines..", Toast.LENGTH_LONG)
+            Toast.makeText(applicationContext, "Switching Lines..", Toast.LENGTH_SHORT)
                 .show()
 
             //remove the planting radius circle if it exists
@@ -1666,11 +1555,7 @@ return projectList
                 templist[templist.lastIndex].remove()
                 templist.clear()
             }
-
-
-            switchedLines = true
-
-
+            pace()
         }
 
         //Give the process of drawing points on line a thread --- makes the process faster
@@ -1784,7 +1669,7 @@ return projectList
         )!!
 
         val displayProjectName: TextView = findViewById(R.id.display_project_name)
-        val ProjectID =  DbFunctions.projectID(Geogmesh_size!!,displayProjectName.text.toString())
+        val ProjectID = DbFunctions.getProjectID(Geogmesh_size!!, displayProjectName.text.toString())
         undoAlertWarning(ProjectID)
     }
 
@@ -1799,9 +1684,6 @@ return projectList
         if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
             return
         }
-
-        var proximityCircle: Circle? = null
-
 
         val roverPoint = fromRTKFeed
 
@@ -1859,23 +1741,7 @@ return projectList
             )!!
 
         }
-        if (switchedLines) {
-            val runnableCode = object : Runnable {
-                override fun run() {
-                    var w = lineOfInterest.width
-                    w += 0.5f
-                    if (w > 13.0) {
-                        w = 1.0f
-                    }
-                    lineOfInterest.width = w
-                    handler2.postDelayed(this, 50)
-                }
-            }
 
-            handler2.postDelayed(runnableCode, 50)
-            switchedLines = false
-
-        }
         if (tempClosestPoint.isNotEmpty()) {
             tempClosestPoint.clear()
         }
@@ -1903,8 +1769,6 @@ return projectList
 
     fun markPoint(pointOfInterestOnPolyline: LatLng) {
 
-        val mapper = jacksonObjectMapper()
-
         if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
             return
         }
@@ -1922,29 +1786,9 @@ return projectList
             }
 
             listofmarkedcircles.add(markedCirclePoint)
-            var circleCenter = markedCirclePoint.center
 
-            val pt = mutableListOf<sampleItem>()
-            pt.add(
-                sampleItem(
-                    circleCenter.latitude.toString(),
-                    circleCenter.longitude.toString()
-                )
-            )
-            pt
 
-            val jsonArray = mapper.writeValueAsString(pt)
-            Log.d("array", "$jsonArray")
-            val sharedPreferences: SharedPreferences = this.getSharedPreferences(
-                CreateProjectDialog.sharedPrefFile,
-                Context.MODE_PRIVATE
-            )!!
-
-            val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
-
-            val ProjectID = ProjectIDString!!.toInt()
-
-             DbFunctions.savePoints(pointOfInterestOnPolyline,ProjectID!!.toInt())
+            DbFunctions.savePoints(pointOfInterestOnPolyline, ProjectID.toInt())
 
 
             if (listOfMarkedPoints.add(markedCirclePoint.center)) {
@@ -1958,14 +1802,13 @@ return projectList
                     this, "Point Marked", Toast.LENGTH_SHORT
                 ).show()
 
-                var set = lineInS2Format
                 val point = S2LatLng.fromDegrees(
                     pointOfInterestOnPolyline.latitude,
                     pointOfInterestOnPolyline.longitude
                 )
                 val pointData = PointData(point.toPoint(), point)
                 lineInS2Format.remove(pointData)
-                var s = lineInS2Format
+
             }
             if (templist.isNotEmpty()) {
                 templist.clear()
@@ -1988,35 +1831,38 @@ return projectList
         var magneticValues = FloatArray(3)
 
         override fun onSensorChanged(event: SensorEvent) {
+            handler.post{
+                if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
+                    // Pay attention to call the clone() method when assigning
+                    accelerometerValues = event.values.clone()
 
-            if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
-                // Pay attention to call the clone() method when assigning
-                accelerometerValues = event.values.clone()
+                } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
+                    magneticValues = event.values.clone()
+                }
 
-            } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
-                magneticValues = event.values.clone()
+                //I don't remember why i was doing this :( Always comment your code!!!!
+
+                current_measured_bearing = (magneticValues.get(0) * 180 / Math.PI).toFloat()
+                if (current_measured_bearing < 0) current_measured_bearing += 360f
+
+                val R = FloatArray(9)
+
+                val values = FloatArray(3)
+                SensorManager.getRotationMatrix(R, null, accelerometerValues, magneticValues)
+                SensorManager.getOrientation(R, values)
+                bearing = -Math.toDegrees(values[0].toDouble())
+                val rotateDegree = (-Math.toDegrees(values[0].toDouble())).toFloat()
+                diff = rotateDegree - lastRotateDegree
+                val bearingAngle = Math.abs(diff!!)
+
+                if (bearingAngle > 1) {
+
+                    lastRotateDegree = rotateDegree
+
+                }
             }
 
-            //I don't remember why i was doing this :( Always comment your code!!!!
 
-            current_measured_bearing = (magneticValues.get(0) * 180 / Math.PI).toFloat()
-            if (current_measured_bearing < 0) current_measured_bearing += 360f
-
-            val R = FloatArray(9)
-
-            val values = FloatArray(3)
-            SensorManager.getRotationMatrix(R, null, accelerometerValues, magneticValues)
-            SensorManager.getOrientation(R, values)
-            bearing = -Math.toDegrees(values[0].toDouble())
-            val rotateDegree = (-Math.toDegrees(values[0].toDouble())).toFloat()
-            diff = rotateDegree - lastRotateDegree
-            val bearingAngle = Math.abs(diff!!)
-
-            if (bearingAngle > 1) {
-
-                lastRotateDegree = rotateDegree
-
-            }
 
             //******** The shake event for marking points starts here *******//
 
@@ -2099,6 +1945,7 @@ return projectList
                                 .radius(0.5)
                                 .strokeWidth(1.0f)
                         )
+                        deleteSavedPoints(pt)
                         Toast.makeText(
                             applicationContext,
                             "POINT UNMARKED",
@@ -2115,21 +1962,18 @@ return projectList
     }
 
     private fun pace() {
-
-        when {
-            listOfMarkedPoints.size % 5 == 0 -> {
-                val sdf = SimpleDateFormat(" HH:mm:ss ")
-                val time: String = sdf.format(Date())
-                val currentTime = convertToMinutes(time)
-                val startTime = convertToMinutes(initialTimeValue)
-                val diff = currentTime - startTime
-                val pace = listOfMarkedPoints.size / diff
-                val paceValue = pace.roundToInt()
-                val tx = findViewById<TextView>(R.id.paceValue)
-                tx.text = paceValue.toString()
-
-                //Toast.makeText(this,"$paceValue",Toast.LENGTH_SHORT).show()
-            }
+        try{
+            val sdf = SimpleDateFormat(" HH:mm:ss ")
+            val time: String = sdf.format(Date())      //time on switching lines
+            val currentTime = convertToMinutes(time)
+            val startTime = convertToMinutes(initialTimeValue)   //time captured right after planting started
+            val diff = currentTime - startTime
+            val pace = listOfMarkedPoints.size / diff
+            val paceValue = pace.roundToInt()
+            val tx = findViewById<TextView>(R.id.paceValue)
+            tx.text = paceValue.toString()
+        } catch(e:UninitializedPropertyAccessException){
+            Toast.makeText(this,"No points marked on that line",Toast.LENGTH_SHORT).show()
         }
 
 
@@ -2174,24 +2018,21 @@ return projectList
             Context.MODE_PRIVATE
         )!!
 
-        val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
 
-        val ProjectID = ProjectIDString!!.toInt()
+        val displayProjectName: TextView = findViewById(R.id.display_project_name)
 
-        if (ProjectID == 0) {
-            Toast.makeText(
-                applicationContext,
-                "You did not create a project!! \n create one and continue",
-                Toast.LENGTH_LONG
-            ).show()
-            return
-        }
+DbFunctions.ProjectID
 
-        val basePoints = Basepoints(null, lat, lng, ProjectID)
+//             ProjectID = DbFunctions.getProjectID(Geoggapsize!!, displayProjectName.text.toString())
+           var editor = sharedPreferences.edit()
+            editor.putString("productID_key","$ProjectID")
+
+
+        val basePoints = Basepoints(null, lat, lng, ProjectID.toInt())
 
         GlobalScope.launch(Dispatchers.IO) {
             val d = appdb.kibiraDao().insertBasepoints(basePoints)
-            Log.d("data", "${d}")
+
             val s = 8
         }
 
@@ -2415,12 +2256,18 @@ return projectList
     }
 
     //
-    fun freshFragment(v: Boolean) {
-        if (v) {
-            val mapFragment =
-                supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
-            mapFragment?.getMapAsync(callback)
-        }
+    fun freshFragment() {
+
+        meshDone = false
+        plantingMode = false
+        plantingRadius?.remove()
+
+if(listOfMarkedPoints.isNotEmpty()){
+    listOfMarkedPoints.clear()
+}
+        card.isVisible = false
+        directionCardLayout.isVisible = false
+
         for (item in polyLines) {
             item!!.remove()
         }

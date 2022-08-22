@@ -375,7 +375,7 @@
                             android:text="Pair"
 
                             android:textAllCaps="false"
-                            android:visibility="visible"
+                            android:visibility="invisible"
 
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintStart_toStartOf="parent" />
@@ -387,6 +387,7 @@
                             android:layout_marginEnd="46dp"
                             android:layout_marginBottom="15dp"
                             android:layout_weight="1"
+                            android:visibility="invisible"
                             android:backgroundTint="@color/greenish"
                             android:gravity="center_horizontal"
                             app:layout_constraintBottom_toBottomOf="parent"

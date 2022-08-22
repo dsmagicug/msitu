@@ -1,9 +1,14 @@
 package com.dsmagic.kibira.data.LocationDependant
 
-class LocationDependantFunctions {
+import android.os.Handler
+import android.os.Looper
 
+class LocationDependantFunctions {
+    val looper = Looper.getMainLooper()
+    val handler = Handler(looper)
 
     fun facingDirection(InitialBearing: Float, bearing: Float): String {
+
         var d = ""
         var rangeRight = 10 + InitialBearing
         var rangeLeft = InitialBearing - 10

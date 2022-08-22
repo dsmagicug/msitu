@@ -51,8 +51,8 @@
         <item>Miles</item>
     </string-array>
     <string-array name="gapsizeUnits">
-        <item>ft</item>
-        <item>meters</item>
+        <item>Ft</item>
+        <item>Meters</item>
         <item>Inches</item>
 
     </string-array>

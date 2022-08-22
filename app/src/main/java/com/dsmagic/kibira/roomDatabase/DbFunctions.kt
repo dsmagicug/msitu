@@ -6,6 +6,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.dsmagic.kibira.*
+import com.dsmagic.kibira.CreateProjectDialog.appdbInstance
 import com.dsmagic.kibira.MainActivity.Companion.appdb
 
 import com.dsmagic.kibira.MainActivity.Companion.lineInS2Format
@@ -32,8 +33,9 @@ import retrofit2.Response
 class DbFunctions {
     companion object {
 
-
+        var ProjectID: Long = 0
         fun savePoints(point: LatLng, PID: Int) {
+            Log.d("LOSE","${lineInS2Format}")
 
             val lat = point.latitude
             val lng = point.longitude
@@ -42,23 +44,23 @@ class DbFunctions {
 
             GlobalScope.launch(Dispatchers.IO) {
                 val d = appdb.kibiraDao().insertCoordinates(points)
-                Log.d("data", "${d}")
                 val s = 8
                 val S2point = S2LatLng.fromDegrees(lat, lng)
                 val pointData = PointData(S2point.toPoint(), S2point)
                 lineInS2Format.remove(pointData)
+                Log.d("LOSE","${lineInS2Format}")
             }
 
 
         }
 
-        var ProjectID: Long = 0
+
         fun saveProject(name: String, GAPSIZE: Double, LineLength: Double, UID: Int): Long {
 
             val project = Project(null, name, GAPSIZE, LineLength, UID)
 
             GlobalScope.launch(Dispatchers.IO) {
-                ProjectID = appdb.kibiraDao().insertProject(project)
+                ProjectID = appdbInstance.kibiraDao().insertProject(project)
                 Log.d("PID", "$ProjectID")
                 ProjectID
             }
@@ -102,10 +104,8 @@ class DbFunctions {
 //        }
 
         var id: Int = 0
-        fun projectID(gp: Double, name: String): Int {
-            var gp = gp
-            var name = name
-            var d = 10
+        fun getProjectID(gp: Double, name: String): Int {
+
             GlobalScope.launch(Dispatchers.IO) {
                id = appdb.kibiraDao().getProjectID(gp, name)
 
@@ -116,6 +116,25 @@ class DbFunctions {
         fun deleteBasePoints(ID: Int) {
             GlobalScope.launch(Dispatchers.IO) {
                 appdb.kibiraDao().deleteBasePoints(ID)
+
+            }
+
+        }
+
+        fun deleteSavedPoints(Point: LatLng) {
+            GlobalScope.launch(Dispatchers.IO) {
+                val lat = Point.latitude
+                val lng = Point.longitude
+                appdb.kibiraDao().deleteSavedPoints(lat,lng)
+
+            }
+
+        }
+
+        fun deleteProject(ProjectID: Int) {
+            GlobalScope.launch(Dispatchers.IO) {
+
+                appdb.kibiraDao().deleteProject(ProjectID)
 
             }
 

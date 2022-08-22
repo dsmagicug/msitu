@@ -149,7 +149,7 @@
                         android:inputType="textPassword"
                         android:id="@+id/password"
 
-                        android:textAlignment="center"
+                        android:textAlignment="textStart"
 
                         android:fontFamily="@font/sans"
                         android:textSize="16sp"
@@ -251,6 +251,7 @@
                         android:inputType="textEmailAddress"
                         android:id="@+id/register_name"
                         android:fontFamily="@font/sans"
+                        android:textColor="@color/black"
                         android:textSize="16sp"
                         android:textStyle="bold|normal"
 
@@ -303,8 +304,8 @@
                         android:layout_height="wrap_content"
                         android:inputType="textPassword"
                         android:id="@+id/register_password"
-                        android:textAlignment="center"
-
+                        android:textAlignment="textStart"
+android:textColor="@color/black"
                         android:fontFamily="@font/sans"
                         android:textSize="16sp"
                         android:textStyle="bold|normal"
@@ -329,8 +330,8 @@
                         android:layout_height="wrap_content"
                         android:inputType="textPassword"
                         android:id="@+id/register_confirm_password"
-                        android:textAlignment="center"
-
+                        android:textAlignment="textStart"
+                        android:textColor="@color/black"
                         android:fontFamily="@font/sans"
                         android:textSize="16sp"
                         android:textStyle="bold|normal"

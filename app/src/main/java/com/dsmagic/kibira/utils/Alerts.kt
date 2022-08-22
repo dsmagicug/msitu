@@ -7,6 +7,7 @@ import com.dsmagic.kibira.MainActivity.Companion.context
 import com.dsmagic.kibira.R
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.deleteBasePoints
+import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.deleteProject
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.deleteProjectFunc
 
 class Alerts {
@@ -21,7 +22,7 @@ class Alerts {
 
                     DialogInterface.OnClickListener { dialog, id ->
 
-                        deleteProjectFunc(I)
+                        deleteProject(I)
 
                     })
                 .setNegativeButton("Cancel",

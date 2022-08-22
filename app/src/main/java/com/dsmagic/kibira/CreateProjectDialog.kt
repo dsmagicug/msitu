@@ -7,28 +7,23 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
-import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
-import com.dsmagic.kibira.MainActivity.Companion.card
-import com.dsmagic.kibira.MainActivity.Companion.directionCardLayout
-import com.dsmagic.kibira.MainActivity.Companion.meshDone
 import com.dsmagic.kibira.MainActivity.Companion.onLoad
-import com.dsmagic.kibira.MainActivity.Companion.plantingRadius
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
+import com.dsmagic.kibira.roomDatabase.AppDatabase
+import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.saveProject
-import com.google.android.gms.maps.SupportMapFragment
+import com.dsmagic.kibira.services.BasePoints.projectID
 import java.math.RoundingMode
 import java.text.DecimalFormat
-import kotlin.math.roundToInt
 
 
 //Returning a layout as a dialog box
 object CreateProjectDialog : DialogFragment() {
-
+    lateinit var appdbInstance: AppDatabase
 
     val sharedPrefFile = "kibirasharedfile"
     var clean = false
@@ -36,34 +31,21 @@ object CreateProjectDialog : DialogFragment() {
     @SuppressLint("SetTextI18n")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
+
         return this.activity?.let {
+
+            appdbInstance = AppDatabase.dbInstance(activity?.applicationContext!!)
             val builder = AlertDialog.Builder(it)
-            // Get the layout inflate
+
             val inflater = requireActivity().layoutInflater
-            // Inflate and set the layout for the dialog
-            // Pass null as the parent view because its going in the dialog layout
-
-            val r = inflater.inflate(layout.activity_create_project, null)
-
-            //dropdown menu
-            val gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
-            val plotsize_units = resources.getStringArray(R.array.plotSizeUnits)
-
-            val plotsizeAdapter =
-                ArrayAdapter(requireContext(), layout.plotsize_layout, plotsize_units)
-            val gapsizeAdapter =
-                ArrayAdapter(requireContext(), layout.gapsizeunits, gapsize_units)
-
-            val viewGapSize = r.findViewById<AutoCompleteTextView>(R.id.gapsizeDropDown)
-            val viewPlotSize = r.findViewById<AutoCompleteTextView>(R.id.plotsizeDropDown)
-            viewGapSize.setAdapter(gapsizeAdapter)
-            viewPlotSize.setAdapter(plotsizeAdapter)
 
             val l: Array<String> = projectList.toTypedArray().reversedArray()
             val ar: Array<String>
 
-            if(onLoad){
-                if(l.isEmpty()){
+            if (onLoad) {
+                if (l.isEmpty()) {
+                    val r = inflater.inflate(layout.activity_create_project, null)
+
                     builder.setView(r)
                         // Add action buttons
 
@@ -84,46 +66,53 @@ object CreateProjectDialog : DialogFragment() {
                             })
 
                     builder.create()
-                }
-                if (l.size > 5 || l.size == 5) {
-                    ar = l.sliceArray(0..4)
                 } else {
-                    ar = l
+
+                    MainActivity().displayProjects()
                 }
-                MainActivity().displayProjects()
+
 
             }
 
-            if (tag == "create"  ) {
+            if (tag == "create") {
+                val r = inflater.inflate(layout.activity_create_project, null)
 
+                //dropdown menu
+                val gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
+                val plotsize_units = resources.getStringArray(R.array.plotSizeUnits)
+
+                val plotsizeAdapter = ArrayAdapter(requireContext(), layout.plotsize_layout, plotsize_units)
+                val gapsizeAdapter  =  ArrayAdapter(requireContext(), layout.gapsizeunits, gapsize_units)
+
+                val viewGapSize = r.findViewById<AutoCompleteTextView>(R.id.gapsizeDropDown)
+                val viewPlotSize = r.findViewById<AutoCompleteTextView>(R.id.plotsizeDropDown)
+
+                viewGapSize.setAdapter(gapsizeAdapter)
+                viewPlotSize.setAdapter(plotsizeAdapter)
+
+                viewGapSize.setOnItemClickListener { adapterView, _, i, _ ->
+                    val gapsizeUnit = adapterView!!.getItemAtPosition(i).toString()
+                    gapUnit = gapsizeUnit
+                }
+
+                viewPlotSize.setOnItemClickListener { adapterView, _, i, _ ->
+                    val plotsizeUnit = adapterView!!.getItemAtPosition(i).toString()
+                    plotUnit = plotsizeUnit
+                }
 
                 builder.setView(r)
                     // Add action buttons
 
                     .setNegativeButton(
-                        string.cancel,
-                        DialogInterface.OnClickListener { dialog, id ->
+                        string.cancel, DialogInterface.OnClickListener { _, _ -> })
 
-
-                        })
                     .setPositiveButton(
-                        string.create_new_project,
-                        DialogInterface.OnClickListener { dialog: DialogInterface?, id: Int ->
-
-                            oncreateclick()
-                            //dismiss()
-
-
-                        })
+                        string.create_new_project, DialogInterface.OnClickListener { _: DialogInterface?, _: Int -> oncreateclick() })
 
                 builder.create()
 
-            } else
-            {
-                val projects = activity?.findViewById<TextView>(R.id.projectOne)
+            } else {
 
-                builder.setView(inflater.inflate(layout.list_projects, null))
-//
                 builder.create()
 
             }
@@ -132,13 +121,8 @@ object CreateProjectDialog : DialogFragment() {
 
     }
 
-fun displayCreateDialog(){
-
-}
-
     var plotUnit = ""
     var gapUnit = ""
-
 
     fun oncreateclick() {
 
@@ -156,8 +140,9 @@ fun displayCreateDialog(){
 
         if (project_name == "" || gap_size_string == "") {
             alertfail("Please fill all fields")
-        } else {
-            //  progressbar?.isVisible = true
+        }
+        else
+        {
             val sharedPreferences: SharedPreferences =
                 activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
 
@@ -167,18 +152,17 @@ fun displayCreateDialog(){
             editor.putString("mesh_key", mesh_size)
             editor.apply()
             editor.commit()
-            // progressbar?.isVisible = true
+
             if (editor.commit()) {
-                val saved_project_name: String? =
-                    sharedPreferences.getString("name_key", "defaultValue")
+                val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
                 val gap_size: String? = sharedPreferences.getString("size_key", "0")
-                val saved_gap_size = gap_size!!
+                val savedGapSize = gap_size!!
                 val UID: String? = sharedPreferences.getString("userid_key", "0")
                 val userID = UID!!.toInt()
-                val mesh_size_string: String? =
+                val meshSizeString: String? =
                     sharedPreferences.getString("mesh_key", "0")
-                var MeshSize: Double = 0.0
-                var GapSize: Double = 0.0
+                var meshSize: Double = 0.0
+                var gapSize: Double = 0.0
 
                 val decimalFormat = DecimalFormat("##.##")
                 decimalFormat.roundingMode = RoundingMode.DOWN
@@ -188,101 +172,75 @@ fun displayCreateDialog(){
 
                 //if nothing is selected then ft is the default
                 if (plotUnit == "") {
-                    var r = mesh_size_string!!.toDouble()
-                    MeshSize = (r * 0.3048)
+                    val r = meshSizeString!!.toDouble()
+                    meshSize = (r * 0.3048)
                 }
                 if (gapUnit == "") {
-                    var r = saved_gap_size.toDouble()
-                    GapSize = (r * 0.3048)
+                    val r = savedGapSize.toDouble()
+                    gapSize = (r * 0.3048)
                 }
 
 
                 when (n) {
-                    "Metres" -> {
-                        MeshSize = mesh_size_string!!.toDouble()
+                    "Meters" -> {
+                        meshSize = meshSizeString!!.toDouble()
 
                     }
                     "Ft" -> {
-                        var r = mesh_size_string!!.toDouble()
-                        MeshSize = (r * 0.3048)
+                        val r = meshSizeString!!.toDouble()
+                        meshSize = (r * 0.3048)
                     }
                     "Miles" -> {
-                        var r = mesh_size_string!!.toDouble()
-                        MeshSize = (r * 1609.34)
+                        val r = meshSizeString!!.toDouble()
+                        meshSize = (r * 1609.34)
 
                     }
                     "Acres" -> {
-                        var r = mesh_size_string!!.toDouble()
-                        MeshSize = (r * 4046.86)
+                        val r = meshSizeString!!.toDouble()
+                        meshSize = (r * 4046.86)
                     }
                 }
                 when (gp) {
-                    "metres" -> {
-                        GapSize = saved_gap_size.toDouble()
+                    "Meters" -> {
+                        gapSize = savedGapSize.toDouble()
                     }
-                    "ft" -> {
-                        var r = saved_gap_size.toDouble()
-                        GapSize = (r * 0.3048)
+                    "Ft" -> {
+                        val r = savedGapSize.toDouble()
+                        gapSize = (r * 0.3048)
                     }
                     "Inches" -> {
-                        var r = saved_gap_size.toDouble()
-                        GapSize = (r * 0.0254)
+                        val r = savedGapSize.toDouble()
+                        gapSize = (r * 0.0254)
 
                     }
 
                 }
 
-
-                Geogmesh_size = MeshSize
-                Geoggapsize = GapSize
+                Geogmesh_size = meshSize
+                Geoggapsize = gapSize
 
                 displayProjectName?.text = saved_project_name
-                val pid = saveProject(
+                saveProject(
                     saved_project_name!!,
-                    GapSize,
-                    MeshSize,
+                    gapSize,
+                    meshSize,
                     userID
                 )
-                // var pid = DbFunctions.projectID( Geoggapsize!!.toDouble(),saved_project_name!!)
-                editor.putString("productID_key", pid.toString())
+                 ProjectID
+                editor.putString("productID_key", ProjectID.toString())
                 editor.apply()
                 editor.commit()
-                if(editor.commit()){
+                if (editor.commit()) {
                     var r = 50
                 }
+                MainActivity().freshFragment()
 
-                meshDone = false
-
-                for (item in MainActivity.polyLines) {
-                    item!!.remove()
-                }
-                MainActivity.mapFragment =
-                    (activity?.supportFragmentManager!!.findFragmentById(R.id.mapFragment) as SupportMapFragment?)!!
-                //mapFragment?.getMapAsync(callback)
-
-                for (l in MainActivity.listofmarkedcircles) {
-                    l.remove()
-                }
-                for (l in MainActivity.unmarkedCirclesList) {
-                    l.remove()
-                }
-                if (MainActivity.listOfPlantingLines.isNotEmpty()) {
-                    MainActivity.listOfPlantingLines.clear()
-                }
-                directionCardLayout.isVisible = false
-                card.isVisible = false
-
-                clean = true
-
-
-            } else {
-                Log.d("not", "Not saved")
             }
+
         }
 
     }
 
-    //val c = dialog?.context
     fun alertfail(S: String) {
         this.activity?.let {
             AlertDialog.Builder(it)
@@ -292,20 +250,8 @@ fun displayCreateDialog(){
                 .show()
         }
     }
+}
 
-    fun SuccessAlert(S: String) {
-
-
-        this.activity?.let {
-            AlertDialog.Builder(it)
-                .setTitle("Success")
-                .setIcon(R.drawable.tick)
-                .setMessage(S)
-                .show()
-        }
-
-
-    }
 
 //                val CreateProjectRetrofitObject = AppModule.retrofitInstance()
 //                val modal =
@@ -350,12 +296,12 @@ fun displayCreateDialog(){
 //                        alertfail(("Response failed, invalid data"))
 //                    }
 //                })
-    // progressbar?.isVisible = false
+// progressbar?.isVisible = false
 
 //                editor.putString("productID_key", ProjectID)
 ////                                    editor.apply()
 ////                                    editor.commit()
-}
+
 
 
 

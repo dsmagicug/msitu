@@ -40,14 +40,17 @@ interface KibiraDao {
     @Query("SELECT id FROM Project WHERE gapsize = :gapsize AND name = :name")
     suspend fun getProjectID(gapsize: Double, name: String): Int
 
+    @Query("DELETE FROM Project WHERE id = :ID ")
+    suspend fun deleteProject(ID:Int)
+
     /*Queries for the points */
     @Transaction
     @Query("SELECT * FROM Project  WHERE id = :projectID")
     suspend fun getCoordinatesForProject(projectID: Int): List<projectAndCoordinates>
 
     @Transaction
-    @Query("SELECT * FROM Project  WHERE id = :projectID")
-    suspend fun getBasepointsForProject(projectID: Int): List<projectWithBasepoints>
+    @Query("SELECT * FROM Basepoints  WHERE projectID = :projectID")
+    suspend fun getBasepointsForProject(projectID: Int): List<Basepoints>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCoordinates(coordinates: Coordinates): Long
@@ -57,5 +60,8 @@ interface KibiraDao {
 
     @Query("DELETE FROM Basepoints WHERE projectID = :PID")
     suspend fun deleteBasePoints(PID:Int)
+
+    @Query("DELETE FROM Coordinates WHERE lat = :lat AND lng = :lng")
+    suspend fun deleteSavedPoints(lat:Double,lng:Double)
 
 }
