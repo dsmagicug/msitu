@@ -34,8 +34,8 @@ class DbFunctions {
     companion object {
 
         var ProjectID: Long = 0
+
         fun savePoints(point: LatLng, PID: Int) {
-            Log.d("LOSE","${lineInS2Format}")
 
             val lat = point.latitude
             val lng = point.longitude
@@ -43,17 +43,10 @@ class DbFunctions {
             val points = Coordinates(null, lat, lng, PID)
 
             GlobalScope.launch(Dispatchers.IO) {
-                val d = appdb.kibiraDao().insertCoordinates(points)
-                val s = 8
-                val S2point = S2LatLng.fromDegrees(lat, lng)
-                val pointData = PointData(S2point.toPoint(), S2point)
-                lineInS2Format.remove(pointData)
-                Log.d("LOSE","${lineInS2Format}")
+                appdb.kibiraDao().insertCoordinates(points)
             }
 
-
         }
-
 
         fun saveProject(name: String, GAPSIZE: Double, LineLength: Double, UID: Int): Long {
 
@@ -80,7 +73,6 @@ class DbFunctions {
                         listOfMarkedPoints.add(point)
                     }
                 }
-
 
             }
             return listOfMarkedPoints

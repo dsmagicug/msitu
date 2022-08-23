@@ -9,14 +9,15 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
+import com.dsmagic.kibira.MainActivity.Companion.MeshType
 import com.dsmagic.kibira.MainActivity.Companion.onLoad
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
 import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.saveProject
-import com.dsmagic.kibira.services.BasePoints.projectID
 import java.math.RoundingMode
 import java.text.DecimalFormat
 
@@ -24,6 +25,9 @@ import java.text.DecimalFormat
 //Returning a layout as a dialog box
 object CreateProjectDialog : DialogFragment() {
     lateinit var appdbInstance: AppDatabase
+    lateinit var radiogroup: RadioGroup
+    lateinit var previewSquare: TextView
+    lateinit var previewTriangular: TextView
 
     val sharedPrefFile = "kibirasharedfile"
     var clean = false
@@ -31,39 +35,60 @@ object CreateProjectDialog : DialogFragment() {
     @SuppressLint("SetTextI18n")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
 
-
         return this.activity?.let {
 
             appdbInstance = AppDatabase.dbInstance(activity?.applicationContext!!)
+
             val builder = AlertDialog.Builder(it)
 
+
             val inflater = requireActivity().layoutInflater
+
 
             val l: Array<String> = projectList.toTypedArray().reversedArray()
             val ar: Array<String>
 
             if (onLoad) {
-                if (l.isEmpty()) {
+                if (l.isNotEmpty()) {
                     val r = inflater.inflate(layout.activity_create_project, null)
+                    radiogroup = r.findViewById<RadioGroup>(R.id.meshType)
+                    previewSquare = r.findViewById(R.id.previewSquare)
+                    previewTriangular = r.findViewById(R.id.previewTriangular)
+
+                    //dropdown menu
+                    val gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
+                    val plotsize_units = resources.getStringArray(R.array.plotSizeUnits)
+
+                    val plotsizeAdapter =
+                        ArrayAdapter(requireContext(), layout.plotsize_layout, plotsize_units)
+                    val gapsizeAdapter =
+                        ArrayAdapter(requireContext(), layout.gapsizeunits, gapsize_units)
+
+                    val viewGapSize = r.findViewById<AutoCompleteTextView>(R.id.gapsizeDropDown)
+                    val viewPlotSize = r.findViewById<AutoCompleteTextView>(R.id.plotsizeDropDown)
+
+                    viewGapSize.setAdapter(gapsizeAdapter)
+                    viewPlotSize.setAdapter(plotsizeAdapter)
+
+                    viewGapSize.setOnItemClickListener { adapterView, _, i, _ ->
+                        val gapsizeUnit = adapterView!!.getItemAtPosition(i).toString()
+                        gapUnit = gapsizeUnit
+                    }
+
+                    viewPlotSize.setOnItemClickListener { adapterView, _, i, _ ->
+                        val plotsizeUnit = adapterView!!.getItemAtPosition(i).toString()
+                        plotUnit = plotsizeUnit
+                    }
 
                     builder.setView(r)
                         // Add action buttons
 
                         .setNegativeButton(
-                            string.cancel,
-                            DialogInterface.OnClickListener { dialog, id ->
+                            string.cancel, DialogInterface.OnClickListener { _, _ -> })
 
-
-                            })
                         .setPositiveButton(
                             string.create_new_project,
-                            DialogInterface.OnClickListener { dialog: DialogInterface?, id: Int ->
-
-                                oncreateclick()
-                                //dismiss()
-
-
-                            })
+                            DialogInterface.OnClickListener { _: DialogInterface?, _: Int -> oncreateclick() })
 
                     builder.create()
                 } else {
@@ -76,13 +101,18 @@ object CreateProjectDialog : DialogFragment() {
 
             if (tag == "create") {
                 val r = inflater.inflate(layout.activity_create_project, null)
+                radiogroup = r.findViewById<RadioGroup>(R.id.meshType)
+                previewSquare = r.findViewById(R.id.previewSquare)
+                previewTriangular = r.findViewById(R.id.previewTriangular)
 
                 //dropdown menu
                 val gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
                 val plotsize_units = resources.getStringArray(R.array.plotSizeUnits)
 
-                val plotsizeAdapter = ArrayAdapter(requireContext(), layout.plotsize_layout, plotsize_units)
-                val gapsizeAdapter  =  ArrayAdapter(requireContext(), layout.gapsizeunits, gapsize_units)
+                val plotsizeAdapter =
+                    ArrayAdapter(requireContext(), layout.plotsize_layout, plotsize_units)
+                val gapsizeAdapter =
+                    ArrayAdapter(requireContext(), layout.gapsizeunits, gapsize_units)
 
                 val viewGapSize = r.findViewById<AutoCompleteTextView>(R.id.gapsizeDropDown)
                 val viewPlotSize = r.findViewById<AutoCompleteTextView>(R.id.plotsizeDropDown)
@@ -99,6 +129,17 @@ object CreateProjectDialog : DialogFragment() {
                     val plotsizeUnit = adapterView!!.getItemAtPosition(i).toString()
                     plotUnit = plotsizeUnit
                 }
+                var previewImageSquare: ImageView = r.findViewById(R.id.smesh)
+                var previewImageTriangle: ImageView = r.findViewById(R.id.tmesh)
+
+                previewSquare.setOnClickListener {
+                    previewImageSquare.isVisible = true
+                    previewSquare.text = "close"
+                }
+                previewTriangular.setOnClickListener {
+                    previewImageTriangle.isVisible = true
+                    previewTriangular.text = "close"
+                }
 
                 builder.setView(r)
                     // Add action buttons
@@ -107,7 +148,8 @@ object CreateProjectDialog : DialogFragment() {
                         string.cancel, DialogInterface.OnClickListener { _, _ -> })
 
                     .setPositiveButton(
-                        string.create_new_project, DialogInterface.OnClickListener { _: DialogInterface?, _: Int -> oncreateclick() })
+                        string.create_new_project,
+                        DialogInterface.OnClickListener { _: DialogInterface?, _: Int -> oncreateclick() })
 
                 builder.create()
 
@@ -121,17 +163,22 @@ object CreateProjectDialog : DialogFragment() {
 
     }
 
+
     var plotUnit = ""
     var gapUnit = ""
 
     fun oncreateclick() {
 
+
+        var meshID = radiogroup.checkedRadioButtonId
+        var selectedType = dialog?.findViewById<RadioButton>(meshID)?.text.toString()
         val projectname = dialog?.findViewById<EditText>(R.id.ProjectName)
         val meshSize = dialog?.findViewById<EditText>(R.id.MeshSize)
         var progressbar = activity?.findViewById<ProgressBar>(R.id.progressBar)
 
         val gapsize = dialog?.findViewById<EditText>(R.id.gapSize)
         val displayProjectName = activity?.findViewById<TextView>(R.id.display_project_name)
+
 
         val gap_size_string = gapsize?.text.toString()
 
@@ -140,9 +187,7 @@ object CreateProjectDialog : DialogFragment() {
 
         if (project_name == "" || gap_size_string == "") {
             alertfail("Please fill all fields")
-        }
-        else
-        {
+        } else {
             val sharedPreferences: SharedPreferences =
                 activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
 
@@ -150,11 +195,13 @@ object CreateProjectDialog : DialogFragment() {
             editor.putString("size_key", gap_size_string)
             editor.putString("name_key", project_name)
             editor.putString("mesh_key", mesh_size)
+            editor.putString("mesh_Type",selectedType)
             editor.apply()
             editor.commit()
 
             if (editor.commit()) {
-                val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
+                val saved_project_name: String? =
+                    sharedPreferences.getString("name_key", "defaultValue")
                 val gap_size: String? = sharedPreferences.getString("size_key", "0")
                 val savedGapSize = gap_size!!
                 val UID: String? = sharedPreferences.getString("userid_key", "0")
@@ -218,6 +265,7 @@ object CreateProjectDialog : DialogFragment() {
 
                 Geogmesh_size = meshSize
                 Geoggapsize = gapSize
+                MeshType = selectedType
 
                 displayProjectName?.text = saved_project_name
                 saveProject(
@@ -226,7 +274,7 @@ object CreateProjectDialog : DialogFragment() {
                     meshSize,
                     userID
                 )
-                 ProjectID
+                ProjectID
                 editor.putString("productID_key", ProjectID.toString())
                 editor.apply()
                 editor.commit()

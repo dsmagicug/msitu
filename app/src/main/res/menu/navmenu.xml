@@ -1,39 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item
-        android:id="@+id/projectDetails"
-        android:title="About Project">
-        <menu>
+<!--    <item-->
+<!--        android:id="@+id/projectDetails"-->
+<!--        android:title="About Project"-->
+<!--        android:fontFamily="@font/rosemary"-->
+<!--        >-->
 
-            <item
-                android:id="@+id/measurements"
-                android:title="Measurements" />
-            <item
-                android:id="@+id/reset"
-                android:title="Reset" />
-        </menu>
-    </item>
+<!--        <menu>-->
 
-    <item
-        android:id="@+id/Display"
-        android:title="Display Settings">
-        <menu>
-            <item
-                android:id="@+id/mode"
-                android:title="Mode"
-                />
-            <item
-                android:id="@+id/meshType"
-                android:title="MeshType" />
+<!--            <item-->
+<!--                android:id="@+id/measurements"-->
+<!--                android:title="Measurements" />-->
+<!--            <item-->
+<!--                android:id="@+id/reset"-->
+<!--                android:title="Reset" />-->
+<!--        </menu>-->
+<!--    </item>-->
 
-        </menu>
+<!--    <item-->
+<!--        android:id="@+id/Display"-->
+<!--        android:title="Display Settings">-->
+<!--        <menu>-->
+<!--            <item-->
+<!--                android:id="@+id/mode"-->
+<!--                android:title="Mode"-->
+<!--                />-->
+<!--            <item-->
+<!--                android:id="@+id/meshType"-->
+<!--                android:title="MeshType" />-->
+
+<!--        </menu>-->
 
 
-    </item>
+<!--    </item>-->
 
 
     <item
         android:id="@+id/project_options"
+        android:fontFamily="@font/rosemary"
         android:icon="@drawable/ic_baseline_playlist_add_24"
         android:title="Projects"
 
@@ -43,6 +47,7 @@
 
             <item
                 android:id="@+id/action_create"
+                android:fontFamily="@font/rosemary"
                 android:icon="@drawable/ic_baseline_create_new_folder_24"
                 android:title="@string/create"
 
@@ -50,12 +55,15 @@
 
             <item
                 android:id="@+id/action_view_projects"
+                android:fontFamily="@font/rosemary"
                 android:icon="@drawable/ic_baseline_sync_24"
                 android:title="@string/view_projects" />
         </menu>
     </item>
     <item
         android:id="@+id/logOut"
-        android:title="Log Out" />
+        android:title="@string/log_out"
+        android:icon="@drawable/ic_baseline_power_settings_new_24"
+       />
 
 </menu>

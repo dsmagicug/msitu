@@ -2,6 +2,7 @@ package com.dsmagic.kibira.utils
 
 import android.content.DialogInterface
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
 import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.MainActivity.Companion.context
 import com.dsmagic.kibira.R
@@ -67,6 +68,23 @@ class Alerts {
 
                 .show()
 
+        }
+
+        fun warningAlert(S: String, I: Int) {
+            AlertDialog.Builder(context)
+                .setTitle("Warning")
+                .setIcon(R.drawable.caution)
+                .setMessage(S)
+                .setPositiveButton(
+                    "Delete",
+                    DialogInterface.OnClickListener { dialog, id ->
+                        deleteProject(I)
+                    })
+                .setNegativeButton("Continue",
+                    DialogInterface.OnClickListener { dialog, id ->
+
+                    })
+                .show()
         }
 
     }

@@ -4,7 +4,6 @@ package com.dsmagic.kibira
 //import com.dsmagic.kibira.roomDatabase.AppDatabase
 //import com.dsmagic.kibira.roomDatabase.BasePoint
 
-import android.Manifest
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
@@ -30,13 +29,11 @@ import android.view.Gravity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.view.animation.RotateAnimation
 import android.widget.*
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
@@ -46,7 +43,6 @@ import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.deleteSavedPoints
-
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.retrieveMarkedpoints
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Project
@@ -56,8 +52,8 @@ import com.dsmagic.kibira.ui.login.LoginActivity
 import com.dsmagic.kibira.utils.Alerts
 import com.dsmagic.kibira.utils.Alerts.Companion.alertfail
 import com.dsmagic.kibira.utils.Alerts.Companion.undoAlertWarning
+import com.dsmagic.kibira.utils.Alerts.Companion.warningAlert
 import com.dsmagic.kibira.utils.GeneralHelper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -100,53 +96,34 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     var firstPoint: LongLat? = null
     var secondPoint: LongLat? = null
     val handler = Handler(Looper.getMainLooper())
-    val handler2 = Handler(Looper.getMainLooper())
-
     var linesIndex = MutableS2ShapeIndex() // S2 index of lines...
     var Darkmode = false
     var pointsIndex = S2PointIndex<S2LatLng>()
-
-
     var asyncExecutor: ExecutorService = Executors.newCachedThreadPool()
-
-    var clearFragment = false
-
     var closestPointRadius = ArrayList<Any>()
     var tempPlantingRadius = 0.0f
-    var tempProximityRadius = 0.0f
-
 
     private lateinit var fromRTKFeed: LatLng
 
-    // Declaring sensorManager
-    // and acceleration constants
+    /*Declaring sensorManager and acceleration constants*/
     private var sensorManager: SensorManager? = null
     private var acceleration = 0f
     private var currentAcceleration = 0f
     private var lastAcceleration = 0f
-    private var switchedLines = false
+
     private var plantingMode = false
 
     // private var markers: Marker? = null
     private var fabFlag = true
     private var zoomMode = false
     private var ViewProjects = false
-
-
     var userID: String? = null
-
     var extras: Bundle? = null
     var projectList = ArrayList<String>()
-    var projectIDList = mutableListOf<Int>()
-    var projectSizeList = mutableListOf<Double>()
-    var projectMeshSizeList = mutableListOf<Double>()
-
     var DirectionToHead: Boolean = false
     lateinit var debugXloc: LatLng
-
     lateinit var toggle: ActionBarDrawerToggle
     lateinit var sharedPreferences: SharedPreferences
-
 
     //-------------compass----------//
     lateinit var fabCampus: FloatingActionButton
@@ -197,7 +174,13 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         lateinit var mapFragment: SupportMapFragment
         var plantingRadius: Circle? = null
         var onLoad = false
-      lateinit var thisActivity:Activity
+        lateinit var thisActivity: Activity
+        lateinit var displayedDistance: TextView
+        lateinit var displayedPoints: TextView
+        var MeshType = " "
+//        var projectIDList = mutableListOf<Int>()
+//        var projectSizeList = mutableListOf<Double>()
+//        var projectMeshSizeList = mutableListOf<Double>()
 
     }
 
@@ -229,6 +212,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         directionImage = findViewById(R.id.directionImageValue)
         directionText = findViewById(R.id.directionText)
         directionCardLayout = findViewById(R.id.directionsLayout)
+        displayedDistance = findViewById<TextView>(R.id.distance)
+        displayedPoints = findViewById<TextView>(R.id.numberOfPoints)
 
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
 
@@ -242,6 +227,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         val btnCloseDrawer = headerView.findViewById<View>(R.id.btnCloseDrawer) as ImageButton
         btnCloseDrawer.setOnClickListener {
             drawerlayout.closeDrawer(Gravity.LEFT)
+
         }
 
         fabCampus.setOnClickListener {
@@ -440,40 +426,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     }
 
 
-    fun blinkEffectForPoint(color: String, T: Circle) {
-        val n = color
-        val CirclePoint = T
-        var animationColor: Int = 0
-
-        lateinit var displayTextView: TextView
-        when (n) {
-            "Green" -> {
-                animationColor = Color.GREEN
-            }
-            "Yellow" -> {
-                animationColor = Color.YELLOW
-            }
-            "Red" -> {
-                animationColor = Color.RED
-
-            }
-            "Cyan" -> {
-                animationColor = Color.CYAN
-
-            }
-        }
-
-        animForPoint = ObjectAnimator.ofInt(
-            CirclePoint,
-            "fillColor", animationColor, Color.WHITE, animationColor, animationColor
-        )
-        animForPoint.duration = 1500
-        animForPoint.setEvaluator(ArgbEvaluator())
-        animForPoint.repeatMode = ValueAnimator.RESTART
-        animForPoint.repeatCount = 1
-        animForPoint.start()
-    }
-
     private fun CheckConnectivity(): Boolean {
         val connectivity =
             this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
@@ -486,11 +438,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     fun getPoints(id: Int) {
 
-        if (listOfMarkedPoints.isNotEmpty()) {
-            listOfMarkedPoints.clear()
-        }
-
-        retrieveMarkedpoints(id)
 
 //        val retrofitGetPointsObject = AppModule.retrofitInstance()
 //        val modal = RequestPoints(id, userID)
@@ -580,23 +527,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 //        return projectList
 //    }
 
-
-    fun warningAlert(S: String, I: Int) {
-        AlertDialog.Builder(this)
-            .setTitle("Warning")
-            .setIcon(R.drawable.caution)
-            .setMessage(S)
-            .setPositiveButton(
-                "Delete",
-                DialogInterface.OnClickListener { dialog, id ->
-                    deleteProjectFunc(I)
-                })
-            .setNegativeButton("Just leave it alone",
-                DialogInterface.OnClickListener { dialog, id ->
-                    progressBar.isVisible = false
-                })
-            .show()
-    }
 
     fun exitAlert(S: String) {
         AlertDialog.Builder(this)
@@ -697,9 +627,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                                             val index = larray.indexOf(j)
                                             val id = com.dsmagic.kibira.projectIDList[index]
                                             var gap_size = com.dsmagic.kibira.projectSizeList[index]
-                                            var mesh_size =
-                                                com.dsmagic.kibira.projectMeshSizeList[index]
-                                            retrieveMarkedpoints(id)
+                                            var mesh_size = com.dsmagic.kibira.projectMeshSizeList[index]
                                             loadProject(id, mesh_size, gap_size)
                                         }
 
@@ -726,7 +654,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                                 val id = com.dsmagic.kibira.projectIDList[index]
                                 var gap_size = com.dsmagic.kibira.projectSizeList[index]
                                 var mesh_size = com.dsmagic.kibira.projectMeshSizeList[index]
-                                retrieveMarkedpoints(id)
                                 loadProject(id, mesh_size, gap_size)
                             }
 
@@ -745,6 +672,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     fun getProjects(UID: Int): MutableList<String> {
 
         var ProjectList = mutableListOf<Project>()
+        projectList.clear()
+                projectIDList.clear()
+                projectMeshSizeList.clear()
+                projectSizeList.clear()
         GlobalScope.launch(Dispatchers.IO) {
             try {
                 val listOfProjects = appdb.kibiraDao().getAllProjects(UID)
@@ -758,7 +689,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 }
 
                 var l = com.dsmagic.kibira.projectList
-                withContext(Dispatchers.Main) {
+               runOnUiThread{
                     displayProjects()
                 }
 
@@ -777,7 +708,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         return projectList
     }
 
-    fun loadProject(ProjectID: Int, Meshsize: Double, Gapsize: Double) {
+    fun loadProject(PID: Int, Meshsize: Double, Gapsize: Double) {
         var displayProjectName: TextView? = findViewById(R.id.display_project_name)
 
         Toast.makeText(
@@ -787,23 +718,30 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         var ListOfBasePoints: MutableList<Basepoints>
         GlobalScope.launch(Dispatchers.IO) {
-             ListOfBasePoints = appdb.kibiraDao().getBasepointsForProject(ProjectID) as MutableList<Basepoints>
-            ListOfBasePoints.size
+            ListOfBasePoints =
+                appdb.kibiraDao().getBasepointsForProject(PID) as MutableList<Basepoints>
+
+            if (ListOfBasePoints.size == 0) {
+                runOnUiThread {
+                    warningAlert("Project Empty", PID)
+                }
+            } else
+            {
                 val l = ListOfBasePoints[0]
                 val y = ListOfBasePoints[1]
                 val firstPoint = LongLat(l.lng, l.lat)
                 val secondPoint = LongLat(y.lng, y.lat)
+                retrieveMarkedpoints(PID)
+                runOnUiThread {
 
-                withContext(Dispatchers.Main) {
                     displayProjectName!!.text = selectedProject
 
                     Geoggapsize = Gapsize
                     Geogmesh_size = Meshsize
                     freshFragment()
-                    plotMesh(firstPoint, secondPoint)
+                    plotMesh(firstPoint, secondPoint,PID)
 
-
-
+                }
 
             }
 
@@ -917,22 +855,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     }
 
-    fun showLine(L: Polyline) {
-        L.isVisible = true
-
-        for (c in unmarkedCirclesList) {
-            c.isVisible = true
-        }
-
-        for (p in listOfMarkedPoints) {
-            map?.addCircle(
-                CircleOptions().center(p).fillColor(Color.YELLOW).radius(0.5)
-                    .strokeWidth(1.0f)
-            )
-        }
-
-    }
-
     var polyline1: Polyline? = null
     var refPoint: LatLng? = null
     var distance = 0.0f
@@ -950,8 +872,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             }
             card.isVisible = true
             directionCardLayout.isVisible = true
-            var displayedDistance = findViewById<TextView>(R.id.distance)
-            var displayedPoints = findViewById<TextView>(R.id.numberOfPoints)
+
             displayedDistance.text = ""
             displayedPoints.text = " "
 
@@ -1033,7 +954,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
                 }
 
-
                 position = LocationDependantFunctions().facingDirection(
                     BearingPhoneIsFacing,
                     lastRotateDegree
@@ -1050,9 +970,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 displayedDistance.text = d
                 displayedPoints.text = size.toString()
                 totalPoints.text = l.size.toString()
-                blinkEffectOfMarkedPoints("Green", displayedPoints)
 
-                if (distance > (Geoggapsize!! * 0.02)) {
+                if (distance > (Geoggapsize!! * 0.2)) {
 
                     polyline1 = map?.addPolyline(
                         PolylineOptions()
@@ -1070,17 +989,12 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                         BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
                     )
 
-                    blink("Red", position)
-                    showLine(line)
+                    blink(position)
 
                 } else {
                     polyline1?.remove()
                     stopBlink()
                 }
-
-                // markers!!.showInfoWindow()
-
-                // tempListMarker.add(markers!!)
 
             } catch (e: Exception) {
                 Log.d("ERROR", "frOM SWITCHING ${e.message}")
@@ -1093,13 +1007,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     }
 
     lateinit var anim: ObjectAnimator
-    lateinit var animForDirectionText: ObjectAnimator
     lateinit var animForPoint: ObjectAnimator
-    lateinit var animation: RotateAnimation
 
-    fun blink(color: String, p: String) {
+    fun blink(p: String) {
         val textViewToBlink = p
-        var animationColor: Int = 0
 
         when (textViewToBlink) {
             "Left" -> {
@@ -1129,7 +1040,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     fun blinkEffectOfMarkedPoints(color: String, T: TextView) {
         val textViewToBlink = T
         var animationColor: Int = 0
-        lateinit var displayTextView: TextView
         when (color) {
             "Green" -> {
                 animationColor = R.color.teal_700
@@ -1151,7 +1061,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 textViewToBlink,
                 "backgroundColor", animationColor, Color.WHITE, animationColor, animationColor
             )
-            anim.duration = 1500
+            anim.duration = 2000
             anim.setEvaluator(ArgbEvaluator())
             anim.repeatMode = ValueAnimator.RESTART
             anim.repeatCount = 1
@@ -1265,12 +1175,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     // display the create dialog if no projects available.
     private fun createDialog(UserTag: String): Boolean {
-        var dialogTag = " "
-        if (UserTag == "onLoad") {
-            dialogTag = "onload"
-        } else {
-            dialogTag = "create"
-        }
+        var dialogTag = UserTag
         val createNewProject = CreateProjectDialog
         createNewProject.show(supportFragmentManager, dialogTag)
         return true
@@ -1460,23 +1365,42 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         saveBasepoints(firstPoint!!)
         saveBasepoints(secondPoint!!)
 
-        plotMesh(firstPoint!!, secondPoint!!)
+        plotMesh(firstPoint!!, secondPoint!!,0)
 
 
         l?.remove()
         // marker?.remove()
     }
 
-    fun plotMesh(cp: LongLat, pp: LongLat) {
+    fun plotMesh(cp: LongLat, pp: LongLat,id:Int) {
+        if(id != 0 ){
+            retrieveMarkedpoints(id)
+        }
         progressBar.isVisible = true
+
+        var y = listOfMarkedPoints
+        var t = 9
+        Log.d("points"," here $listOfMarkedPoints")
 
         asyncExecutor.execute {
 
             val c = Point(cp)
             val p = Point(pp)
 
-            val lines = Geometry.generateTriangleMesh(c, p)
-            Geometry.generateLongLat(c, lines, drawLine)
+          when(MeshType){
+              "Triangular Grid" -> {
+                  val lines = Geometry.generateTriangleMesh(c, p)
+                  Geometry.generateLongLat(c, lines, drawLine)
+              }
+              "Square Grid" -> {
+                  val lines = Geometry.generateMesh(c, p)
+                  Geometry.generateLongLat(c, lines, drawLine)
+              }
+              else -> {
+
+              }
+          }
+
 
             meshDone = true
 
@@ -1495,6 +1419,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         }
         if (listOfMarkedPoints.isNotEmpty()) {
+            Log.d("points"," HERE TOO $listOfMarkedPoints")
             for (latlang in listOfMarkedPoints) {
                 val c = map?.addCircle(
                     CircleOptions().center(latlang)
@@ -1538,8 +1463,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             Toast.makeText(applicationContext, "Planting line selected...", Toast.LENGTH_LONG)
                 .show()
 
-        }
-        else {
+        } else {
 
             val recentLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
             recentLine.color = Color.CYAN
@@ -1663,14 +1587,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     }
 
     private fun undoDrawingLines() {
-        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
-            CreateProjectDialog.sharedPrefFile,
-            Context.MODE_PRIVATE
-        )!!
 
-        val displayProjectName: TextView = findViewById(R.id.display_project_name)
-        val ProjectID = DbFunctions.getProjectID(Geogmesh_size!!, displayProjectName.text.toString())
-        undoAlertWarning(ProjectID)
+        undoAlertWarning(ProjectID.toInt())
     }
 
     var plantingRadiusCircle: Circle? = null
@@ -1748,7 +1666,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         if (plantingRadius != null) {
             closestPointRadius.add(plantingRadius!!.radius.toFloat())
-            handler2.removeMessages(0)
+
             if (templist.isNotEmpty()) {
                 for (c in templist) {
                     c.remove()
@@ -1802,6 +1720,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     this, "Point Marked", Toast.LENGTH_SHORT
                 ).show()
 
+                blinkEffectOfMarkedPoints("Green", displayedPoints)
+
                 val point = S2LatLng.fromDegrees(
                     pointOfInterestOnPolyline.latitude,
                     pointOfInterestOnPolyline.longitude
@@ -1831,7 +1751,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         var magneticValues = FloatArray(3)
 
         override fun onSensorChanged(event: SensorEvent) {
-            handler.post{
+            handler.post {
                 if (event.sensor.type == Sensor.TYPE_ACCELEROMETER) {
                     // Pay attention to call the clone() method when assigning
                     accelerometerValues = event.values.clone()
@@ -1861,7 +1781,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
                 }
             }
-
 
 
             //******** The shake event for marking points starts here *******//
@@ -1962,18 +1881,19 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     }
 
     private fun pace() {
-        try{
+        try {
             val sdf = SimpleDateFormat(" HH:mm:ss ")
             val time: String = sdf.format(Date())      //time on switching lines
             val currentTime = convertToMinutes(time)
-            val startTime = convertToMinutes(initialTimeValue)   //time captured right after planting started
+            val startTime =
+                convertToMinutes(initialTimeValue)   //time captured right after planting started
             val diff = currentTime - startTime
             val pace = listOfMarkedPoints.size / diff
             val paceValue = pace.roundToInt()
             val tx = findViewById<TextView>(R.id.paceValue)
             tx.text = paceValue.toString()
-        } catch(e:UninitializedPropertyAccessException){
-            Toast.makeText(this,"No points marked on that line",Toast.LENGTH_SHORT).show()
+        } catch (e: UninitializedPropertyAccessException) {
+            Toast.makeText(this, "No points marked on that line", Toast.LENGTH_SHORT).show()
         }
 
 
@@ -2021,11 +1941,11 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
         val displayProjectName: TextView = findViewById(R.id.display_project_name)
 
-DbFunctions.ProjectID
+        DbFunctions.ProjectID
 
 //             ProjectID = DbFunctions.getProjectID(Geoggapsize!!, displayProjectName.text.toString())
-           var editor = sharedPreferences.edit()
-            editor.putString("productID_key","$ProjectID")
+        var editor = sharedPreferences.edit()
+        editor.putString("productID_key", "$ProjectID")
 
 
         val basePoints = Basepoints(null, lat, lng, ProjectID.toInt())
@@ -2195,47 +2115,47 @@ DbFunctions.ProjectID
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
 
         when (item.itemId) {
-            R.id.measurements -> Toast.makeText(
-                applicationContext,
-                "TO DO",
-                Toast.LENGTH_SHORT
-            ).show()
-            R.id.reset -> {
-                map?.mapType = GoogleMap.MAP_TYPE_NORMAL
-                for (line in polyLines) {
-                    line!!.remove()
-                }
-                for (l in listofmarkedcircles) {
-                    l.remove()
-                }
-                for (l in unmarkedCirclesList) {
-                    l.remove()
-                }
-                if (listOfPlantingLines.isNotEmpty()) {
-                    listOfPlantingLines.clear()
-                }
-            }
-            R.id.mode -> {
-                if (Darkmode) {
-                    map?.mapType = GoogleMap.MAP_TYPE_NORMAL
-                } else {
-                    if (!Darkmode) {
-                        val mapType = map?.mapType
-                        if (mapType != GoogleMap.MAP_TYPE_NORMAL) {
-                            map?.mapType = GoogleMap.MAP_TYPE_NORMAL
-                        }
-                        map?.setMapStyle(
-                            MapStyleOptions.loadRawResourceStyle(this, R.raw.style_json)
-                        )
-                        Darkmode = true
-                    } else {
-                        map?.mapType = GoogleMap.MAP_TYPE_NORMAL
-                    }
-
-
-                }
-                return true
-            }
+//            R.id.measurements -> Toast.makeText(
+//                applicationContext,
+//                "TO DO",
+//                Toast.LENGTH_SHORT
+//            ).show()
+//            R.id.reset -> {
+//                map?.mapType = GoogleMap.MAP_TYPE_NORMAL
+//                for (line in polyLines) {
+//                    line!!.remove()
+//                }
+//                for (l in listofmarkedcircles) {
+//                    l.remove()
+//                }
+//                for (l in unmarkedCirclesList) {
+//                    l.remove()
+//                }
+//                if (listOfPlantingLines.isNotEmpty()) {
+//                    listOfPlantingLines.clear()
+//                }
+//            }
+//            R.id.mode -> {
+//                if (Darkmode) {
+//                    map?.mapType = GoogleMap.MAP_TYPE_NORMAL
+//                } else {
+//                    if (!Darkmode) {
+//                        val mapType = map?.mapType
+//                        if (mapType != GoogleMap.MAP_TYPE_NORMAL) {
+//                            map?.mapType = GoogleMap.MAP_TYPE_NORMAL
+//                        }
+//                        map?.setMapStyle(
+//                            MapStyleOptions.loadRawResourceStyle(this, R.raw.style_json)
+//                        )
+//                        Darkmode = true
+//                    } else {
+//                        map?.mapType = GoogleMap.MAP_TYPE_NORMAL
+//                    }
+//
+//
+//                }
+//                return true
+//            }
             R.id.logOut -> {
                 finish()
                 return true
@@ -2262,9 +2182,9 @@ DbFunctions.ProjectID
         plantingMode = false
         plantingRadius?.remove()
 
-if(listOfMarkedPoints.isNotEmpty()){
-    listOfMarkedPoints.clear()
-}
+        if (listOfMarkedPoints.isNotEmpty()) {
+            listOfMarkedPoints.clear()
+        }
         card.isVisible = false
         directionCardLayout.isVisible = false
 

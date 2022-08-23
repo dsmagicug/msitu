@@ -213,6 +213,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
 
     private fun initRMC(l: List<String>) {
         // See https://orolia.com/manuals/VSP/Content/NC_and_SS/Com/Topics/APPENDIX/NMEA_RMCmess.htm
+
         val dd = l[9] + "-" + l[1] + "+0000"
         timeStamp = dateFormatLong.parse(dd)
 

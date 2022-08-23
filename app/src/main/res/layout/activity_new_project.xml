@@ -7,20 +7,20 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-<!--    <androidx.cardview.widget.CardView-->
-<!--        android:id="@+id/createProjectLayout"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="446dp"-->
-<!--        android:layout_gravity="center"-->
-<!--        android:layout_marginStart="9dp"-->
-<!--        android:layout_marginTop="55dp"-->
-<!--        android:layout_marginEnd="9dp"-->
-<!--        app:cardBackgroundColor="@color/white"-->
-<!--        app:cardCornerRadius="20dp"-->
-<!--        app:cardElevation="10dp"-->
-<!--        app:cardMaxElevation="20dp"-->
-<!--        app:cardPreventCornerOverlap="true"-->
-<!--        app:cardUseCompatPadding="true">-->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/createProjectLayout"
+        android:layout_width="match_parent"
+        android:layout_height="446dp"
+        android:layout_gravity="center"
+        android:layout_marginStart="9dp"
+        android:layout_marginTop="55dp"
+        android:layout_marginEnd="9dp"
+        app:cardBackgroundColor="@color/white"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="10dp"
+        app:cardMaxElevation="20dp"
+        app:cardPreventCornerOverlap="true"
+        app:cardUseCompatPadding="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -75,7 +75,7 @@
                     android:fontFamily="@font/rosemary"
                     android:inputType="text"
                     android:textSize="16sp"
-                    android:textStyle="normal"
+                    android:textStyle="bold|normal"
 
                     />
             </com.google.android.material.textfield.TextInputLayout>
@@ -93,8 +93,7 @@
                     android:layout_height="match_parent"
                     android:layout_marginStart="10dp"
                     android:layout_marginTop="5dp"
-                    app:shapeAppearanceOverlay="@style/button1"
-                    app:boxStrokeColor="@color/quantum_googgreen">
+                    app:shapeAppearanceOverlay="@style/button1">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/MeshSize"
@@ -103,8 +102,7 @@
                         android:fontFamily="@font/rosemary"
                         android:hint="Line length"
                         android:textSize="16sp"
-                        android:textStyle="normal"
-                        />
+                        android:textStyle="bold|normal" />
 
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -113,7 +111,7 @@
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    app:boxStrokeColor="@color/quantum_googgreen"
+
                     android:layout_marginEnd="5dp">
 
                     <AutoCompleteTextView
@@ -145,8 +143,7 @@
                     android:layout_height="match_parent"
                     android:layout_marginStart="10dp"
                     android:layout_marginTop="5dp"
-                    app:shapeAppearanceOverlay="@style/button1"
-                    app:boxStrokeColor="@color/quantum_googgreen">
+                    app:shapeAppearanceOverlay="@style/button1">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/gapSize"
@@ -155,7 +152,7 @@
                         android:fontFamily="@font/rosemary"
                         android:hint="Gap Size (m)"
                         android:textSize="16sp"
-                        android:textStyle="normal" />
+                        android:textStyle="bold|normal" />
 
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -164,7 +161,6 @@
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense.ExposedDropdownMenu"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    app:boxStrokeColor="@color/quantum_googgreen"
                     android:layout_marginLeft="10dp">
 
                     <AutoCompleteTextView
@@ -188,13 +184,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="11dp">
-<!--                <LinearLayout-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="match_parent"-->
-<!--                    android:orientation="horizontal">-->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
 
-                    <RadioButton
-                        android:id="@+id/triangular"
+                    <com.google.android.material.radiobutton.MaterialRadioButton
                         android:layout_width="202dp"
                         android:layout_height="wrap_content"
                         android:width="50dp"
@@ -202,67 +197,51 @@
                         android:text="@string/triangular_mesh"
                         android:textSize="16sp">
 
-                    </RadioButton>
+                    </com.google.android.material.radiobutton.MaterialRadioButton>
 
-                <!--                </LinearLayout>-->
-<!--                <LinearLayout-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="match_parent"-->
-<!--                    android:orientation="horizontal">-->
+                    <TextView
+                        android:id="@+id/previewTriangular"
+                        android:layout_width="137dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="15dp"
+                        android:fontFamily="@font/rosemary"
+                        android:text="@string/preview"
+                        android:textAlignment="textStart"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/previewTriangular"
-                    android:layout_width="137dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="35dp"
-                    android:fontFamily="@font/rosemary"
-                    android:text="@string/preview"
-                    android:textAlignment="textStart"
-                    android:textSize="15sp"
-                    android:textStyle="bold" />
-                <ImageView
-                    android:id = "@+id/tmesh"
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content"
-                    android:src = "@drawable/tmesh"
-                    android:layout_marginStart="35dp"
-                    android:visibility="gone"/>
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal">
 
-                <RadioButton
-                        android:id ="@+id/square"
+                    <com.google.android.material.radiobutton.MaterialRadioButton
                         android:layout_width="202dp"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/rosemary"
                         android:text="@string/square_mesh"
                         android:textSize="16sp">
 
-                    </RadioButton>
+                    </com.google.android.material.radiobutton.MaterialRadioButton>
 
                     <TextView
                         android:id="@+id/previewSquare"
                         android:layout_width="137dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="35dp"
+                        android:layout_marginStart="15dp"
                         android:width="40dp"
                         android:fontFamily="@font/rosemary"
                         android:text="@string/preview"
                         android:textAlignment="textStart"
                         android:textSize="15sp"
                         android:textStyle="bold" />
-                <ImageView
-                    android:id = "@+id/smesh"
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content"
-                    android:src = "@drawable/mmesh"
-                    android:layout_marginStart="35dp"
-                    android:visibility="gone"/>
-<!--                </LinearLayout>-->
+                </LinearLayout>
 
             </RadioGroup>
 
-
         </LinearLayout>
-<!--    </androidx.cardview.widget.CardView>-->
+    </androidx.cardview.widget.CardView>
 
 
 </LinearLayout>

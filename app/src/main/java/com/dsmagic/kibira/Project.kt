@@ -1,7 +1,47 @@
+import android.animation.ArgbEvaluator
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
+import android.graphics.Color
+import android.widget.TextView
+import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.LatLng
 import java.util.ArrayList
 
 
+
+//fun blinkEffectForPoint(color: String, T: Circle) {
+//    val n = color
+//    val CirclePoint = T
+//    var animationColor: Int = 0
+//
+//    lateinit var displayTextView: TextView
+//    when (n) {
+//        "Green" -> {
+//            animationColor = Color.GREEN
+//        }
+//        "Yellow" -> {
+//            animationColor = Color.YELLOW
+//        }
+//        "Red" -> {
+//            animationColor = Color.RED
+//
+//        }
+//        "Cyan" -> {
+//            animationColor = Color.CYAN
+//
+//        }
+//    }
+//
+//    animForPoint = ObjectAnimator.ofInt(
+//        CirclePoint,
+//        "fillColor", animationColor, Color.WHITE, animationColor, animationColor
+//    )
+//    animForPoint.duration = 1500
+//    animForPoint.setEvaluator(ArgbEvaluator())
+//    animForPoint.repeatMode = ValueAnimator.RESTART
+//    animForPoint.repeatCount = 1
+//    animForPoint.start()
+//}
 
 //pulsing effect when line is switched
 //if (switchedLines) {

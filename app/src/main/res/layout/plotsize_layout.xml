@@ -7,6 +7,6 @@
     android:layout_height="wrap_content"
     android:padding="15dp"
     android:text="TextView"
-    android:fontFamily="@font/sans"
+    android:fontFamily="@font/rosemary"
     android:textStyle="normal|bold"
     />

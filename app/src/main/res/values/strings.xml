@@ -6,11 +6,11 @@
     <string name="view_projects">View Projects</string>
     <string name="description">Create Project</string>
     <string name="project_name">Project Name</string>
-    <string name="gap_size">Gap Size(m)</string>
-    <string name="list_projects">Choose Project</string>
-    <string name="create_new_project">Create Project</string>
-    <string name="cancel">cancel</string>
-    <string name="pair">Pair</string>
+    <string name="gap_size"><font face ="@font/rosemary">Gap Size(m)</font></string>
+    <string name="list_projects"><font face ="@font/rosemary">Choose Project</font></string>
+    <string name="create_new_project"><font face ="@font/rosemary">Create Project</font></string>
+    <string name="cancel"><font face ="@font/rosemary">Cancel</font></string>
+    <string name="pair"><font face ="@font/rosemary">Pair</font></string>
 
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
@@ -45,21 +45,24 @@
     <string name="units">Units</string>
     <string name="metres">Metres</string>
     <string-array name="plotSizeUnits">
-        <item>Ft</item>
-        <item>Meters</item>
-        <item>Acres</item>
-        <item>Miles</item>
+        <item> <font face = "@font/rosemary">Ft</font></item>
+        <item> <font face = "@font/rosemary">Meters</font></item>
+        <item> <font face = "@font/rosemary">Acres</font></item>
+        <item> <font face = "@font/rosemary">Miles</font></item>
     </string-array>
     <string-array name="gapsizeUnits">
-        <item>Ft</item>
-        <item>Meters</item>
-        <item>Inches</item>
-
+       <item> <font face = "@font/rosemary">Ft</font></item>
+        <item> <font face = "@font/rosemary">Meters</font></item>
+        <item> <font face = "@font/rosemary">Inches</font></item>
     </string-array>
 
     <string name="close">Close</string>
     <string name="open">Open</string>
     <string name="scanning_for_devices">Scanning for devices...</string>
+    <string name="log_out"><font face = "@font/rosemary">Log Out</font></string>
+    <string name="square_mesh">Square Grid</string>
+    <string name="triangular_mesh">Triangular Grid</string>
+    <string name="preview">Preview</string>
 
 
 </resources>
