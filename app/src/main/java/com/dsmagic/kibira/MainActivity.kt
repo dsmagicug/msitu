@@ -628,7 +628,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                                             val id = com.dsmagic.kibira.projectIDList[index]
                                             var gap_size = com.dsmagic.kibira.projectSizeList[index]
                                             var mesh_size = com.dsmagic.kibira.projectMeshSizeList[index]
-                                            loadProject(id, mesh_size, gap_size)
+                                            var mesh_type = meshTypeList[index]
+                                            loadProject(id, mesh_size, gap_size,mesh_type)
                                         }
 
                                     }
@@ -654,7 +655,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                                 val id = com.dsmagic.kibira.projectIDList[index]
                                 var gap_size = com.dsmagic.kibira.projectSizeList[index]
                                 var mesh_size = com.dsmagic.kibira.projectMeshSizeList[index]
-                                loadProject(id, mesh_size, gap_size)
+                                var mesh_type = meshTypeList[index]
+                                loadProject(id, mesh_size, gap_size,mesh_type)
                             }
 
                         }
@@ -672,13 +674,16 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     fun getProjects(UID: Int): MutableList<String> {
 
         var ProjectList = mutableListOf<Project>()
-        projectList.clear()
+
+        GlobalScope.launch(Dispatchers.IO) {
+            try {
+                projectList.clear()
                 projectIDList.clear()
                 projectMeshSizeList.clear()
                 projectSizeList.clear()
-        GlobalScope.launch(Dispatchers.IO) {
-            try {
+                meshTypeList.clear()
                 val listOfProjects = appdb.kibiraDao().getAllProjects(UID)
+
 
                 listOfProjects as MutableList<Project>
                 for (project in listOfProjects) {
@@ -686,6 +691,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     com.dsmagic.kibira.projectIDList.add(project.id!!)
                     com.dsmagic.kibira.projectMeshSizeList.add(project.lineLength)
                     com.dsmagic.kibira.projectSizeList.add(project.gapsize)
+                     meshTypeList.add(project.MeshType)
                 }
 
                 var l = com.dsmagic.kibira.projectList
@@ -708,7 +714,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         return projectList
     }
 
-    fun loadProject(PID: Int, Meshsize: Double, Gapsize: Double) {
+    fun loadProject(PID: Int, Meshsize: Double, Gapsize: Double,meshType:String) {
         var displayProjectName: TextView? = findViewById(R.id.display_project_name)
 
         Toast.makeText(
@@ -739,7 +745,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     Geoggapsize = Gapsize
                     Geogmesh_size = Meshsize
                     freshFragment()
-                    plotMesh(firstPoint, secondPoint,PID)
+                    plotMesh(firstPoint, secondPoint,PID,meshType)
 
                 }
 
@@ -1365,16 +1371,18 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         saveBasepoints(firstPoint!!)
         saveBasepoints(secondPoint!!)
 
-        plotMesh(firstPoint!!, secondPoint!!,0)
+        plotMesh(firstPoint!!, secondPoint!!,0,"")
 
 
         l?.remove()
         // marker?.remove()
     }
 
-    fun plotMesh(cp: LongLat, pp: LongLat,id:Int) {
+    fun plotMesh(cp: LongLat, pp: LongLat,id:Int,mesh:String) {
+       // i.e calling this func with parameters from the db
         if(id != 0 ){
             retrieveMarkedpoints(id)
+            MeshType = mesh
         }
         progressBar.isVisible = true
 

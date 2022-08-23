@@ -48,9 +48,9 @@ class DbFunctions {
 
         }
 
-        fun saveProject(name: String, GAPSIZE: Double, LineLength: Double, UID: Int): Long {
+        fun saveProject(name: String, GAPSIZE: Double, LineLength: Double, UID: Int,Meshtype:String): Long {
 
-            val project = Project(null, name, GAPSIZE, LineLength, UID)
+            val project = Project(null, name, GAPSIZE, LineLength, UID,Meshtype)
 
             GlobalScope.launch(Dispatchers.IO) {
                 ProjectID = appdbInstance.kibiraDao().insertProject(project)

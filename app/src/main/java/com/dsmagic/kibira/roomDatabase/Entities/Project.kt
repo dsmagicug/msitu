@@ -9,5 +9,6 @@ data class Project(
     val name:String,
     val gapsize:Double,
     val lineLength:Double,
-    val userID:Int
+    val userID:Int,
+    val MeshType:String,
 )

@@ -272,7 +272,8 @@ object CreateProjectDialog : DialogFragment() {
                     saved_project_name!!,
                     gapSize,
                     meshSize,
-                    userID
+                    userID,
+                    selectedType
                 )
                 ProjectID
                 editor.putString("productID_key", ProjectID.toString())

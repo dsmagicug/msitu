@@ -32,6 +32,7 @@ var projectList = ArrayList<String>()
 var projectIDList = mutableListOf<Int>()
 var projectSizeList = mutableListOf<Double>()
 var projectMeshSizeList = mutableListOf<Double>()
+var meshTypeList = mutableListOf<String>()
 //Returning a layout as a dialog box
 
 
@@ -232,14 +233,14 @@ class firstActivity : DialogFragment(), AdapterView.OnItemClickListener {
                 Geoggapsize = GapSize
 
                 displayProjectName?.text = saved_project_name
-                val pid = DbFunctions.saveProject(
-                    saved_project_name!!,
-                    GapSize,
-                    MeshSize,
-                    userID
-                )
+//                val pid = DbFunctions.saveProject(
+//                    saved_project_name!!,
+//                    GapSize,
+//                    MeshSize,
+//                    userID,
+//                )
                 // var pid = DbFunctions.projectID( Geoggapsize!!.toDouble(),saved_project_name!!)
-                editor.putString("productID_key", pid.toString())
+                //editor.putString("productID_key", pid.toString())
                 editor.apply()
                 editor.commit()
                 if(editor.commit()){
@@ -279,20 +280,20 @@ class firstActivity : DialogFragment(), AdapterView.OnItemClickListener {
         }
 
     }
-    var ProjectID: Long = 0
-    fun saveProject(name: String, GAPSIZE: Double, LineLength: Double, UID: Int): Long {
-
-        val project = Project(null, name, GAPSIZE, LineLength, UID)
-
-        GlobalScope.launch(Dispatchers.IO) {
-            ProjectID = MainActivity.appdb.kibiraDao().insertProject(project)
-            Log.d("PID","$ProjectID")
-            ProjectID
-        }
-
-
-        return ProjectID
-    }
+//    var ProjectID: Long = 0
+//    fun saveProject(name: String, GAPSIZE: Double, LineLength: Double, UID: Int): Long {
+//
+//        val project = Project(null, name, GAPSIZE, LineLength, UID)
+//
+//        GlobalScope.launch(Dispatchers.IO) {
+//            ProjectID = MainActivity.appdb.kibiraDao().insertProject(project)
+//            Log.d("PID","$ProjectID")
+//            ProjectID
+//        }
+//
+//
+//        return ProjectID
+//    }
 
     fun alertfail(S: String) {
         this.activity?.let {
