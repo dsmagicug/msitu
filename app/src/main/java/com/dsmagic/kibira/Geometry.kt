@@ -346,8 +346,8 @@ class Geometry {
 
             while (currentY < MAX_MESH_SIZE / 2.0) {
                 val startPosX = STARTX - (Xskip * GAP_SIZE)/2
-                l.add(PlantingLine(startPosX, currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
-                l.add(PlantingLine(startPosX, -currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+                //l.add(PlantingLine(startPosX, currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+                 l.add(PlantingLine(startPosX, -currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
 
                 Xskip = (Xskip + 1) % 2 // Every other line starts at 0, every other at half of skip.
 
@@ -402,7 +402,7 @@ class Geometry {
 
          }
 
-    return  al
+            return  al
 
         }
     }

@@ -4,6 +4,7 @@ package com.dsmagic.kibira
 //import com.dsmagic.kibira.roomDatabase.AppDatabase
 //import com.dsmagic.kibira.roomDatabase.BasePoint
 
+import android.Manifest
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
@@ -34,6 +35,7 @@ import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
@@ -77,6 +79,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.collections.ArrayList
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
@@ -142,7 +145,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var pace: TextView
     lateinit var linesMarked: TextView
     lateinit var totalPoints: TextView
-
+    lateinit var projectLines:MutableList<PlantingLine>
     var delta = 1.0
     var projectLoaded = false
 
@@ -277,7 +280,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         onLoad = false
         //register bluetooth broadcaster for scanning devices
         val intent = IntentFilter(BluetoothDevice.ACTION_FOUND)
-        registerReceiver(bluetoothFunctions.receiver, intent)
+        registerReceiver(receiver, intent)
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val accSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
@@ -1093,7 +1096,96 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         }
     }
 
+    // Create a BroadcastReceiver for ACTION_FOUND.
+    val receiver = object : BroadcastReceiver() {
 
+        override fun onReceive(context: Context, intent: Intent) {
+            val action: String? = intent.action
+            when (action) {
+                BluetoothDevice.ACTION_FOUND -> {
+                    val device: BluetoothDevice? =
+                        intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+
+                    if (ActivityCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.BLUETOOTH_CONNECT
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        // TODO: Consider calling
+                        //    ActivityCompat#requestPermissions
+                        // here to request the missing permissions, and then overriding
+                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                        //                                          int[] grantResults)
+                        // to handle the case where the user grants the permission. See the documentation
+                        // for ActivityCompat#requestPermissions for more details.
+                        //return
+                    }
+
+                    //if (!bluetoothList.contains(device!!.name)) {
+
+                    bluetoothList.add(device!!.name)
+                    deviceList.add(device)
+                    var v = device.name
+                    //}
+
+                }
+
+            }
+            scantBlueTooth()
+        }
+    }
+    fun discover() {
+
+        val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        if (ActivityCompat.checkSelfPermission(
+                context,
+                Manifest.permission.BLUETOOTH_SCAN
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            //return
+        }
+
+        //checkLocation()
+        if (bluetoothAdapter.isDiscovering) {
+            bluetoothAdapter.cancelDiscovery()
+            bluetoothAdapter.startDiscovery()
+        } else {
+            bluetoothAdapter.startDiscovery()
+
+        }
+
+    }
+    fun checkLocation() {
+        if (androidx.core.app.ActivityCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            )
+            != android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(
+                    thisActivity,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            ) {
+                ActivityCompat.requestPermissions(
+                    thisActivity,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1
+                )
+            } else {
+                ActivityCompat.requestPermissions(
+                    thisActivity,
+                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1
+                )
+            }
+        }
+    }
     fun scantBlueTooth() {
         val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
 
@@ -1147,7 +1239,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     override fun onDestroy() {
         // Don't forget to unregister the ACTION_FOUND receiver.
-        unregisterReceiver(bluetoothFunctions.Companion.receiver)
+        unregisterReceiver(receiver)
         NmeaReader.listener.deactivate()
         sensorManager!!.unregisterListener(listener)
         super.onDestroy()
@@ -1179,7 +1271,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
 
         if (item.itemId == R.id.bluetooth_spinner) {
-            bluetoothFunctions.discover()
+//            bluetoothFunctions.discover()
+            discover()
             toggleWidgets()
 
 
@@ -1212,7 +1305,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             spinner.visibility = Spinner.VISIBLE
             buttonConnect.visibility = Button.VISIBLE
 
-            bluetoothFunctions.checkLocation()
+         checkLocation()
 
             scantBlueTooth()
 
@@ -1271,7 +1364,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         hideButton()
     }
 
+
+
     private val drawLine: (List<LongLat>) -> Unit = { it ->
+
         val ml = it.map {
             LatLng(
                 it.getLatitude(),
@@ -1279,29 +1375,29 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             )
         } // Convert to LatLng as expected by polyline
 
-        val poly = PolylineOptions().addAll(ml)
+        var poly =PolylineOptions().addAll(ml)
             .color(Color.BLUE)
             .jointType(JointType.DEFAULT)
             .width(3f)
             .geodesic(true)
             .startCap(RoundCap())
             .endCap(SquareCap())
-        handler.post {
-            val p = map?.addPolyline(poly) // Add it and set the tag to the line...
-            // Add it to the index
-            val idx = polyLines.size
-            S2Helper.addS2Polyline2Index(
-                idx,
-                linesIndex,
-                S2Helper.makeS2PolyLine(ml, pointsIndex)
-            )
-            // Add it to the list as well.
-            polyLines.add(p)
+            handler.post {
+                val p = map?.addPolyline(poly) // Add it and set the tag to the line...
+                // Add it to the index
+                val idx = polyLines.size
+                S2Helper.addS2Polyline2Index(
+                    idx,
+                    linesIndex,
+                    S2Helper.makeS2PolyLine(ml, pointsIndex)
+                )
+                // Add it to the list as well.
+                polyLines.add(p)
 
-            p?.tag = ml // Keep the latlng
-            p?.isClickable = true
+                p?.tag = ml // Keep the latlng
+                p?.isClickable = true
 
-        }
+            }
 
     }
 
@@ -1375,12 +1471,17 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
             when (MeshType) {
                 "Triangular Grid" -> {
-                    val lines = Geometry.generateTriangleMesh(c, p)
-                    Geometry.generateLongLat(c, lines, drawLine)
+                    projectLines = Geometry.generateTriangleMesh(c, p) as MutableList<PlantingLine>
+
+                    val first10 = projectLines.subList(0, 10)
+                    projectLines = projectLines.subList(10, projectLines.size)
+                    Geometry.generateLongLat(c, first10, drawLine)
+
                 }
                 "Square Grid" -> {
                     val lines = Geometry.generateMesh(c, p)
-                    Geometry.generateLongLat(c, lines, drawLine)
+                    var listOfLineWithPoints =  Geometry.generateLongLat(c, lines, drawLine)
+
                 }
                 else -> {
 
