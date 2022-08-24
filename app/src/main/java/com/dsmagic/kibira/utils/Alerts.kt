@@ -23,7 +23,10 @@ class Alerts {
 
                     DialogInterface.OnClickListener { dialog, id ->
 
-                        deleteProject(I)
+                       var deletedRow = deleteProject(I)
+                        if(deletedRow > 0 ){
+                            SuccessAlert("Successfully Deleted")
+                        }
 
                     })
                 .setNegativeButton("Cancel",
@@ -57,13 +60,13 @@ class Alerts {
                         deleteBasePoints(PID)
                         MainActivity.meshDone = false
                     })
-                .setNegativeButton(
-                    "Edit Project",
-                    DialogInterface.OnClickListener{
-                        dialog,id ->
-
-                    }
-                )
+//                .setNegativeButton(
+//                    "Edit Project",
+//                    DialogInterface.OnClickListener{
+//                        dialog,id ->
+//
+//                    }
+//                )
 
 
                 .show()
@@ -84,6 +87,14 @@ class Alerts {
                     DialogInterface.OnClickListener { dialog, id ->
 
                     })
+                .show()
+        }
+
+        fun SuccessAlert(S: String) {
+            AlertDialog.Builder(context)
+                .setTitle("Success")
+                .setIcon(R.drawable.tick)
+                .setMessage(S)
                 .show()
         }
 

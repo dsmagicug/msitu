@@ -10,6 +10,10 @@ import androidx.appcompat.app.AppCompatActivity
 import dilivia.s2.S2LatLng
 import gov.nasa.worldwind.geom.LatLon
 import gov.nasa.worldwind.geom.coords.UTMCoord
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.checkerframework.checker.signedness.SignednessUtil.toDouble
 import org.json.JSONArray
 import org.json.JSONObject
@@ -65,12 +69,18 @@ open class PlantingLine(private val points: ArrayList<Point>) {
         // Make the points.
         var current = startPointX
         var lim = maxLineLength
-        while (lim > 0) {
-            val p = Point(current, startPointY)
-            points.add(p)
-            current += gap
-            lim -= gap
+
+            while (lim > 0) {
+                try{
+                val p = Point(current, startPointY)
+                points.add(p)
+                current += gap
+                lim -= gap
+            }catch(e:Exception){
+                e.printStackTrace()
+            }
         }
+
     }
 
     fun rotate(theta: Pair<Double, Double>): PlantingLine {
@@ -314,8 +324,13 @@ class Geometry {
 
 
         fun generateTriangleMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
+            val decimalFormat = DecimalFormat("##.##")
+            decimalFormat.roundingMode = RoundingMode.DOWN
+            var r = Geoggapsize!! * .95
+            val unformatedGapSize = decimalFormat.format(r)
             val MAX_MESH_SIZE:Double = Geogmesh_size!!// In metres
-            val GAP_SIZE:Double = Geoggapsize!! * .95 // In metres (or 12ft)
+            val GAP_SIZE:Double = unformatedGapSize.toDouble() // In metres (or 12ft)
+
             val theta = theta(centre, directionPoint)
             val mat = rotationMatrix(theta)
             val l = ArrayList<PlantingLine>()
@@ -342,8 +357,12 @@ class Geometry {
         }
 
         fun generateMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
+            val decimalFormat = DecimalFormat("##.##")
+            decimalFormat.roundingMode = RoundingMode.DOWN
+            var r = Geoggapsize!! * .95
+            val unformatedGapSize = decimalFormat.format(r)
             val MAX_MESH_SIZE:Double = Geogmesh_size!!// In metres
-            val GAP_SIZE:Double = Geoggapsize!! * .95 // In metres (or 12ft)
+            val GAP_SIZE:Double = unformatedGapSize.toDouble() // In metres (or 12ft)
             val theta = theta(centre,directionPoint)
             val mat = rotationMatrix(theta)
             val l = ArrayList<PlantingLine>()
@@ -363,26 +382,27 @@ class Geometry {
             return l
         }
 
-        fun generateLongLat(
+      fun generateLongLat(
             c: Point,
             a: List<PlantingLine>,
             printline: (List<LongLat>) -> Unit
         ): List<List<LongLat>> {
-            val al = ArrayList<List<LongLat>>()
-            var xl:List<LongLat>
+         val al = ArrayList<List<LongLat>>()
+         var xl:List<LongLat>
 
-            for (l in a) {
-                xl = l.fromUTM(c)
-                al.add(xl) // Use UTM centre...
+         GlobalScope.launch(Dispatchers.IO){
 
+             a.forEach {
+                 xl = it.fromUTM(c)
+                 al.add(xl)
+                 withContext(Dispatchers.Main){
+                     printline(xl)
+                 }
+             }
 
-                       printline(xl)  //Cause it to be printed
-
-
-            }
+         }
 
     return  al
-
 
         }
     }

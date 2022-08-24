@@ -16,6 +16,7 @@ import com.dsmagic.kibira.MainActivity.Companion.onLoad
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
 import com.dsmagic.kibira.roomDatabase.AppDatabase
+import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.saveProject
 import java.math.RoundingMode
@@ -41,9 +42,7 @@ object CreateProjectDialog : DialogFragment() {
 
             val builder = AlertDialog.Builder(it)
 
-
             val inflater = requireActivity().layoutInflater
-
 
             val l: Array<String> = projectList.toTypedArray().reversedArray()
             val ar: Array<String>
@@ -210,6 +209,10 @@ object CreateProjectDialog : DialogFragment() {
                     sharedPreferences.getString("mesh_key", "0")
                 var meshSize: Double = 0.0
                 var gapSize: Double = 0.0
+                var meshSizeUnformated:Double = 0.0
+                var gapSizeUnformatted:Double = 0.0
+               var meshSizeUnformatedString:String
+               var gapSizeUnformattedString:String
 
                 val decimalFormat = DecimalFormat("##.##")
                 decimalFormat.roundingMode = RoundingMode.DOWN
@@ -220,44 +223,65 @@ object CreateProjectDialog : DialogFragment() {
                 //if nothing is selected then ft is the default
                 if (plotUnit == "") {
                     val r = meshSizeString!!.toDouble()
-                    meshSize = (r * 0.3048)
+                    meshSizeUnformated = (r * 0.3048)
+                    meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
+                    meshSize = meshSizeUnformatedString.toDouble()
+
+
                 }
                 if (gapUnit == "") {
                     val r = savedGapSize.toDouble()
-                    gapSize = (r * 0.3048)
+                    gapSizeUnformatted = (r * 0.3048)
+                    gapSizeUnformattedString = decimalFormat.format(gapSizeUnformatted)
+                    gapSize = gapSizeUnformattedString.toDouble()
                 }
 
 
                 when (n) {
-                    "Meters" -> {
-                        meshSize = meshSizeString!!.toDouble()
+                    " Meters" -> {
+                        meshSizeUnformated = meshSizeString!!.toDouble()
+                        meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
+                        meshSize = meshSizeUnformatedString.toDouble()
+
 
                     }
-                    "Ft" -> {
+                    " Ft" -> {
                         val r = meshSizeString!!.toDouble()
-                        meshSize = (r * 0.3048)
+                        meshSizeUnformated = (r * 0.3048)
+                        meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
+                        meshSize = meshSizeUnformatedString.toDouble()
                     }
                     "Miles" -> {
                         val r = meshSizeString!!.toDouble()
-                        meshSize = (r * 1609.34)
+                        meshSizeUnformated = (r * 1609.34)
+                        meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
+                        meshSize = meshSizeUnformatedString.toDouble()
 
                     }
-                    "Acres" -> {
+                    " Acres" -> {
                         val r = meshSizeString!!.toDouble()
-                        meshSize = (r * 4046.86)
+                        meshSizeUnformated = (r * 4046.86)
+                        meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
+                        meshSize = meshSizeUnformatedString.toDouble()
                     }
                 }
                 when (gp) {
-                    "Meters" -> {
-                        gapSize = savedGapSize.toDouble()
+                    " Meters" -> {
+                        gapSizeUnformatted = savedGapSize.toDouble()
+                        gapSizeUnformattedString = decimalFormat.format(gapSizeUnformatted)
+                        gapSize = gapSizeUnformattedString.toDouble()
                     }
-                    "Ft" -> {
+                    " Ft" -> {
                         val r = savedGapSize.toDouble()
-                        gapSize = (r * 0.3048)
+                        gapSizeUnformatted = (r * 0.3048)
+                        gapSizeUnformattedString = decimalFormat.format(gapSizeUnformatted)
+                        gapSize = gapSizeUnformattedString.toDouble()
                     }
-                    "Inches" -> {
+                    " Inches" -> {
                         val r = savedGapSize.toDouble()
-                        gapSize = (r * 0.0254)
+                        gapSizeUnformatted = (r * 0.0254)
+                        gapSizeUnformattedString = decimalFormat.format(gapSizeUnformatted)
+                        gapSize = gapSizeUnformattedString.toDouble()
 
                     }
 

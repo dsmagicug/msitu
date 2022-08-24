@@ -41,12 +41,12 @@ interface KibiraDao {
     suspend fun getProjectID(gapsize: Double, name: String): Int
 
     @Query("DELETE FROM Project WHERE id = :ID ")
-    suspend fun deleteProject(ID:Int)
+    suspend fun deleteProject(ID:Int):Int
 
     /*Queries for the points */
     @Transaction
-    @Query("SELECT * FROM Project  WHERE id = :projectID")
-    suspend fun getCoordinatesForProject(projectID: Int): List<projectAndCoordinates>
+    @Query("SELECT * FROM Coordinates  WHERE projectID = :projectID")
+    suspend fun getCoordinatesForProject(projectID: Int): List<Coordinates>
 
     @Transaction
     @Query("SELECT * FROM Basepoints  WHERE projectID = :projectID")

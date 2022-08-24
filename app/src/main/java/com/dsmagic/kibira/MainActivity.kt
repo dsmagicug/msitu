@@ -68,7 +68,6 @@ import dilivia.s2.index.shape.MutableS2ShapeIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -119,7 +118,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     private var ViewProjects = false
     var userID: String? = null
     var extras: Bundle? = null
-    var projectList = ArrayList<String>()
+
     var DirectionToHead: Boolean = false
     lateinit var debugXloc: LatLng
     lateinit var toggle: ActionBarDrawerToggle
@@ -140,12 +139,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var spinner: Spinner
     lateinit var buttonConnect: Button
 
-
-    //---------------Time---------//
-    lateinit var initialTime: SimpleDateFormat
-    lateinit var initialTimeValue: String
-
-
     lateinit var pace: TextView
     lateinit var linesMarked: TextView
     lateinit var totalPoints: TextView
@@ -156,6 +149,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     companion object {
         lateinit var context: Context
+        lateinit var initialTime: SimpleDateFormat
+        lateinit var initialTimeValue: String
         val bluetoothList = ArrayList<String>()
         var listOfMarkedPoints = mutableListOf<LatLng>()
         var listofmarkedcircles = mutableListOf<Circle>()
@@ -627,9 +622,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                                             val index = larray.indexOf(j)
                                             val id = com.dsmagic.kibira.projectIDList[index]
                                             var gap_size = com.dsmagic.kibira.projectSizeList[index]
-                                            var mesh_size = com.dsmagic.kibira.projectMeshSizeList[index]
+                                            var mesh_size =
+                                                com.dsmagic.kibira.projectMeshSizeList[index]
                                             var mesh_type = meshTypeList[index]
-                                            loadProject(id, mesh_size, gap_size,mesh_type)
+                                            loadProject(id, mesh_size, gap_size, mesh_type)
                                         }
 
                                     }
@@ -656,7 +652,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                                 var gap_size = com.dsmagic.kibira.projectSizeList[index]
                                 var mesh_size = com.dsmagic.kibira.projectMeshSizeList[index]
                                 var mesh_type = meshTypeList[index]
-                                loadProject(id, mesh_size, gap_size,mesh_type)
+                                loadProject(id, mesh_size, gap_size, mesh_type)
                             }
 
                         }
@@ -673,35 +669,33 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     fun getProjects(UID: Int): MutableList<String> {
 
-        var ProjectList = mutableListOf<Project>()
-
         GlobalScope.launch(Dispatchers.IO) {
             try {
-                projectList.clear()
-                projectIDList.clear()
-                projectMeshSizeList.clear()
-                projectSizeList.clear()
-                meshTypeList.clear()
+
                 val listOfProjects = appdb.kibiraDao().getAllProjects(UID)
 
-
                 listOfProjects as MutableList<Project>
+                if (projectList.isNotEmpty()) {
+                    projectList.clear()
+                    projectIDList.clear()
+                    projectMeshSizeList.clear()
+                    projectSizeList.clear()
+                    meshTypeList.clear()
+                } else {
+                    var t = 90
+                }
+
                 for (project in listOfProjects) {
                     com.dsmagic.kibira.projectList.add(project.name)
                     com.dsmagic.kibira.projectIDList.add(project.id!!)
                     com.dsmagic.kibira.projectMeshSizeList.add(project.lineLength)
                     com.dsmagic.kibira.projectSizeList.add(project.gapsize)
-                     meshTypeList.add(project.MeshType)
+                    meshTypeList.add(project.MeshType)
                 }
 
-                var l = com.dsmagic.kibira.projectList
-               runOnUiThread{
+                runOnUiThread {
                     displayProjects()
                 }
-
-
-
-                Log.d("Projects", "$ProjectList")
 
 
             } catch (e: NullPointerException) {
@@ -714,13 +708,16 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         return projectList
     }
 
-    fun loadProject(PID: Int, Meshsize: Double, Gapsize: Double,meshType:String) {
+    fun loadProject(PID: Int, Meshsize: Double, Gapsize: Double, meshType: String) {
         var displayProjectName: TextView? = findViewById(R.id.display_project_name)
 
         Toast.makeText(
             context, "Loading project, This may take some few minutes time." +
                     "", Toast.LENGTH_LONG
         ).show()
+        freshFragment()
+
+        listOfMarkedPoints = retrieveMarkedpoints(PID)
 
         var ListOfBasePoints: MutableList<Basepoints>
         GlobalScope.launch(Dispatchers.IO) {
@@ -731,21 +728,17 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 runOnUiThread {
                     warningAlert("Project Empty", PID)
                 }
-            } else
-            {
+            } else {
                 val l = ListOfBasePoints[0]
                 val y = ListOfBasePoints[1]
                 val firstPoint = LongLat(l.lng, l.lat)
                 val secondPoint = LongLat(y.lng, y.lat)
-                retrieveMarkedpoints(PID)
+
                 runOnUiThread {
-
                     displayProjectName!!.text = selectedProject
-
                     Geoggapsize = Gapsize
                     Geogmesh_size = Meshsize
-                    freshFragment()
-                    plotMesh(firstPoint, secondPoint,PID,meshType)
+                    plotMesh(firstPoint, secondPoint, PID, meshType, listOfMarkedPoints)
 
                 }
 
@@ -803,16 +796,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             }
 
         }*/
-
-
-    fun SuccessAlert(S: String) {
-        AlertDialog.Builder(this)
-            .setTitle("Success")
-            .setIcon(R.drawable.tick)
-            .setMessage(S)
-            .show()
-    }
-
 
     fun deleteProjectFunc(ID: Int) {
 //        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
@@ -1371,45 +1354,38 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         saveBasepoints(firstPoint!!)
         saveBasepoints(secondPoint!!)
 
-        plotMesh(firstPoint!!, secondPoint!!,0,"")
+        plotMesh(firstPoint!!, secondPoint!!, 0, "", mutableListOf<LatLng>())
 
 
         l?.remove()
         // marker?.remove()
     }
 
-    fun plotMesh(cp: LongLat, pp: LongLat,id:Int,mesh:String) {
-       // i.e calling this func with parameters from the db
-        if(id != 0 ){
-            retrieveMarkedpoints(id)
+    fun plotMesh(cp: LongLat, pp: LongLat, id: Int, mesh: String, list: MutableList<LatLng>) {
+        // i.e calling this func with parameters from the db
+        if (id != 0) {
             MeshType = mesh
         }
         progressBar.isVisible = true
-
-        var y = listOfMarkedPoints
-        var t = 9
-        Log.d("points"," here $listOfMarkedPoints")
 
         asyncExecutor.execute {
 
             val c = Point(cp)
             val p = Point(pp)
 
-          when(MeshType){
-              "Triangular Grid" -> {
-                  val lines = Geometry.generateTriangleMesh(c, p)
-                  Geometry.generateLongLat(c, lines, drawLine)
-              }
-              "Square Grid" -> {
-                  val lines = Geometry.generateMesh(c, p)
-                  Geometry.generateLongLat(c, lines, drawLine)
-              }
-              else -> {
+            when (MeshType) {
+                "Triangular Grid" -> {
+                    val lines = Geometry.generateTriangleMesh(c, p)
+                    Geometry.generateLongLat(c, lines, drawLine)
+                }
+                "Square Grid" -> {
+                    val lines = Geometry.generateMesh(c, p)
+                    Geometry.generateLongLat(c, lines, drawLine)
+                }
+                else -> {
 
-              }
-          }
-
-
+                }
+            }
             meshDone = true
 
             handler.post { // Centre it...
@@ -1424,11 +1400,9 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 )
 
             }
-
         }
-        if (listOfMarkedPoints.isNotEmpty()) {
-            Log.d("points"," HERE TOO $listOfMarkedPoints")
-            for (latlang in listOfMarkedPoints) {
+        if (list.isNotEmpty()) {
+            for (latlang in list) {
                 val c = map?.addCircle(
                     CircleOptions().center(latlang)
                         .fillColor(Color.YELLOW)
@@ -1441,10 +1415,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         } else {
             Log.d("empty", "empty")
         }
-
-
-
-
 
         progressBar.isVisible = false
 
@@ -1487,7 +1457,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 templist[templist.lastIndex].remove()
                 templist.clear()
             }
-            pace()
+            val textViewPace = findViewById<TextView>(R.id.paceValue)
+            val textViewMarkedLines = findViewById<TextView>(R.id.linesMarkedValue)
+            LocationDependantFunctions().pace(textViewPace)
+            LocationDependantFunctions().markedLines(recentLine, listOfMarkedPoints,textViewMarkedLines)
         }
 
         //Give the process of drawing points on line a thread --- makes the process faster
@@ -1888,34 +1861,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         }
     }
 
-    private fun pace() {
-        try {
-            val sdf = SimpleDateFormat(" HH:mm:ss ")
-            val time: String = sdf.format(Date())      //time on switching lines
-            val currentTime = convertToMinutes(time)
-            val startTime =
-                convertToMinutes(initialTimeValue)   //time captured right after planting started
-            val diff = currentTime - startTime
-            val pace = listOfMarkedPoints.size / diff
-            val paceValue = pace.roundToInt()
-            val tx = findViewById<TextView>(R.id.paceValue)
-            tx.text = paceValue.toString()
-        } catch (e: UninitializedPropertyAccessException) {
-            Toast.makeText(this, "No points marked on that line", Toast.LENGTH_SHORT).show()
-        }
-
-
-    }
-
-    private fun convertToMinutes(time: String): Double {
-        val timeSplit = time.split(":")
-        val hours = timeSplit[0].toDouble() * 60
-        val minutes = timeSplit[1].toDouble()
-        var seconds = timeSplit[2].toDouble()
-        val totalMinutes = hours + minutes
-        return totalMinutes
-    }
-
     private fun deleteBasePoints(id: Int) {
 
         val modal = projectID(id)
@@ -1946,7 +1891,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             Context.MODE_PRIVATE
         )!!
 
-
         val displayProjectName: TextView = findViewById(R.id.display_project_name)
 
         DbFunctions.ProjectID
@@ -1955,13 +1899,11 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         var editor = sharedPreferences.edit()
         editor.putString("productID_key", "$ProjectID")
 
-
         val basePoints = Basepoints(null, lat, lng, ProjectID.toInt())
 
         GlobalScope.launch(Dispatchers.IO) {
             val d = appdb.kibiraDao().insertBasepoints(basePoints)
 
-            val s = 8
         }
 
     }
@@ -2175,7 +2117,14 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 return true
             }
             R.id.action_view_projects -> {
-                ViewProjects = true
+                if (projectList.isNotEmpty()) {
+                    projectList.clear()
+                    projectList.clear()
+                    projectIDList.clear()
+                    projectMeshSizeList.clear()
+                    projectSizeList.clear()
+                    meshTypeList.clear()
+                }
                 getProjects(userID!!.toInt())
                 return true
             }
@@ -2202,8 +2151,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         for (l in listofmarkedcircles) {
             l.remove()
         }
-        for (l in unmarkedCirclesList) {
-            l.remove()
+        if( unmarkedCirclesList.isNotEmpty()) {
+            unmarkedCirclesList.clear()
         }
         if (listOfPlantingLines.isNotEmpty()) {
             listOfPlantingLines.clear()

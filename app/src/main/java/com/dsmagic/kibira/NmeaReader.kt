@@ -89,6 +89,7 @@ class NmeaReader {
                 Toast.makeText(context, "Could not Pair! Make sure device is on", Toast.LENGTH_LONG)
                     .show()
                 e.printStackTrace()
+                stop()
             }
 
         }

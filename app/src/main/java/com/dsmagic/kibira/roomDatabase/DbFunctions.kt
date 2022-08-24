@@ -65,17 +65,17 @@ class DbFunctions {
         fun retrieveMarkedpoints(PID: Int): MutableList<LatLng> {
             var ListOfProjects: MutableList<Coordinates>
             GlobalScope.launch(Dispatchers.IO) {
-                val coordinates = appdb.kibiraDao().getCoordinatesForProject(PID)
-                for (c in coordinates) {
-                    ListOfProjects = c.coordinates as MutableList<Coordinates>
+                ListOfProjects = appdb.kibiraDao().getCoordinatesForProject(PID) as MutableList<Coordinates>
                     for (cods in ListOfProjects) {
                         val point = LatLng(cods.lat, cods.lng)
                         listOfMarkedPoints.add(point)
-                    }
+
                 }
 
             }
+
             return listOfMarkedPoints
+
         }
 
 //        fun retrieveBasepoints(PID:Int):MutableList<LatLng>{
@@ -123,13 +123,14 @@ class DbFunctions {
 
         }
 
-        fun deleteProject(ProjectID: Int) {
+        fun deleteProject(ProjectID: Int):Int {
+            var deletedRow:Int = 0
             GlobalScope.launch(Dispatchers.IO) {
 
-                appdb.kibiraDao().deleteProject(ProjectID)
+                deletedRow =  appdb.kibiraDao().deleteProject(ProjectID)
 
             }
-
+                return deletedRow
         }
 
         fun deleteProjectFunc(ID: Int) {
