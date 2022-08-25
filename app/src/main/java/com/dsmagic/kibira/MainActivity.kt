@@ -228,14 +228,12 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         val btnCloseDrawer = headerView.findViewById<View>(R.id.btnCloseDrawer) as ImageButton
         btnCloseDrawer.setOnClickListener {
             drawerlayout.closeDrawer(Gravity.LEFT)
-
         }
 
         fabCampus.setOnClickListener {
             // rotate the map accordingly
             val newAngel = GeneralHelper.sanitizeMagnetometerBearing(lastRotateDegree)
             if (map != null) {
-
                 GeneralHelper.changeMapPosition(map, newAngel)
             }
             BearingPhoneIsFacing = newAngel

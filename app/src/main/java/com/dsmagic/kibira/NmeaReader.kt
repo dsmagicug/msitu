@@ -121,13 +121,11 @@ class NmeaReader {
                                         listener.postNewLocation(longlat)
                                     }
                                 }
-
                             }
                         }
                     }
                 }
             }
-
             thread!!.start()
         }
     }
