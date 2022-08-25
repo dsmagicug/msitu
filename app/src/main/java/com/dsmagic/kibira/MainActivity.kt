@@ -138,6 +138,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var navView: NavigationView
     lateinit var fab_reset: FloatingActionButton
     lateinit var fab_map: FloatingActionButton
+    lateinit var fab_moreLines:FloatingActionButton
     lateinit var progressBar: ProgressBar
     lateinit var spinner: Spinner
     lateinit var buttonConnect: Button
@@ -175,6 +176,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         lateinit var thisActivity: Activity
         lateinit var displayedDistance: TextView
         lateinit var displayedPoints: TextView
+        lateinit var projectStartPoint : Point
         var MeshType = " "
 //        var projectIDList = mutableListOf<Int>()
 //        var projectSizeList = mutableListOf<Double>()
@@ -196,6 +198,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         context = this
         thisActivity = this
         fabCampus = findViewById(R.id.fab_compass)
+        fab_moreLines =  findViewById(R.id.fab_moreLines)
         drawerlayout = findViewById(R.id.drawerlayout)
         navView = findViewById(R.id.navView)
         fab_map = findViewById(R.id.fab_map)
@@ -241,7 +244,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         fab_reset.setOnClickListener {
             undoDrawingLines()
         }
-
+        fab_moreLines.setOnClickListener {
+            val drawPoints = updateProjectLines()
+            Geometry.generateLongLat(projectStartPoint, drawPoints, drawLine)
+        }
         extras = intent.extras
 
         //retrieve userid and token from intent, then store it in a shared preferences file for access
@@ -1456,7 +1462,20 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         l?.remove()
         // marker?.remove()
     }
+    fun updateProjectLines(): MutableList<PlantingLine> {
+        lateinit var drawPoints:MutableList<PlantingLine>
+        var projectLinesSize = projectLines.size
 
+        if (projectLinesSize < 10){
+            drawPoints = projectLines.subList(0, projectLines.size)
+            projectLines = projectLines.subList(projectLines.size, projectLines.size)
+        }else{
+            drawPoints = projectLines.subList(0, 10)
+            projectLines = projectLines.subList(10, projectLines.size)
+        }
+        fab_moreLines.isVisible = projectLinesSize != 0
+        return drawPoints
+    }
     fun plotMesh(cp: LongLat, pp: LongLat, id: Int, mesh: String, list: MutableList<LatLng>) {
         // i.e calling this func with parameters from the db
         if (id != 0) {
@@ -1468,20 +1487,18 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
             val c = Point(cp)
             val p = Point(pp)
+            projectStartPoint = c
 
             when (MeshType) {
                 "Triangular Grid" -> {
                     projectLines = Geometry.generateTriangleMesh(c, p) as MutableList<PlantingLine>
 
-                    val first10 = projectLines.subList(0, 10)
-                    projectLines = projectLines.subList(10, projectLines.size)
-                    Geometry.generateLongLat(c, first10, drawLine)
-
+                    val drawPoints = updateProjectLines()
+                    Geometry.generateLongLat(c, drawPoints, drawLine)
                 }
                 "Square Grid" -> {
                     val lines = Geometry.generateMesh(c, p)
                     var listOfLineWithPoints =  Geometry.generateLongLat(c, lines, drawLine)
-
                 }
                 else -> {
 

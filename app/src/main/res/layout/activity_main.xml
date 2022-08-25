@@ -288,6 +288,18 @@
 
                     </LinearLayout>
                 </androidx.cardview.widget.CardView>
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fab_moreLines"
+                    style="?attr/floatingActionButtonLargeStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical|end|bottom"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="250dp"
+                    android:contentDescription="UnDo"
+                    android:src="@drawable/ic_baseline_add_24"
+                    android:visibility="visible"
+                    app:backgroundTint="@color/teal" />
 
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/fab_reset"
