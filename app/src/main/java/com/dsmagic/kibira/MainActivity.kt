@@ -247,6 +247,17 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         fab_moreLines.setOnClickListener {
             val drawPoints = updateProjectLines()
             Geometry.generateLongLat(projectStartPoint, drawPoints, drawLine)
+            if (listOfMarkedPoints.isNotEmpty()){
+                for(point in listOfMarkedPoints){
+                    val c = map?.addCircle(
+                        CircleOptions().center(point)
+                            .fillColor(Color.YELLOW)
+                            .radius(0.5)
+                            .strokeWidth(1.0f)
+                    )
+                    listofmarkedcircles.add(c!!)
+                }
+            }
         }
         extras = intent.extras
 
@@ -648,7 +659,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
                 })
             .setPositiveButton("Open",
-
                 DialogInterface.OnClickListener { dialog, id ->
 
                     if (selectedProject == "") {
@@ -1470,8 +1480,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             drawPoints = projectLines.subList(0, projectLines.size)
             projectLines = projectLines.subList(projectLines.size, projectLines.size)
         }else{
-            drawPoints = projectLines.subList(0, 10)
-            projectLines = projectLines.subList(10, projectLines.size)
+            drawPoints = projectLines.subList(0, 2)
+            projectLines = projectLines.subList(2, projectLines.size)
         }
         fab_moreLines.isVisible = projectLinesSize != 0
         return drawPoints
@@ -2257,9 +2267,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         plantingMode = false
         plantingRadius?.remove()
 
-        if (listOfMarkedPoints.isNotEmpty()) {
-            listOfMarkedPoints.clear()
-        }
+
         card.isVisible = false
         directionCardLayout.isVisible = false
 
@@ -2268,6 +2276,13 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         }
         for (l in listofmarkedcircles) {
             l.remove()
+        }
+
+        for(l in unmarkedCirclesList){
+            l.remove()
+        }
+        if (listOfMarkedPoints.isNotEmpty()) {
+            listOfMarkedPoints.clear()
         }
         if( unmarkedCirclesList.isNotEmpty()) {
             unmarkedCirclesList.clear()
