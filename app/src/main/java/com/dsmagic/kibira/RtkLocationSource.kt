@@ -7,6 +7,7 @@ interface LocationChanged {
     fun onLocationChanged(loc: Location)
 }
 
+// Used by GoogleMap API to provide location on the map...
 class RtkLocationSource : LocationSource {
     var listener: LocationSource.OnLocationChangedListener? = null
     var locationChanged: LocationChanged? = null

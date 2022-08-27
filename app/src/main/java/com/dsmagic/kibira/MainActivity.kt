@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         super.onCreate(savedInstanceState)
         //   binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(R.layout.activity_main)
-        
+
         val mapFragment =
             supportFragmentManager.findFragmentById(com.dsmagic.kibira.R.id.mapFragment) as SupportMapFragment?
         mapFragment?.getMapAsync(callback)
@@ -222,7 +222,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         asyncExecutor.execute {
             val c = Point(firstPoint!!)
             val p = Point(secondPoint!!)
-            val lines = Geometry.generateMesh(c, p)
+            val lines = Geometry.generateTriangleMesh(c, p)
             Geometry.generateLongLat(c, lines, drawLine)
             meshDone = true
             handler.post { // Centre it...

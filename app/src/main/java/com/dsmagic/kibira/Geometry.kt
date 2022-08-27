@@ -3,7 +3,6 @@ package com.dsmagic.kibira
 import android.annotation.SuppressLint
 import android.location.Location
 import android.util.Log
-import dilivia.s2.S2LatLng
 import gov.nasa.worldwind.geom.LatLon
 import gov.nasa.worldwind.geom.coords.UTMCoord
 import java.text.SimpleDateFormat
@@ -12,12 +11,13 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
-const val MAX_MESH_SIZE = 1000.0 // In metres
+const val MAX_MESH_SIZE = 500.0 // In metres
 const val GAP_SIZE = 3.6  // In metres (or 12ft)
 
+const val SINE_60 = 0.86602540378 // Sine of 60 degrees...
 
 // Represents a point where a tree is planted. Units are metres.
-class Point(internal var x: Double, internal var y: Double) {
+open class Point(internal var x: Double, internal var y: Double) {
 
     var zone = 0 // UTM zone
     var hemisphere = "N"
@@ -225,9 +225,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
             }
     }
 
-    fun toS2(): S2LatLng {
-        return S2LatLng((lat / Math.PI).toFloat(), (long / Math.PI).toFloat())
-    }
+
 
     override fun getAltitude(): Double {
         return aboveSeaLevel
@@ -253,7 +251,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
     }
 
     override fun hasAccuracy(): Boolean {
-        return true
+        return lastHorizontalAccuracy > 0.0
     }
 
     override fun hasAltitude(): Boolean {
@@ -274,7 +272,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
 
     override fun getSpeed(): Float {
         return if (speed == null)
-            0.0.toFloat()
+            0.0f
         else
             speed!!.toFloat()
     }
@@ -300,7 +298,7 @@ class Geometry {
             return x
         }
 
-        fun generateMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
+        fun generateSquareMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
             val theta = theta(centre, directionPoint)
             val mat = rotationMatrix(theta)
             val l = ArrayList<PlantingLine>()
@@ -320,10 +318,36 @@ class Geometry {
             return l
         }
 
+        fun generateTriangleMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
+            val theta = theta(centre, directionPoint)
+            val mat = rotationMatrix(theta)
+            val l = ArrayList<PlantingLine>()
+            // X starts at the left. We draw the centre line first, then generate the ones below and above in order until we are done...
+            val STARTX = -MAX_MESH_SIZE / 2.0
+
+            // Put in centre/base line
+            l.add(PlantingLine(STARTX, 0.0, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+            val lineSkip = GAP_SIZE * SINE_60 // Skip smaller.
+            var currentY = lineSkip
+
+            var Xskip = 1
+
+            while (currentY < MAX_MESH_SIZE / 2.0) {
+                val startPosX = STARTX - (Xskip * GAP_SIZE)/2
+                l.add(PlantingLine(startPosX, currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+                l.add(PlantingLine(startPosX, -currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+
+                Xskip = (Xskip + 1) % 2 // Every other line starts at 0, every other at half of skip.
+
+                currentY += lineSkip
+            }
+             return l
+        }
+
         fun generateLongLat(
             c: Point,
             a: List<PlantingLine>,
-            printline: (List<LongLat>) -> Unit
+            printLine: (List<LongLat>) -> Unit
         ): List<List<LongLat>> {
             val al = ArrayList<List<LongLat>>()
             for (l in a) {
@@ -331,7 +355,7 @@ class Geometry {
                 val xl = l.fromUTM(c)
                 al.add(xl) // Use UTM centre...
 
-                printline(xl) // Cause it to be printed
+                printLine(xl) // Cause it to be printed
             }
 
             return al
