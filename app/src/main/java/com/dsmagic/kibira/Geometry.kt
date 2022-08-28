@@ -301,14 +301,6 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
 
 class Geometry {
     companion object {
-        private fun rotationMatrix(theta: Double): Pair<Double, Double> {
-            // Takes an angle in radians, computes the rotation values cosTheta and signTheta
-            val x = cos(theta)
-            val y = sin(theta)
-
-            Log.d("rotate", "sin($theta) = $y, cos($theta)= $x")
-            return Pair(x, y)
-        }
 
         // Get the angle made with the horizontal by the vector from the origin to a point.
         // Returns angle in polar form
@@ -375,54 +367,6 @@ class Geometry {
             }
             return l
         }
-
-
-        fun generateSquareMeshOld(centre: Point, directionPoint: Point): List<PlantingLine> {
-            val theta = theta(centre, directionPoint)
-            val mat = rotationMatrix(theta)
-            val l = ArrayList<PlantingLine>()
-            // X starts at the left. We draw the centre line first, then generate the ones below and above in order until we are done...
-            val startX = -MAX_MESH_SIZE / 2.0
-            var currentY = GAP_SIZE_METRES
-
-            // Put in centre/base line
-            l.add(PlantingLine(startX, 0.0, GAP_SIZE_METRES, MAX_MESH_SIZE).rotate(mat))
-            while (currentY < MAX_MESH_SIZE / 2.0) {
-                // The + one, then the - one
-                l.add(PlantingLine(startX, currentY, GAP_SIZE_METRES, MAX_MESH_SIZE).rotate(mat))
-                l.add(PlantingLine(startX, -currentY, GAP_SIZE_METRES, MAX_MESH_SIZE).rotate(mat))
-                currentY += GAP_SIZE_METRES
-            }
-
-            return l
-        }
-
-        fun generateTriangleMeshOld(centre: Point, directionPoint: Point): List<PlantingLine> {
-            val theta = theta(centre, directionPoint)
-            val mat = rotationMatrix(theta)
-            val l = ArrayList<PlantingLine>()
-            // X starts at the left. We draw the centre line first, then generate the ones below and above in order until we are done...
-            val STARTX = -MAX_MESH_SIZE / 2.0
-
-            // Put in centre/base line
-            l.add(PlantingLine(STARTX, 0.0, GAP_SIZE_METRES, MAX_MESH_SIZE).rotate(mat))
-            val lineSkip = GAP_SIZE_METRES * SINE_60 // Skip smaller.
-            var currentY = lineSkip
-
-            var Xskip = 1
-
-            while (currentY < MAX_MESH_SIZE / 2.0) {
-                val startPosX = STARTX - (Xskip * GAP_SIZE_METRES)/2
-                l.add(PlantingLine(startPosX, currentY, GAP_SIZE_METRES, MAX_MESH_SIZE).rotate(mat))
-                l.add(PlantingLine(startPosX, -currentY, GAP_SIZE_METRES, MAX_MESH_SIZE).rotate(mat))
-
-                Xskip = (Xskip + 1) % 2 // Every other line starts at 0, every other at half of skip.
-
-                currentY += lineSkip
-            }
-             return l
-        }
-
 
 
         fun generateLongLat(
