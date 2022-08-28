@@ -7,14 +7,22 @@ import gov.nasa.worldwind.geom.LatLon
 import gov.nasa.worldwind.geom.coords.UTMCoord
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
-const val MAX_MESH_SIZE = 500.0 // In metres
-const val GAP_SIZE = 3.6  // In metres (or 12ft)
+const val METRES_FROM_FEET = 3.28084
+const val GAP_SIZE_FEET = 12
+const val MAX_MESH_SIZE = 100.0 // In metres
+const val GAP_SIZE_METRES = GAP_SIZE_FEET / METRES_FROM_FEET
 
 const val SINE_60 = 0.86602540378 // Sine of 60 degrees...
+
+/**
+ * The mesh direction to use. That is, facing the direction point from where we stand, are we going left or right in our planting?
+ */
+enum class MeshDirection {LEFT, RIGHT}
 
 // Represents a point where a tree is planted. Units are metres.
 open class Point(internal var x: Double, internal var y: Double) {
@@ -29,6 +37,7 @@ open class Point(internal var x: Double, internal var y: Double) {
         x = xnew
         y = yNew
     }
+
 
     /**
      * Create UTM coordinates
@@ -64,6 +73,18 @@ open class PlantingLine(private val points: ArrayList<Point>) {
         }
     }
 
+    constructor(startPoint: Point, xDelta: Double, yDelta: Double) : this(ArrayList()) {
+        var current = startPoint
+        var lim = MAX_MESH_SIZE
+
+        points.add(current) // First point goes in.
+        while (lim > 0 ) {
+            current = Point(current.x+xDelta,current.y+yDelta) // .move(xDelta,yDelta)
+            points.add(current)
+            lim -= GAP_SIZE_METRES
+        }
+    }
+
     fun rotate(theta: Pair<Double, Double>): PlantingLine {
         for (p in points) {
             p.rotate(theta.first, theta.second)
@@ -75,7 +96,7 @@ open class PlantingLine(private val points: ArrayList<Point>) {
     fun fromUTM(centre: Point): List<LongLat> {
         return points.map {
             // We need to shift the basis back to UTM from our point-centred axes
-            LongLat(centre.zone, centre.hemisphere, it.x + centre.x, it.y + centre.y)
+            LongLat(centre.zone, centre.hemisphere, it.x /*+ centre.x*/, it.y /*+ centre.y*/)
         }
     }
 }
@@ -290,6 +311,7 @@ class Geometry {
         }
 
         // Get the angle made with the horizontal by the vector from the origin to a point.
+        // Returns angle in polar form
         private fun theta(p1: Point, p2: Point): Double {
             val p = Point(p2.x - p1.x, p2.y - p1.y)
             val x = atan2(p.y, p.x)
@@ -298,27 +320,84 @@ class Geometry {
             return x
         }
 
-        fun generateSquareMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
+        /**
+         * Return a mesh, starting at startPoint, forward in the direction given. Between each two lines is GAP_SIZE metres,
+         * between each point is GAP_SIZE metres.
+         */
+        fun generateSquareMesh(startPoint: Point, directionPoint: Point, plantingDirection: MeshDirection): List<PlantingLine> {
+            val theta = theta(startPoint, directionPoint)
+
+            val l = ArrayList<PlantingLine>()
+            val xDelta = GAP_SIZE_METRES * cos(theta)
+            val yDelta = GAP_SIZE_METRES * sin(theta)
+
+            // The next line starting point is always a 90 degree turn from the last starting point.
+            val linesDirection = if  (plantingDirection == MeshDirection.LEFT)  1  else -1
+            val gamma =  theta + linesDirection * (Math.PI/2)  // Better methinks...
+            val lineDeltaX =  GAP_SIZE_METRES * cos(gamma)
+            val lineDeltaY =  GAP_SIZE_METRES * sin(gamma)
+            var lineStart = startPoint
+
+            var lanesWidth = 0.0 // This is lanes (i.e. lines) times gap size
+            while (lanesWidth < MAX_MESH_SIZE) {
+                l.add(PlantingLine(lineStart, xDelta,yDelta))
+                lineStart = Point(lineStart.x + lineDeltaX, lineStart.y + lineDeltaY) // .move(lineDeltaX,lineDeltaY) // Move the start point to the next line
+                lanesWidth += GAP_SIZE_METRES
+            }
+            return l
+        }
+
+        fun generateTriangleMesh(startPoint: Point, directionPoint: Point, plantingDirection: MeshDirection): List<PlantingLine> {
+            val theta = theta(startPoint, directionPoint)
+
+            val l = ArrayList<PlantingLine>()
+            val xDelta = GAP_SIZE_METRES * cos(theta)
+            val yDelta = GAP_SIZE_METRES * sin(theta)
+
+            // The next line starting point is always a 90 degree turn from the last starting point.
+            val linesDirection = if  (plantingDirection == MeshDirection.LEFT)  1  else -1
+            val gamma =  theta + linesDirection * (Math.PI/2) // If we are painting the lines going left, then we must add 90 to current angle to get direction. Otherwise subtract 90.
+            val lineDeltaX =  SINE_60 * GAP_SIZE_METRES * cos(gamma)
+            val lineDeltaY =  SINE_60 * GAP_SIZE_METRES * sin(gamma)
+            var lineStart = startPoint
+            var xSkip = 1
+            var lanesWidth = 0.0 // This is lanes (i.e. lines) times gap size
+            while (lanesWidth < MAX_MESH_SIZE) {
+                l.add(PlantingLine(lineStart, xDelta,yDelta))
+
+                val nextLineOffsetX  = xSkip * (xDelta/2)
+                val nexLineOffsetY = xSkip * (yDelta/2)
+
+                lineStart = Point(lineStart.x + lineDeltaX + nextLineOffsetX, lineStart.y + lineDeltaY + nexLineOffsetY) // .move(lineDeltaX,lineDeltaY) // Move the start point to the next line
+                lanesWidth += GAP_SIZE_METRES * SINE_60
+
+                xSkip *= -1 // (xSkip + 1) % 2 // skip forward by half the displacement, or back by the same for each line...
+            }
+            return l
+        }
+
+
+        fun generateSquareMeshOld(centre: Point, directionPoint: Point): List<PlantingLine> {
             val theta = theta(centre, directionPoint)
             val mat = rotationMatrix(theta)
             val l = ArrayList<PlantingLine>()
             // X starts at the left. We draw the centre line first, then generate the ones below and above in order until we are done...
             val startX = -MAX_MESH_SIZE / 2.0
-            var currentY = GAP_SIZE
+            var currentY = GAP_SIZE_METRES
 
             // Put in centre/base line
-            l.add(PlantingLine(startX, 0.0, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+            l.add(PlantingLine(startX, 0.0, GAP_SIZE_METRES, MAX_MESH_SIZE).rotate(mat))
             while (currentY < MAX_MESH_SIZE / 2.0) {
                 // The + one, then the - one
-                l.add(PlantingLine(startX, currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
-                l.add(PlantingLine(startX, -currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
-                currentY += GAP_SIZE
+                l.add(PlantingLine(startX, currentY, GAP_SIZE_METRES, MAX_MESH_SIZE).rotate(mat))
+                l.add(PlantingLine(startX, -currentY, GAP_SIZE_METRES, MAX_MESH_SIZE).rotate(mat))
+                currentY += GAP_SIZE_METRES
             }
 
             return l
         }
 
-        fun generateTriangleMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
+        fun generateTriangleMeshOld(centre: Point, directionPoint: Point): List<PlantingLine> {
             val theta = theta(centre, directionPoint)
             val mat = rotationMatrix(theta)
             val l = ArrayList<PlantingLine>()
@@ -326,16 +405,16 @@ class Geometry {
             val STARTX = -MAX_MESH_SIZE / 2.0
 
             // Put in centre/base line
-            l.add(PlantingLine(STARTX, 0.0, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
-            val lineSkip = GAP_SIZE * SINE_60 // Skip smaller.
+            l.add(PlantingLine(STARTX, 0.0, GAP_SIZE_METRES, MAX_MESH_SIZE).rotate(mat))
+            val lineSkip = GAP_SIZE_METRES * SINE_60 // Skip smaller.
             var currentY = lineSkip
 
             var Xskip = 1
 
             while (currentY < MAX_MESH_SIZE / 2.0) {
-                val startPosX = STARTX - (Xskip * GAP_SIZE)/2
-                l.add(PlantingLine(startPosX, currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
-                l.add(PlantingLine(startPosX, -currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+                val startPosX = STARTX - (Xskip * GAP_SIZE_METRES)/2
+                l.add(PlantingLine(startPosX, currentY, GAP_SIZE_METRES, MAX_MESH_SIZE).rotate(mat))
+                l.add(PlantingLine(startPosX, -currentY, GAP_SIZE_METRES, MAX_MESH_SIZE).rotate(mat))
 
                 Xskip = (Xskip + 1) % 2 // Every other line starts at 0, every other at half of skip.
 
@@ -343,6 +422,8 @@ class Geometry {
             }
              return l
         }
+
+
 
         fun generateLongLat(
             c: Point,

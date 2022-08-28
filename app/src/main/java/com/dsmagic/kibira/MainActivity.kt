@@ -186,6 +186,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
             .startCap(RoundCap())
             .endCap(SquareCap())
 
+
         handler.post {
             val p = map?.addPolyline(poly) // Add it and set the tag to the line...
             // Add it to the index
@@ -196,6 +197,24 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
             p?.tag = ml // Keep the latlng
             p?.isClickable = true
+
+            var ptLast = ml.get(0)
+
+            Log.d("distance","Preparing to print distances for another line: ")
+            // Print the distance
+            for (xp in ml) {
+                map?.addCircle(
+                    CircleOptions().center(xp).fillColor(Color.CYAN).radius(0.5)
+                        .strokeWidth(1.0f)
+
+                )
+                val res = floatArrayOf(0f)
+                Location.distanceBetween(ptLast.latitude,ptLast.longitude,
+                xp.latitude,
+                xp.longitude,res)
+                Log.d("distance", "Distance from last point: ${res[0]}")
+              ptLast = xp;
+            }
         }
     }
 
@@ -222,7 +241,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         asyncExecutor.execute {
             val c = Point(firstPoint!!)
             val p = Point(secondPoint!!)
-            val lines = Geometry.generateTriangleMesh(c, p)
+            val lines = Geometry.generateSquareMesh(c, p,MeshDirection.RIGHT)
             Geometry.generateLongLat(c, lines, drawLine)
             meshDone = true
             handler.post { // Centre it...
@@ -257,6 +276,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
 
         Log.d("polylines", "Added points to line...")
     }
+
     private val onLongMapPress = GoogleMap.OnMapLongClickListener {
         if (polyLines.size == 0)
             return@OnMapLongClickListener // Not yet...
@@ -289,13 +309,24 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener, Vi
         googleMap.setOnMapClickListener(onMapClick)
         googleMap.setOnPolylineClickListener(onPolyClick)
 
-        googleMap.setOnMapLongClickListener(onLongMapPress)
+       googleMap.setOnMapLongClickListener(onLongMapPress)
 
 
         val isl = LatLng(-.366044, 32.441599) // LatLng(0.0,32.44) //
         googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
         googleMap.addMarker(MarkerOptions().position(isl).title("Marker in N Residence"))
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(isl, 20.0f))
-
+        asyncExecutor.execute {
+            firstPoint = LongLat(isl.longitude,isl.latitude)
+            secondPoint = LongLat(-.366044,33.441599) // A bit to the right. Right?
+            val c = Point(firstPoint!!)
+            val p = Point(secondPoint!!)
+            val lines = Geometry.generateTriangleMesh(c,p,MeshDirection.RIGHT)  //  generateSquareMesh(c, p,MeshDirection.RIGHT)
+            Geometry.generateLongLat(c, lines, drawLine)
+            meshDone = true
+            handler.post { // Centre it...
+                map?.moveCamera(CameraUpdateFactory.newLatLngZoom(LatLng(firstPoint!!.getLatitude(),firstPoint!!.getLongitude()), 20.0f))
+            }
+        }
     }
 }
