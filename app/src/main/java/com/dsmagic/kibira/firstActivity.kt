@@ -33,6 +33,7 @@ var projectIDList = mutableListOf<Int>()
 var projectSizeList = mutableListOf<Double>()
 var projectMeshSizeList = mutableListOf<Double>()
 var meshTypeList = mutableListOf<String>()
+var gapUnitsList = mutableListOf<String>()
 //Returning a layout as a dialog box
 
 

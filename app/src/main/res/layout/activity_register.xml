@@ -281,6 +281,7 @@
                         android:id="@+id/register_email"
                         android:fontFamily="@font/sans"
                         android:textSize="16sp"
+                        android:textColor="@color/black"
                         android:textStyle="bold|normal"
 
                         />

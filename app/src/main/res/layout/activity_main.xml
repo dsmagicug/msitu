@@ -144,7 +144,7 @@
                                 android:textStyle="bold|normal" />
 
                             <TextView
-                                android:id="@+id/distance2"
+                                android:id="@+id/distanceUnits"
                                 android:layout_width="82dp"
                                 android:layout_height="40dp"
                                 android:layout_margin="5dp"
@@ -152,7 +152,7 @@
                                 android:autofillHints=""
                                 android:padding="5dp"
                                 android:shadowColor="@color/white"
-                                android:text="(m)"
+                                android:text=""
                                 android:textAlignment="textStart"
                                 android:textColor="@color/white"
                                 android:textSize="18sp"

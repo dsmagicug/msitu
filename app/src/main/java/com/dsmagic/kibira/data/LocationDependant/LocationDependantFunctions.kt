@@ -21,8 +21,8 @@ class LocationDependantFunctions {
     fun facingDirection(InitialBearing: Float, bearing: Float): String {
 
         var d = ""
-        var rangeRight = 15 + InitialBearing
-        var rangeLeft = InitialBearing - 15
+        var rangeRight = 5 + InitialBearing
+        var rangeLeft = InitialBearing - 5
         var CurrentBearing: Float = 0F
         if (bearing < 0) {
             CurrentBearing = bearing * -1

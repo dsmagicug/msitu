@@ -1,31 +1,22 @@
 package com.dsmagic.kibira.roomDatabase
 
-import android.content.DialogInterface
 import android.util.Log
-import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import com.dsmagic.kibira.*
 import com.dsmagic.kibira.CreateProjectDialog.appdbInstance
 import com.dsmagic.kibira.MainActivity.Companion.appdb
 
-import com.dsmagic.kibira.MainActivity.Companion.lineInS2Format
 import com.dsmagic.kibira.MainActivity.Companion.listOfMarkedPoints
-import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.roomDatabase.Entities.Project
 import com.dsmagic.kibira.services.AppModule
 import com.dsmagic.kibira.services.deleteProjectDataClass
 import com.dsmagic.kibira.services.deleteProjectResponse
-import com.dsmagic.kibira.utils.Alerts.Companion.DeleteAlert
 import com.dsmagic.kibira.utils.Alerts.Companion.alertfail
 import com.google.android.gms.maps.model.LatLng
-import dilivia.s2.S2LatLng
-import dilivia.s2.index.point.PointData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -48,9 +39,9 @@ class DbFunctions {
 
         }
 
-        fun saveProject(name: String, GAPSIZE: Double, LineLength: Double, UID: Int,Meshtype:String): Long {
+        fun saveProject(name: String, GAPSIZE: Double, LineLength: Double, UID: Int,Meshtype:String,gapUnits:String,meshUnits:String): Long {
 
-            val project = Project(null, name, GAPSIZE, LineLength, UID,Meshtype)
+            val project = Project(null, name, GAPSIZE, LineLength, UID, Meshtype, gapUnits, meshUnits)
 
             GlobalScope.launch(Dispatchers.IO) {
                 ProjectID = appdbInstance.kibiraDao().insertProject(project)
@@ -75,6 +66,11 @@ class DbFunctions {
             }
 
             return listOfMarkedPoints
+
+        }
+
+        fun updateProjectDetails(PID:Int,gapsize:Double,meshsize:Double){
+
 
         }
 

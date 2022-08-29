@@ -12,6 +12,8 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import com.dsmagic.kibira.MainActivity.Companion.MeshType
+import com.dsmagic.kibira.MainActivity.Companion.gapUnits
+import com.dsmagic.kibira.MainActivity.Companion.meshUnits
 import com.dsmagic.kibira.MainActivity.Companion.onLoad
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
@@ -168,7 +170,6 @@ object CreateProjectDialog : DialogFragment() {
 
     fun oncreateclick() {
 
-
         var meshID = radiogroup.checkedRadioButtonId
         var selectedType = dialog?.findViewById<RadioButton>(meshID)?.text.toString()
         val projectname = dialog?.findViewById<EditText>(R.id.ProjectName)
@@ -195,18 +196,18 @@ object CreateProjectDialog : DialogFragment() {
             editor.putString("name_key", project_name)
             editor.putString("mesh_key", mesh_size)
             editor.putString("mesh_Type",selectedType)
+            editor.putString("gapsize_Units",gapUnit)
+            editor.putString("meshsize_Units",plotUnit)
             editor.apply()
             editor.commit()
 
             if (editor.commit()) {
-                val saved_project_name: String? =
-                    sharedPreferences.getString("name_key", "defaultValue")
+                val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
                 val gap_size: String? = sharedPreferences.getString("size_key", "0")
                 val savedGapSize = gap_size!!
                 val UID: String? = sharedPreferences.getString("userid_key", "0")
                 val userID = UID!!.toInt()
-                val meshSizeString: String? =
-                    sharedPreferences.getString("mesh_key", "0")
+                val meshSizeString: String? = sharedPreferences.getString("mesh_key", "0")
                 var meshSize: Double = 0.0
                 var gapSize: Double = 0.0
                 var meshSizeUnformated:Double = 0.0
@@ -224,8 +225,9 @@ object CreateProjectDialog : DialogFragment() {
                 if (plotUnit == "") {
                     val r = meshSizeString!!.toDouble()
                     meshSizeUnformated = (r * 0.3048)
-                    meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
-                    meshSize = meshSizeUnformatedString.toDouble()
+//                    meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
+//                    meshSize = meshSizeUnformatedString.toDouble()
+                    meshSize = meshSizeUnformated.toDouble()
 
 
                 }
@@ -233,7 +235,7 @@ object CreateProjectDialog : DialogFragment() {
                     val r = savedGapSize.toDouble()
                     gapSizeUnformatted = (r * 0.3048)
                     gapSizeUnformattedString = decimalFormat.format(gapSizeUnformatted)
-                    gapSize = gapSizeUnformattedString.toDouble()
+                    gapSize = gapSizeUnformatted.toDouble()
                 }
 
 
@@ -241,7 +243,8 @@ object CreateProjectDialog : DialogFragment() {
                     " Meters" -> {
                         meshSizeUnformated = meshSizeString!!.toDouble()
                         meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
-                        meshSize = meshSizeUnformatedString.toDouble()
+                        meshSize = meshSizeUnformated.toDouble()
+
 
 
                     }
@@ -249,39 +252,39 @@ object CreateProjectDialog : DialogFragment() {
                         val r = meshSizeString!!.toDouble()
                         meshSizeUnformated = (r * 0.3048)
                         meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
-                        meshSize = meshSizeUnformatedString.toDouble()
+                        meshSize = meshSizeUnformated.toDouble()
                     }
-                    "Miles" -> {
+                    " Miles" -> {
                         val r = meshSizeString!!.toDouble()
                         meshSizeUnformated = (r * 1609.34)
                         meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
-                        meshSize = meshSizeUnformatedString.toDouble()
+                        meshSize = meshSizeUnformated.toDouble()
 
                     }
                     " Acres" -> {
                         val r = meshSizeString!!.toDouble()
                         meshSizeUnformated = (r * 4046.86)
                         meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
-                        meshSize = meshSizeUnformatedString.toDouble()
+                        meshSize = meshSizeUnformated.toDouble()
                     }
                 }
                 when (gp) {
                     " Meters" -> {
                         gapSizeUnformatted = savedGapSize.toDouble()
                         gapSizeUnformattedString = decimalFormat.format(gapSizeUnformatted)
-                        gapSize = gapSizeUnformattedString.toDouble()
+                        gapSize = gapSizeUnformatted.toDouble()
                     }
                     " Ft" -> {
                         val r = savedGapSize.toDouble()
                         gapSizeUnformatted = (r * 0.3048)
                         gapSizeUnformattedString = decimalFormat.format(gapSizeUnformatted)
-                        gapSize = gapSizeUnformattedString.toDouble()
+                        gapSize = gapSizeUnformatted.toDouble()
                     }
                     " Inches" -> {
                         val r = savedGapSize.toDouble()
                         gapSizeUnformatted = (r * 0.0254)
                         gapSizeUnformattedString = decimalFormat.format(gapSizeUnformatted)
-                        gapSize = gapSizeUnformattedString.toDouble()
+                        gapSize = gapSizeUnformatted.toDouble()
 
                     }
 
@@ -290,6 +293,18 @@ object CreateProjectDialog : DialogFragment() {
                 Geogmesh_size = meshSize
                 Geoggapsize = gapSize
                 MeshType = selectedType
+                if(gapUnit == ""){
+                    gapUnits = " Ft"
+                } else {
+                    gapUnits = gapUnit
+                }
+                if(plotUnit == ""){
+                    meshUnits = " Ft"
+
+                }else {
+                    meshUnits = plotUnit
+                }
+
 
                 displayProjectName?.text = saved_project_name
                 saveProject(
@@ -297,7 +312,10 @@ object CreateProjectDialog : DialogFragment() {
                     gapSize,
                     meshSize,
                     userID,
-                    selectedType
+                    selectedType,
+                    gapUnits,
+                    meshUnits
+
                 )
                 ProjectID
                 editor.putString("productID_key", ProjectID.toString())

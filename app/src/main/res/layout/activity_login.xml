@@ -124,7 +124,7 @@ android:layout_marginTop="55dp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textEmailAddress"
-
+                        android:textColor="@color/black"
                         android:id="@+id/username"
                         android:fontFamily="@font/sans"
                         android:textSize="16sp"
@@ -150,7 +150,7 @@ android:layout_marginTop="55dp"
                         android:layout_height="wrap_content"
                         android:inputType="textPassword"
                         android:id="@+id/password"
-
+                        android:textColor="@color/black"
 
                                 android:fontFamily="@font/sans"
                                 android:textSize="16sp"

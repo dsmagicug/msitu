@@ -329,7 +329,7 @@ class Geometry {
             var r = Geoggapsize!! * .95
             val unformatedGapSize = decimalFormat.format(r)
             val MAX_MESH_SIZE:Double = Geogmesh_size!!// In metres
-            val GAP_SIZE:Double = unformatedGapSize.toDouble() // In metres (or 12ft)
+            val GAP_SIZE:Double = Geoggapsize!! * .95 // In metres (or 12ft)
 
             val theta = theta(centre, directionPoint)
             val mat = rotationMatrix(theta)
@@ -356,13 +356,15 @@ class Geometry {
             return l
         }
 
+        @Suppress("LocalVariableName")
         fun generateMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
             val decimalFormat = DecimalFormat("##.##")
             decimalFormat.roundingMode = RoundingMode.DOWN
-            var r = Geoggapsize!! * .95
-            val unformatedGapSize = decimalFormat.format(r)
+//            val r = Geoggapsize!! * .95
+//            val unformatedGapSize = decimalFormat.format(r)
+
             val MAX_MESH_SIZE:Double = Geogmesh_size!!// In metres
-            val GAP_SIZE:Double = unformatedGapSize.toDouble() // In metres (or 12ft)
+            val GAP_SIZE:Double = Geoggapsize!! * .95 // In metres (or 12ft)
             val theta = theta(centre,directionPoint)
             val mat = rotationMatrix(theta)
             val l = ArrayList<PlantingLine>()

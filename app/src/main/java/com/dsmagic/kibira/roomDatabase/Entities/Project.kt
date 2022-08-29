@@ -11,4 +11,6 @@ data class Project(
     val lineLength:Double,
     val userID:Int,
     val MeshType:String,
+    val gapsizeunits:String,
+    val lineLengthUnits:String,
 )
