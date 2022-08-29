@@ -48,7 +48,7 @@ class NotifyUserSignals {
         fun vibration() {
             val vibrationEffect:VibrationEffect
             if(!vibrator.hasVibrator()){
-                Toast.makeText(context,"does not have  VIBRA now", Toast.LENGTH_SHORT).show()
+               return
             }
             //ENSURING THAT THE PHONE IS RUNNING ANDROID ABOVE OREO
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
@@ -57,7 +57,6 @@ class NotifyUserSignals {
                 vibrator.vibrate(vibrationEffect)
                 Toast.makeText(context,"Vibrating now", Toast.LENGTH_SHORT).show()
             }
-
 
         }
 

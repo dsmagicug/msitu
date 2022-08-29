@@ -1,39 +1,37 @@
 package com.dsmagic.kibira
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.SharedPreferences
 import android.location.Location
 import android.util.Log
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+import dilivia.s2.S2LatLng
 import gov.nasa.worldwind.geom.LatLon
 import gov.nasa.worldwind.geom.coords.UTMCoord
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.checkerframework.checker.signedness.SignednessUtil.toDouble
+import org.json.JSONArray
+import org.json.JSONObject
+import java.math.RoundingMode
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.ArrayList
+import kotlin.math.absoluteValue
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
+/*
 
-// var METRES_FROM_FEET = 3.28084   //one meter = 3.28084 ft
-// var GAP_SIZE_FEET = 12
-// var MAX_MESH_SIZE = 100.0 // In metres
-// var GAP_SIZE_METRES = GAP_SIZE_FEET / METRES_FROM_FEET
-//var Geoggapsize: Double? = 0.0 //in meters
-//var Geogmesh_size:Double? = 0.0  //in meters
-
-var MAX_MESH_SIZE:Double = 0.0 // In metres
-var GAP_SIZE_METRES :Double = 0.0
-var Geoggapsize: Double? = 0.0 //in meters
-var Geogmesh_size:Double? = 0.0  //in meters
-
-
-const val SINE_60 = 0.86602540378 // Sine of 60 degrees...
-
-/**
- * The mesh direction to use. That is, facing the direction point from where we stand, are we going left or right in our planting?
- */
-enum class MeshDirection {LEFT, RIGHT}
+var Geoggapsize: Double? = 0.0
+var Geogmesh_size:Double? = 0.0
 
 // Represents a point where a tree is planted. Units are metres.
-open class Point(internal var x: Double, internal var y: Double) {
+class Point(internal var x: Double, internal var y: Double) {
 
     var zone = 0 // UTM zone
     var hemisphere = "N"
@@ -46,11 +44,12 @@ open class Point(internal var x: Double, internal var y: Double) {
         y = yNew
     }
 
-
-    /**
+    */
+/**
      * Create UTM coordinates
      * See https://github.com/rolfrander/geo/blob/master/src/main/java/org/pvv/rolfn/geo/UTM.java
-     */
+     *//*
+
     constructor(loc: LongLat) : this(0.0, 0.0) {
         // Convert using Nasa libs
         val ll = LatLon.fromDegrees(loc.getLatitude(), loc.getLongitude())
@@ -73,24 +72,18 @@ open class PlantingLine(private val points: ArrayList<Point>) {
         // Make the points.
         var current = startPointX
         var lim = maxLineLength
-        while (lim > 0) {
-            val p = Point(current, startPointY)
-            points.add(p)
-            current += gap
-            lim -= gap
-        }
-    }
 
-    constructor(startPoint: Point, xDelta: Double, yDelta: Double) : this(ArrayList()) {
-        var current = startPoint
-        var lim = MAX_MESH_SIZE
-
-        points.add(current) // First point goes in.
-        while (lim > 0 ) {
-            current = Point(current.x+xDelta,current.y+yDelta) // .move(xDelta,yDelta)
-            points.add(current)
-            lim -= GAP_SIZE_METRES
+            while (lim > 0) {
+                try{
+                val p = Point(current, startPointY)
+                points.add(p)
+                current += gap
+                lim -= gap
+            }catch(e:Exception){
+                e.printStackTrace()
+            }
         }
+
     }
 
     fun rotate(theta: Pair<Double, Double>): PlantingLine {
@@ -104,7 +97,7 @@ open class PlantingLine(private val points: ArrayList<Point>) {
     fun fromUTM(centre: Point): List<LongLat> {
         return points.map {
             // We need to shift the basis back to UTM from our point-centred axes
-            LongLat(centre.zone, centre.hemisphere, it.x /*+ centre.x*/, it.y /*+ centre.y*/)
+            LongLat(centre.zone, centre.hemisphere, it.x + centre.x, it.y + centre.y)
         }
     }
 }
@@ -112,12 +105,6 @@ open class PlantingLine(private val points: ArrayList<Point>) {
 var LOCATION_PROVIDER = "Rtk"
 
 class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
-
-    companion object {
-        var lastHorizontalAccuracy = 1.0 // Current accuracy
-        var lastVerticalAccuracy = 1.0
-        var lastAltitudeAccuracy = 1.0
-    }
 
     enum class FixType {
         NoFixData,
@@ -137,7 +124,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
     var hdop = 0.0
     var aboveSeaLevel = 0.0
     var speed: Double? = null
-    var accuracy: Double? = null // Default to 1m
+
     var latitude = ""
     var longitude = ""
 
@@ -147,18 +134,30 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
     @SuppressLint("SimpleDateFormat")
     val dateFormatLong = SimpleDateFormat("DDMMyy-HHmmss.SSZ")
 
-    /**
+    */
+/**
      * From UTM.
      * See: https://github.com/rolfrander/geo/blob/master/src/main/java/org/pvv/rolfn/geo/WGS84.java
-     */
+     *//*
+
     constructor(zone: Int, hemisphere: String, easting: Double, northing: Double) : this(0.0, 0.0) {
         val ll = UTMCoord.locationFromUTMCoord(zone, hemisphere, easting, northing)
-        lat = ll.latitude.degrees
-        long = ll.longitude.degrees
+
+        val dflat = DecimalFormat("#.##################") //18dp
+        val dflng = DecimalFormat("#.##################") //18dp
+        dflat.roundingMode = RoundingMode.DOWN
+        dflng.roundingMode = RoundingMode.DOWN
+
+     val l = dflat.format(ll.latitude.degrees).toDouble()
+        val llng = dflng.format(ll.longitude.degrees).toDouble()
+       // lat = ll.latitude.degrees
+        lat = l
+        long = llng
+       // long =ll.longitude.degrees
     }
 
     override fun toString(): String {
-        return "${this.longitude}, ${this.latitude} (${this.long}, ${this.lat}), altitude: ${this.altitude}, hdop: ${this.hdop}, fix: ${this.fixType}"
+        return "${this.longitude}, ${this.latitude} (${this.long}, ${this.lat}), altitude: ${this.altitude},bearing:${this.bearing}, hdop: ${this.hdop}, fix: ${this.fixType}"
     }
 
 
@@ -174,34 +173,32 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
             initRMC(l)
         } else if (sType.endsWith("gga", true)) {
             initGGA(l)
-        } else if (sType.endsWith("gst", true)) {
-            lastVerticalAccuracy = l[6].toDouble()
-            lastHorizontalAccuracy = l[7].toDouble()
-            //   lastAltitudeAccuracy = l[7].toDouble() -- ignore, since has *checksum -- we don't need it.
-
-            fixType = FixType.NoFixData
         } else
             fixType = FixType.NoFixData
-
-        accuracy =
-            (lastHorizontalAccuracy + lastVerticalAccuracy) / 2 // Grab last accuracy, average regardless
     }
 
     private fun parseDegrees(v: String, indicator: String): Double {
         // s = the value, indicator = N,S,E,W
         // s has the format XXYY.blah
         // https://stackoverflow.com/questions/36254363/how-to-convert-latitude-and-longitude-of-nmea-format-data-to-decimal
-        var offset = v.indexOf('.') - 2
-        if (offset < 0)
-            offset = 0
-        val d = if (offset == 0) 0 else v.substring(0, offset).toLong()
-        val m = v.substring(offset).toDouble() / 60.0
-        val sign = when (indicator) {
-            "N" -> 1
-            "E" -> 1
-            else -> -1
-        }
-        return sign * (d + m)
+
+      try{
+          var offset = v.indexOf('.') - 2
+          if (offset < 0)
+              offset = 0
+          val d = if (offset == 0) 0 else v.substring(0, offset).toLong()
+          val m = v.substring(offset).toDouble() / 60.0
+          val sign = when (indicator) {
+              "N" -> 1
+              "E" -> 1
+              else -> -1
+          }
+          return sign * (d + m)
+
+      }catch (e:NumberFormatException){
+
+      }
+       return 0.0
     }
 
     private fun initGGA(l: List<String>) {
@@ -231,6 +228,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
 
     private fun initRMC(l: List<String>) {
         // See https://orolia.com/manuals/VSP/Content/NC_and_SS/Com/Topics/APPENDIX/NMEA_RMCmess.htm
+
         val dd = l[9] + "-" + l[1] + "+0000"
         timeStamp = dateFormatLong.parse(dd)
 
@@ -254,17 +252,16 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
             }
     }
 
-
+    fun toS2(): S2LatLng {
+        return S2LatLng((lat / Math.PI).toFloat(), (long / Math.PI).toFloat())
+    }
 
     override fun getAltitude(): Double {
         return aboveSeaLevel
     }
 
     override fun getAccuracy(): Float {
-        return if (accuracy == null)
-            if (fixType == FixType.RTKFix) 0.01f else 0.3f // XX rough guess
-        else
-            accuracy!!.toFloat() // Else return what we got...
+        return if (fixType == FixType.RTKFix) 0.01f else 0.3f // XX rough guess
     }
 
     override fun getLatitude(): Double {
@@ -280,7 +277,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
     }
 
     override fun hasAccuracy(): Boolean {
-        return lastHorizontalAccuracy > 0.0
+        return true
     }
 
     override fun hasAltitude(): Boolean {
@@ -301,7 +298,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
 
     override fun getSpeed(): Float {
         return if (speed == null)
-            0.0f
+            0.0.toFloat()
         else
             speed!!.toFloat()
     }
@@ -310,88 +307,111 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
 class Geometry {
     companion object {
 
+
+        private fun rotationMatrix(theta: Double): Pair<Double, Double> {
+            // Takes an angle in radians, computes the rotation values cosTheta and signTheta
+            val x = cos(theta)
+            val y = sin(theta)
+
+            Log.d("rotate", "sin($theta) = $y, cos($theta)= $x")
+            return Pair(x, y)
+        }
+
         // Get the angle made with the horizontal by the vector from the origin to a point.
-        // Returns angle in polar form
         private fun theta(p1: Point, p2: Point): Double {
-            val p = Point(p2.x - p1.x, p2.y - p1.y)
+            val p = Point(p2.x-p1.x, p2.y-p1.y)
             val x = atan2(p.y, p.x)
             val y = x / Math.PI * 180
             Log.d("theta", "Angle between horizontal and point is $x (or $y°)")
             return x
         }
+        const val SINE_60 = 0.86602540378 // Sine of 60 degrees...
 
-        /**
-         * Return a mesh, starting at startPoint, forward in the direction given. Between each two lines is GAP_SIZE metres,
-         * between each point is GAP_SIZE metres.
-         */
-        fun generateSquareMesh(startPoint: Point, directionPoint: Point, plantingDirection: MeshDirection): List<PlantingLine> {
-            val theta = theta(startPoint, directionPoint)
 
+        fun generateTriangleMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
+            val decimalFormat = DecimalFormat("##.##")
+            decimalFormat.roundingMode = RoundingMode.DOWN
+            var r = Geoggapsize!! * .95
+            val unformatedGapSize = decimalFormat.format(r)
+            val MAX_MESH_SIZE:Double = Geogmesh_size!!// In metres
+            val GAP_SIZE:Double = Geoggapsize!! * .95 // In metres (or 12ft)
+
+            val theta = theta(centre, directionPoint)
+            val mat = rotationMatrix(theta)
             val l = ArrayList<PlantingLine>()
-            val xDelta = GAP_SIZE_METRES * cos(theta)
-            val yDelta = GAP_SIZE_METRES * sin(theta)
+            // X starts at the left. We draw the centre line first, then generate the ones below and above in order until we are done...
+            val STARTX = -MAX_MESH_SIZE / 2.0
 
-            // The next line starting point is always a 90 degree turn from the last starting point.
-            val linesDirection = if  (plantingDirection == MeshDirection.LEFT)  1  else -1
-            val gamma =  theta + linesDirection * (Math.PI/2)  // Better methinks...
-            val lineDeltaX =  GAP_SIZE_METRES * cos(gamma)
-            val lineDeltaY =  GAP_SIZE_METRES * sin(gamma)
-            var lineStart = startPoint
+            // Put in centre/base line
+            l.add(PlantingLine(STARTX, 0.0, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+            val lineSkip = GAP_SIZE * SINE_60 // Skip smaller.
+            var currentY = lineSkip
 
-            var lanesWidth = 0.0 // This is lanes (i.e. lines) times gap size
-            while (lanesWidth < MAX_MESH_SIZE) {
-                l.add(PlantingLine(lineStart, xDelta,yDelta))
-                lineStart = Point(lineStart.x + lineDeltaX, lineStart.y + lineDeltaY) // .move(lineDeltaX,lineDeltaY) // Move the start point to the next line
-                lanesWidth += GAP_SIZE_METRES
+            var Xskip = 1
+
+            while (currentY < MAX_MESH_SIZE / 2.0) {
+                val startPosX = STARTX - (Xskip * GAP_SIZE)/2
+                //l.add(PlantingLine(startPosX, currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+                 l.add(PlantingLine(startPosX, -currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+
+                Xskip = (Xskip + 1) % 2 // Every other line starts at 0, every other at half of skip.
+
+                currentY += lineSkip
             }
             return l
         }
 
-        fun generateTriangleMesh(startPoint: Point, directionPoint: Point, plantingDirection: MeshDirection): List<PlantingLine> {
-            val theta = theta(startPoint, directionPoint)
+        @Suppress("LocalVariableName")
+        fun generateMesh(centre: Point, directionPoint: Point): List<PlantingLine> {
+            val decimalFormat = DecimalFormat("##.##")
+            decimalFormat.roundingMode = RoundingMode.DOWN
+//            val r = Geoggapsize!! * .95
+//            val unformatedGapSize = decimalFormat.format(r)
 
+            val MAX_MESH_SIZE:Double = Geogmesh_size!!// In metres
+            val GAP_SIZE:Double = Geoggapsize!! * .95 // In metres (or 12ft)
+            val theta = theta(centre,directionPoint)
+            val mat = rotationMatrix(theta)
             val l = ArrayList<PlantingLine>()
-            val xDelta = GAP_SIZE_METRES * cos(theta)
-            val yDelta = GAP_SIZE_METRES * sin(theta)
+            // X starts at the left. We draw the centre line first, then generate the ones below and above in order until we are done...
+            val startX = -MAX_MESH_SIZE / 2.0
+            var currentY = GAP_SIZE
 
-            // The next line starting point is always a 90 degree turn from the last starting point.
-            val linesDirection = if  (plantingDirection == MeshDirection.LEFT)  1  else -1
-            val gamma =  theta + linesDirection * (Math.PI/2) // If we are painting the lines going left, then we must add 90 to current angle to get direction. Otherwise subtract 90.
-            val lineDeltaX =  SINE_60 * GAP_SIZE_METRES * cos(gamma)
-            val lineDeltaY =  SINE_60 * GAP_SIZE_METRES * sin(gamma)
-            var lineStart = startPoint
-            var xSkip = 1
-            var lanesWidth = 0.0 // This is lanes (i.e. lines) times gap size
-            while (lanesWidth < MAX_MESH_SIZE) {
-                l.add(PlantingLine(lineStart, xDelta,yDelta))
-
-                val nextLineOffsetX  = xSkip * (xDelta/2)
-                val nexLineOffsetY = xSkip * (yDelta/2)
-
-                lineStart = Point(lineStart.x + lineDeltaX + nextLineOffsetX, lineStart.y + lineDeltaY + nexLineOffsetY) // .move(lineDeltaX,lineDeltaY) // Move the start point to the next line
-                lanesWidth += GAP_SIZE_METRES * SINE_60
-
-                xSkip *= -1 // (xSkip + 1) % 2 // skip forward by half the displacement, or back by the same for each line...
+            // Put in centre/base line
+            l.add(PlantingLine(startX, 0.0, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+            while (currentY < Geogmesh_size!! / 2.0) {
+                // The + one, then the - one
+                l.add(PlantingLine(startX, currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+                l.add(PlantingLine(startX, -currentY, GAP_SIZE, MAX_MESH_SIZE).rotate(mat))
+                currentY += GAP_SIZE
             }
+
             return l
         }
 
-
-        fun generateLongLat(
+      fun generateLongLat(
             c: Point,
             a: List<PlantingLine>,
-            printLine: (List<LongLat>) -> Unit
+            printline: (List<LongLat>) -> Unit
         ): List<List<LongLat>> {
-            val al = ArrayList<List<LongLat>>()
-            for (l in a) {
+         val al = ArrayList<List<LongLat>>()
+         var xl:List<LongLat>
 
-                val xl = l.fromUTM(c)
-                al.add(xl) // Use UTM centre...
+         GlobalScope.launch(Dispatchers.IO){
 
-                printLine(xl) // Cause it to be printed
-            }
+             a.forEach {
+                 xl = it.fromUTM(c)
+                 al.add(xl)
+                 withContext(Dispatchers.Main){
+                     printline(xl)
+                 }
+             }
 
-            return al
+         }
+
+            return  al
+
         }
     }
-}
+*/
+//}

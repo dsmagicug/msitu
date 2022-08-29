@@ -70,7 +70,7 @@ fun markedLines(Line:Polyline,ListOfMarkedPoints:MutableList<LatLng>,textview: T
     }
     val pointsOnLine = Line.tag as MutableList<*>
     val commonElements = ListOfMarkedPoints.intersect(pointsOnLine.toSet())
-    if(commonElements.size > 5){
+    if(commonElements.size >= 5){
         markedLinesCounter +=1
         textview.text = markedLinesCounter.toString()
     }

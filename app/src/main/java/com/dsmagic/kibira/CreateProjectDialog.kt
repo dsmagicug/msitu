@@ -21,11 +21,13 @@ import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.saveProject
+import com.dsmagic.kibira.utils.Conversions
 import java.math.RoundingMode
 import java.text.DecimalFormat
 
 
 //Returning a layout as a dialog box
+@SuppressLint("StaticFieldLeak")
 object CreateProjectDialog : DialogFragment() {
     lateinit var appdbInstance: AppDatabase
     lateinit var radiogroup: RadioGroup
@@ -212,86 +214,14 @@ object CreateProjectDialog : DialogFragment() {
                 var gapSize: Double = 0.0
                 var meshSizeUnformated:Double = 0.0
                 var gapSizeUnformatted:Double = 0.0
-               var meshSizeUnformatedString:String
-               var gapSizeUnformattedString:String
-
-                val decimalFormat = DecimalFormat("##.##")
-                decimalFormat.roundingMode = RoundingMode.DOWN
 
                 val n = plotUnit
                 val gp = gapUnit
+                meshSize = Conversions.ftToMeters(meshSizeString!!,n)
+                gapSize =  Conversions.ftToMeters(savedGapSize,gp)
 
-                //if nothing is selected then ft is the default
-                if (plotUnit == "") {
-                    val r = meshSizeString!!.toDouble()
-                    meshSizeUnformated = (r * 0.3048)
-//                    meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
-//                    meshSize = meshSizeUnformatedString.toDouble()
-                    meshSize = meshSizeUnformated.toDouble()
-
-
-                }
-                if (gapUnit == "") {
-                    val r = savedGapSize.toDouble()
-                    gapSizeUnformatted = (r * 0.3048)
-                    gapSizeUnformattedString = decimalFormat.format(gapSizeUnformatted)
-                    gapSize = gapSizeUnformatted.toDouble()
-                }
-
-
-                when (n) {
-                    " Meters" -> {
-                        meshSizeUnformated = meshSizeString!!.toDouble()
-                        meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
-                        meshSize = meshSizeUnformated.toDouble()
-
-
-
-                    }
-                    " Ft" -> {
-                        val r = meshSizeString!!.toDouble()
-                        meshSizeUnformated = (r * 0.3048)
-                        meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
-                        meshSize = meshSizeUnformated.toDouble()
-                    }
-                    " Miles" -> {
-                        val r = meshSizeString!!.toDouble()
-                        meshSizeUnformated = (r * 1609.34)
-                        meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
-                        meshSize = meshSizeUnformated.toDouble()
-
-                    }
-                    " Acres" -> {
-                        val r = meshSizeString!!.toDouble()
-                        meshSizeUnformated = (r * 4046.86)
-                        meshSizeUnformatedString = decimalFormat.format(meshSizeUnformated)
-                        meshSize = meshSizeUnformated.toDouble()
-                    }
-                }
-                when (gp) {
-                    " Meters" -> {
-                        gapSizeUnformatted = savedGapSize.toDouble()
-                        gapSizeUnformattedString = decimalFormat.format(gapSizeUnformatted)
-                        gapSize = gapSizeUnformatted.toDouble()
-                    }
-                    " Ft" -> {
-                        val r = savedGapSize.toDouble()
-                        gapSizeUnformatted = (r * 0.3048)
-                        gapSizeUnformattedString = decimalFormat.format(gapSizeUnformatted)
-                        gapSize = gapSizeUnformatted.toDouble()
-                    }
-                    " Inches" -> {
-                        val r = savedGapSize.toDouble()
-                        gapSizeUnformatted = (r * 0.0254)
-                        gapSizeUnformattedString = decimalFormat.format(gapSizeUnformatted)
-                        gapSize = gapSizeUnformatted.toDouble()
-
-                    }
-
-                }
-
-                Geogmesh_size = meshSize
-                Geoggapsize = gapSize
+                MAX_MESH_SIZE = meshSize
+                GAP_SIZE_METRES = gapSize
                 MeshType = selectedType
                 if(gapUnit == ""){
                     gapUnits = " Ft"

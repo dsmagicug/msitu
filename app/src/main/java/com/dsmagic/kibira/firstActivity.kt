@@ -137,150 +137,150 @@ class firstActivity : DialogFragment(), AdapterView.OnItemClickListener {
 
     var plotUnit = ""
     var gapUnit = ""
-    fun oncreateclick() {
-
-        val projectname = dialog?.findViewById<EditText>(R.id.ProjectName)
-        val meshSize = dialog?.findViewById<EditText>(R.id.MeshSize)
-        var progressbar = activity?.findViewById<ProgressBar>(R.id.progressBar)
-
-        val gapsize = dialog?.findViewById<EditText>(R.id.gapSize)
-        val displayProjectName = activity?.findViewById<TextView>(R.id.display_project_name)
-
-        val gap_size_string = gapsize?.text.toString()
-
-        val project_name: String = projectname?.text.toString()
-        val mesh_size: String = meshSize?.text.toString()
-
-        if (project_name == "" || gap_size_string == "") {
-            CreateProjectDialog.alertfail("Please fill all fields")
-        } else {
-            //  progressbar?.isVisible = true
-            val sharedPreferences: SharedPreferences =
-                activity?.getSharedPreferences(CreateProjectDialog.sharedPrefFile, Context.MODE_PRIVATE)!!
-
-            val editor = sharedPreferences.edit()
-            editor.putString("size_key", gap_size_string)
-            editor.putString("name_key", project_name)
-            editor.putString("mesh_key", mesh_size)
-            editor.apply()
-            editor.commit()
-            // progressbar?.isVisible = true
-            if (editor.commit()) {
-                val saved_project_name: String? =
-                    sharedPreferences.getString("name_key", "defaultValue")
-                val gap_size: String? = sharedPreferences.getString("size_key", "0")
-                val saved_gap_size = gap_size!!
-                val UID: String? = sharedPreferences.getString("userid_key", "0")
-                val userID = UID!!.toInt()
-                val mesh_size_string: String? =
-                    sharedPreferences.getString("mesh_key", "0")
-                var MeshSize: Double = 0.0
-                var GapSize: Double = 0.0
-
-                val decimalFormat = DecimalFormat("##.##")
-                decimalFormat.roundingMode = RoundingMode.DOWN
-
-                val n = CreateProjectDialog.plotUnit
-                val gp = CreateProjectDialog.gapUnit
-
-                //if nothing is selected then ft is the default
-                if (CreateProjectDialog.plotUnit == "") {
-                    var r = mesh_size_string!!.toDouble()
-                    MeshSize = (r * 0.3048)
-                }
-                if (CreateProjectDialog.gapUnit == "") {
-                    var r = saved_gap_size.toDouble()
-                    GapSize = (r * 0.3048)
-                }
-
-
-                when (n) {
-                    "Metres" -> {
-                        MeshSize = mesh_size_string!!.toDouble()
-
-                    }
-                    "Ft" -> {
-                        var r = mesh_size_string!!.toDouble()
-                        MeshSize = (r * 0.3048)
-                    }
-                    "Miles" -> {
-                        var r = mesh_size_string!!.toDouble()
-                        MeshSize = (r * 1609.34)
-
-                    }
-                    "Acres" -> {
-                        var r = mesh_size_string!!.toDouble()
-                        MeshSize = (r * 4046.86)
-                    }
-                }
-                when (gp) {
-                    "metres" -> {
-                        GapSize = saved_gap_size.toDouble()
-                    }
-                    "ft" -> {
-                        var r = saved_gap_size.toDouble()
-                        GapSize = (r * 0.3048)
-                    }
-                    "Inches" -> {
-                        var r = saved_gap_size.toDouble()
-                        GapSize = (r * 0.0254)
-
-                    }
-
-                }
-
-
-                Geogmesh_size = MeshSize
-                Geoggapsize = GapSize
-
-                displayProjectName?.text = saved_project_name
-//                val pid = DbFunctions.saveProject(
-//                    saved_project_name!!,
-//                    GapSize,
-//                    MeshSize,
-//                    userID,
-//                )
-                // var pid = DbFunctions.projectID( Geoggapsize!!.toDouble(),saved_project_name!!)
-                //editor.putString("productID_key", pid.toString())
-                editor.apply()
-                editor.commit()
-                if(editor.commit()){
-                    var r = 50
-                }
-
-                MainActivity.meshDone = false
-
-                for (item in MainActivity.polyLines) {
-                    item!!.remove()
-                }
-                MainActivity.mapFragment =
-                    (activity?.supportFragmentManager!!.findFragmentById(R.id.mapFragment) as SupportMapFragment?)!!
-                //mapFragment?.getMapAsync(callback)
-
-                for (l in MainActivity.listofmarkedcircles) {
-                    l.remove()
-                }
-               if(MainActivity.listOfMarkedPoints.isNotEmpty()){
-                   MainActivity.listOfMarkedPoints.clear()
-               }
-                for (l in MainActivity.unmarkedCirclesList) {
-                    l.remove()
-                }
-                if (MainActivity.listOfPlantingLines.isNotEmpty()) {
-                    MainActivity.listOfPlantingLines.clear()
-                }
-                MainActivity.directionCardLayout.isVisible = false
-                MainActivity.card.isVisible = false
-
-                CreateProjectDialog.clean = true
-
-
-            } else {
-                Log.d("not", "Not saved")
-            }
-        }
-
-    }
+//    fun oncreateclick() {
+//
+//        val projectname = dialog?.findViewById<EditText>(R.id.ProjectName)
+//        val meshSize = dialog?.findViewById<EditText>(R.id.MeshSize)
+//        var progressbar = activity?.findViewById<ProgressBar>(R.id.progressBar)
+//
+//        val gapsize = dialog?.findViewById<EditText>(R.id.gapSize)
+//        val displayProjectName = activity?.findViewById<TextView>(R.id.display_project_name)
+//
+//        val gap_size_string = gapsize?.text.toString()
+//
+//        val project_name: String = projectname?.text.toString()
+//        val mesh_size: String = meshSize?.text.toString()
+//
+//        if (project_name == "" || gap_size_string == "") {
+//            CreateProjectDialog.alertfail("Please fill all fields")
+//        } else {
+//            //  progressbar?.isVisible = true
+//            val sharedPreferences: SharedPreferences =
+//                activity?.getSharedPreferences(CreateProjectDialog.sharedPrefFile, Context.MODE_PRIVATE)!!
+//
+//            val editor = sharedPreferences.edit()
+//            editor.putString("size_key", gap_size_string)
+//            editor.putString("name_key", project_name)
+//            editor.putString("mesh_key", mesh_size)
+//            editor.apply()
+//            editor.commit()
+//            // progressbar?.isVisible = true
+//            if (editor.commit()) {
+//                val saved_project_name: String? =
+//                    sharedPreferences.getString("name_key", "defaultValue")
+//                val gap_size: String? = sharedPreferences.getString("size_key", "0")
+//                val saved_gap_size = gap_size!!
+//                val UID: String? = sharedPreferences.getString("userid_key", "0")
+//                val userID = UID!!.toInt()
+//                val mesh_size_string: String? =
+//                    sharedPreferences.getString("mesh_key", "0")
+//                var MeshSize: Double = 0.0
+//                var GapSize: Double = 0.0
+//
+//                val decimalFormat = DecimalFormat("##.##")
+//                decimalFormat.roundingMode = RoundingMode.DOWN
+//
+//                val n = CreateProjectDialog.plotUnit
+//                val gp = CreateProjectDialog.gapUnit
+//
+//                //if nothing is selected then ft is the default
+//                if (CreateProjectDialog.plotUnit == "") {
+//                    var r = mesh_size_string!!.toDouble()
+//                    MeshSize = (r * 0.3048)
+//                }
+//                if (CreateProjectDialog.gapUnit == "") {
+//                    var r = saved_gap_size.toDouble()
+//                    GapSize = (r * 0.3048)
+//                }
+//
+//
+//                when (n) {
+//                    "Metres" -> {
+//                        MeshSize = mesh_size_string!!.toDouble()
+//
+//                    }
+//                    "Ft" -> {
+//                        var r = mesh_size_string!!.toDouble()
+//                        MeshSize = (r * 0.3048)
+//                    }
+//                    "Miles" -> {
+//                        var r = mesh_size_string!!.toDouble()
+//                        MeshSize = (r * 1609.34)
+//
+//                    }
+//                    "Acres" -> {
+//                        var r = mesh_size_string!!.toDouble()
+//                        MeshSize = (r * 4046.86)
+//                    }
+//                }
+//                when (gp) {
+//                    "metres" -> {
+//                        GapSize = saved_gap_size.toDouble()
+//                    }
+//                    "ft" -> {
+//                        var r = saved_gap_size.toDouble()
+//                        GapSize = (r * 0.3048)
+//                    }
+//                    "Inches" -> {
+//                        var r = saved_gap_size.toDouble()
+//                        GapSize = (r * 0.0254)
+//
+//                    }
+//
+//                }
+//
+//
+//                Geogmesh_size = MeshSize
+//                Geoggapsize = GapSize
+//
+//                displayProjectName?.text = saved_project_name
+////                val pid = DbFunctions.saveProject(
+////                    saved_project_name!!,
+////                    GapSize,
+////                    MeshSize,
+////                    userID,
+////                )
+//                // var pid = DbFunctions.projectID( Geoggapsize!!.toDouble(),saved_project_name!!)
+//                //editor.putString("productID_key", pid.toString())
+//                editor.apply()
+//                editor.commit()
+//                if(editor.commit()){
+//                    var r = 50
+//                }
+//
+//                MainActivity.meshDone = false
+//
+//                for (item in MainActivity.polyLines) {
+//                    item!!.remove()
+//                }
+//                MainActivity.mapFragment =
+//                    (activity?.supportFragmentManager!!.findFragmentById(R.id.mapFragment) as SupportMapFragment?)!!
+//                //mapFragment?.getMapAsync(callback)
+//
+//                for (l in MainActivity.listofmarkedcircles) {
+//                    l.remove()
+//                }
+//               if(MainActivity.listOfMarkedPoints.isNotEmpty()){
+//                   MainActivity.listOfMarkedPoints.clear()
+//               }
+//                for (l in MainActivity.unmarkedCirclesList) {
+//                    l.remove()
+//                }
+//                if (MainActivity.listOfPlantingLines.isNotEmpty()) {
+//                    MainActivity.listOfPlantingLines.clear()
+//                }
+//                MainActivity.directionCardLayout.isVisible = false
+//                MainActivity.card.isVisible = false
+//
+//                CreateProjectDialog.clean = true
+//
+//
+//            } else {
+//                Log.d("not", "Not saved")
+//            }
+//        }
+//
+//    }
 //    var ProjectID: Long = 0
 //    fun saveProject(name: String, GAPSIZE: Double, LineLength: Double, UID: Int): Long {
 //
