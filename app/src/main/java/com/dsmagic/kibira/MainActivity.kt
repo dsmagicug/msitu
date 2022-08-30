@@ -40,6 +40,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
+import com.dsmagic.kibira.notifications.NotifyUserSignals
+import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.circle
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.startBeep
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.statisticsWindow
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.stopBeep
@@ -81,12 +83,12 @@ import java.util.concurrent.Executors
 import kotlin.math.sqrt
 
 
-open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
+class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     View.OnClickListener, NavigationView.OnNavigationItemSelectedListener {
 
 
     var device: BluetoothDevice? = null
-    private var map: GoogleMap? = null
+
     private var marker: Circle? = null
     private var directionMarker: Marker? = null
     var tempListMarker = mutableListOf<Marker>()
@@ -100,7 +102,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     var pointsIndex = S2PointIndex<S2LatLng>()
     var asyncExecutor: ExecutorService = Executors.newCachedThreadPool()
     var closestPointRadius = ArrayList<Any>()
-    var tempPlantingRadius = 0.0f
+
 
     private lateinit var fromRTKFeed: LatLng
 
@@ -127,9 +129,8 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     //-------------compass----------//
     lateinit var fabCampus: FloatingActionButton
     lateinit var directionImage: ImageView
-    lateinit var directionText: TextView
-    lateinit var pointReached:TextView
 
+    lateinit var directionText: TextView
     var BearingPhoneIsFacing: Float = 0.0f
 
     lateinit var drawerlayout: DrawerLayout
@@ -145,7 +146,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
     lateinit var linesMarked: TextView
     lateinit var totalPoints: TextView
     lateinit var projectLines: MutableList<PlantingLine>
-    var delta = 0.1
+    var delta = 0.05
     var projectLoaded = false
 
 
@@ -154,9 +155,15 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         lateinit var initialTime: SimpleDateFormat
         lateinit var initialTimeValue: String
         val bluetoothList = ArrayList<String>()
+        var map: GoogleMap? = null
+        var tempPlantingRadius = 0.0f
+        var toleranceRadius = 0.0f
         var listOfMarkedPoints = mutableListOf<LatLng>()
         var listofmarkedcircles = mutableListOf<Circle>()
-
+        lateinit var positionText:TextView
+        lateinit var positionImage:ImageView
+        lateinit var pointCardview:CardView
+        lateinit var positionLayout:LinearLayout
         var unmarkedCirclesList = mutableListOf<Circle>()
 
         var listOfPlantingLines = mutableListOf<Polyline>()
@@ -214,8 +221,11 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         linesMarked = findViewById(R.id.linesMarkedValue)
         totalPoints = findViewById(R.id.totalPointsValue)
         directionImage = findViewById(R.id.directionImageValue)
+        positionImage = findViewById(R.id.plantValue)
+        positionText = findViewById<TextView>(R.id.plantText)
         directionText = findViewById(R.id.directionText)
-        pointReached = findViewById<TextView>(R.id.pointReached)
+        pointCardview = findViewById(R.id.positionCardView)
+        positionLayout = findViewById(R.id.plant)
         directionCardLayout = findViewById(R.id.directionsLayout)
         displayedDistance = findViewById<TextView>(R.id.distance)
         displayedDistanceUnits = findViewById<TextView>(R.id.distanceUnits)
@@ -354,8 +364,10 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
                     plotFunc()
                     distanceToPoint(fromRTKFeed)
+
                     // We need to calculate distance of where we are to point to be marked
                     if (closestPointRadius.size > 0) {
+                        toleranceRadius = radius(GAP_SIZE_METRES).toFloat()
                         val pointOfInterest = closestPointRadius[0] as LatLng
                         val acceptedPlantingRadius = tempPlantingRadius
                         val distanceAway =
@@ -365,22 +377,30 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                             )
                         //animate point as person is closer to point
 //                        if(distanceAway < acceptedPlantingRadius){
-//EE                        blinkEffectForPoint("Cyan",plantingRadius)
+//                       blinkEffectForPoint("Cyan",plantingRadius)
 //                        }
-                        // divide by 2 means we want to mark when user is closer to the point
-                        if ((distanceAway < acceptedPlantingRadius) && (pointOfInterest !in listOfMarkedPoints)) {
+
+                        if ((distanceAway < acceptedPlantingRadius || distanceAway < toleranceRadius)) {
                             blink(position)
+                            NotifyUserSignals.shrinkCircle(distanceAway, pointOfInterest)
+                            NotifyUserSignals.flashPosition("Orange",positionLayout)
                             vibration()
                             if (distanceAway < delta) {
-                                blinkEffectOfMarkedPoints("Green",pointReached)
+                                NotifyUserSignals.flashPosition("Green",positionLayout)
                                 startBeep()
-                                // mark point
                                 markPoint(pointOfInterest)
+                                NotifyUserSignals.circleID = " "
+                                circle = null
+
+                            }
+                            if(distanceAway > delta && distanceAway < acceptedPlantingRadius || distanceAway < toleranceRadius){
+                                NotifyUserSignals.flashPosition("Red",positionLayout)
                                 stopBeep()
                             }
 
-                        } else {
-
+                        }
+                        if(distanceAway > acceptedPlantingRadius){
+                            stopBeep()
                         }
                     }
                 }
@@ -1022,8 +1042,14 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                     lastRotateDegree
                 )
                 DirectionToHead = true
-                val displayDistanceInUnitsRespectiveToProject = Conversions.ftToMeters(distance.toString(), gapUnits)
-                statisticsWindow(size, totalPoints, l, displayDistanceInUnitsRespectiveToProject.toFloat())
+                val displayDistanceInUnitsRespectiveToProject =
+                    Conversions.ftToMeters(distance.toString(), gapUnits)
+                statisticsWindow(
+                    size,
+                    totalPoints,
+                    l,
+                    displayDistanceInUnitsRespectiveToProject.toFloat()
+                )
 
                 //when straying from line
                 if (distance > (GAP_SIZE_METRES)) {
@@ -1086,9 +1112,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                 directionCardLayout.isVisible = false
 
             }
-            "Reached" -> {
-                pointReached.isVisible = true
-            }
 
         }
 
@@ -1100,17 +1123,17 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         var animationColor: Int = 0
         when (color) {
             "Green" -> {
-                animationColor = com.google.android.libraries.places.R.color.quantum_googblue
+                animationColor = Color.rgb(0,206,209)
             }
-            "Yellow" -> {
-                animationColor = Color.YELLOW
+            "Orange" -> {
+                animationColor = Color.rgb(255, 215, 0)
             }
             "Red" -> {
                 animationColor = Color.RED
 
             }
             "Cyan" -> {
-                animationColor = Color.CYAN
+                animationColor = Color.GREEN
 
             }
         }
@@ -1186,13 +1209,14 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
                         // for ActivityCompat#requestPermissions for more details.
                         //return
                     }
-
-                    //if (!bluetoothList.contains(device!!.name)) {
-
-                    bluetoothList.add(device!!.name)
-                    deviceList.add(device)
-                    var v = device.name
-                    //}
+                    if (!bluetoothList.contains(device!!.name)) {
+                        if (device.name == null) {
+                            return
+                        }
+                        bluetoothList.add(device.name)
+                        deviceList.add(device)
+                        var v = device.name
+                    }
 
                 }
 
@@ -1281,11 +1305,11 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
             // return
         }
 
-        for (d in
-        bluetoothAdaptor.bondedDevices) {
-            bluetoothList.add(d.name)
-            deviceList.add(d)
-        }
+//        for (d in
+//        bluetoothAdaptor.bondedDevices) {
+//            bluetoothList.add(d.name)
+//            deviceList.add(d)
+//        }
 
         val items = bluetoothList.toArray()
         val adaptor =
@@ -1302,7 +1326,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         spinner.visibility = Spinner.VISIBLE
         Log.d("bt", "Bluetooth scan complete")
         buttonConnect.setOnClickListener(this)
-        //btsearching.isVisible = false
+
     }
 
 
@@ -1312,7 +1336,6 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         NmeaReader.listener.deactivate()
         sensorManager!!.unregisterListener(listener)
         super.onDestroy()
-
 
     }
 
@@ -1376,7 +1399,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
             checkLocation()
 
-            scantBlueTooth()
+            //scantBlueTooth()
 
         } else {
             spinner.visibility = Spinner.INVISIBLE
@@ -1874,7 +1897,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
 
             if (listOfMarkedPoints.add(markedCirclePoint.center)) {
-                plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
+               plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
 
                 if (tempListMarker.isNotEmpty()) {
                     tempListMarker.clear()
@@ -2236,7 +2259,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
 
     }
 
-    private fun radius(size: Double): Double {
+    fun radius(size: Double): Double {
         val sizeInCentimeters = size * 100
         return ((0.1 * sizeInCentimeters) / 100) + 1.0
     }
@@ -2323,8 +2346,7 @@ open class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListene
         meshDone = false
         plantingMode = false
         plantingRadius?.remove()
-
-
+        fabFlag = true
         card.isVisible = false
         directionCardLayout.isVisible = false
 

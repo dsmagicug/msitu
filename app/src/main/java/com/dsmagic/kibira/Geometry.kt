@@ -191,6 +191,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
         // s = the value, indicator = N,S,E,W
         // s has the format XXYY.blah
         // https://stackoverflow.com/questions/36254363/how-to-convert-latitude-and-longitude-of-nmea-format-data-to-decimal
+
         var offset = v.indexOf('.') - 2
         if (offset < 0)
             offset = 0

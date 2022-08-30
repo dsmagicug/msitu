@@ -13,8 +13,10 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
 import com.dsmagic.kibira.MainActivity.Companion.MeshType
 import com.dsmagic.kibira.MainActivity.Companion.gapUnits
+import com.dsmagic.kibira.MainActivity.Companion.map
 import com.dsmagic.kibira.MainActivity.Companion.meshUnits
 import com.dsmagic.kibira.MainActivity.Companion.onLoad
+import com.dsmagic.kibira.MainActivity.Companion.tempPlantingRadius
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
 import com.dsmagic.kibira.roomDatabase.AppDatabase
@@ -22,6 +24,7 @@ import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.saveProject
 import com.dsmagic.kibira.utils.Conversions
+import com.google.android.gms.maps.GoogleMap
 import java.math.RoundingMode
 import java.text.DecimalFormat
 
@@ -235,7 +238,6 @@ object CreateProjectDialog : DialogFragment() {
                     meshUnits = plotUnit
                 }
 
-
                 displayProjectName?.text = saved_project_name
                 saveProject(
                     saved_project_name!!,
@@ -254,7 +256,9 @@ object CreateProjectDialog : DialogFragment() {
                 if (editor.commit()) {
                     var r = 50
                 }
+                map?.mapType = GoogleMap.MAP_TYPE_SATELLITE
                 MainActivity().freshFragment()
+                //tempPlantingRadius = MainActivity().radius(gapSize).toFloat()
 
             }
 

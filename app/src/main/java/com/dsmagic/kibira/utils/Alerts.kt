@@ -85,7 +85,7 @@ class Alerts {
                     })
                 .setNegativeButton("Continue",
                     DialogInterface.OnClickListener { dialog, id ->
-
+                        MainActivity.meshDone = false
                     })
                 .show()
         }
