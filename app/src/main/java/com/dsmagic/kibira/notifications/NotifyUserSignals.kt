@@ -22,6 +22,7 @@ import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import java.io.IOException
+import java.lang.Math.abs
 import java.math.RoundingMode
 import java.text.DecimalFormat
 
@@ -85,13 +86,13 @@ class NotifyUserSignals {
         }
 
         lateinit var proximityAnimator: ObjectAnimator
-        fun flashPosition(color: String, T: LinearLayout) {
+        fun flashPosition(color: String, T: TextView) {
             val textViewToBlink = T
             var animationColor: Int = 0
             when (color) {
                 "Green" -> {
                     MainActivity.pointCardview.isVisible = true
-                    animationColor = com.google.android.libraries.places.R.color.quantum_googgreen
+                    animationColor = Color.GREEN
                     MainActivity.positionText.text = "Mark here"
                     MainActivity.positionImage.setImageResource(R.drawable.tick)
                 }
@@ -116,7 +117,7 @@ class NotifyUserSignals {
             handler.post {
                 proximityAnimator = ObjectAnimator.ofInt(
                     textViewToBlink,
-                    "background", animationColor, Color.WHITE, animationColor, animationColor
+                    "backgroundColor", animationColor, Color.WHITE, animationColor, animationColor
                 )
 
                 proximityAnimator.duration = 6000
@@ -133,16 +134,31 @@ class NotifyUserSignals {
             firstPoint: Location,
             nextPoint: Location,
             currentPosition: Location
-        ) {
-            val direction = ""
+        ):String {
+            var direction = ""
             val assumedStraightLineBearing = firstPoint.bearingTo(nextPoint)
             val userBearingAtTimeT = currentPosition.bearingTo(nextPoint)
+            if(assumedStraightLineBearing  < 0 || userBearingAtTimeT < 0){
+                userBearingAtTimeT * -1
+                assumedStraightLineBearing * -1
+
+            }
+
+            //too much on the left
+            when {
+                userBearingAtTimeT > assumedStraightLineBearing -> {
+                    direction = "Left"
+                }
+                userBearingAtTimeT < assumedStraightLineBearing -> {
+                    direction = "Right"
+                }
+            }
             Toast.makeText(
                 context,
                 "straightLine = $assumedStraightLineBearing ours = $userBearingAtTimeT",
                 Toast.LENGTH_LONG
             ).show()
-
+            return direction
         }
 
         fun shrinkCircle(distance: Float, pt: LatLng) {

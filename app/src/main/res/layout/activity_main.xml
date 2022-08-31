@@ -501,7 +501,7 @@
                         android:layout_height="100dp"
                         android:orientation="horizontal"
                         android:visibility="visible"
-                        android:background="@color/teal"
+                        android:background="@color/white"
                         app:layout_constraintBottom_toBottomOf="@+id/appToolbar"
                         tools:ignore="UseCompoundDrawables">
 
@@ -522,8 +522,8 @@
 
                         <TextView
                             android:id="@+id/plantText"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
                             android:layout_gravity="center"
                             android:layout_margin="5dp"
                             android:layout_marginTop="5dp"

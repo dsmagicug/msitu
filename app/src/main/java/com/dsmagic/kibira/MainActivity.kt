@@ -147,7 +147,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var linesMarked: TextView
     lateinit var totalPoints: TextView
     lateinit var projectLines: MutableList<PlantingLine>
-    var delta = 0.05
+    var delta = 0.1
     var projectLoaded = false
 
 
@@ -380,23 +380,25 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 //                        if(distanceAway < acceptedPlantingRadius){
 //                       blinkEffectForPoint("Cyan",plantingRadius)
 //                        }
-
+                        position = LocationDependantFunctions().facingDirection(
+                            BearingPhoneIsFacing,
+                            lastRotateDegree
+                        )
                         if ((distanceAway < acceptedPlantingRadius || distanceAway < toleranceRadius)) {
                             blink(position)
                             NotifyUserSignals.shrinkCircle(distanceAway, pointOfInterest)
-                            NotifyUserSignals.flashPosition("Orange",positionLayout)
-                            vibration()
-                            if (distanceAway < delta) {
-                                NotifyUserSignals.flashPosition("Green",positionLayout)
-                                startBeep()
+                            NotifyUserSignals.flashPosition("Orange", positionText)
+                            if (distanceAway < delta ) {
+                                NotifyUserSignals.flashPosition("Green",positionText)
+                                    Toast.makeText(context,"$position",Toast.LENGTH_SHORT).show()
                                 markPoint(pointOfInterest)
                                 NotifyUserSignals.circleID = " "
                                 circle = null
 
                             }
                             if(distanceAway > delta && distanceAway < acceptedPlantingRadius || distanceAway < toleranceRadius){
-                                NotifyUserSignals.flashPosition("Red",positionLayout)
-                                stopBeep()
+                               // startBeep()
+                               // NotifyUserSignals.flashPosition("Red", positionText)
                             }
 
                         }
@@ -2041,7 +2043,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
                     }
                 } else {
-                    //circles drawn on the map are 0.5 in radius, thus the 1.5
+
+                    //circles drawn on the map are 0.3 in radius, thus the 1.0
+                    //this prevebts the immediate re narking of that point
 
                     if ((distanceAway < 1.0) && pt in listOfMarkedPoints) {
                         val point = S2LatLng.fromDegrees(pt.latitude, pt.longitude)
@@ -2051,7 +2055,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                         map?.addCircle(
                             CircleOptions().center(pt)
                                 .fillColor(Color.RED)
-                                .radius(0.5)
+                                .radius(0.3)
                                 .strokeWidth(1.0f)
                         )
                         deleteSavedPoints(pt)
