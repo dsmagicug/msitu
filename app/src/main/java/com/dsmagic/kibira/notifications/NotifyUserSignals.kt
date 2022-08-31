@@ -5,13 +5,12 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Color
+import android.location.Location
 import android.media.MediaPlayer
 import android.os.*
-import android.text.Layout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
-import androidx.cardview.widget.CardView
 import androidx.core.view.isVisible
 import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.MainActivity.Companion.context
@@ -85,7 +84,7 @@ class NotifyUserSignals {
             textView.text = list.size.toString()
         }
 
-        lateinit var anim: ObjectAnimator
+        lateinit var proximityAnimator: ObjectAnimator
         fun flashPosition(color: String, T: LinearLayout) {
             val textViewToBlink = T
             var animationColor: Int = 0
@@ -115,17 +114,34 @@ class NotifyUserSignals {
                 }
             }
             handler.post {
-                anim = ObjectAnimator.ofInt(
+                proximityAnimator = ObjectAnimator.ofInt(
                     textViewToBlink,
-                    "backgroundColor", animationColor, Color.WHITE, animationColor, animationColor
+                    "background", animationColor, Color.WHITE, animationColor, animationColor
                 )
 
-                anim.duration = 6000
-                anim.setEvaluator(ArgbEvaluator())
-                anim.repeatMode = ValueAnimator.RESTART
-                anim.repeatCount = 2
-                anim.start()
+                proximityAnimator.duration = 6000
+                proximityAnimator.setEvaluator(ArgbEvaluator())
+                proximityAnimator.repeatMode = ValueAnimator.RESTART
+                proximityAnimator.repeatCount = 2
+                proximityAnimator.start()
             }
+
+        }
+
+        //get the straight line bearing and determin straing form that
+        fun keepUserInStraightLine(
+            firstPoint: Location,
+            nextPoint: Location,
+            currentPosition: Location
+        ) {
+            val direction = ""
+            val assumedStraightLineBearing = firstPoint.bearingTo(nextPoint)
+            val userBearingAtTimeT = currentPosition.bearingTo(nextPoint)
+            Toast.makeText(
+                context,
+                "straightLine = $assumedStraightLineBearing ours = $userBearingAtTimeT",
+                Toast.LENGTH_LONG
+            ).show()
 
         }
 

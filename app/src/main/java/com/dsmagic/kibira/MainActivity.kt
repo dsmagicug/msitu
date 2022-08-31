@@ -42,6 +42,7 @@ import androidx.drawerlayout.widget.DrawerLayout
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
 import com.dsmagic.kibira.notifications.NotifyUserSignals
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.circle
+import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.keepUserInStraightLine
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.startBeep
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.statisticsWindow
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.stopBeep
@@ -227,9 +228,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         pointCardview = findViewById(R.id.positionCardView)
         positionLayout = findViewById(R.id.plant)
         directionCardLayout = findViewById(R.id.directionsLayout)
-        displayedDistance = findViewById<TextView>(R.id.distance)
-        displayedDistanceUnits = findViewById<TextView>(R.id.distanceUnits)
-        displayedPoints = findViewById<TextView>(R.id.numberOfPoints)
+        displayedDistance = findViewById(R.id.distance)
+        displayedDistanceUnits = findViewById(R.id.distanceUnits)
+        displayedPoints = findViewById(R.id.numberOfPoints)
 
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
 
@@ -1026,7 +1027,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
                     distance = locationOfRoverLatLng.distanceTo(locationOfNextPoint)
 
-                    distance
                     if (tempListMarker.isNotEmpty()) {
                         for (m in tempListMarker) {
                             if (m.position == latLng) {
@@ -1041,6 +1041,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     BearingPhoneIsFacing,
                     lastRotateDegree
                 )
+                keepUserInStraightLine(locationOfCurrentPoint,locationOfNextPoint,locationOfRoverLatLng)
                 DirectionToHead = true
                 val displayDistanceInUnitsRespectiveToProject =
                     Conversions.ftToMeters(distance.toString(), gapUnits)

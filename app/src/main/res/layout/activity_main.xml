@@ -501,6 +501,7 @@
                         android:layout_height="100dp"
                         android:orientation="horizontal"
                         android:visibility="visible"
+                        android:background="@color/teal"
                         app:layout_constraintBottom_toBottomOf="@+id/appToolbar"
                         tools:ignore="UseCompoundDrawables">
 

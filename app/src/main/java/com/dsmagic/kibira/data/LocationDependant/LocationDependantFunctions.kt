@@ -1,13 +1,10 @@
 package com.dsmagic.kibira.data.LocationDependant
 
-import android.os.Handler
-import android.os.Looper
 import android.widget.TextView
 import android.widget.Toast
 import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.MainActivity.Companion.context
 import com.dsmagic.kibira.MainActivity.Companion.initialTimeValue
-import com.dsmagic.kibira.R
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Polyline
 import java.text.SimpleDateFormat
@@ -15,29 +12,26 @@ import java.util.*
 import kotlin.math.roundToInt
 
 class LocationDependantFunctions {
-    val looper = Looper.getMainLooper()
-    val handler = Handler(looper)
-
     fun facingDirection(InitialBearing: Float, bearing: Float): String {
 
         var d = ""
-        var rangeRight = 5 + InitialBearing
-        var rangeLeft = InitialBearing - 5
-        var CurrentBearing: Float = 0F
+        val rangeRight = 5 + InitialBearing
+        val rangeLeft = InitialBearing - 5
+        var currentBearing = 0F
         if (bearing < 0) {
-            CurrentBearing = bearing * -1
+            currentBearing = bearing * -1
         }
 
         when {
-           rangeRight > CurrentBearing && CurrentBearing > rangeLeft -> {
+           rangeRight > currentBearing && currentBearing > rangeLeft -> {
                 d = "Stop"
             }
             //going too far right
-            CurrentBearing > InitialBearing -> {
+            currentBearing > InitialBearing -> {
                 d = "Right"
             }
 //going too far left
-            CurrentBearing < InitialBearing -> {
+            currentBearing < InitialBearing -> {
                 d = "Left"
             }
 
@@ -63,7 +57,7 @@ class LocationDependantFunctions {
         }
 
     }
-    var markedLinesCounter = 0
+    private var markedLinesCounter = 0
 fun markedLines(Line:Polyline,ListOfMarkedPoints:MutableList<LatLng>,textview: TextView){
     if(ListOfMarkedPoints.isEmpty()){
         return
@@ -82,9 +76,8 @@ fun markedLines(Line:Polyline,ListOfMarkedPoints:MutableList<LatLng>,textview: T
         val timeSplit = time.split(":")
         val hours = timeSplit[0].toDouble() * 60
         val minutes = timeSplit[1].toDouble()
-        var seconds = timeSplit[2].toDouble()
-        val totalMinutes = hours + minutes
-        return totalMinutes
+        //var seconds = timeSplit[2].toDouble()
+        return hours + minutes
     }
 
 }
