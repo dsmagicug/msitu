@@ -426,7 +426,7 @@
                     android:id="@+id/directionsLayout"
                     android:layout_width="380dp"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="top|start"
+                    android:layout_gravity="top|end"
                     android:layout_marginTop="95dp"
                     android:visibility="invisible"
                     app:cardBackgroundColor="@color/teal"
@@ -481,11 +481,12 @@
                     </LinearLayout>
 
                 </androidx.cardview.widget.CardView>
+
                 <androidx.cardview.widget.CardView
                     android:id="@+id/positionCardView"
-                    android:layout_width="380dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="top|end"
+                    android:layout_width="350dp"
+                    android:layout_height="260dp"
+                    android:layout_gravity="top"
                     android:layout_marginTop="95dp"
                     android:visibility="invisible"
                     app:cardBackgroundColor="@color/white"
@@ -497,19 +498,18 @@
 
                     <LinearLayout
                         android:id="@+id/plant"
-                        android:layout_width="357dp"
-                        android:layout_height="100dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/white"
                         android:orientation="horizontal"
                         android:visibility="visible"
-                        android:background="@color/white"
                         app:layout_constraintBottom_toBottomOf="@+id/appToolbar"
                         tools:ignore="UseCompoundDrawables">
 
                         <ImageView
                             android:id="@+id/plantValue"
-
-                            android:layout_width="94dp"
-                            android:layout_height="80dp"
+                            android:layout_width="103dp"
+                            android:layout_height="125dp"
                             android:layout_gravity="center"
                             android:layout_margin="5dp"
                             android:autofillHints=""
@@ -519,22 +519,27 @@
                             app:tint="@color/black"
                             tools:ignore="UseAppTint" />
 
-
                         <TextView
                             android:id="@+id/plantText"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:layout_gravity="center"
+
                             android:layout_margin="5dp"
-                            android:layout_marginTop="5dp"
-                            android:padding="5dp"
+                            android:layout_marginTop="15dp"
+                            android:padding="15dp"
                             android:text="Mark here"
-                            android:textAlignment="center"
+                         android:textAlignment="center"
+
                             android:textColor="@color/black"
                             android:textSize="35sp"
+
                             android:textStyle="normal|bold"
                             android:visibility="visible" />
+
+
                     </LinearLayout>
+
+
 
                 </androidx.cardview.widget.CardView>
 

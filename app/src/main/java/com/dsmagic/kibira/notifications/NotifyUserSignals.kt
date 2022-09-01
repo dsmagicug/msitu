@@ -104,13 +104,21 @@ class NotifyUserSignals {
                 }
                 "Red" -> {
                     MainActivity.pointCardview.isVisible = true
-                    animationColor = Color.RED
-                    MainActivity.positionText.text = "Away from \nPoint"
-                    MainActivity.positionImage.setImageResource(R.drawable.cross)
+                    animationColor = Color.YELLOW
+                    MainActivity.positionText.text = "Point In front"
+                    MainActivity.positionImage.setImageResource(R.drawable.tick)
 
                 }
-                "Cyan" -> {
-                    animationColor = Color.GREEN
+                "Yellow" -> {
+                    MainActivity.pointCardview.isVisible = true
+                    animationColor = Color.YELLOW
+                    MainActivity.positionText.text = "Point behind"
+                    MainActivity.positionImage.setImageResource(R.drawable.tick)
+
+                }
+                "Stop" -> {
+                    MainActivity.pointCardview.isVisible = false
+
 
                 }
             }
@@ -120,7 +128,7 @@ class NotifyUserSignals {
                     "backgroundColor", animationColor, Color.WHITE, animationColor, animationColor
                 )
 
-                proximityAnimator.duration = 6000
+                proximityAnimator.duration = 1500
                 proximityAnimator.setEvaluator(ArgbEvaluator())
                 proximityAnimator.repeatMode = ValueAnimator.RESTART
                 proximityAnimator.repeatCount = 2
@@ -136,13 +144,9 @@ class NotifyUserSignals {
             currentPosition: Location
         ):String {
             var direction = ""
-            val assumedStraightLineBearing = firstPoint.bearingTo(nextPoint)
-            val userBearingAtTimeT = currentPosition.bearingTo(nextPoint)
-            if(assumedStraightLineBearing  < 0 || userBearingAtTimeT < 0){
-                userBearingAtTimeT * -1
-                assumedStraightLineBearing * -1
 
-            }
+            val assumedStraightLineBearing = kotlin.math.abs(firstPoint.bearingTo(nextPoint))
+            val userBearingAtTimeT = kotlin.math.abs(currentPosition.bearingTo(nextPoint))
 
             //too much on the left
             when {
@@ -155,7 +159,7 @@ class NotifyUserSignals {
             }
             Toast.makeText(
                 context,
-                "straightLine = $assumedStraightLineBearing ours = $userBearingAtTimeT",
+                "straightLine = $assumedStraightLineBearing ours = $userBearingAtTimeT $direction",
                 Toast.LENGTH_LONG
             ).show()
             return direction

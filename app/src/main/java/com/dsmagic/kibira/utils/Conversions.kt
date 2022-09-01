@@ -27,23 +27,23 @@ class Conversions {
 
                 }
                 " Ft" -> {
-                    val r = rawUserInput
+                    val r = userInput.toDouble()
                     userInputInMeters = (r / METRES_FROM_FEET)
 
                 }
                 " Miles" -> {
-                    val r = rawUserInput
+                    val r = userInput.toDouble()
                     userInputInMeters = (r * METRES_FROM_MILES)
 
 
                 }
                 " Acres" -> {
-                    val r = rawUserInput
+                    val r = userInput.toDouble()
                     userInputInMeters = (r * METRES_FROM_ACRES)
 
                 }
                 " Inches" -> {
-                    val r = rawUserInput
+                    val r = userInput.toDouble()
                     userInputInMeters = (r * METRES_FROM_INCHES)
 
                 }

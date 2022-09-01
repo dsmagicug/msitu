@@ -43,9 +43,7 @@ import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
 import com.dsmagic.kibira.notifications.NotifyUserSignals
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.circle
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.keepUserInStraightLine
-import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.startBeep
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.statisticsWindow
-import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.stopBeep
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.vibration
 import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
@@ -161,10 +159,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         var toleranceRadius = 0.0f
         var listOfMarkedPoints = mutableListOf<LatLng>()
         var listofmarkedcircles = mutableListOf<Circle>()
-        lateinit var positionText:TextView
-        lateinit var positionImage:ImageView
-        lateinit var pointCardview:CardView
-        lateinit var positionLayout:LinearLayout
+        lateinit var positionText: TextView
+        lateinit var positionImage: ImageView
+        lateinit var pointCardview: CardView
+        lateinit var positionLayout: LinearLayout
         var unmarkedCirclesList = mutableListOf<Circle>()
 
         var listOfPlantingLines = mutableListOf<Polyline>()
@@ -370,40 +368,51 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     if (closestPointRadius.size > 0) {
                         toleranceRadius = radius(GAP_SIZE_METRES).toFloat()
                         val pointOfInterest = closestPointRadius[0] as LatLng
-                        val acceptedPlantingRadius = tempPlantingRadius
+//                        val acceptedPlantingRadius = tempPlantingRadius
                         val distanceAway =
                             GeneralHelper.findDistanceBtnTwoPoints(
                                 fromRTKFeed,
                                 pointOfInterest
                             )
-                        //animate point as person is closer to point
-//                        if(distanceAway < acceptedPlantingRadius){
-//                       blinkEffectForPoint("Cyan",plantingRadius)
-//                        }
-                        position = LocationDependantFunctions().facingDirection(
-                            BearingPhoneIsFacing,
-                            lastRotateDegree
-                        )
-                        if ((distanceAway < acceptedPlantingRadius || distanceAway < toleranceRadius)) {
-                            blink(position)
-                            NotifyUserSignals.shrinkCircle(distanceAway, pointOfInterest)
-                            NotifyUserSignals.flashPosition("Orange", positionText)
-                            if (distanceAway < delta ) {
-                                NotifyUserSignals.flashPosition("Green",positionText)
-                                    Toast.makeText(context,"$position",Toast.LENGTH_SHORT).show()
-                                markPoint(pointOfInterest)
-                                NotifyUserSignals.circleID = " "
-                                circle = null
 
+                        if ((distanceAway  < toleranceRadius)) {
+                            blink(position)
+                            NotifyUserSignals.flashPosition("Orange", positionText)
+
+                            if (distanceAway > delta && distanceAway  < toleranceRadius) {
+
+                            if(listOfMarkedPoints.isNotEmpty() && pointOfInterest == listOfMarkedPoints[listOfMarkedPoints.lastIndex]){
+                                when {
+                                    distanceAway < GAP_SIZE_METRES -> {
+                                        NotifyUserSignals.flashPosition("Red", positionText)
+                                    }
+                                    distanceAway > GAP_SIZE_METRES -> {
+                                        NotifyUserSignals.flashPosition("Yellow", positionText)
+                                    }
+                                }
                             }
-                            if(distanceAway > delta && distanceAway < acceptedPlantingRadius || distanceAway < toleranceRadius){
-                               // startBeep()
-                               // NotifyUserSignals.flashPosition("Red", positionText)
+
+//                                when {
+//                                    distanceAway < GAP_SIZE_METRES -> {
+//                                        NotifyUserSignals.flashPosition("Red", positionText)
+//                                    }
+//                                    distanceAway > GAP_SIZE_METRES -> {
+//                                        NotifyUserSignals.flashPosition("Yellow", positionText)
+//                                    }
+//                                }
+                            // startBeep()
+                                // NotifyUserSignals.flashPosition("Red", positionText)
                             }
+
+                            if (distanceAway < delta) {
+                                NotifyUserSignals.flashPosition("Green", positionText)
+                                markPoint(pointOfInterest)
+                            }
+
 
                         }
-                        if(distanceAway > acceptedPlantingRadius){
-                            stopBeep()
+                        if (distanceAway > toleranceRadius) {
+                            NotifyUserSignals.flashPosition("Stop", positionText)
                         }
                     }
                 }
@@ -467,7 +476,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 val c = map?.addCircle(
                     CircleOptions().center(latlang)
                         .fillColor(Color.YELLOW)
-                        .radius(0.5)
+                        .radius(0.3)
                         .strokeWidth(1.0f)
                 )
                 listofmarkedcircles.add(c!!)
@@ -951,6 +960,16 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
 
     private fun distanceToPoint(loc: LatLng) {
+        val locationOfNextPoint = Location(LocationManager.GPS_PROVIDER)
+        val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
+        val locationOfCurrentPoint = Location(LocationManager.GPS_PROVIDER)
+
+        if(listOfPlantingLines.isEmpty()){
+            return
+        }
+        val line = listOfPlantingLines[listOfPlantingLines.lastIndex]
+        val l = line.tag as MutableList<*>
+
         if (plantingMode && listOfMarkedPoints.isNotEmpty()) {
             fab_reset.isVisible = false
             when {
@@ -965,20 +984,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             displayedDistance.text = ""
             displayedPoints.text = " "
 
-
+            val size = listOfMarkedPoints.size
+            refPoint = listOfMarkedPoints[listOfMarkedPoints.lastIndex]
+            var index = 0
             try {
-                val locationOfNextPoint = Location(LocationManager.GPS_PROVIDER)
-                val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
-                val locationOfCurrentPoint = Location(LocationManager.GPS_PROVIDER)
-
-                val line = listOfPlantingLines[listOfPlantingLines.lastIndex]
-                val l = line.tag as MutableList<*>
-                val size = listOfMarkedPoints.size
-                refPoint = listOfMarkedPoints[listOfMarkedPoints.lastIndex]
-                var index = 0
-
                 if (tempListMarker.isNotEmpty()) {
-                    var last = tempListMarker[tempListMarker.lastIndex]
+                    val last = tempListMarker[tempListMarker.lastIndex]
                     last.remove()
                     tempListMarker.clear()
                 }
@@ -1014,6 +1025,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     latLng = l[nextIndex] as LatLng
 
                     if (latLng in listOfMarkedPoints) {
+
                         nextIndex = index + 1
                         latLng = l[nextIndex] as LatLng
                     }
@@ -1039,23 +1051,21 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
                 }
 
-                position = LocationDependantFunctions().facingDirection(
-                    BearingPhoneIsFacing,
-                    lastRotateDegree
-                )
-                keepUserInStraightLine(locationOfCurrentPoint,locationOfNextPoint,locationOfRoverLatLng)
+//                position = LocationDependantFunctions().facingDirection(
+//                    BearingPhoneIsFacing,
+//                    lastRotateDegree
+//                )
+                position =  keepUserInStraightLine(locationOfCurrentPoint,locationOfNextPoint,locationOfRoverLatLng)
+
                 DirectionToHead = true
                 val displayDistanceInUnitsRespectiveToProject =
                     Conversions.ftToMeters(distance.toString(), gapUnits)
                 statisticsWindow(
-                    size,
-                    totalPoints,
-                    l,
-                    displayDistanceInUnitsRespectiveToProject.toFloat()
+                    size, totalPoints, l, displayDistanceInUnitsRespectiveToProject.toFloat()
                 )
 
                 //when straying from line
-                if (distance > (GAP_SIZE_METRES)) {
+                if (distance > (GAP_SIZE_METRES * 0.5)) {
                     vibration()
                     polyline1 = map?.addPolyline(
                         PolylineOptions()
@@ -1085,8 +1095,44 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             }
 
 
-        }
+        } else {
+            //ensure we have a point first
+            if (closestPointRadius.size > 0) {
+                directionCardLayout.isVisible = true
+                val pointOfInterest = closestPointRadius[0] as LatLng
+                val positionOfPoint = l.indexOf(pointOfInterest)
 
+                val lastIndex = l.lastIndex
+                var nextPointLatLng: LatLng? = null
+
+                val lastPointLatLng= l [lastIndex] as LatLng
+                if (positionOfPoint == 0) {
+                    val nextPoint = positionOfPoint + 1
+                    nextPointLatLng = l[nextPoint] as LatLng?
+                }
+                if(positionOfPoint == lastIndex){
+                    val nextPoint = positionOfPoint - 1
+                    nextPointLatLng = l[nextPoint] as LatLng?
+                }
+                if(positionOfPoint != lastIndex && positionOfPoint != 0){
+                    val nextPoint = positionOfPoint - 1
+                    nextPointLatLng = l[nextPoint] as LatLng?
+                }
+
+                locationOfNextPoint.latitude = nextPointLatLng!!.latitude
+                locationOfNextPoint.longitude = nextPointLatLng.longitude
+
+                locationOfRoverLatLng.latitude = loc.latitude
+                locationOfRoverLatLng.longitude = loc.longitude
+
+                locationOfCurrentPoint.latitude = pointOfInterest.latitude
+                locationOfCurrentPoint.longitude = pointOfInterest.longitude
+
+              position =  keepUserInStraightLine(locationOfCurrentPoint,locationOfNextPoint,locationOfRoverLatLng)
+                blink(position)
+
+            }
+        }
 
     }
 
@@ -1098,15 +1144,17 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
         when (textViewToBlink) {
             "Left" -> {
-                directionImage.setImageResource(R.drawable.leftarrow)
-                directionImage.isVisible = true
-                directionText.text = "Turn Right"
-                directionText.isVisible = true
-            }
-            "Right" -> {
                 directionImage.setImageResource(R.drawable.rightarrow)
                 directionText.text = "Turn Left"
                 directionImage.isVisible = true
+                directionText.isVisible = true
+
+
+            }
+            "Right" -> {
+                directionImage.setImageResource(R.drawable.leftarrow)
+                directionImage.isVisible = true
+                directionText.text = "Turn Right"
                 directionText.isVisible = true
             }
             "Stop" -> {
@@ -1126,7 +1174,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         var animationColor: Int = 0
         when (color) {
             "Green" -> {
-                animationColor = Color.rgb(0,206,209)
+                animationColor = Color.rgb(0, 206, 209)
             }
             "Orange" -> {
                 animationColor = Color.rgb(255, 215, 0)
@@ -1578,6 +1626,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         if (id != 0) {
             MeshType = mesh
             gapUnits = gapunits
+            ProjectID = id.toLong()
 
         }
         progressBar.isVisible = true
@@ -1895,12 +1944,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             }
 
             listofmarkedcircles.add(markedCirclePoint)
+            Log.d("ID","$ProjectID")
 
             DbFunctions.savePoints(pointOfInterestOnPolyline, ProjectID.toInt())
 
-
             if (listOfMarkedPoints.add(markedCirclePoint.center)) {
-               plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
+                plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
 
                 if (tempListMarker.isNotEmpty()) {
                     tempListMarker.clear()
@@ -2191,78 +2240,62 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 //            }
 //        })
 //    }
-    private fun alertWarning(s: String) {
-        AlertDialog.Builder(this)
-            .setTitle("Warning")
-            .setIcon(R.drawable.caution)
-            .setMessage(s)
-            .setPositiveButton(
-                "Exit",
-
-                DialogInterface.OnClickListener { dialog, id ->
-
-
-                })
-
-
-            .show()
-    }
 
     //saving points in the db
-    fun savePoints(l: MutableList<LatLng>) {
-
-        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
-            CreateProjectDialog.sharedPrefFile,
-            Context.MODE_PRIVATE
-        )!!
-
-        val userIDString: String? = sharedPreferences.getString("userid_key", "0")!!
-        val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
-
-        val userID = userIDString!!.toInt()
-        val ProjectID = ProjectIDString!!.toInt()
-
-
-
-
-
-        GlobalScope.launch(Dispatchers.IO) {
-            val modal = savePointsDataClass(l, ProjectID, userID)
-            runOnUiThread {
-                progressBar.isVisible = true
-                Toast.makeText(
-                    applicationContext, "Saving points " +
-                            "", Toast.LENGTH_SHORT
-                ).show()
-            }
-            val retrofitDataObject = AppModule.retrofitInstance()
-
-            val retrofitData = retrofitDataObject.storePoints(modal)
-            if (retrofitData.isSuccessful) {
-                if (retrofitData.body() != null) {
-                    if (retrofitData.body()!!.message == "success") {
-                        runOnUiThread {
-                            progressBar.isVisible = false
-                        }
-
-                        Log.d("Loper", Thread().name + "savedb")
-                        // convert to S2 and remove it from queryset
-
-
-                    } else {
-                        Toast.makeText(
-                            applicationContext, "Something Went wrong!! " +
-                                    "", Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            } else {
-                alertfail("Not saved!")
-            }
-        }
-
-
-    }
+//    fun savePoints(l: MutableList<LatLng>) {
+//
+//        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
+//            CreateProjectDialog.sharedPrefFile,
+//            Context.MODE_PRIVATE
+//        )!!
+//
+//        val userIDString: String? = sharedPreferences.getString("userid_key", "0")!!
+//        val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
+//
+//        val userID = userIDString!!.toInt()
+//        val ProjectID = ProjectIDString!!.toInt()
+//
+//
+//
+//
+//
+//        GlobalScope.launch(Dispatchers.IO) {
+//            val modal = savePointsDataClass(l, ProjectID, userID)
+//            runOnUiThread {
+//                progressBar.isVisible = true
+//                Toast.makeText(
+//                    applicationContext, "Saving points " +
+//                            "", Toast.LENGTH_SHORT
+//                ).show()
+//            }
+//            val retrofitDataObject = AppModule.retrofitInstance()
+//
+//            val retrofitData = retrofitDataObject.storePoints(modal)
+//            if (retrofitData.isSuccessful) {
+//                if (retrofitData.body() != null) {
+//                    if (retrofitData.body()!!.message == "success") {
+//                        runOnUiThread {
+//                            progressBar.isVisible = false
+//                        }
+//
+//                        Log.d("Loper", Thread().name + "savedb")
+//                        // convert to S2 and remove it from queryset
+//
+//
+//                    } else {
+//                        Toast.makeText(
+//                            applicationContext, "Something Went wrong!! " +
+//                                    "", Toast.LENGTH_SHORT
+//                        ).show()
+//                    }
+//                }
+//            } else {
+//                alertfail("Not saved!")
+//            }
+//        }
+//
+//
+//    }
 
     fun radius(size: Double): Double {
         val sizeInCentimeters = size * 100

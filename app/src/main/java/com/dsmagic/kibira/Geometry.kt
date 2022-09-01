@@ -333,7 +333,7 @@ class Geometry {
             val yDelta = GAP_SIZE_METRES * sin(theta)
 
             // The next line starting point is always a 90 degree turn from the last starting point.
-            val linesDirection = if  (plantingDirection == MeshDirection.LEFT)  1  else -1
+            val linesDirection = if  (plantingDirection == MeshDirection.RIGHT)  1  else -1
             val gamma =  theta + linesDirection * (Math.PI/2)  // Better methinks...
             val lineDeltaX =  GAP_SIZE_METRES * cos(gamma)
             val lineDeltaY =  GAP_SIZE_METRES * sin(gamma)
