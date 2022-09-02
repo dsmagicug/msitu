@@ -253,11 +253,11 @@ import java.util.ArrayList
 //                }
 //            }
 //        })
-//        scantBlueTooth()
+//        displayBluetoothDevices()
 //    }
 //
 //
-//    private fun scantBlueTooth() {
+//    private fun displayBluetoothDevices() {
 //        val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return
 //
 //        if (!bluetoothAdaptor.isEnabled) {
@@ -767,7 +767,7 @@ import java.util.ArrayList
 //            .start()
 //    }
 val l = ArrayList<String>()
-//   private fun discover(){
+//   private fun discoverBluetoothDevices(){
 //
 //      // val pBar = findViewById<ProgressBar>(R.id.progressBar)
 //       val bluetoothAdaptor = BluetoothAdapter.getDefaultAdapter() ?: return

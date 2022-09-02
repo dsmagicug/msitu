@@ -12,18 +12,8 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
-// var METRES_FROM_FEET = 3.28084   //one meter = 3.28084 ft
-// var GAP_SIZE_FEET = 12
-// var MAX_MESH_SIZE = 100.0 // In metres
-// var GAP_SIZE_METRES = GAP_SIZE_FEET / METRES_FROM_FEET
-//var Geoggapsize: Double? = 0.0 //in meters
-//var Geogmesh_size:Double? = 0.0  //in meters
-
 var MAX_MESH_SIZE:Double = 0.0 // In metres
 var GAP_SIZE_METRES :Double = 0.0
-var Geoggapsize: Double? = 0.0 //in meters
-var Geogmesh_size:Double? = 0.0  //in meters
-
 
 const val SINE_60 = 0.86602540378 // Sine of 60 degrees...
 

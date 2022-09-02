@@ -1,4 +1,4 @@
-package com.dsmagic.kibira.notifications
+ package com.dsmagic.kibira.notifications
 
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
@@ -100,20 +100,20 @@ class NotifyUserSignals {
                     MainActivity.pointCardview.isVisible = true
                     animationColor = Color.rgb(255, 215, 0)
                     MainActivity.positionText.text = "slow down"
-                    MainActivity.positionImage.setImageResource(R.drawable.tick)
+                    MainActivity.positionImage.setImageResource(R.drawable.caution)
                 }
                 "Red" -> {
                     MainActivity.pointCardview.isVisible = true
                     animationColor = Color.YELLOW
-                    MainActivity.positionText.text = "Point In front"
-                    MainActivity.positionImage.setImageResource(R.drawable.tick)
+                    MainActivity.positionText.text = "Point In front or behind"
+                    MainActivity.positionImage.setImageResource(R.drawable.caution)
 
                 }
                 "Yellow" -> {
                     MainActivity.pointCardview.isVisible = true
                     animationColor = Color.YELLOW
                     MainActivity.positionText.text = "Point behind"
-                    MainActivity.positionImage.setImageResource(R.drawable.tick)
+                    MainActivity.positionImage.setImageResource(R.drawable.caution)
 
                 }
                 "Stop" -> {

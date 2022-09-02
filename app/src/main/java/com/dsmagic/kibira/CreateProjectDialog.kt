@@ -16,17 +16,14 @@ import com.dsmagic.kibira.MainActivity.Companion.gapUnits
 import com.dsmagic.kibira.MainActivity.Companion.map
 import com.dsmagic.kibira.MainActivity.Companion.meshUnits
 import com.dsmagic.kibira.MainActivity.Companion.onLoad
-import com.dsmagic.kibira.MainActivity.Companion.tempPlantingRadius
+import com.dsmagic.kibira.MainActivity.Companion.projectList
 import com.dsmagic.kibira.R.layout
 import com.dsmagic.kibira.R.string
 import com.dsmagic.kibira.roomDatabase.AppDatabase
-import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.saveProject
 import com.dsmagic.kibira.utils.Conversions
 import com.google.android.gms.maps.GoogleMap
-import java.math.RoundingMode
-import java.text.DecimalFormat
 
 
 //Returning a layout as a dialog box
@@ -94,7 +91,7 @@ object CreateProjectDialog : DialogFragment() {
 
                         .setPositiveButton(
                             string.create_new_project,
-                            DialogInterface.OnClickListener { _: DialogInterface?, _: Int -> oncreateclick() })
+                            DialogInterface.OnClickListener { _: DialogInterface?, _: Int -> createProject() })
 
                     builder.create()
                 } else {
@@ -155,7 +152,7 @@ object CreateProjectDialog : DialogFragment() {
 
                     .setPositiveButton(
                         string.create_new_project,
-                        DialogInterface.OnClickListener { _: DialogInterface?, _: Int -> oncreateclick() })
+                        DialogInterface.OnClickListener { _: DialogInterface?, _: Int -> createProject() })
 
                 builder.create()
 
@@ -173,10 +170,10 @@ object CreateProjectDialog : DialogFragment() {
     var plotUnit = ""
     var gapUnit = ""
 
-    fun oncreateclick() {
+    private fun createProject() {
 
-        var meshID = radiogroup.checkedRadioButtonId
-        var selectedType = dialog?.findViewById<RadioButton>(meshID)?.text.toString()
+        val meshID = radiogroup.checkedRadioButtonId
+        val selectedType = dialog?.findViewById<RadioButton>(meshID)?.text.toString()
         val projectname = dialog?.findViewById<EditText>(R.id.ProjectName)
         val meshSize = dialog?.findViewById<EditText>(R.id.MeshSize)
         var progressbar = activity?.findViewById<ProgressBar>(R.id.progressBar)
@@ -196,46 +193,47 @@ object CreateProjectDialog : DialogFragment() {
             val sharedPreferences: SharedPreferences =
                 activity?.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
 
-            val editor = sharedPreferences.edit()
-            editor.putString("size_key", gap_size_string)
-            editor.putString("name_key", project_name)
-            editor.putString("mesh_key", mesh_size)
-            editor.putString("mesh_Type",selectedType)
-            editor.putString("gapsize_Units",gapUnit)
-            editor.putString("meshsize_Units",plotUnit)
-            editor.apply()
-            editor.commit()
+            val editor = sharedPreferences.edit().apply {
+                putString("size_key", gap_size_string)
+                putString("name_key", project_name)
+                putString("mesh_key", mesh_size)
+                putString("mesh_Type", selectedType)
+                putString("gapsize_Units", gapUnit)
+                putString("meshsize_Units", plotUnit)
+                apply()
+                commit()
+
+            }
 
             if (editor.commit()) {
-                val saved_project_name: String? = sharedPreferences.getString("name_key", "defaultValue")
-                val gap_size: String? = sharedPreferences.getString("size_key", "0")
-                val savedGapSize = gap_size!!
-                val UID: String? = sharedPreferences.getString("userid_key", "0")
-                val userID = UID!!.toInt()
-                val meshSizeString: String? = sharedPreferences.getString("mesh_key", "0")
-                var meshSize: Double = 0.0
-                var gapSize: Double = 0.0
-                var meshSizeUnformated:Double = 0.0
-                var gapSizeUnformatted:Double = 0.0
+                sharedPreferences.apply {
+                    val saved_project_name: String? = getString("name_key", "defaultValue")
+                    val gapsize: String? = getString("size_key", "0")
+                    val savedGapSize = gapsize!!
+                    val UID: String? = getString("userid_key", "0")
+                    val userID = UID!!.toInt()
+                    val meshSizeString: String? = getString("mesh_key", "0")
 
-                val n = plotUnit
-                val gp = gapUnit
-                meshSize = Conversions.ftToMeters(meshSizeString!!,n)
-                gapSize =  Conversions.ftToMeters(savedGapSize,gp)
+                    val meshSize: Double
+                    val gapSize: Double
+
+                    val n = plotUnit
+                    val gp = gapUnit
+                    meshSize = Conversions.ftToMeters(meshSizeString!!, n)
+                    gapSize = Conversions.ftToMeters(savedGapSize, gp)
 
                 MAX_MESH_SIZE = meshSize
                 GAP_SIZE_METRES = gapSize
                 MeshType = selectedType
-                if(gapUnit == ""){
-                    gapUnits = " Ft"
+                gapUnits = if (gapUnit == "") {
+                    " Ft"
                 } else {
-                    gapUnits = gapUnit
+                    gapUnit
                 }
-                if(plotUnit == ""){
-                    meshUnits = " Ft"
-
-                }else {
-                    meshUnits = plotUnit
+                meshUnits = if (plotUnit == "") {
+                    " Ft"
+                } else {
+                    plotUnit
                 }
 
                 displayProjectName?.text = saved_project_name
@@ -253,13 +251,11 @@ object CreateProjectDialog : DialogFragment() {
                 editor.putString("productID_key", ProjectID.toString())
                 editor.apply()
                 editor.commit()
-                if (editor.commit()) {
-                    var r = 50
-                }
-                map?.mapType = GoogleMap.MAP_TYPE_SATELLITE
-                MainActivity().freshFragment()
-                //tempPlantingRadius = MainActivity().radius(gapSize).toFloat()
 
+                map?.mapType = GoogleMap.MAP_TYPE_SATELLITE
+                MainActivity().cleanUpExistingFragment()
+
+            }
             }
 
         }
@@ -267,12 +263,13 @@ object CreateProjectDialog : DialogFragment() {
     }
 
     fun alertfail(S: String) {
-        this.activity?.let {
+       this.activity?.let {
             AlertDialog.Builder(it)
                 .setTitle("Error")
                 .setIcon(R.drawable.cross)
                 .setMessage(S)
                 .show()
+
         }
     }
 }

@@ -53,10 +53,10 @@ class bluetoothFunctions {
 //                    }
 //
 //                }
-//                MainActivity().scantBlueTooth()
+//                MainActivity().displayBluetoothDevices()
 //            }
 //        }
-//         fun discover() {
+//         fun discoverBluetoothDevices() {
 //
 //            val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 //            if (ActivityCompat.checkSelfPermission(
