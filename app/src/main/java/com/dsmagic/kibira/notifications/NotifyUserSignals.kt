@@ -21,12 +21,13 @@ import com.dsmagic.kibira.R
 import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.PolyUtil
 import java.io.IOException
 import java.lang.Math.abs
 import java.math.RoundingMode
 import java.text.DecimalFormat
 
-class NotifyUserSignals {
+ class NotifyUserSignals {
     companion object {
         lateinit var mediaplayer: MediaPlayer
         val vibrator = thisActivity.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
@@ -35,14 +36,22 @@ class NotifyUserSignals {
         var circle: Circle? = null
         val handler = Handler(Looper.getMainLooper())
 
-        fun startBeep() {
+       fun startBeep(scenario:String) {
 
             try {
-                mediaplayer = MediaPlayer.create(context, R.raw.longbeep)
-//            mediaplayer.setAudioStreamType(AudioManager.STREAM_MUSIC)
-//                mediaplayer.prepare()
+                when(scenario){
+                   "ShortBeep" -> {
+                       mediaplayer = MediaPlayer.create(context, R.raw.shortbeep)
+                   }
+                    "ErrorBeep" -> {
+                        mediaplayer = MediaPlayer.create(context, R.raw.errorbeep)
+
+                    }
+                }
+
                 mediaplayer.start()
-                mediaplayer.isLooping = true
+                mediaplayer.isLooping = false
+
             } catch (e: IOException) {
                 e.printStackTrace()
             }
@@ -137,6 +146,10 @@ class NotifyUserSignals {
 
         }
 
+        fun isUserlocationOnPath(userLatLng:LatLng,line:MutableList<LatLng>):Boolean{
+            val start = System.currentTimeMillis()
+                 return PolyUtil.isLocationOnPath(userLatLng,line,true,0.2)
+        }
         //get the straight line bearing and determin straing form that
         fun keepUserInStraightLine(
             firstPoint: Location,
@@ -147,15 +160,22 @@ class NotifyUserSignals {
 
             val assumedStraightLineBearing = kotlin.math.abs(firstPoint.bearingTo(nextPoint))
             val userBearingAtTimeT = kotlin.math.abs(currentPosition.bearingTo(nextPoint))
+            val rangeRight = 5 + userBearingAtTimeT
+            val rangeLeft = userBearingAtTimeT - 5
 
             //too much on the left
             when {
                 userBearingAtTimeT > assumedStraightLineBearing -> {
                     direction = "Left"
                 }
+                //too much on the right
                 userBearingAtTimeT < assumedStraightLineBearing -> {
                     direction = "Right"
                 }
+                rangeRight > userBearingAtTimeT && userBearingAtTimeT > rangeLeft -> {
+                    direction = "Stop"
+                }
+
             }
             Toast.makeText(
                 context,
@@ -188,6 +208,7 @@ class NotifyUserSignals {
                 }
                 //distance has reduced thus person is closer to point
                 diff < 0 -> {
+
                     circle!!.remove()
                     map?.addCircle(
                         CircleOptions().radius(distance.toDouble()).center(pt).fillColor(Color.RED)

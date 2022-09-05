@@ -41,9 +41,9 @@ import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
 import com.dsmagic.kibira.notifications.NotifyUserSignals
+import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.isUserlocationOnPath
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.keepUserInStraightLine
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.statisticsWindow
-import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.vibration
 import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
@@ -65,6 +65,7 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
+import com.google.maps.android.ktx.utils.contains
 import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.PointData
 import dilivia.s2.index.point.S2PointIndex
@@ -112,8 +113,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     private var zoomMode = false
     var userID: String? = null
     var extras: Bundle? = null
-
-    var DirectionToHead: Boolean = false
     lateinit var debugXloc: LatLng
     lateinit var toggle: ActionBarDrawerToggle
     lateinit var sharedPreferences: SharedPreferences
@@ -185,9 +184,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         var gapUnits = " "
         var meshUnits = " "
         var position = "None"
-//        var projectIDList = mutableListOf<Int>()
-//        var projectSizeList = mutableListOf<Double>()
-//        var projectMeshSizeList = mutableListOf<Double>()
 
     }
 
@@ -373,22 +369,16 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                             )
 
                         if ((distanceAway < toleranceRadius)) {
-                            blink(position)
+                            if(listOfMarkedPoints.contains(pointOfInterest)){
+                                NotifyUserSignals.stopBeep()
+                            }
+                            else {
+                                NotifyUserSignals.startBeep("ShortBeep")
+                            }
                             NotifyUserSignals.flashPosition("Orange", positionText)
+                         if (distanceAway > delta && distanceAway < toleranceRadius) {
 
-                            if (distanceAway > delta && distanceAway < toleranceRadius) {
-
-                                if (listOfMarkedPoints.isNotEmpty() && pointOfInterest == listOfMarkedPoints[listOfMarkedPoints.lastIndex]) {
-                                    when {
-                                        distanceAway < GAP_SIZE_METRES -> {
-                                            NotifyUserSignals.flashPosition("Red", positionText)
-                                        }
-                                        distanceAway > GAP_SIZE_METRES -> {
-                                            NotifyUserSignals.flashPosition("Yellow", positionText)
-                                        }
-                                    }
-                                }
-
+//
 //                                when {
 //                                    distanceAway < GAP_SIZE_METRES -> {
 //                                        NotifyUserSignals.flashPosition("Red", positionText)
@@ -397,18 +387,20 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 //                                        NotifyUserSignals.flashPosition("Yellow", positionText)
 //                                    }
 //                                }
-                                // startBeep()
+
                                 // NotifyUserSignals.flashPosition("Red", positionText)
                             }
 
                             if (distanceAway < delta) {
                                 NotifyUserSignals.flashPosition("Green", positionText)
+                                NotifyUserSignals.stopBeep()
                                 markPoint(pointOfInterest)
                             }
 
 
                         }
                         if (distanceAway > toleranceRadius) {
+                            NotifyUserSignals.stopBeep()
                             NotifyUserSignals.flashPosition("Stop", positionText)
                         }
                     }
@@ -946,6 +938,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         }
         val line = listOfPlantingLines[listOfPlantingLines.lastIndex]
         val l = line.tag as MutableList<*>
+       var t = line.contains(loc)
 
         if (plantingMode && listOfMarkedPoints.isNotEmpty()) {
             fab_reset.isVisible = false
@@ -965,14 +958,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             refPoint = listOfMarkedPoints[listOfMarkedPoints.lastIndex]
             var index = 0
             try {
-                if (tempListMarker.isNotEmpty()) {
-                    val last = tempListMarker[tempListMarker.lastIndex]
-                    last.remove()
-                    tempListMarker.clear()
-                }
-                for (point in l) {
-                    if (point == refPoint) {
-                        index = l.indexOf(point)
+                l.apply {
+                    for(point in this){
+                        if (point == refPoint) {
+                            index = indexOf(point)
+                        }
                     }
                 }
 
@@ -987,13 +977,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                         latLng = l[nextIndex] as LatLng
                     }
 
-                    locationOfNextPoint.latitude = latLng!!.latitude
-                    locationOfNextPoint.longitude = latLng!!.longitude
-
-                    locationOfRoverLatLng.latitude = loc.latitude
-                    locationOfRoverLatLng.longitude = loc.longitude
-
-                    distance = locationOfRoverLatLng.distanceTo(locationOfNextPoint)
+                    locationOfNextPoint.apply{
+                        latitude = latLng!!.latitude
+                        longitude = latLng!!.longitude
+                    }
+                    locationOfRoverLatLng.apply {
+                        latitude = loc.latitude
+                        longitude = loc.longitude
+                        distance = distanceTo(locationOfNextPoint)
+                    }
 
                 } else {
                     distance = 0f
@@ -1007,64 +999,47 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                         latLng = l[nextIndex] as LatLng
                     }
 
-                    locationOfNextPoint.latitude = latLng!!.latitude
-                    locationOfNextPoint.longitude = latLng!!.longitude
-
-                    locationOfRoverLatLng.latitude = loc.latitude
-                    locationOfRoverLatLng.longitude = loc.longitude
-
-                    locationOfCurrentPoint.latitude = refPoint!!.latitude
-                    locationOfCurrentPoint.longitude = refPoint!!.longitude
-
-                    distance = locationOfRoverLatLng.distanceTo(locationOfNextPoint)
-
-                    if (tempListMarker.isNotEmpty()) {
-                        for (m in tempListMarker) {
-                            if (m.position == latLng) {
-                                return    //do nothing if a marker is already drawn at that point
-                            }
+                    locationOfNextPoint.apply{
+                        latitude = latLng!!.latitude
+                        longitude = latLng!!.longitude
+                    }
+                    locationOfRoverLatLng.apply {
+                        latitude = loc.latitude
+                        longitude = loc.longitude
+                        distance = distanceTo(locationOfNextPoint)
+                    }
+                    locationOfCurrentPoint.apply {
+                        latitude = refPoint.let{
+                            latitude
+                        }
+                            longitude = refPoint.let{
+                                longitude
                         }
                     }
 
                 }
 
-//                position = LocationDependantFunctions().facingDirection(
-//                    BearingPhoneIsFacing,
-//                    lastRotateDegree
-//                )
                 position = keepUserInStraightLine(
                     locationOfCurrentPoint,
                     locationOfNextPoint,
                     locationOfRoverLatLng
                 )
+                //check that user is walking in straight line!
+                val q = line.contains(loc)
+                val p = isUserlocationOnPath(loc,l as MutableList<LatLng>)
+                if(p || q){
+                    blink("On track")
+                } else {
+                    blink(position)
+                }
+                //Toast.makeText(context,"$p && $t",Toast.LENGTH_SHORT).show()
 
-                DirectionToHead = true
-                val displayDistanceInUnitsRespectiveToProject =
-                    Conversions.ftToMeters(distance.toString(), gapUnits)
-                statisticsWindow(
-                    size, totalPoints, l, displayDistanceInUnitsRespectiveToProject.toFloat()
-                )
+                val distanceInUnitsRespectiveToProject = Conversions.ftToMeters(distance.toString(), gapUnits)
+                statisticsWindow(size, totalPoints, l, distanceInUnitsRespectiveToProject.toFloat())
 
                 //when straying from line
                 if (distance > (GAP_SIZE_METRES * 0.5)) {
-                    vibration()
-                    polyline1 = map?.addPolyline(
-                        PolylineOptions()
-                            .color(Color.BLACK)
-                            .jointType(JointType.DEFAULT)
-                            .width(3.5f)
-                            .geodesic(true)
-                            .startCap(RoundCap())
-                            .add(
-                                LatLng(loc.latitude, loc.longitude),   //roverpoint
-                                LatLng(latLng!!.latitude, latLng!!.longitude), //nextPoint
-                            )
-                    )
-                    polyline1!!.endCap = CustomCap(
-                        BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
-                    )
-
-                    blink(position)
+                    actionWhenPersonIsStraying(loc)
 
                 } else {
                     polyline1?.remove()
@@ -1095,31 +1070,67 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     nextPointLatLng = l[nextPoint] as LatLng?
                 }
                 if (positionOfPoint != lastIndex && positionOfPoint != 0) {
+                    if(positionOfPoint<0){
+                        return
+                    }
                     val nextPoint = positionOfPoint - 1
                     nextPointLatLng = l[nextPoint] as LatLng?
                 }
 
-                locationOfNextPoint.latitude = nextPointLatLng!!.latitude
-                locationOfNextPoint.longitude = nextPointLatLng.longitude
-
-                locationOfRoverLatLng.latitude = loc.latitude
-                locationOfRoverLatLng.longitude = loc.longitude
-
-                locationOfCurrentPoint.latitude = pointOfInterest.latitude
-                locationOfCurrentPoint.longitude = pointOfInterest.longitude
+                locationOfNextPoint.apply{
+                    latitude = nextPointLatLng!!.latitude
+                    longitude = nextPointLatLng.longitude
+                }
+                locationOfRoverLatLng.apply {
+                    latitude = loc.latitude
+                    longitude = loc.longitude
+                    distance = distanceTo(locationOfNextPoint)
+                }
+                locationOfCurrentPoint.apply {
+                    latitude = pointOfInterest.let{
+                        latitude
+                    }
+                    longitude = pointOfInterest.let{
+                        longitude
+                    }
+                }
 
                 position = keepUserInStraightLine(
                     locationOfCurrentPoint,
                     locationOfNextPoint,
                     locationOfRoverLatLng
                 )
-                blink(position)
+             val p = isUserlocationOnPath(loc,l as MutableList<LatLng>)
+                //Toast.makeText(context,"$p",Toast.LENGTH_SHORT).show()
+                if(p){
+                    blink("On track")
+                }
+                else {
+                    blink(position)
+                }
 
             }
         }
-
     }
+fun actionWhenPersonIsStraying(loc:LatLng){
+    polyline1 = map?.addPolyline(
+        PolylineOptions()
+            .color(Color.BLACK)
+            .jointType(JointType.DEFAULT)
+            .width(3.5f)
+            .geodesic(true)
+            .startCap(RoundCap())
+            .add(
+                LatLng(loc.latitude, loc.longitude),   //roverpoint
+                LatLng(latLng!!.latitude, latLng!!.longitude), //nextPoint
+            )
+    )
+    polyline1!!.endCap = CustomCap(
+        BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
+    )
 
+    blink(position)
+}
     lateinit var anim: ObjectAnimator
     fun blink(p: String) {
         val textViewToBlink = p
@@ -1130,7 +1141,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 directionText.text = "Turn Left"
                 directionImage.isVisible = true
                 directionText.isVisible = true
-
 
             }
             "Right" -> {
@@ -1144,10 +1154,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 directionImage.isVisible = false
                 directionCardLayout.isVisible = false
 
+
             }
-
+            "On track" -> {
+                directionImage.setImageResource(R.drawable.tick)
+                directionImage.isVisible = true
+                directionText.text = "On Track"
+                directionText.isVisible = true
+            }
         }
-
 
     }
 
@@ -2111,132 +2126,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
     }
 
-    //    private fun saveBasepoints(loc: LongLat) {
-//        val lat = loc.getLatitude()
-//        val lng = loc.getLongitude()
-//
-//        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
-//            CreateProjectDialog.sharedPrefFile,
-//            Context.MODE_PRIVATE
-//        )!!
-//
-//        val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
-//
-//        val ProjectID = ProjectIDString!!.toInt()
-//
-//        if (ProjectID == 0) {
-//            Toast.makeText(
-//                applicationContext,
-//                "You did not create a project!! \n create one and continue",
-//                Toast.LENGTH_LONG
-//            ).show()
-//            return
-//        }
-//
-//        val basePoints = Basepoints( null,lat,lng,ProjectID)
-//
-//        GlobalScope.launch(Dispatchers.IO) {
-//            val d = appdb.kibiraDao().insertBasepoints(basePoints)
-//            Log.d("data", "$d")
-//            val s = 8
-//        }
-//
-//        val modal = SaveBasePointsClass(lat, lng, ProjectID)
-//        val retrofitDataObject = AppModule.retrofitInstance()
-//
-//        val retrofitData = retrofitDataObject.storeBasePoints(modal)
-//        retrofitData.enqueue(object : Callback<SaveBasePointsResponse?> {
-//            override fun onResponse(
-//                call: Call<SaveBasePointsResponse?>,
-//                response: Response<SaveBasePointsResponse?>
-//            ) {
-//                if (response.isSuccessful) {
-//                    if (response.body() != null) {
-//                        if (response.body()!!.message == "success") {
-////
-////                            Toast.makeText(
-////                                applicationContext, "Bpoints Saved!! " +
-////                                        "", Toast.LENGTH_SHORT
-////                            ).show()
-//                        } else {
-//                            val m = response.body()!!.meta
-//                            alertfail(m)
-//                        }
-//                    } else {
-//                        alertfail("BODY IS NULL")
-//                    }
-//                } else {
-//                    meshDone = false
-//                    Toast.makeText(
-//                        applicationContext,
-//                        "You did not create a project!! \n create one and continue",
-//                        Toast.LENGTH_LONG
-//                    ).show()
-//                   // alertfail("You did not create a project!! \n create one and continue")
-//                }
-//            }
-//
-//            override fun onFailure(call: Call<SaveBasePointsResponse?>, t: Throwable) {
-//                TODO("Not yet implemented")
-//            }
-//        })
-//    }
-
-    //saving points in the db
-//    fun savePoints(l: MutableList<LatLng>) {
-//
-//        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
-//            CreateProjectDialog.sharedPrefFile,
-//            Context.MODE_PRIVATE
-//        )!!
-//
-//        val userIDString: String? = sharedPreferences.getString("userid_key", "0")!!
-//        val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
-//
-//        val userID = userIDString!!.toInt()
-//        val ProjectID = ProjectIDString!!.toInt()
-//
-//
-//
-//
-//
-//        GlobalScope.launch(Dispatchers.IO) {
-//            val modal = savePointsDataClass(l, ProjectID, userID)
-//            runOnUiThread {
-//                progressBar.isVisible = true
-//                Toast.makeText(
-//                    applicationContext, "Saving points " +
-//                            "", Toast.LENGTH_SHORT
-//                ).show()
-//            }
-//            val retrofitDataObject = AppModule.retrofitInstance()
-//
-//            val retrofitData = retrofitDataObject.storePoints(modal)
-//            if (retrofitData.isSuccessful) {
-//                if (retrofitData.body() != null) {
-//                    if (retrofitData.body()!!.message == "success") {
-//                        runOnUiThread {
-//                            progressBar.isVisible = false
-//                        }
-//
-//                        Log.d("Loper", Thread().name + "savedb")
-//                        // convert to S2 and remove it from queryset
-//
-//
-//                    } else {
-//                        Toast.makeText(
-//                            applicationContext, "Something Went wrong!! " +
-//                                    "", Toast.LENGTH_SHORT
-//                        ).show()
-//                    }
-//                }
-//            } else {
-//                alertfail("Not saved!")
-//            }
-//        }
-//
-//
-//    }
 
     fun radius(size: Double): Double {
         val sizeInCentimeters = size * 100
@@ -2327,12 +2216,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         plantingRadius?.remove()
         fabFlag = true
         card.isVisible = false
+        pointCardview.isVisible = false
         directionCardLayout.isVisible = false
 
         for (item in polyLines) {
             item!!.remove()
         }
         removeMarkedCirclesFromUI(listofmarkedcircles)
+        polyline1?.remove()
+
 
         for (l in unmarkedCirclesList) {
             l.remove()
