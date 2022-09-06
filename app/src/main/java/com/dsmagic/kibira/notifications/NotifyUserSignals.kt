@@ -41,7 +41,7 @@ import java.text.DecimalFormat
             try {
                 when(scenario){
                    "ShortBeep" -> {
-                       mediaplayer = MediaPlayer.create(context, R.raw.shortbeep)
+                       mediaplayer = MediaPlayer.create(context, R.raw.shortbeeeep)
                    }
                     "ErrorBeep" -> {
                         mediaplayer = MediaPlayer.create(context, R.raw.errorbeep)
@@ -66,6 +66,22 @@ import java.text.DecimalFormat
             }
 
         }
+fun pulseUserLocationCircle(circle:Circle){
+
+            val runnableCode = object : Runnable {
+                override fun run() {
+                    var w = circle.radius
+                    w += 0.3
+                    if (w > 0.5) {
+                        w = 0.3
+                    }
+                    circle.radius = w
+                    handler.postDelayed(this, 50)
+                }
+            }
+
+            handler.postDelayed(runnableCode, 50)
+}
 
         fun vibration() {
             val vibrationEffect: VibrationEffect
@@ -76,8 +92,8 @@ import java.text.DecimalFormat
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 vibrationEffect =
                     VibrationEffect.createOneShot(5000, VibrationEffect.DEFAULT_AMPLITUDE)
-                vibrator.cancel()
-                vibrator.vibrate(vibrationEffect)
+//                vibrator.cancel()
+//                vibrator.vibrate(vibrationEffect)
                 Toast.makeText(context, "Vibrating now", Toast.LENGTH_SHORT).show()
             }
 

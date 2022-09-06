@@ -43,6 +43,7 @@ import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
 import com.dsmagic.kibira.notifications.NotifyUserSignals
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.isUserlocationOnPath
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.keepUserInStraightLine
+import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.pulseUserLocationCircle
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.statisticsWindow
 import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
@@ -156,6 +157,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         var map: GoogleMap? = null
         var tempPlantingRadius = 0.0f
         var toleranceRadius = 0.0f
+        var circleRadius = 0.4
         var listOfMarkedPoints = mutableListOf<LatLng>()
         var listofmarkedcircles = mutableListOf<Circle>()
         lateinit var positionText: TextView
@@ -259,7 +261,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     val c = map?.addCircle(
                         CircleOptions().center(point)
                             .fillColor(Color.YELLOW)
-                            .radius(0.5)
+                            .radius(circleRadius)
                             .strokeWidth(1.0f)
                     )
                     listofmarkedcircles.add(c!!)
@@ -342,17 +344,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     // markers?.remove()
 
                     marker = map?.addCircle(
-                        CircleOptions().center(fromRTKFeed).radius(0.3)
+                        CircleOptions().center(fromRTKFeed).radius(circleRadius)
                             .strokeWidth(1.0f)
                             .strokeColor(Color.BLUE)
+                            .fillColor(Color.BLUE)
 
                     )
-//                    directionMarker?.remove()
-//                    directionMarker = map?.addMarker(
-//                        MarkerOptions().position(fromRTKFeed)
-//                           // .icon(BitmapDescriptorFactory.fromResource(R.drawable.man_icon))
-//
-//                    )
+                    marker?.let{
+                        pulseUserLocationCircle(it)
+                    }
 
                     plotFunc()
                     distanceToPoint(fromRTKFeed)
@@ -466,7 +466,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 val c = map?.addCircle(
                     CircleOptions().center(latlang)
                         .fillColor(Color.YELLOW)
-                        .radius(0.3)
+                        .radius(circleRadius)
                         .strokeWidth(1.0f)
                 )
                 listofmarkedcircles.add(c!!)
@@ -1218,15 +1218,15 @@ fun actionWhenPersonIsStraying(loc:LatLng){
                     PackageManager.PERMISSION_GRANTED
                 ) {
                     if (ActivityCompat.checkSelfPermission(
-                            context,
+                            this,
                             Manifest.permission.ACCESS_FINE_LOCATION
                         )
                         == PackageManager.PERMISSION_GRANTED
                     ) {
-                        Toast.makeText(context, "Permission Granted", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Permission Denied", Toast.LENGTH_SHORT).show()
                 }
                 return
             }
@@ -1454,7 +1454,6 @@ fun actionWhenPersonIsStraying(loc:LatLng){
         // Do nothing...
     }
 
-
     override fun onClick(v: View?) {
 
         if (device == null)
@@ -1484,7 +1483,6 @@ fun actionWhenPersonIsStraying(loc:LatLng){
         hideButton()
     }
 
-
     private val drawLine: (List<LongLat>) -> Unit = { it ->
 
         val ml = it.map {
@@ -1494,7 +1492,7 @@ fun actionWhenPersonIsStraying(loc:LatLng){
             )
         } // Convert to LatLng as expected by polyline
 
-        var poly = PolylineOptions().addAll(ml)
+        val poly = PolylineOptions().addAll(ml)
             .color(Color.BLUE)
             .jointType(JointType.DEFAULT)
             .width(3f)
@@ -1527,7 +1525,7 @@ fun actionWhenPersonIsStraying(loc:LatLng){
             firstPoint = pt
             handler.post {
                 marker = map?.addCircle(
-                    CircleOptions().center(loc).fillColor(Color.YELLOW).radius(1.0)
+                    CircleOptions().center(loc).fillColor(Color.YELLOW).radius(circleRadius)
                         .strokeWidth(1.0f)
                 )
                 map?.moveCamera(
@@ -1549,7 +1547,7 @@ fun actionWhenPersonIsStraying(loc:LatLng){
             return@OnMapClickListener
 
         val l = map?.addCircle(
-            CircleOptions().center(loc).fillColor(Color.YELLOW).radius(0.5).strokeWidth(1.0f)
+            CircleOptions().center(loc).fillColor(Color.YELLOW).radius(circleRadius).strokeWidth(1.0f)
         )
         runOnUiThread {
             Toast.makeText(
@@ -1671,7 +1669,8 @@ fun actionWhenPersonIsStraying(loc:LatLng){
             }
             val textViewPace = findViewById<TextView>(R.id.paceValue)
             val textViewMarkedLines = findViewById<TextView>(R.id.linesMarkedValue)
-            LocationDependantFunctions().pace(textViewPace)
+            val end = System.currentTimeMillis()
+            LocationDependantFunctions().pace(textViewPace,end)
             LocationDependantFunctions().markedLines(
                 recentLine,
                 listOfMarkedPoints,
@@ -1749,7 +1748,7 @@ fun actionWhenPersonIsStraying(loc:LatLng){
                 if (loc !in listOfMarkedPoints) {
 
                     val unmarkedCircles = map?.addCircle(
-                        CircleOptions().center(xloc).fillColor(Color.RED).radius(0.3)
+                        CircleOptions().center(xloc).fillColor(Color.RED).radius(circleRadius)
                             .strokeWidth(1.0f)
                         //if set to zero, no outline is drawn
                     )
@@ -1771,7 +1770,7 @@ fun actionWhenPersonIsStraying(loc:LatLng){
 
                 } else {
                    val c =  map?.addCircle(
-                        CircleOptions().center(xloc).fillColor(Color.YELLOW).radius(0.3)
+                        CircleOptions().center(xloc).fillColor(Color.YELLOW).radius(circleRadius)
                             .strokeWidth(1.0f)
                         //if set to zero, no outline is drawn
                     )
@@ -1893,7 +1892,7 @@ fun actionWhenPersonIsStraying(loc:LatLng){
             val markedCirclePoint = map?.addCircle(
                 CircleOptions().center(pointOfInterestOnPolyline)
                     .fillColor(Color.YELLOW)
-                    .radius(0.3)
+                    .radius(circleRadius)
                     .strokeWidth(1.0f)
             )
 
@@ -2060,7 +2059,7 @@ fun actionWhenPersonIsStraying(loc:LatLng){
                         map?.addCircle(
                             CircleOptions().center(pt)
                                 .fillColor(Color.RED)
-                                .radius(0.3)
+                                .radius(circleRadius)
                                 .strokeWidth(1.0f)
                         )
                         deleteSavedPoints(pt)

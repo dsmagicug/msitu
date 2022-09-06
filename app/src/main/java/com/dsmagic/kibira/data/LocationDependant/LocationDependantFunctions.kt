@@ -40,8 +40,9 @@ class LocationDependantFunctions {
 
         return d
     }
-    fun pace(textview:TextView) {
+    fun pace(textview:TextView,startTime:Long) {
         try {
+            val start = System.currentTimeMillis()
             val sdf = SimpleDateFormat(" HH:mm:ss ")
             val time: String = sdf.format(Date())      //time on switching lines
             val currentTime = convertToMinutes(time)
