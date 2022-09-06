@@ -83,8 +83,8 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
 
     implementation 'com.google.android.libraries.places:places:2.6.0'
-    gmsImplementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.1'
-    gmsImplementation 'com.google.android.gms:play-services-maps:18.0.2'
+    gmsImplementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.5.1'
+    gmsImplementation 'com.google.android.gms:play-services-maps:18.1.0'
     gmsImplementation 'com.google.maps.android:maps-ktx:3.3.0'
     implementation 'com.google.android.gms:play-services-location:20.0.0'
     implementation 'com.google.maps.android:maps-utils-ktx:3.4.0'
@@ -102,8 +102,6 @@ dependencies {
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.9.1'
     implementation 'org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.5'
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3"
-
-
 
 
 

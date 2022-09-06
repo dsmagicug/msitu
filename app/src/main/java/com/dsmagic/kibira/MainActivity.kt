@@ -344,7 +344,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     marker = map?.addCircle(
                         CircleOptions().center(fromRTKFeed).radius(0.3)
                             .strokeWidth(1.0f)
-                            .strokeColor(Color.GREEN)
+                            .strokeColor(Color.BLUE)
 
                     )
 //                    directionMarker?.remove()

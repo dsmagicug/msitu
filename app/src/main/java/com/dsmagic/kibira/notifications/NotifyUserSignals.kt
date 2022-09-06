@@ -48,7 +48,6 @@ import java.text.DecimalFormat
 
                     }
                 }
-
                 mediaplayer.start()
                 mediaplayer.isLooping = false
 
@@ -150,7 +149,7 @@ import java.text.DecimalFormat
             val start = System.currentTimeMillis()
                  return PolyUtil.isLocationOnPath(userLatLng,line,true,0.2)
         }
-        //get the straight line bearing and determin straing form that
+        //get the straight line bearing and determine straying from that
         fun keepUserInStraightLine(
             firstPoint: Location,
             nextPoint: Location,
@@ -177,56 +176,51 @@ import java.text.DecimalFormat
                 }
 
             }
-            Toast.makeText(
-                context,
-                "straightLine = $assumedStraightLineBearing ours = $userBearingAtTimeT $direction",
-                Toast.LENGTH_LONG
-            ).show()
             return direction
         }
 
-        fun shrinkCircle(distance: Float, pt: LatLng) {
-            val firstDistance = distance
-            var secondDistance: Float = 0.0f
-
-            //ensure that we only loop through when it is necessary for us to do so.
-            if (circleID.isBlank() || circle == null) {
-                for (c in unmarkedCirclesList) {
-                    if (c.center == pt) {
-                        circleID = c.id
-                        circle = c
-                    }
-                }
-            } else {
-                circleID
-                circle
-            }
-            val diff = firstDistance - secondDistance
-            when {
-                diff == firstDistance -> {
-                    secondDistance = firstDistance
-                }
-                //distance has reduced thus person is closer to point
-                diff < 0 -> {
-
-                    circle!!.remove()
-                    map?.addCircle(
-                        CircleOptions().radius(distance.toDouble()).center(pt).fillColor(Color.RED)
-                    )
-                    secondDistance = firstDistance
-                }
-                //person is away from point
-                diff > 0 -> {
-                    circle!!.remove()
-                    map?.addCircle(
-                        CircleOptions().radius(distance.toDouble()).fillColor(Color.RED).center(pt)
-                    )
-                    secondDistance = firstDistance
-                }
-            }
-
-
-        }
+//        fun shrinkCircle(distance: Float, pt: LatLng) {
+//            val firstDistance = distance
+//            var secondDistance: Float = 0.0f
+//
+//            //ensure that we only loop through when it is necessary for us to do so.
+//            if (circleID.isBlank() || circle == null) {
+//                for (c in unmarkedCirclesList) {
+//                    if (c.center == pt) {
+//                        circleID = c.id
+//                        circle = c
+//                    }
+//                }
+//            } else {
+//                circleID
+//                circle
+//            }
+//            val diff = firstDistance - secondDistance
+//            when {
+//                diff == firstDistance -> {
+//                    secondDistance = firstDistance
+//                }
+//                //distance has reduced thus person is closer to point
+//                diff < 0 -> {
+//
+//                    circle!!.remove()
+//                    map?.addCircle(
+//                        CircleOptions().radius(distance.toDouble()).center(pt).fillColor(Color.RED)
+//                    )
+//                    secondDistance = firstDistance
+//                }
+//                //person is away from point
+//                diff > 0 -> {
+//                    circle!!.remove()
+//                    map?.addCircle(
+//                        CircleOptions().radius(distance.toDouble()).fillColor(Color.RED).center(pt)
+//                    )
+//                    secondDistance = firstDistance
+//                }
+//            }
+//
+//
+//        }
 
     }
 }
