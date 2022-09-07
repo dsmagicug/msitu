@@ -26,14 +26,12 @@ import java.util.concurrent.TimeUnit
 
 class NotifyUserSignals {
     companion object {
-         var mediaPlayer: MediaPlayer? = null
+       lateinit var mediaPlayer: MediaPlayer
 
         val decimalFormat = DecimalFormat("##.##")
-        var circleID: String = " "        //the id is a combination of char and numbers
-        var circle: Circle? = null
         val handler = Handler(Looper.getMainLooper())
         var oldScenario = ""
-        fun startBeep(scenario: String): MediaPlayer {
+        fun beepingSoundForDirectionIndicator(scenario: String): MediaPlayer {
             try {
                 when (scenario) {
                     "ShortBeep" -> {
@@ -52,24 +50,49 @@ class NotifyUserSignals {
                         mediaPlayer = MediaPlayer.create(context, R.raw.turnrightmp3)
                         startPlayer(mediaPlayer!!, scenario, oldScenario)
                     }
-                    "At Point" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.markheremp3)
-                        startPlayer(mediaPlayer!!, scenario, oldScenario)
-                    }
-                    "Slow Down" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.slowdownmp3)
-                        startPlayer(mediaPlayer!!, scenario, oldScenario)
-                    }
+
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
             }
             return mediaPlayer!!
         }
+        fun beepingSoundForMarkingPosition(scenario:String):MediaPlayer{
+            try {
+                when (scenario) {
+                    "ShortBeep" -> {
+                        mediaPlayer = MediaPlayer.create(context, R.raw.markheremp3)
+                        //startPlayer(mediaPlayer!!, scenario, oldScenario)
+                    }
+
+                    "At Point" -> {
+                        mediaPlayer = MediaPlayer.create(context, R.raw.signalbeepmp3)
+                        //startPlayer(mediaPlayer!!, scenario, oldScenario)
+                    }
+                    "Slow Down" -> {
+                        mediaPlayer = MediaPlayer.create(context, R.raw.slowdownmp3)
+
+                        //startPlayer(mediaPlayer!!, scenario, oldScenario)
+                    }
+                }
+            mediaPlayer.start()
+                mediaPlayer.isLooping = false
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+            return mediaPlayer
+        }
+//        fun startPlayer (player: MediaPlayer, s: String, os:String ):MediaPlayer{
+//           player.start()
+//            player.isLooping =  true
+//            return player
+//        }
+
 
         fun startPlayer (player: MediaPlayer, s: String, os:String ):MediaPlayer{
             if  (!player.isPlaying && s != os ){
                     player.start()
+                player.isLooping = true
             }
             else{
                 player.stop()
@@ -84,15 +107,21 @@ class NotifyUserSignals {
             }
 
         }
+        fun stopBeep(){
+            mediaPlayer = MediaPlayer.create(context,R.raw.signalbeepmp3)
+           if(mediaPlayer.isPlaying){
+               mediaPlayer.stop()
+           }
+        }
 
         fun pulseUserLocationCircle(circle: Circle) {
 
             val runnableCode = object : Runnable {
                 override fun run() {
                     var w = circle.radius
-                    w += 0.1
-                    if (w > 0.7) {
-                        w = 0.4
+                    w += 0.4
+                    if (w > 0.6) {
+                        w = 0.3
                     }
                     circle.radius = w
                     handler.postDelayed(this, 50)
@@ -146,7 +175,7 @@ class NotifyUserSignals {
                     animationColor = Color.rgb(255, 215, 0)
                     activity.findViewById<TextView>(R.id.plantText).text = "slow down"
                     activity.findViewById<ImageView>(R.id.plantValue)
-                        .setImageResource(R.drawable.caution)
+                        .setImageResource(R.drawable.hand)
                 }
                 "Red" -> {
                     MainActivity.pointCardview.isVisible = true
@@ -154,7 +183,7 @@ class NotifyUserSignals {
                     activity.findViewById<TextView>(R.id.plantText).text =
                         "Point In front or behind"
                     activity.findViewById<ImageView>(R.id.plantValue)
-                        .setImageResource(R.drawable.caution)
+                        .setImageResource(R.drawable.hand)
 
                 }
                 "Yellow" -> {
@@ -163,7 +192,7 @@ class NotifyUserSignals {
                     activity.findViewById<TextView>(R.id.plantText).text =
                         "Point In front or behind"
                     activity.findViewById<ImageView>(R.id.plantValue)
-                        .setImageResource(R.drawable.caution)
+                        .setImageResource(R.drawable.hand)
 
                 }
                 "Stop" -> {

@@ -42,12 +42,12 @@ class LocationDependantFunctions {
     }
     fun pace(textview:TextView,startTime:Long) {
         try {
-            val start = System.currentTimeMillis()
             val sdf = SimpleDateFormat(" HH:mm:ss ")
             val time: String = sdf.format(Date())      //time on switching lines
             val currentTime = convertToMinutes(time)
             val startTime =
                 convertToMinutes(initialTimeValue)   //time captured right after planting started
+
             val diff = currentTime - startTime
             val pace = MainActivity.listOfMarkedPoints.size / diff
             val paceValue = pace.roundToInt()

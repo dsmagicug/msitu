@@ -260,11 +260,11 @@
                             <TextView
                                 android:id="@+id/totalPoints"
                                 android:layout_width="185dp"
-                                android:layout_height="49dp"
+                                android:layout_height="73dp"
 
                                 android:layout_marginStart="5dp"
                                 android:padding="5dp"
-                                android:text="Points on alaine:"
+                                android:text="Points on line:"
                                 android:textAlignment="textStart"
                                 android:textColor="@color/white"
 

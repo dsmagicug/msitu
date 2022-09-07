@@ -8,7 +8,6 @@ import android.Manifest
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
-import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.*
@@ -45,8 +44,10 @@ import com.dsmagic.kibira.notifications.NotifyUserSignals
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.isUserlocationOnPath
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.keepUserInStraightLine
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.pulseUserLocationCircle
-import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.startBeep
+import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.beepingSoundForDirectionIndicator
+import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.beepingSoundForMarkingPosition
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.statisticsWindow
+import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.stopBeep
 import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
@@ -344,8 +345,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     marker = map?.addCircle(
                         CircleOptions().center(fromRTKFeed).radius(circleRadius)
                             .strokeWidth(1.0f)
-                            .strokeColor(Color.BLUE)
-                            .fillColor(Color.BLUE)
+                            .strokeColor(Color.GREEN)
+                            .fillColor(Color.GREEN)
 
                     )
                     marker?.let {
@@ -412,7 +413,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     }
 
     private fun approachingPoint() {
-        var player: MediaPlayer = MediaPlayer.create(context, R.raw.errorbeep)
+        var player: MediaPlayer? = null
         // We need to calculate distance of where we are to point to be marked
         if (closestPointRadius.size > 0) {
             toleranceRadius = radius(GAP_SIZE_METRES).toFloat()
@@ -425,44 +426,38 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 )
 
             if ((distanceAway < toleranceRadius)) {
-                player = startBeep("Slow Down")
-                NotifyUserSignals.flashPosition("Orange", positionText, this)
-                if (distanceAway < delta) {
-                    player.stop()
-                    NotifyUserSignals.flashPosition("Green", positionText, this)
-                    player = startBeep("At Point")
-                    markPoint(pointOfInterest)
-                } else {
-                    player.stop()
+                if(pointOfInterest in listOfMarkedPoints){
+                    stopBeep()
                 }
-                if (distanceAway > toleranceRadius) {
-                    player.stop()
-                    NotifyUserSignals.flashPosition("Stop", positionText, this)
+                else {
+                    beepingSoundForMarkingPosition("At Point")
                 }
 
-//                if(listOfMarkedPoints.contains(pointOfInterest)){
-//                    //stopBeep()
-//                }
-//                else {
-//                    startBeep("Slow Down")
-//                }
-//                NotifyUserSignals.flashPosition("Orange", positionText,this)
-//
-//                if (distanceAway < delta) {
-//                    stopBeep()
-//                    NotifyUserSignals.flashPosition("Green", positionText,this)
-//                    startBeep("At Point")
-//                    markPoint(pointOfInterest)
-//                } else {
-//                    stopBeep()
-//                }
-//            }
-//            if (distanceAway > toleranceRadius) {
-//                stopBeep()
-//                NotifyUserSignals.flashPosition("Stop", positionText,this)
+                NotifyUserSignals.flashPosition("Orange", positionText,this)
+
+                if (distanceAway < delta) {
+
+                        stopBeep()
+
+                    NotifyUserSignals.flashPosition("Green", positionText,this)
+
+                    markPoint(pointOfInterest)
+                }
+                else {
+
+                        stopBeep()
+
+                }
+            }
+            if (distanceAway > toleranceRadius) {
+
+                    stopBeep()
+
+                NotifyUserSignals.flashPosition("Stop", positionText, this)
+            }
             }
         }
-    }
+
 
     fun displayMarkedPointsOnUI(List: MutableList<LatLng>) {
         removeMarkedCirclesFromUI(listofmarkedcircles)
@@ -1138,11 +1133,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     }
 
     lateinit var anim: ObjectAnimator
-    var isPlaying = false
+
     fun blink(p: String) {
-        var player: MediaPlayer = MediaPlayer.create(context, R.raw.errorbeep)
         val textViewToBlink = p
-             player.stop()
+
         when (textViewToBlink) {
             "Left" -> {
                 directionImage.setImageResource(R.drawable.rightarrow)
@@ -1150,17 +1144,17 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 directionImage.isVisible = true
                 directionText.isVisible = true
 
-                if (player.isPlaying) {
-                    player.stop()
-                }
-                 startBeep("Left")
+//                if (player.isPlaying) {
+//                    player.stop()
+//                }
+//                 beepingSoundForDirectionIndicator("Left")
             }
             "Right" -> {
                 directionImage.setImageResource(R.drawable.leftarrow)
                 directionImage.isVisible = true
                 directionText.text = "Turn Right"
                 directionText.isVisible = true
-                startBeep("Right")
+              //  beepingSoundForDirectionIndicator("Right")
             }
             "Stop" -> {
                 directionText.isVisible = false
@@ -2131,6 +2125,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 //             ProjectID = DbFunctions.getProjectID(Geoggapsize!!, displayProjectName.text.toString())
         var editor = sharedPreferences.edit()
         editor.putString("productID_key", "$ProjectID")
+        if(ProjectID == 0L){
+            Toast.makeText(this,"Create a project First!!",Toast.LENGTH_SHORT).show()
+            return
+        }
 
         val basePoints = Basepoints(null, lat, lng, ProjectID.toInt())
 
