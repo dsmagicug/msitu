@@ -47,7 +47,6 @@ import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.keepUserInSt
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.pulseUserLocationCircle
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.startBeep
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.statisticsWindow
-import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.stopBeep
 import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
@@ -144,7 +143,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     var delta = 0.1524
     var projectLoaded = false
 
-   lateinit var positionText: TextView
+    lateinit var positionText: TextView
 
     companion object {
         lateinit var projectLines: MutableList<PlantingLine>
@@ -349,7 +348,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                             .fillColor(Color.BLUE)
 
                     )
-                    marker?.let{
+                    marker?.let {
                         pulseUserLocationCircle(it)
                     }
 
@@ -413,8 +412,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     }
 
     private fun approachingPoint() {
-     lateinit var slowDown:MediaPlayer
-     lateinit var markHere:MediaPlayer
+        var player: MediaPlayer = MediaPlayer.create(context, R.raw.errorbeep)
         // We need to calculate distance of where we are to point to be marked
         if (closestPointRadius.size > 0) {
             toleranceRadius = radius(GAP_SIZE_METRES).toFloat()
@@ -427,43 +425,41 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 )
 
             if ((distanceAway < toleranceRadius)) {
-                if(listOfMarkedPoints.contains(pointOfInterest)){
-                    //stopBeep()
-                }
-                else {
-                    slowDown = startBeep("Slow Down")
-                }
-                NotifyUserSignals.flashPosition("Orange", positionText,this)
-
-                if (distanceAway > delta && distanceAway < toleranceRadius) {
-
-//
-//                                when {
-//                                    distanceAway < GAP_SIZE_METRES -> {
-//                                        NotifyUserSignals.flashPosition("Red", positionText)
-//                                    }
-//                                    distanceAway > GAP_SIZE_METRES -> {
-//                                        NotifyUserSignals.flashPosition("Yellow", positionText)
-//                                    }
-//                                }
-
-                    // NotifyUserSignals.flashPosition("Red", positionText)
-                }
-
+                player = startBeep("Slow Down")
+                NotifyUserSignals.flashPosition("Orange", positionText, this)
                 if (distanceAway < delta) {
-                    stopBeep(slowDown)
-                    NotifyUserSignals.flashPosition("Green", positionText,this)
-                   markHere = startBeep("At Point")
+                    player.stop()
+                    NotifyUserSignals.flashPosition("Green", positionText, this)
+                    player = startBeep("At Point")
                     markPoint(pointOfInterest)
                 } else {
-                    stopBeep(markHere)
+                    player.stop()
+                }
+                if (distanceAway > toleranceRadius) {
+                    player.stop()
+                    NotifyUserSignals.flashPosition("Stop", positionText, this)
                 }
 
-
-            }
-            if (distanceAway > toleranceRadius) {
-                stopBeep(slowDown)
-                NotifyUserSignals.flashPosition("Stop", positionText,this)
+//                if(listOfMarkedPoints.contains(pointOfInterest)){
+//                    //stopBeep()
+//                }
+//                else {
+//                    startBeep("Slow Down")
+//                }
+//                NotifyUserSignals.flashPosition("Orange", positionText,this)
+//
+//                if (distanceAway < delta) {
+//                    stopBeep()
+//                    NotifyUserSignals.flashPosition("Green", positionText,this)
+//                    startBeep("At Point")
+//                    markPoint(pointOfInterest)
+//                } else {
+//                    stopBeep()
+//                }
+//            }
+//            if (distanceAway > toleranceRadius) {
+//                stopBeep()
+//                NotifyUserSignals.flashPosition("Stop", positionText,this)
             }
         }
     }
@@ -947,7 +943,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         }
         val line = listOfPlantingLines[listOfPlantingLines.lastIndex]
         val l = line.tag as MutableList<*>
-       var t = line.contains(loc)
+        var t = line.contains(loc)
 
         if (plantingMode && listOfMarkedPoints.isNotEmpty()) {
             fab_reset.isVisible = false
@@ -968,7 +964,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             var index = 0
             try {
                 l.apply {
-                    for(point in this){
+                    for (point in this) {
                         if (point == refPoint) {
                             index = indexOf(point)
                         }
@@ -986,7 +982,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                         latLng = l[nextIndex] as LatLng
                     }
 
-                    locationOfNextPoint.apply{
+                    locationOfNextPoint.apply {
                         latitude = latLng!!.latitude
                         longitude = latLng!!.longitude
                     }
@@ -1008,7 +1004,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                         latLng = l[nextIndex] as LatLng
                     }
 
-                    locationOfNextPoint.apply{
+                    locationOfNextPoint.apply {
                         latitude = latLng!!.latitude
                         longitude = latLng!!.longitude
                     }
@@ -1018,11 +1014,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                         distance = distanceTo(locationOfNextPoint)
                     }
                     locationOfCurrentPoint.apply {
-                        latitude = refPoint.let{
+                        latitude = refPoint.let {
                             latitude
                         }
-                            longitude = refPoint.let{
-                                longitude
+                        longitude = refPoint.let {
+                            longitude
                         }
                     }
 
@@ -1035,15 +1031,16 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 )
                 //check that user is walking in straight line!
                 val q = line.contains(loc)
-                val p = isUserlocationOnPath(loc,l as MutableList<LatLng>)
-                if(p || q){
+                val p = isUserlocationOnPath(loc, l as MutableList<LatLng>)
+                if (p || q) {
                     blink("On track")
                 } else {
                     blink(position)
                 }
                 //Toast.makeText(context,"$p && $t",Toast.LENGTH_SHORT).show()
 
-                val distanceInUnitsRespectiveToProject = Conversions.ftToMeters(distance.toString(), gapUnits)
+                val distanceInUnitsRespectiveToProject =
+                    Conversions.ftToMeters(distance.toString(), gapUnits)
                 statisticsWindow(size, totalPoints, l, distanceInUnitsRespectiveToProject.toFloat())
 
                 //when straying from line
@@ -1079,14 +1076,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     nextPointLatLng = l[nextPoint] as LatLng?
                 }
                 if (positionOfPoint != lastIndex && positionOfPoint != 0) {
-                    if(positionOfPoint<0){
+                    if (positionOfPoint < 0) {
                         return
                     }
                     val nextPoint = positionOfPoint - 1
                     nextPointLatLng = l[nextPoint] as LatLng?
                 }
 
-                locationOfNextPoint.apply{
+                locationOfNextPoint.apply {
                     latitude = nextPointLatLng!!.latitude
                     longitude = nextPointLatLng.longitude
                 }
@@ -1096,10 +1093,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     distance = distanceTo(locationOfNextPoint)
                 }
                 locationOfCurrentPoint.apply {
-                    latitude = pointOfInterest.let{
+                    latitude = pointOfInterest.let {
                         latitude
                     }
-                    longitude = pointOfInterest.let{
+                    longitude = pointOfInterest.let {
                         longitude
                     }
                 }
@@ -1109,47 +1106,54 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     locationOfNextPoint,
                     locationOfRoverLatLng
                 )
-             val p = isUserlocationOnPath(loc,l as MutableList<LatLng>)
+                val p = isUserlocationOnPath(loc, l as MutableList<LatLng>)
                 //Toast.makeText(context,"$p",Toast.LENGTH_SHORT).show()
-                if(p){
+                if (p) {
                     blink("On track")
-                }
-                else {
+                } else {
                     blink(position)
                 }
 
             }
         }
     }
-fun actionWhenPersonIsStraying(loc:LatLng){
-    polyline1 = map?.addPolyline(
-        PolylineOptions()
-            .color(Color.BLACK)
-            .jointType(JointType.DEFAULT)
-            .width(3.5f)
-            .geodesic(true)
-            .startCap(RoundCap())
-            .add(
-                LatLng(loc.latitude, loc.longitude),   //roverpoint
-                LatLng(latLng!!.latitude, latLng!!.longitude), //nextPoint
-            )
-    )
-    polyline1!!.endCap = CustomCap(
-        BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
-    )
 
-    blink(position)
-}
+    fun actionWhenPersonIsStraying(loc: LatLng) {
+        polyline1 = map?.addPolyline(
+            PolylineOptions()
+                .color(Color.BLACK)
+                .jointType(JointType.DEFAULT)
+                .width(3.5f)
+                .geodesic(true)
+                .startCap(RoundCap())
+                .add(
+                    LatLng(loc.latitude, loc.longitude),   //roverpoint
+                    LatLng(latLng!!.latitude, latLng!!.longitude), //nextPoint
+                )
+        )
+        polyline1!!.endCap = CustomCap(
+            BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
+        )
+        blink(position)
+    }
+
     lateinit var anim: ObjectAnimator
+    var isPlaying = false
     fun blink(p: String) {
+        var player: MediaPlayer = MediaPlayer.create(context, R.raw.errorbeep)
         val textViewToBlink = p
+             player.stop()
         when (textViewToBlink) {
             "Left" -> {
                 directionImage.setImageResource(R.drawable.rightarrow)
                 directionText.text = "Turn Left"
                 directionImage.isVisible = true
                 directionText.isVisible = true
-                startBeep("Left")
+
+                if (player.isPlaying) {
+                    player.stop()
+                }
+                 startBeep("Left")
             }
             "Right" -> {
                 directionImage.setImageResource(R.drawable.leftarrow)
@@ -1162,8 +1166,6 @@ fun actionWhenPersonIsStraying(loc:LatLng){
                 directionText.isVisible = false
                 directionImage.isVisible = false
                 directionCardLayout.isVisible = false
-
-
             }
             "On track" -> {
                 directionImage.setImageResource(R.drawable.tick)
@@ -1174,6 +1176,7 @@ fun actionWhenPersonIsStraying(loc:LatLng){
         }
 
     }
+
 
     fun blinkEffectOfMarkedPoints(color: String, T: TextView) {
         val textViewToBlink = T
@@ -1311,7 +1314,7 @@ fun actionWhenPersonIsStraying(loc:LatLng){
     fun checkLocation() {
         if (ActivityCompat.checkSelfPermission(
                 context,
-               Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.ACCESS_FINE_LOCATION
             )
             != PackageManager.PERMISSION_GRANTED
         ) {
@@ -1343,9 +1346,9 @@ fun actionWhenPersonIsStraying(loc:LatLng){
         }
 
         if (this.let {
-              ActivityCompat.checkSelfPermission(
+                ActivityCompat.checkSelfPermission(
                     it,
-                   Manifest.permission.BLUETOOTH_CONNECT
+                    Manifest.permission.BLUETOOTH_CONNECT
                 )
             } != PackageManager.PERMISSION_GRANTED
         ) {
@@ -1556,7 +1559,8 @@ fun actionWhenPersonIsStraying(loc:LatLng){
             return@OnMapClickListener
 
         val l = map?.addCircle(
-            CircleOptions().center(loc).fillColor(Color.YELLOW).radius(circleRadius).strokeWidth(1.0f)
+            CircleOptions().center(loc).fillColor(Color.YELLOW).radius(circleRadius)
+                .strokeWidth(1.0f)
         )
         runOnUiThread {
             Toast.makeText(
@@ -1576,7 +1580,6 @@ fun actionWhenPersonIsStraying(loc:LatLng){
         l?.remove()
         // marker?.remove()
     }
-
 
 
     fun plotMesh(
@@ -1614,7 +1617,11 @@ fun actionWhenPersonIsStraying(loc:LatLng){
                     Geometry.generateLongLat(c, drawPoints, drawLine)
                 }
                 "Square Grid" -> {
-                     projectLines = Geometry.generateSquareMesh(c, p, MeshDirection.RIGHT) as MutableList<PlantingLine>
+                    projectLines = Geometry.generateSquareMesh(
+                        c,
+                        p,
+                        MeshDirection.RIGHT
+                    ) as MutableList<PlantingLine>
                     val drawPoints = ScaleLargeProjects.updateProjectLines(this)
                     Geometry.generateLongLat(c, drawPoints, drawLine)
                 }
@@ -1679,7 +1686,7 @@ fun actionWhenPersonIsStraying(loc:LatLng){
             val textViewPace = findViewById<TextView>(R.id.paceValue)
             val textViewMarkedLines = findViewById<TextView>(R.id.linesMarkedValue)
             val end = System.currentTimeMillis()
-            LocationDependantFunctions().pace(textViewPace,end)
+            LocationDependantFunctions().pace(textViewPace, end)
             LocationDependantFunctions().markedLines(
                 recentLine,
                 listOfMarkedPoints,
@@ -1778,7 +1785,7 @@ fun actionWhenPersonIsStraying(loc:LatLng){
                     }
 
                 } else {
-                   val c =  map?.addCircle(
+                    val c = map?.addCircle(
                         CircleOptions().center(xloc).fillColor(Color.YELLOW).radius(circleRadius)
                             .strokeWidth(1.0f)
                         //if set to zero, no outline is drawn
@@ -2051,7 +2058,7 @@ fun actionWhenPersonIsStraying(loc:LatLng){
                     val acceptedPlantingRadius = tempPlantingRadius
                     if ((distanceAway < acceptedPlantingRadius) && (pt !in listOfMarkedPoints)) {
 
-                            markPoint(pt)
+                        markPoint(pt)
 
 
                     }

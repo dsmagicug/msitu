@@ -22,59 +22,65 @@ import com.google.maps.android.PolyUtil
 import java.io.IOException
 import java.math.RoundingMode
 import java.text.DecimalFormat
+import java.util.concurrent.TimeUnit
 
 class NotifyUserSignals {
     companion object {
-        lateinit var mediaplayer: MediaPlayer
+         var mediaPlayer: MediaPlayer? = null
 
         val decimalFormat = DecimalFormat("##.##")
         var circleID: String = " "        //the id is a combination of char and numbers
         var circle: Circle? = null
         val handler = Handler(Looper.getMainLooper())
-
+        var oldScenario = ""
         fun startBeep(scenario: String): MediaPlayer {
-
             try {
                 when (scenario) {
                     "ShortBeep" -> {
-
-                        mediaplayer = MediaPlayer.create(context, R.raw.signalbeepmp3)
+                        mediaPlayer = MediaPlayer.create(context, R.raw.signalbeepmp3)
+                        startPlayer(mediaPlayer!!, scenario, oldScenario)
                     }
                     "ErrorBeep" -> {
-
-                        mediaplayer = MediaPlayer.create(context, R.raw.errorbeep)
-
+                        mediaPlayer = MediaPlayer.create(context, R.raw.errorbeep)
+                        startPlayer(mediaPlayer!!, scenario, oldScenario)
                     }
                     "Left" -> {
-
-                        mediaplayer = MediaPlayer.create(context, R.raw.turnleftmp3)
+                        mediaPlayer = MediaPlayer.create(context, R.raw.turnleftmp3)
+                        startPlayer(mediaPlayer!!, scenario, oldScenario)
                     }
                     "Right" -> {
-
-                        mediaplayer = MediaPlayer.create(context, R.raw.turnrightmp3)
+                        mediaPlayer = MediaPlayer.create(context, R.raw.turnrightmp3)
+                        startPlayer(mediaPlayer!!, scenario, oldScenario)
                     }
                     "At Point" -> {
-
-                        mediaplayer = MediaPlayer.create(context, R.raw.markheremp3)
+                        mediaPlayer = MediaPlayer.create(context, R.raw.markheremp3)
+                        startPlayer(mediaPlayer!!, scenario, oldScenario)
                     }
                     "Slow Down" -> {
-                        mediaplayer = MediaPlayer.create(context, R.raw.slowdownmp3)
+                        mediaPlayer = MediaPlayer.create(context, R.raw.slowdownmp3)
+                        startPlayer(mediaPlayer!!, scenario, oldScenario)
                     }
                 }
-                mediaplayer.start()
-                mediaplayer.isLooping = true
-
             } catch (e: IOException) {
                 e.printStackTrace()
             }
-
-            return mediaplayer
+            return mediaPlayer!!
         }
 
-        fun stopBeep(mediaPlayer: MediaPlayer) {
-            if (mediaPlayer.isPlaying) {
-                mediaPlayer.stop()
+        fun startPlayer (player: MediaPlayer, s: String, os:String ):MediaPlayer{
+            if  (!player.isPlaying && s != os ){
+                    player.start()
+            }
+            else{
+                player.stop()
+            }
+            oldScenario =  s
+            return player
+        }
 
+        fun stopActivePlayer(activePlayer: MediaPlayer){
+            if (activePlayer != activePlayer && !activePlayer.isPlaying){
+                activePlayer.stop()
             }
 
         }
