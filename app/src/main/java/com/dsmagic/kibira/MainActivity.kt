@@ -21,6 +21,7 @@ import android.hardware.SensorManager
 import android.location.Location
 import android.location.Location.distanceBetween
 import android.location.LocationManager
+import android.media.MediaPlayer
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.os.Handler
@@ -44,7 +45,9 @@ import com.dsmagic.kibira.notifications.NotifyUserSignals
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.isUserlocationOnPath
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.keepUserInStraightLine
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.pulseUserLocationCircle
+import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.startBeep
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.statisticsWindow
+import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.stopBeep
 import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
@@ -138,9 +141,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var linesMarked: TextView
     lateinit var totalPoints: TextView
 
-    var delta = 0.1
+    var delta = 0.1524
     var projectLoaded = false
 
+   lateinit var positionText: TextView
 
     companion object {
         lateinit var projectLines: MutableList<PlantingLine>
@@ -160,8 +164,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         var circleRadius = 0.4
         var listOfMarkedPoints = mutableListOf<LatLng>()
         var listofmarkedcircles = mutableListOf<Circle>()
-        lateinit var positionText: TextView
-        lateinit var positionImage: ImageView
         lateinit var pointCardview: CardView
         lateinit var positionLayout: LinearLayout
         var unmarkedCirclesList = mutableListOf<Circle>()
@@ -177,7 +179,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         lateinit var lineInS2Format: S2PointIndex<S2LatLng>
         var plantingRadius: Circle? = null
         var onLoad = false
-        lateinit var thisActivity: Activity
         lateinit var displayedDistance: TextView
         lateinit var displayedDistanceUnits: TextView
         lateinit var displayedPoints: TextView
@@ -202,7 +203,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         context = this
-        thisActivity = this
         fabCampus = findViewById(R.id.fab_compass)
         fab_moreLines = findViewById(R.id.fab_moreLines)
         drawerlayout = findViewById(R.id.drawerlayout)
@@ -217,13 +217,13 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         linesMarked = findViewById(R.id.linesMarkedValue)
         totalPoints = findViewById(R.id.totalPointsValue)
         directionImage = findViewById(R.id.directionImageValue)
-        positionImage = findViewById(R.id.plantValue)
-        positionText = findViewById<TextView>(R.id.plantText)
+        positionText = findViewById(R.id.plantText)
+
         directionText = findViewById(R.id.directionText)
         pointCardview = findViewById(R.id.positionCardView)
         positionLayout = findViewById(R.id.plant)
         directionCardLayout = findViewById(R.id.directionsLayout)
-        displayedDistance = findViewById(R.id.distance)
+        displayedDistance = findViewById<TextView>(R.id.distance)
         displayedDistanceUnits = findViewById(R.id.distanceUnits)
         displayedPoints = findViewById(R.id.numberOfPoints)
 
@@ -254,7 +254,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             undoDrawingLines()
         }
         fab_moreLines.setOnClickListener {
-            val drawPoints = ScaleLargeProjects.updateProjectLines()
+            val drawPoints = ScaleLargeProjects.updateProjectLines(this)
             Geometry.generateLongLat(projectStartPoint, drawPoints, drawLine)
             if (listOfMarkedPoints.isNotEmpty()) {
                 for (point in listOfMarkedPoints) {
@@ -286,7 +286,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             editor.putString("userid_key", userID)
             editor.putString("apiToken_key", APIToken)
             editor.apply()
-            editor.commit()
 
         } else {
 
@@ -356,54 +355,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
                     plotFunc()
                     distanceToPoint(fromRTKFeed)
+                    approachingPoint()
 
-                    // We need to calculate distance of where we are to point to be marked
-                    if (closestPointRadius.size > 0) {
-                        toleranceRadius = radius(GAP_SIZE_METRES).toFloat()
-                        val pointOfInterest = closestPointRadius[0] as LatLng
-//                        val acceptedPlantingRadius = tempPlantingRadius
-                        val distanceAway =
-                            GeneralHelper.findDistanceBtnTwoPoints(
-                                fromRTKFeed,
-                                pointOfInterest
-                            )
-
-                        if ((distanceAway < toleranceRadius)) {
-                            if(listOfMarkedPoints.contains(pointOfInterest)){
-                                NotifyUserSignals.stopBeep()
-                            }
-                            else {
-                                NotifyUserSignals.startBeep("ShortBeep")
-                            }
-                            NotifyUserSignals.flashPosition("Orange", positionText)
-                         if (distanceAway > delta && distanceAway < toleranceRadius) {
-
-//
-//                                when {
-//                                    distanceAway < GAP_SIZE_METRES -> {
-//                                        NotifyUserSignals.flashPosition("Red", positionText)
-//                                    }
-//                                    distanceAway > GAP_SIZE_METRES -> {
-//                                        NotifyUserSignals.flashPosition("Yellow", positionText)
-//                                    }
-//                                }
-
-                                // NotifyUserSignals.flashPosition("Red", positionText)
-                            }
-
-                            if (distanceAway < delta) {
-                                NotifyUserSignals.flashPosition("Green", positionText)
-                                NotifyUserSignals.stopBeep()
-                                markPoint(pointOfInterest)
-                            }
-
-
-                        }
-                        if (distanceAway > toleranceRadius) {
-                            NotifyUserSignals.stopBeep()
-                            NotifyUserSignals.flashPosition("Stop", positionText)
-                        }
-                    }
                 }
             }
         })
@@ -457,6 +410,62 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             }
         }
 
+    }
+
+    private fun approachingPoint() {
+     lateinit var slowDown:MediaPlayer
+     lateinit var markHere:MediaPlayer
+        // We need to calculate distance of where we are to point to be marked
+        if (closestPointRadius.size > 0) {
+            toleranceRadius = radius(GAP_SIZE_METRES).toFloat()
+            val pointOfInterest = closestPointRadius[0] as LatLng
+//                        val acceptedPlantingRadius = tempPlantingRadius
+            val distanceAway =
+                GeneralHelper.findDistanceBtnTwoPoints(
+                    fromRTKFeed,
+                    pointOfInterest
+                )
+
+            if ((distanceAway < toleranceRadius)) {
+                if(listOfMarkedPoints.contains(pointOfInterest)){
+                    //stopBeep()
+                }
+                else {
+                    slowDown = startBeep("Slow Down")
+                }
+                NotifyUserSignals.flashPosition("Orange", positionText,this)
+
+                if (distanceAway > delta && distanceAway < toleranceRadius) {
+
+//
+//                                when {
+//                                    distanceAway < GAP_SIZE_METRES -> {
+//                                        NotifyUserSignals.flashPosition("Red", positionText)
+//                                    }
+//                                    distanceAway > GAP_SIZE_METRES -> {
+//                                        NotifyUserSignals.flashPosition("Yellow", positionText)
+//                                    }
+//                                }
+
+                    // NotifyUserSignals.flashPosition("Red", positionText)
+                }
+
+                if (distanceAway < delta) {
+                    stopBeep(slowDown)
+                    NotifyUserSignals.flashPosition("Green", positionText,this)
+                   markHere = startBeep("At Point")
+                    markPoint(pointOfInterest)
+                } else {
+                    stopBeep(markHere)
+                }
+
+
+            }
+            if (distanceAway > toleranceRadius) {
+                stopBeep(slowDown)
+                NotifyUserSignals.flashPosition("Stop", positionText,this)
+            }
+        }
     }
 
     fun displayMarkedPointsOnUI(List: MutableList<LatLng>) {
@@ -1134,20 +1143,20 @@ fun actionWhenPersonIsStraying(loc:LatLng){
     lateinit var anim: ObjectAnimator
     fun blink(p: String) {
         val textViewToBlink = p
-
         when (textViewToBlink) {
             "Left" -> {
                 directionImage.setImageResource(R.drawable.rightarrow)
                 directionText.text = "Turn Left"
                 directionImage.isVisible = true
                 directionText.isVisible = true
-
+                startBeep("Left")
             }
             "Right" -> {
                 directionImage.setImageResource(R.drawable.leftarrow)
                 directionImage.isVisible = true
                 directionText.text = "Turn Right"
                 directionText.isVisible = true
+                startBeep("Right")
             }
             "Stop" -> {
                 directionText.isVisible = false
@@ -1307,17 +1316,17 @@ fun actionWhenPersonIsStraying(loc:LatLng){
             != PackageManager.PERMISSION_GRANTED
         ) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(
-                    thisActivity,
+                    this,
                     Manifest.permission.ACCESS_FINE_LOCATION
                 )
             ) {
                 ActivityCompat.requestPermissions(
-                    thisActivity,
+                    this,
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1
                 )
             } else {
                 ActivityCompat.requestPermissions(
-                    thisActivity,
+                    this,
                     arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1
                 )
             }
@@ -1601,12 +1610,12 @@ fun actionWhenPersonIsStraying(loc:LatLng){
                         MeshDirection.RIGHT
                     ) as MutableList<PlantingLine>
 
-                    val drawPoints = ScaleLargeProjects.updateProjectLines()
+                    val drawPoints = ScaleLargeProjects.updateProjectLines(this)
                     Geometry.generateLongLat(c, drawPoints, drawLine)
                 }
                 "Square Grid" -> {
                      projectLines = Geometry.generateSquareMesh(c, p, MeshDirection.RIGHT) as MutableList<PlantingLine>
-                    val drawPoints = ScaleLargeProjects.updateProjectLines()
+                    val drawPoints = ScaleLargeProjects.updateProjectLines(this)
                     Geometry.generateLongLat(c, drawPoints, drawLine)
                 }
             }

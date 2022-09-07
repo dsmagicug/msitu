@@ -13,7 +13,7 @@ import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.MainActivity.Companion.bluetoothList
 import com.dsmagic.kibira.MainActivity.Companion.context
 import com.dsmagic.kibira.MainActivity.Companion.deviceList
-import com.dsmagic.kibira.MainActivity.Companion.thisActivity
+
 
 class bluetoothFunctions {
     companion object {

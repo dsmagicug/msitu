@@ -264,7 +264,7 @@
 
                                 android:layout_marginStart="5dp"
                                 android:padding="5dp"
-                                android:text="Points on Line:"
+                                android:text="Points on alaine:"
                                 android:textAlignment="textStart"
                                 android:textColor="@color/white"
 

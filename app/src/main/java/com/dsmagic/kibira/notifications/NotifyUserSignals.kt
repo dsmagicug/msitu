@@ -1,79 +1,92 @@
- package com.dsmagic.kibira.notifications
+package com.dsmagic.kibira.notifications
 
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.app.Activity
 import android.content.Context
 import android.graphics.Color
 import android.location.Location
 import android.media.MediaPlayer
 import android.os.*
-import android.widget.LinearLayout
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
 import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.MainActivity.Companion.context
-import com.dsmagic.kibira.MainActivity.Companion.map
-import com.dsmagic.kibira.MainActivity.Companion.thisActivity
-import com.dsmagic.kibira.MainActivity.Companion.unmarkedCirclesList
 import com.dsmagic.kibira.R
 import com.google.android.gms.maps.model.Circle
-import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.PolyUtil
 import java.io.IOException
-import java.lang.Math.abs
 import java.math.RoundingMode
 import java.text.DecimalFormat
 
- class NotifyUserSignals {
+class NotifyUserSignals {
     companion object {
         lateinit var mediaplayer: MediaPlayer
-        val vibrator = thisActivity.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+
         val decimalFormat = DecimalFormat("##.##")
         var circleID: String = " "        //the id is a combination of char and numbers
         var circle: Circle? = null
         val handler = Handler(Looper.getMainLooper())
 
-       fun startBeep(scenario:String) {
+        fun startBeep(scenario: String): MediaPlayer {
 
             try {
-                when(scenario){
-                   "ShortBeep" -> {
-                       mediaplayer = MediaPlayer.create(context, R.raw.shortbeeeep)
-                   }
+                when (scenario) {
+                    "ShortBeep" -> {
+
+                        mediaplayer = MediaPlayer.create(context, R.raw.signalbeepmp3)
+                    }
                     "ErrorBeep" -> {
+
                         mediaplayer = MediaPlayer.create(context, R.raw.errorbeep)
 
                     }
+                    "Left" -> {
+
+                        mediaplayer = MediaPlayer.create(context, R.raw.turnleftmp3)
+                    }
+                    "Right" -> {
+
+                        mediaplayer = MediaPlayer.create(context, R.raw.turnrightmp3)
+                    }
+                    "At Point" -> {
+
+                        mediaplayer = MediaPlayer.create(context, R.raw.markheremp3)
+                    }
+                    "Slow Down" -> {
+                        mediaplayer = MediaPlayer.create(context, R.raw.slowdownmp3)
+                    }
                 }
                 mediaplayer.start()
-                mediaplayer.isLooping = false
+                mediaplayer.isLooping = true
 
             } catch (e: IOException) {
                 e.printStackTrace()
             }
 
-
+            return mediaplayer
         }
 
-        fun stopBeep() {
-            mediaplayer = MediaPlayer.create(context, R.raw.longbeep)
-            if (mediaplayer.isPlaying) {
-                mediaplayer.stop()
+        fun stopBeep(mediaPlayer: MediaPlayer) {
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.stop()
 
             }
 
         }
-fun pulseUserLocationCircle(circle:Circle){
+
+        fun pulseUserLocationCircle(circle: Circle) {
 
             val runnableCode = object : Runnable {
                 override fun run() {
                     var w = circle.radius
-                    w += 0.3
-                    if (w > 0.5) {
-                        w = 0.3
+                    w += 0.1
+                    if (w > 0.7) {
+                        w = 0.4
                     }
                     circle.radius = w
                     handler.postDelayed(this, 50)
@@ -81,9 +94,10 @@ fun pulseUserLocationCircle(circle:Circle){
             }
 
             handler.postDelayed(runnableCode, 50)
-}
+        }
 
-        fun vibration() {
+        fun vibration(activity: Activity) {
+            val vibrator = activity.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
             val vibrationEffect: VibrationEffect
             if (!vibrator.hasVibrator()) {
                 return
@@ -110,34 +124,40 @@ fun pulseUserLocationCircle(circle:Circle){
         }
 
         lateinit var proximityAnimator: ObjectAnimator
-        fun flashPosition(color: String, T: TextView) {
+        fun flashPosition(color: String, T: TextView, activity: Activity) {
             val textViewToBlink = T
             var animationColor: Int = 0
             when (color) {
                 "Green" -> {
                     MainActivity.pointCardview.isVisible = true
                     animationColor = Color.GREEN
-                    MainActivity.positionText.text = "Mark here"
-                    MainActivity.positionImage.setImageResource(R.drawable.tick)
+                    activity.findViewById<TextView>(R.id.plantText).text = "Mark here"
+                    activity.findViewById<ImageView>(R.id.plantValue)
+                        .setImageResource(R.drawable.tick)
                 }
                 "Orange" -> {
                     MainActivity.pointCardview.isVisible = true
                     animationColor = Color.rgb(255, 215, 0)
-                    MainActivity.positionText.text = "slow down"
-                    MainActivity.positionImage.setImageResource(R.drawable.caution)
+                    activity.findViewById<TextView>(R.id.plantText).text = "slow down"
+                    activity.findViewById<ImageView>(R.id.plantValue)
+                        .setImageResource(R.drawable.caution)
                 }
                 "Red" -> {
                     MainActivity.pointCardview.isVisible = true
                     animationColor = Color.YELLOW
-                    MainActivity.positionText.text = "Point In front or behind"
-                    MainActivity.positionImage.setImageResource(R.drawable.caution)
+                    activity.findViewById<TextView>(R.id.plantText).text =
+                        "Point In front or behind"
+                    activity.findViewById<ImageView>(R.id.plantValue)
+                        .setImageResource(R.drawable.caution)
 
                 }
                 "Yellow" -> {
                     MainActivity.pointCardview.isVisible = true
                     animationColor = Color.YELLOW
-                    MainActivity.positionText.text = "Point behind"
-                    MainActivity.positionImage.setImageResource(R.drawable.caution)
+                    activity.findViewById<TextView>(R.id.plantText).text =
+                        "Point In front or behind"
+                    activity.findViewById<ImageView>(R.id.plantValue)
+                        .setImageResource(R.drawable.caution)
 
                 }
                 "Stop" -> {
@@ -161,16 +181,17 @@ fun pulseUserLocationCircle(circle:Circle){
 
         }
 
-        fun isUserlocationOnPath(userLatLng:LatLng,line:MutableList<LatLng>):Boolean{
+        fun isUserlocationOnPath(userLatLng: LatLng, line: MutableList<LatLng>): Boolean {
             val start = System.currentTimeMillis()
-                 return PolyUtil.isLocationOnPath(userLatLng,line,true,0.2)
+            return PolyUtil.isLocationOnPath(userLatLng, line, true, 0.2)
         }
+
         //get the straight line bearing and determine straying from that
         fun keepUserInStraightLine(
             firstPoint: Location,
             nextPoint: Location,
             currentPosition: Location
-        ):String {
+        ): String {
             var direction = ""
 
             val assumedStraightLineBearing = kotlin.math.abs(firstPoint.bearingTo(nextPoint))

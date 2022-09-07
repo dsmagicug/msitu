@@ -1,16 +1,16 @@
 package com.dsmagic.kibira.utils
 
+import android.app.Activity
 import androidx.core.view.isVisible
 import com.dsmagic.kibira.MainActivity
-import com.dsmagic.kibira.MainActivity.Companion.thisActivity
 import com.dsmagic.kibira.PlantingLine
 import com.dsmagic.kibira.R
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class ScaleLargeProjects {
     companion object{
-        fun updateProjectLines(): MutableList<PlantingLine> {
-            val fab_moreLines = thisActivity.findViewById<FloatingActionButton>(R.id.fab_moreLines)
+        fun updateProjectLines(activity: Activity): MutableList<PlantingLine> {
+            val fab_moreLines = activity.findViewById<FloatingActionButton>(R.id.fab_moreLines)
             lateinit var drawPoints: MutableList<PlantingLine>
             val projectLinesSize = MainActivity.projectLines.size
 
