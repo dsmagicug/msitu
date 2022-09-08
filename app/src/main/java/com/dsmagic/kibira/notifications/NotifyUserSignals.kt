@@ -66,7 +66,7 @@ class NotifyUserSignals {
                     }
 
                     "At Point" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.signalbeepmp3)
+                        mediaPlayer = MediaPlayer.create(context, R.raw.beepmp3)
                         //startPlayer(mediaPlayer!!, scenario, oldScenario)
                     }
                     "Slow Down" -> {
@@ -76,7 +76,7 @@ class NotifyUserSignals {
                     }
                 }
             mediaPlayer.start()
-                mediaPlayer.isLooping = false
+                mediaPlayer.isLooping = true
             } catch (e: IOException) {
                 e.printStackTrace()
             }

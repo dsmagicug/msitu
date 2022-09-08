@@ -346,7 +346,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                         CircleOptions().center(fromRTKFeed).radius(circleRadius)
                             .strokeWidth(1.0f)
                             .strokeColor(Color.GREEN)
-                            .fillColor(Color.GREEN)
+                            .fillColor(Color.BLUE)
 
                     )
                     marker?.let {
