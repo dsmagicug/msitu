@@ -11,7 +11,6 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.MainActivity.Companion.bluetoothList
-import com.dsmagic.kibira.MainActivity.Companion.context
 import com.dsmagic.kibira.MainActivity.Companion.deviceList
 
 

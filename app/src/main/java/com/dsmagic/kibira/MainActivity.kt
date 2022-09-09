@@ -20,7 +20,6 @@ import android.hardware.SensorManager
 import android.location.Location
 import android.location.Location.distanceBetween
 import android.location.LocationManager
-import android.media.MediaPlayer
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.os.Handler
@@ -41,13 +40,13 @@ import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
 import com.dsmagic.kibira.notifications.NotifyUserSignals
+import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.beepingSoundForMarkingPosition
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.isUserlocationOnPath
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.keepUserInStraightLine
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.pulseUserLocationCircle
-import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.beepingSoundForDirectionIndicator
-import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.beepingSoundForMarkingPosition
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.statisticsWindow
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.stopBeep
+import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.vibration
 import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
@@ -81,15 +80,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import kotlin.math.abs
 import kotlin.math.sqrt
-
 
 class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     View.OnClickListener, NavigationView.OnNavigationItemSelectedListener {
 
-
     var device: BluetoothDevice? = null
-
     private var marker: Circle? = null
     var tempListMarker = mutableListOf<Marker>()
     var lastLoc: Location? = null
@@ -101,7 +98,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     var pointsIndex = S2PointIndex<S2LatLng>()
     var asyncExecutor: ExecutorService = Executors.newCachedThreadPool()
     var closestPointRadius = ArrayList<Any>()
-
     private lateinit var fromRTKFeed: LatLng
 
     /*Declaring sensorManager and acceleration constants*/
@@ -109,10 +105,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     private var acceleration = 0f
     private var currentAcceleration = 0f
     private var lastAcceleration = 0f
-
     private var plantingMode = false
-
-    // private var markers: Marker? = null
     private var fabFlag = true
     private var zoomMode = false
     var userID: String? = null
@@ -120,14 +113,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var debugXloc: LatLng
     lateinit var toggle: ActionBarDrawerToggle
     lateinit var sharedPreferences: SharedPreferences
-
-    //-------------compass----------//
     lateinit var fabCampus: FloatingActionButton
     lateinit var directionImage: ImageView
-
     lateinit var directionText: TextView
     var BearingPhoneIsFacing: Float = 0.0f
-
     lateinit var drawerlayout: DrawerLayout
     lateinit var navView: NavigationView
     lateinit var fab_reset: FloatingActionButton
@@ -136,15 +125,16 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var progressBar: ProgressBar
     lateinit var spinner: Spinner
     lateinit var buttonConnect: Button
-
     lateinit var pace: TextView
     lateinit var linesMarked: TextView
     lateinit var totalPoints: TextView
-
-    var delta = 0.1524
+    var delta = 0.1524 //6 inches
     var projectLoaded = false
-
     lateinit var positionText: TextView
+    lateinit var positionLayout: LinearLayout
+    lateinit var displayedDistance: TextView
+    lateinit var displayedDistanceUnits: TextView
+    lateinit var displayedPoints: TextView
 
     companion object {
         lateinit var projectLines: MutableList<PlantingLine>
@@ -154,7 +144,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         var projectMeshSizeList = mutableListOf<Double>()
         var meshTypeList = mutableListOf<String>()
         var gapUnitsList = mutableListOf<String>()
-        lateinit var context: Context
         lateinit var initialTime: SimpleDateFormat
         lateinit var initialTimeValue: String
         val bluetoothList = ArrayList<String>()
@@ -165,12 +154,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         var listOfMarkedPoints = mutableListOf<LatLng>()
         var listofmarkedcircles = mutableListOf<Circle>()
         lateinit var pointCardview: CardView
-        lateinit var positionLayout: LinearLayout
         var unmarkedCirclesList = mutableListOf<Circle>()
-
         var listOfPlantingLines = mutableListOf<Polyline>()
         var deviceList = ArrayList<BluetoothDevice>()
-
         var polyLines = ArrayList<Polyline?>()
         var meshDone = false
         lateinit var card: CardView
@@ -179,9 +165,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         lateinit var lineInS2Format: S2PointIndex<S2LatLng>
         var plantingRadius: Circle? = null
         var onLoad = false
-        lateinit var displayedDistance: TextView
-        lateinit var displayedDistanceUnits: TextView
-        lateinit var displayedPoints: TextView
+
         lateinit var projectStartPoint: Point
         var MeshType = " "
         var gapUnits = " "
@@ -190,11 +174,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
-
 
         setContentView(R.layout.activity_main)
 
@@ -202,7 +184,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         supportActionBar?.setDisplayShowTitleEnabled(false)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-        context = this
         fabCampus = findViewById(R.id.fab_compass)
         fab_moreLines = findViewById(R.id.fab_moreLines)
         drawerlayout = findViewById(R.id.drawerlayout)
@@ -310,6 +291,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         val accSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         val magneticSensor = sensorManager!!.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+        if (magneticSensor == null) {
+            Toast.makeText(this, "No magnetic sensor", Toast.LENGTH_SHORT).show()
+        }
 
         sensorManager!!.registerListener(
             listener,
@@ -413,12 +397,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     }
 
     private fun approachingPoint() {
-        var player: MediaPlayer? = null
+
         // We need to calculate distance of where we are to point to be marked
         if (closestPointRadius.size > 0) {
             toleranceRadius = radius(GAP_SIZE_METRES).toFloat()
             val pointOfInterest = closestPointRadius[0] as LatLng
-//                        val acceptedPlantingRadius = tempPlantingRadius
             val distanceAway =
                 GeneralHelper.findDistanceBtnTwoPoints(
                     fromRTKFeed,
@@ -426,37 +409,45 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 )
 
             if ((distanceAway < toleranceRadius)) {
-                if(pointOfInterest in listOfMarkedPoints){
-                    stopBeep()
-                }
-                else {
-                    beepingSoundForMarkingPosition("At Point")
-                }
+                if (pointOfInterest in listOfMarkedPoints) {
+                    vibration(this)
+                } else {
 
-                NotifyUserSignals.flashPosition("Orange", positionText,this)
-
+                    if (!NotifyUserSignals.isBeeping && NotifyUserSignals.reasonForBeeping != "Slow Down") {
+                        beepingSoundForMarkingPosition("Slow Down", this)
+                        NotifyUserSignals.flashPosition("Orange", positionText, this)
+                        NotifyUserSignals.isBeeping = true
+                        NotifyUserSignals.reasonForBeeping = "Slow Down"
+                    }
+                    //beeping mark here(user stepped into point but then lost the point
+                    else if (NotifyUserSignals.isBeeping && NotifyUserSignals.reasonForBeeping != "Slow Down") {
+                        stopBeep(this)
+                        beepingSoundForMarkingPosition("Slow Down", this)
+                        NotifyUserSignals.flashPosition("Orange", positionText, this)
+                        NotifyUserSignals.isBeeping = true
+                        NotifyUserSignals.reasonForBeeping = "Slow Down"
+                    }
+                }
                 if (distanceAway < delta) {
-
-                        stopBeep()
-
-                    NotifyUserSignals.flashPosition("Green", positionText,this)
-
+                    if (NotifyUserSignals.isBeeping && NotifyUserSignals.reasonForBeeping != "At Point") {
+                        stopBeep(this)
+                        beepingSoundForMarkingPosition("At Point", this)
+                        NotifyUserSignals.isBeeping = true
+                        NotifyUserSignals.reasonForBeeping = "At Point"
+                    }
+                    NotifyUserSignals.flashPosition("Green", positionText, this)
                     markPoint(pointOfInterest)
                 }
                 else {
-
-                        stopBeep()
-
+                    stopBeep(this)
                 }
             }
             if (distanceAway > toleranceRadius) {
-
-                    stopBeep()
-
+                stopBeep(this)
                 NotifyUserSignals.flashPosition("Stop", positionText, this)
             }
-            }
         }
+    }
 
 
     fun displayMarkedPointsOnUI(List: MutableList<LatLng>) {
@@ -633,7 +624,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         } else {
             projectListAsArray
         }
-        AlertDialog.Builder(context)
+        AlertDialog.Builder(this)
             .setTitle("Projects")
             .setSingleChoiceItems(l, checkedItemIndex,
                 DialogInterface.OnClickListener { dialog, which ->
@@ -648,7 +639,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                             val id = projectIDList[index]
                             Alerts.DeleteAlert(
                                 "\nProject '$selectedProject' $id  will be deleted permanently.\n\nAre you sure?",
-                                id
+                                id, this
                             )
                         }
 
@@ -689,11 +680,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
     fun displayMoreProjects(list: Array<String>) {
         var checkedItemIndex = -1
-        AlertDialog.Builder(context)
+        AlertDialog.Builder(this)
             .setTitle("All Projects")
             // .setMessage(s)
             .setSingleChoiceItems(list, checkedItemIndex,
-                DialogInterface.OnClickListener { dialog, which ->
+                DialogInterface.OnClickListener { _, which ->
                     checkedItemIndex = which
                     selectedProject = list[which]
                 })
@@ -705,8 +696,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                             val id = projectIDList[index]
 
                             Alerts.DeleteAlert(
-                                "\nProject '$selectedProject' $id will be deleted permanently.\n\nAre you sure?",
-                                id
+                                "\nProject '$selectedProject' will be deleted permanently.\n\nAre you sure?",
+                                id, this
                             )
                         }
 
@@ -793,7 +784,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         val displayProjectName: TextView? = findViewById(R.id.display_project_name)
 
         Toast.makeText(
-            context, "Loading project, This may take some few minutes time." +
+            this, "Loading project, This may take some few minutes time." +
                     "", Toast.LENGTH_LONG
         ).show()
         cleanUpExistingFragment()
@@ -807,7 +798,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
             if (ListOfBasePoints.size == 0) {
                 runOnUiThread {
-                    warningAlert("Project Empty", PID)
+                    warningAlert("Project Empty", PID, applicationContext)
                 }
             } else {
                 val l = ListOfBasePoints[0]
@@ -938,7 +929,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         }
         val line = listOfPlantingLines[listOfPlantingLines.lastIndex]
         val l = line.tag as MutableList<*>
-        var t = line.contains(loc)
 
         if (plantingMode && listOfMarkedPoints.isNotEmpty()) {
             fab_reset.isVisible = false
@@ -1036,7 +1026,13 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
                 val distanceInUnitsRespectiveToProject =
                     Conversions.ftToMeters(distance.toString(), gapUnits)
-                statisticsWindow(size, totalPoints, l, distanceInUnitsRespectiveToProject.toFloat())
+                statisticsWindow(
+                    this,
+                    size,
+                    totalPoints,
+                    l,
+                    distanceInUnitsRespectiveToProject.toFloat()
+                )
 
                 //when straying from line
                 if (distance > (GAP_SIZE_METRES * 0.5)) {
@@ -1050,7 +1046,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             } catch (e: Exception) {
                 Log.d("ERROR", "frOM SWITCHING ${e.message}")
             }
-
 
         } else {
             //ensure we have a point first
@@ -1154,7 +1149,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 directionImage.isVisible = true
                 directionText.text = "Turn Right"
                 directionText.isVisible = true
-              //  beepingSoundForDirectionIndicator("Right")
+                //  beepingSoundForDirectionIndicator("Right")
             }
             "Stop" -> {
                 directionText.isVisible = false
@@ -1170,7 +1165,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         }
 
     }
-
 
     fun blinkEffectOfMarkedPoints(color: String, T: TextView) {
         val textViewToBlink = T
@@ -1205,12 +1199,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
     }
 
-    fun stopBlink() {
-
+    private fun stopBlink() {
         if (anim.isRunning) {
             anim.end()
         }
-
     }
 
     override fun onRequestPermissionsResult(
@@ -1282,7 +1274,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         if (ActivityCompat.checkSelfPermission(
-                context,
+                this,
                 Manifest.permission.BLUETOOTH_SCAN
             ) != PackageManager.PERMISSION_GRANTED
         ) {
@@ -1307,7 +1299,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
     fun checkLocation() {
         if (ActivityCompat.checkSelfPermission(
-                context,
+                this,
                 Manifest.permission.ACCESS_FINE_LOCATION
             )
             != PackageManager.PERMISSION_GRANTED
@@ -1364,13 +1356,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
         val items = bluetoothList.toArray()
         val adaptor =
-            this.let {
-                ArrayAdapter(
-                    it,
-                    android.R.layout.simple_spinner_dropdown_item,
-                    items
-                )
-            }
+            ArrayAdapter(
+                this,
+                android.R.layout.simple_spinner_dropdown_item,
+                items
+            )
 
         spinner.adapter = adaptor
         spinner.onItemSelectedListener = this
@@ -1680,7 +1670,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             val textViewPace = findViewById<TextView>(R.id.paceValue)
             val textViewMarkedLines = findViewById<TextView>(R.id.linesMarkedValue)
             val end = System.currentTimeMillis()
-            LocationDependantFunctions().pace(textViewPace, end)
+            LocationDependantFunctions().pace(textViewPace, end, this)
             LocationDependantFunctions().markedLines(
                 recentLine,
                 listOfMarkedPoints,
@@ -1795,7 +1785,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
     private fun undoDrawingLines() {
 
-        undoAlertWarning(ProjectID.toInt())
+        undoAlertWarning(ProjectID.toInt(), this)
     }
 
     var plantingRadiusCircle: Circle? = null
@@ -1924,7 +1914,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 Toast.makeText(
                     this, "Point Marked", Toast.LENGTH_SHORT
                 ).show()
-
+                vibration(this)
                 blinkEffectOfMarkedPoints("Cyan", displayedPoints)
 
                 val point = S2LatLng.fromDegrees(
@@ -1966,18 +1956,18 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
                 //I don't remember why i was doing this :( Always comment your code!!!!
 
-                current_measured_bearing = (magneticValues.get(0) * 180 / Math.PI).toFloat()
+                current_measured_bearing = (magneticValues[0] * 180 / Math.PI).toFloat()
                 if (current_measured_bearing < 0) current_measured_bearing += 360f
 
-                val R = FloatArray(9)
+                val r = FloatArray(9)
 
                 val values = FloatArray(3)
-                SensorManager.getRotationMatrix(R, null, accelerometerValues, magneticValues)
-                SensorManager.getOrientation(R, values)
+                SensorManager.getRotationMatrix(r, null, accelerometerValues, magneticValues)
+                SensorManager.getOrientation(r, values)
                 bearing = -Math.toDegrees(values[0].toDouble())
                 val rotateDegree = (-Math.toDegrees(values[0].toDouble())).toFloat()
                 diff = rotateDegree - lastRotateDegree
-                val bearingAngle = Math.abs(diff!!)
+                val bearingAngle = abs(diff!!)
 
                 if (bearingAngle > 1) {
 
@@ -2059,7 +2049,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 } else {
 
                     //circles drawn on the map are 0.3 in radius, thus the 1.0
-                    //this prevebts the immediate re narking of that point
+                    //this prevents the immediate re Marking of that point
 
                     if ((distanceAway < 1.0) && pt in listOfMarkedPoints) {
                         val point = S2LatLng.fromDegrees(pt.latitude, pt.longitude)
@@ -2123,10 +2113,10 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         DbFunctions.ProjectID
 
 //             ProjectID = DbFunctions.getProjectID(Geoggapsize!!, displayProjectName.text.toString())
-        var editor = sharedPreferences.edit()
+        val editor = sharedPreferences.edit()
         editor.putString("productID_key", "$ProjectID")
-        if(ProjectID == 0L){
-            Toast.makeText(this,"Create a project First!!",Toast.LENGTH_SHORT).show()
+        if (ProjectID == 0L) {
+            Toast.makeText(this, "Create a project First!!", Toast.LENGTH_SHORT).show()
             return
         }
 

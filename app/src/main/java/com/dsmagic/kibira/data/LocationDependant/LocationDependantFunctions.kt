@@ -1,9 +1,9 @@
 package com.dsmagic.kibira.data.LocationDependant
 
+import android.content.Context
 import android.widget.TextView
 import android.widget.Toast
 import com.dsmagic.kibira.MainActivity
-import com.dsmagic.kibira.MainActivity.Companion.context
 import com.dsmagic.kibira.MainActivity.Companion.initialTimeValue
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Polyline
@@ -40,7 +40,7 @@ class LocationDependantFunctions {
 
         return d
     }
-    fun pace(textview:TextView,startTime:Long) {
+    fun pace(textview:TextView,startTime:Long,context: Context) {
         try {
             val sdf = SimpleDateFormat(" HH:mm:ss ")
             val time: String = sdf.format(Date())      //time on switching lines
@@ -54,7 +54,7 @@ class LocationDependantFunctions {
 
             textview.text = paceValue.toString()
         } catch (e: UninitializedPropertyAccessException) {
-            Toast.makeText(context, "No points marked on that line", Toast.LENGTH_SHORT).show()
+
         }
 
     }

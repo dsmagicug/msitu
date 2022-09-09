@@ -1,19 +1,16 @@
 package com.dsmagic.kibira.utils
 
+import android.content.Context
 import android.content.DialogInterface
 import androidx.appcompat.app.AlertDialog
-import androidx.core.view.isVisible
 import com.dsmagic.kibira.MainActivity
-import com.dsmagic.kibira.MainActivity.Companion.context
 import com.dsmagic.kibira.R
-import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.deleteBasePoints
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.deleteProject
-import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.deleteProjectFunc
 
 class Alerts {
     companion object{
-        fun DeleteAlert(S: String, I: Int) {
+        fun DeleteAlert(S: String, I: Int,context:Context) {
             AlertDialog.Builder(context)
                 .setTitle("Caution")
                 .setIcon(R.drawable.caution)
@@ -21,22 +18,22 @@ class Alerts {
                 .setPositiveButton(
                     "Delete",
 
-                    DialogInterface.OnClickListener { dialog, id ->
+                    DialogInterface.OnClickListener { _, _ ->
 
                        var deletedRow = deleteProject(I)
                         if(deletedRow > 0 ){
-                            SuccessAlert("Successfully Deleted")
+                            SuccessAlert("Successfully Deleted",context)
                         }
 
                     })
                 .setNegativeButton("Cancel",
-                    DialogInterface.OnClickListener { dialog, id ->
+                    DialogInterface.OnClickListener { _, _ ->
                     })
 
                 .show()
         }
 
-        fun alertfail(S: String) {
+        fun alertfail(S: String,context:Context) {
             AlertDialog.Builder(context)
                 .setTitle("Error")
                 .setIcon(R.drawable.cross)
@@ -44,7 +41,7 @@ class Alerts {
                 .show()
         }
 
-        fun undoAlertWarning(PID:Int){
+        fun undoAlertWarning(PID:Int,context:Context){
 
             AlertDialog.Builder(context)
                 .setTitle("Warning")
@@ -53,7 +50,7 @@ class Alerts {
                 .setPositiveButton(
                     "Undo",
 
-                    DialogInterface.OnClickListener { dialog, id ->
+                    DialogInterface.OnClickListener { _, _ ->
                         for (l in MainActivity.polyLines) {
                             l!!.remove()
                         }
@@ -73,24 +70,24 @@ class Alerts {
 
         }
 
-        fun warningAlert(S: String, I: Int) {
+        fun warningAlert(S: String, I: Int,context:Context) {
             AlertDialog.Builder(context)
                 .setTitle("Warning")
                 .setIcon(R.drawable.caution)
                 .setMessage(S)
                 .setPositiveButton(
                     "Delete",
-                    DialogInterface.OnClickListener { dialog, id ->
+                    DialogInterface.OnClickListener { _, _ ->
                         deleteProject(I)
                     })
                 .setNegativeButton("Continue",
-                    DialogInterface.OnClickListener { dialog, id ->
+                    DialogInterface.OnClickListener { _, _ ->
                         MainActivity.meshDone = false
                     })
                 .show()
         }
 
-        fun SuccessAlert(S: String) {
+        fun SuccessAlert(S: String,context:Context) {
             AlertDialog.Builder(context)
                 .setTitle("Success")
                 .setIcon(R.drawable.tick)

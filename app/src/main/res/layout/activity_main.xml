@@ -48,8 +48,8 @@
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/cardView2"
-                    android:layout_width="407dp"
-                    android:layout_height="500dp"
+                    android:layout_width="357dp"
+                    android:layout_height="423dp"
                     android:layout_gravity="top|end"
                     android:layout_marginTop="200dp"
                     android:visibility="invisible"
@@ -234,12 +234,12 @@
 
                             <TextView
                                 android:id="@+id/textView2"
-                                android:layout_width="75dp"
-                                android:layout_height="30dp"
-                                android:layout_marginTop="5dp"
+                                android:layout_width="30dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginTop="15dp"
                                 android:layout_weight="1"
                                 android:text="(Pts/min)"
-                                android:textAlignment="textStart"
+                                android:textAlignment="center"
                                 android:textColor="@color/white"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
@@ -424,7 +424,7 @@
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/directionsLayout"
-                    android:layout_width="380dp"
+                    android:layout_width="330dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="top|end"
                     android:layout_marginTop="95dp"
@@ -438,7 +438,7 @@
 
                     <LinearLayout
                         android:id="@+id/leftLayout"
-                        android:layout_width="357dp"
+                        android:layout_width="308dp"
                         android:layout_height="90dp"
                         android:layout_marginStart="5dp"
 
@@ -450,7 +450,7 @@
                         <ImageView
                             android:id="@+id/directionImageValue"
 
-                            android:layout_width="94dp"
+                            android:layout_width="85dp"
                             android:layout_height="60dp"
                             android:layout_gravity="center"
                             android:layout_margin="5dp"
@@ -464,7 +464,7 @@
 
                         <TextView
                             android:id="@+id/directionText"
-                            android:layout_width="wrap_content"
+                            android:layout_width="186dp"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
                             android:layout_margin="5dp"
@@ -484,7 +484,7 @@
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/positionCardView"
-                    android:layout_width="350dp"
+                    android:layout_width="230dp"
                     android:layout_height="260dp"
                     android:layout_gravity="top"
                     android:layout_marginTop="95dp"
@@ -498,26 +498,14 @@
 
                     <LinearLayout
                         android:id="@+id/plant"
-                        android:layout_width="match_parent"
+                        android:layout_width="212dp"
                         android:layout_height="match_parent"
                         android:background="@color/white"
-                        android:orientation="horizontal"
+                        android:orientation="vertical"
                         android:visibility="visible"
                         app:layout_constraintBottom_toBottomOf="@+id/appToolbar"
                         tools:ignore="UseCompoundDrawables">
 
-                        <ImageView
-                            android:id="@+id/plantValue"
-                            android:layout_width="103dp"
-                            android:layout_height="125dp"
-                            android:layout_gravity="center"
-                            android:layout_margin="5dp"
-                            android:autofillHints=""
-                            android:padding="5dp"
-                            android:src="@drawable/tick"
-                            android:visibility="visible"
-                            app:tint="@color/black"
-                            tools:ignore="UseAppTint" />
 
                         <TextView
                             android:id="@+id/plantText"
@@ -528,13 +516,26 @@
                             android:layout_marginTop="15dp"
                             android:padding="15dp"
                             android:text="Mark here"
-                         android:textAlignment="center"
+                            android:textAlignment="center"
 
                             android:textColor="@color/black"
                             android:textSize="35sp"
 
                             android:textStyle="normal|bold"
                             android:visibility="visible" />
+                        <ImageView
+                            android:id="@+id/plantValue"
+                            android:layout_width="103dp"
+                            android:layout_height="83dp"
+                            android:layout_gravity="center"
+                            android:layout_margin="5dp"
+                            android:autofillHints=""
+                            android:padding="5dp"
+                            android:src="@drawable/tick"
+                            android:visibility="visible"
+                            app:tint="@color/black"
+                            tools:ignore="UseAppTint" />
+
 
 
                     </LinearLayout>

@@ -1,5 +1,6 @@
 package com.dsmagic.kibira.roomDatabase
 
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import com.dsmagic.kibira.*
@@ -129,7 +130,7 @@ class DbFunctions {
                 return deletedRow
         }
 
-        fun deleteProjectFunc(ID: Int) {
+        fun deleteProjectFunc(ID: Int,context: Context) {
 
 
             if (ID == 0) {
@@ -159,15 +160,15 @@ class DbFunctions {
                                 .show()
 
                         } else {
-                            alertfail("Could not delete project :(")
+                            alertfail("Could not delete project :(",context)
                         }
                     } else {
-                        alertfail("Error!! We all have bad days!! :( $response")
+                        alertfail("Error!! We all have bad days!! :( $response",context)
                     }
                 }
 
                 override fun onFailure(call: Call<deleteProjectResponse?>, t: Throwable) {
-                    alertfail("Error ${t.message}")
+                    alertfail("Error ${t.message}",context)
                 }
             })
 

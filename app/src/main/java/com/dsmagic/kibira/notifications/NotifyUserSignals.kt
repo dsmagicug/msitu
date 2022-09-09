@@ -14,7 +14,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.view.isVisible
 import com.dsmagic.kibira.MainActivity
-import com.dsmagic.kibira.MainActivity.Companion.context
 import com.dsmagic.kibira.R
 import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.LatLng
@@ -22,51 +21,51 @@ import com.google.maps.android.PolyUtil
 import java.io.IOException
 import java.math.RoundingMode
 import java.text.DecimalFormat
-import java.util.concurrent.TimeUnit
 
 class NotifyUserSignals {
     companion object {
-       lateinit var mediaPlayer: MediaPlayer
-
+        lateinit var mediaPlayer: MediaPlayer
         val decimalFormat = DecimalFormat("##.##")
         val handler = Handler(Looper.getMainLooper())
+        var isBeeping = false
+        var reasonForBeeping = ""
         var oldScenario = ""
-        fun beepingSoundForDirectionIndicator(scenario: String): MediaPlayer {
+        fun beepingSoundForDirectionIndicator(scenario: String,context:Context): MediaPlayer {
             try {
                 when (scenario) {
                     "ShortBeep" -> {
                         mediaPlayer = MediaPlayer.create(context, R.raw.signalbeepmp3)
-                        startPlayer(mediaPlayer!!, scenario, oldScenario)
+                        startPlayer(mediaPlayer, scenario, oldScenario)
                     }
                     "ErrorBeep" -> {
                         mediaPlayer = MediaPlayer.create(context, R.raw.errorbeep)
-                        startPlayer(mediaPlayer!!, scenario, oldScenario)
+                        startPlayer(mediaPlayer, scenario, oldScenario)
                     }
                     "Left" -> {
                         mediaPlayer = MediaPlayer.create(context, R.raw.turnleftmp3)
-                        startPlayer(mediaPlayer!!, scenario, oldScenario)
+                        startPlayer(mediaPlayer, scenario, oldScenario)
                     }
                     "Right" -> {
                         mediaPlayer = MediaPlayer.create(context, R.raw.turnrightmp3)
-                        startPlayer(mediaPlayer!!, scenario, oldScenario)
+                        startPlayer(mediaPlayer, scenario, oldScenario)
                     }
 
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
             }
-            return mediaPlayer!!
+            return mediaPlayer
         }
-        fun beepingSoundForMarkingPosition(scenario:String):MediaPlayer{
+
+        fun beepingSoundForMarkingPosition(scenario: String,context:Context): MediaPlayer {
             try {
                 when (scenario) {
                     "ShortBeep" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.markheremp3)
+                        mediaPlayer = MediaPlayer.create(context, R.raw.beepmp3)
                         //startPlayer(mediaPlayer!!, scenario, oldScenario)
                     }
-
                     "At Point" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.beepmp3)
+                        mediaPlayer = MediaPlayer.create(context, R.raw.markheremp3)
                         //startPlayer(mediaPlayer!!, scenario, oldScenario)
                     }
                     "Slow Down" -> {
@@ -75,8 +74,11 @@ class NotifyUserSignals {
                         //startPlayer(mediaPlayer!!, scenario, oldScenario)
                     }
                 }
-            mediaPlayer.start()
+                mediaPlayer.start()
                 mediaPlayer.isLooping = true
+                reasonForBeeping = scenario
+                isBeeping = true
+
             } catch (e: IOException) {
                 e.printStackTrace()
             }
@@ -89,29 +91,33 @@ class NotifyUserSignals {
 //        }
 
 
-        fun startPlayer (player: MediaPlayer, s: String, os:String ):MediaPlayer{
-            if  (!player.isPlaying && s != os ){
-                    player.start()
+        fun startPlayer(player: MediaPlayer, s: String, os: String): MediaPlayer {
+            if (!player.isPlaying && s != os) {
+                player.start()
                 player.isLooping = true
-            }
-            else{
+            } else {
                 player.stop()
             }
-            oldScenario =  s
+            oldScenario = s
             return player
         }
+        fun keepPlaying(){
 
-        fun stopActivePlayer(activePlayer: MediaPlayer){
-            if (activePlayer != activePlayer && !activePlayer.isPlaying){
+        }
+
+        fun stopActivePlayer(activePlayer: MediaPlayer) {
+            if (activePlayer != activePlayer && !activePlayer.isPlaying) {
                 activePlayer.stop()
             }
 
         }
-        fun stopBeep(){
-            mediaPlayer = MediaPlayer.create(context,R.raw.signalbeepmp3)
-           if(mediaPlayer.isPlaying){
-               mediaPlayer.stop()
-           }
+
+        fun stopBeep(context:Context) {
+            mediaPlayer = MediaPlayer.create(context, R.raw.signalbeepmp3)
+            if (mediaPlayer.isPlaying) {
+                mediaPlayer.stop()
+
+            }
         }
 
         fun pulseUserLocationCircle(circle: Circle) {
@@ -143,18 +149,18 @@ class NotifyUserSignals {
                     VibrationEffect.createOneShot(5000, VibrationEffect.DEFAULT_AMPLITUDE)
 //                vibrator.cancel()
 //                vibrator.vibrate(vibrationEffect)
-                Toast.makeText(context, "Vibrating now", Toast.LENGTH_SHORT).show()
+
             }
 
         }
 
-        fun statisticsWindow(size: Int, textView: TextView, list: MutableList<*>, distance: Float) {
+        fun statisticsWindow(activity: Activity,size: Int, textView: TextView, list: MutableList<*>, distance: Float) {
             decimalFormat.roundingMode = RoundingMode.DOWN
             val dist = decimalFormat.format(distance)
             val d = dist.toString()
-            MainActivity.displayedDistance.text = d
-            MainActivity.displayedDistanceUnits.text = MainActivity.gapUnits
-            MainActivity.displayedPoints.text = size.toString()
+            activity.findViewById<TextView>(R.id.distance).text = d
+            activity.findViewById<TextView>(R.id.distanceUnits).text = MainActivity.gapUnits
+            activity.findViewById<TextView>(R.id.numberOfPoints).text = size.toString()
             textView.text = list.size.toString()
         }
 
