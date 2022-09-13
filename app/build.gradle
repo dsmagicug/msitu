@@ -103,6 +103,7 @@ dependencies {
     implementation 'org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.5'
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3"
 
+    implementation 'androidx.preference:preference:1.1.1'
 
 
     //    // Room

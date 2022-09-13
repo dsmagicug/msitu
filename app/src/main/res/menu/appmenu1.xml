@@ -8,17 +8,13 @@
         android:title="Devices"
 
         app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/d2"
-        android:textColor="@color/white"
+<!--    <item-->
+<!--        android:id="@+id/menu_calibrate"-->
+<!--        android:icon="@drawable/ic_gps_fixed"-->
+<!--        android:title="@string/calibrate"-->
+<!--        app:showAsAction="always|withText"/>-->
 
-        app:showAsAction="ifRoom" />
-    <item
-        android:id="@+id/d3"
-
-        app:showAsAction="ifRoom"/>
-
-<!--<item-->
+    <!--<item-->
 
 <!--        android:id="@+id/scan"-->
 <!--        android:layout_width="wrap_content"-->

@@ -116,8 +116,11 @@ class NotifyUserSignals {
             mediaPlayer = MediaPlayer.create(context, R.raw.signalbeepmp3)
             if (mediaPlayer.isPlaying) {
                 mediaPlayer.stop()
-
+            } else {
+                //Toast.makeText(context,"stop $isBeeping $reasonForBeeping",Toast.LENGTH_SHORT).show()
             }
+            isBeeping = false
+            reasonForBeeping = " "
         }
 
         fun pulseUserLocationCircle(circle: Circle) {
@@ -146,9 +149,9 @@ class NotifyUserSignals {
             //ENSURING THAT THE PHONE IS RUNNING ANDROID ABOVE OREO
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 vibrationEffect =
-                    VibrationEffect.createOneShot(5000, VibrationEffect.DEFAULT_AMPLITUDE)
-//                vibrator.cancel()
-//                vibrator.vibrate(vibrationEffect)
+                    VibrationEffect.createOneShot(1000, VibrationEffect.DEFAULT_AMPLITUDE)
+                vibrator.cancel()
+                vibrator.vibrate(vibrationEffect)
 
             }
 

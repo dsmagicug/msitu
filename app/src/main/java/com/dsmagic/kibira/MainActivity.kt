@@ -39,11 +39,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
+
 import com.dsmagic.kibira.notifications.NotifyUserSignals
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.beepingSoundForMarkingPosition
+import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.isBeeping
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.isUserlocationOnPath
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.keepUserInStraightLine
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.pulseUserLocationCircle
+import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.reasonForBeeping
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.statisticsWindow
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.stopBeep
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.vibration
@@ -76,6 +79,7 @@ import dilivia.s2.index.shape.MutableS2ShapeIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.security.AccessController.getContext
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -128,7 +132,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var pace: TextView
     lateinit var linesMarked: TextView
     lateinit var totalPoints: TextView
-    var delta = 0.1524 //6 inches
+    var delta = 0.1324 //6 inches
     var projectLoaded = false
     lateinit var positionText: TextView
     lateinit var positionLayout: LinearLayout
@@ -210,7 +214,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
 
-
         drawerlayout.addDrawerListener(toggle)
         toggle.syncState()
 
@@ -232,6 +235,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         }
 
         fab_reset.setOnClickListener {
+
             undoDrawingLines()
         }
         fab_moreLines.setOnClickListener {
@@ -385,15 +389,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     activePlantingLine.isVisible = true
                     displayMarkedPointsOnUI(listOfMarkedPoints)
                     fabFlag = false
-
                 }
-
 
             } catch (e: Exception) {
 
             }
         }
-
     }
 
     private fun approachingPoint() {
@@ -410,45 +411,40 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
             if ((distanceAway < toleranceRadius)) {
                 if (pointOfInterest in listOfMarkedPoints) {
-                    vibration(this)
+                    //vibration(this)
                 } else {
 
-                    if (!NotifyUserSignals.isBeeping && NotifyUserSignals.reasonForBeeping != "Slow Down") {
+                    if (!isBeeping && reasonForBeeping != "Slow Down") {
                         beepingSoundForMarkingPosition("Slow Down", this)
-                        NotifyUserSignals.flashPosition("Orange", positionText, this)
-                        NotifyUserSignals.isBeeping = true
-                        NotifyUserSignals.reasonForBeeping = "Slow Down"
+                        isBeeping = true
+                        reasonForBeeping = "Slow Down"
+                    } else {
+                        //Toast.makeText(this," tolerance $isBeeping $reasonForBeeping",Toast.LENGTH_SHORT).show()
                     }
-                    //beeping mark here(user stepped into point but then lost the point
-                    else if (NotifyUserSignals.isBeeping && NotifyUserSignals.reasonForBeeping != "Slow Down") {
-                        stopBeep(this)
-                        beepingSoundForMarkingPosition("Slow Down", this)
-                        NotifyUserSignals.flashPosition("Orange", positionText, this)
-                        NotifyUserSignals.isBeeping = true
-                        NotifyUserSignals.reasonForBeeping = "Slow Down"
-                    }
+
+                   // NotifyUserSignals.flashPosition("Orange", positionText, this)
+
                 }
+                NotifyUserSignals.flashPosition("Orange", positionText, this)
+
                 if (distanceAway < delta) {
-                    if (NotifyUserSignals.isBeeping && NotifyUserSignals.reasonForBeeping != "At Point") {
+                    if (isBeeping && reasonForBeeping != "At Point") {
                         stopBeep(this)
                         beepingSoundForMarkingPosition("At Point", this)
-                        NotifyUserSignals.isBeeping = true
-                        NotifyUserSignals.reasonForBeeping = "At Point"
+                        isBeeping = true
+                        reasonForBeeping = "At Point"
                     }
                     NotifyUserSignals.flashPosition("Green", positionText, this)
                     markPoint(pointOfInterest)
                 }
-                else {
-                    stopBeep(this)
-                }
             }
             if (distanceAway > toleranceRadius) {
                 stopBeep(this)
+                //Toast.makeText(this," stop $isBeeping $reasonForBeeping",Toast.LENGTH_SHORT).show()
                 NotifyUserSignals.flashPosition("Stop", positionText, this)
             }
         }
     }
-
 
     fun displayMarkedPointsOnUI(List: MutableList<LatLng>) {
         removeMarkedCirclesFromUI(listofmarkedcircles)
@@ -1369,7 +1365,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
     }
 
-
     override fun onDestroy() {
         // Don't forget to unregister the ACTION_FOUND receiver.
         unregisterReceiver(receiver)
@@ -1378,7 +1373,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         super.onDestroy()
 
     }
-
 
     // Display the menu layout
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -1403,15 +1397,28 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             discoverBluetoothDevices()
             toggleWidgets()
 
-
             return true
 
         }
+        //else if (item.itemId == R.id.menu_calibrate) {
+//            AlertDialog.Builder(this)
+//                .setTitle("Calibrate")
+//                .setIcon(null)
+//                .setCancelable(true)
+//                .setPositiveButton(R.string.calibrate,DialogInterface.OnClickListener { _, _ ->
+//                provider!!.saveCalibration()
+//            })
+//                .setNegativeButton(R.string.cancel, null)
+//                .setNeutralButton(R.string.reset ,DialogInterface.OnClickListener { _, _ ->
+//                    provider!!.resetCalibration() })
+//                .setMessage(R.string.calibrate_message)
+//                .show()
+          //  return true
 
-        // If we got here, the user's action was not recognized.
-        // Invoke the superclass to handle it.
+            // If we got here, the user's action was not recognized.
+            // Invoke the superclass to handle it.
+        //}
         return super.onOptionsItemSelected(item)
-
     }
 
     private fun toggleWidgets() {
@@ -1422,7 +1429,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             buttonConnect.visibility = Button.VISIBLE
 
             checkLocation()
-
             //displayBluetoothDevices()
 
         } else {
@@ -2011,11 +2017,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             ), SensorManager.SENSOR_DELAY_NORMAL
         )
         super.onResume()
+        Log.d("Level", "Level resumed")
+        //provider = OrientationProvider.getInstance()
+
     }
 
     override fun onPause() {
         sensorManager!!.unregisterListener(listener)
         super.onPause()
+
     }
 
     private fun ForcefullyMarkOrUnmarkPoint() {
@@ -2242,6 +2252,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             listOfPlantingLines.clear()
         }
     }
+
 
 }
 
