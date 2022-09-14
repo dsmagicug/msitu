@@ -132,7 +132,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var pace: TextView
     lateinit var linesMarked: TextView
     lateinit var totalPoints: TextView
-    var delta = 0.1324 //6 inches
+    var delta = 0.5 //6 inches
     var projectLoaded = false
     lateinit var positionText: TextView
     lateinit var positionLayout: LinearLayout
@@ -401,7 +401,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
         // We need to calculate distance of where we are to point to be marked
         if (closestPointRadius.size > 0) {
-            toleranceRadius = radius(GAP_SIZE_METRES).toFloat()
+            toleranceRadius = tempPlantingRadius
             val pointOfInterest = closestPointRadius[0] as LatLng
             val distanceAway =
                 GeneralHelper.findDistanceBtnTwoPoints(
@@ -1887,57 +1887,70 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         }
 
     }
-
+    var markedCirclePoint: Circle? = null
     fun markPoint(pointOfInterestOnPolyline: LatLng) {
 
         if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
             return
         }
-        if (plantingMode) {
+        if(pointOfInterestOnPolyline in listOfMarkedPoints){
+            return
+        }
+        //if (plantingMode) {
 
-            val markedCirclePoint = map?.addCircle(
+            handler.post {
+
+                markedCirclePoint = map?.addCircle(
+                    CircleOptions().center(pointOfInterestOnPolyline)
+                        .fillColor(Color.YELLOW)
+                        .radius(circleRadius)
+                        .strokeWidth(1.0f)
+                )
+
+                if (markedCirclePoint!!.center in listOfMarkedPoints) {
+                    return@post
+                }
+                listofmarkedcircles.add(markedCirclePoint!!)
+                if (listOfMarkedPoints.add(pointOfInterestOnPolyline)) {
+                    plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
+
+                    if (tempListMarker.isNotEmpty()) {
+                        tempListMarker.clear()
+                    }
+
+                    Toast.makeText(
+                        this, "Point Marked", Toast.LENGTH_SHORT
+                    ).show()
+                    vibration(this)
+                    blinkEffectOfMarkedPoints("Cyan", displayedPoints)
+
+                    val point = S2LatLng.fromDegrees(
+                        pointOfInterestOnPolyline.latitude,
+                        pointOfInterestOnPolyline.longitude
+                    )
+                    val pointData = PointData(point.toPoint(), point)
+                    lineInS2Format.remove(pointData)
+
+                }
+                var index = listofmarkedcircles[listofmarkedcircles.lastIndex]
+                var fill = index.fillColor
+                Log.d("Yellow", "$fill")
+                if (templist.isNotEmpty()) {
+                    templist.clear()
+                }
+                if (tempClosestPoint.isNotEmpty()) {
+                    tempClosestPoint.clear()
+                }
+            }
+            DbFunctions.savePoints(pointOfInterestOnPolyline, ProjectID.toInt())
+            markedCirclePoint = map?.addCircle(
                 CircleOptions().center(pointOfInterestOnPolyline)
-                    .fillColor(Color.YELLOW)
+                    .fillColor(Color.GREEN)
                     .radius(circleRadius)
                     .strokeWidth(1.0f)
             )
-
-            if (markedCirclePoint!!.center in listOfMarkedPoints) {
-                return
-            }
-
-            listofmarkedcircles.add(markedCirclePoint)
-
-            DbFunctions.savePoints(pointOfInterestOnPolyline, ProjectID.toInt())
-
-            if (listOfMarkedPoints.add(markedCirclePoint.center)) {
-                plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
-
-                if (tempListMarker.isNotEmpty()) {
-                    tempListMarker.clear()
-                }
-
-                Toast.makeText(
-                    this, "Point Marked", Toast.LENGTH_SHORT
-                ).show()
-                vibration(this)
-                blinkEffectOfMarkedPoints("Cyan", displayedPoints)
-
-                val point = S2LatLng.fromDegrees(
-                    pointOfInterestOnPolyline.latitude,
-                    pointOfInterestOnPolyline.longitude
-                )
-                val pointData = PointData(point.toPoint(), point)
-                lineInS2Format.remove(pointData)
-
-            }
-            if (templist.isNotEmpty()) {
-                templist.clear()
-            }
-            if (tempClosestPoint.isNotEmpty()) {
-                tempClosestPoint.clear()
-            }
-        }
+            listofmarkedcircles.add(markedCirclePoint!!)
+       // }
     }
 
     var bearing: Double? = null
@@ -2225,7 +2238,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     fun cleanUpExistingFragment() {
 
         meshDone = false
-        plantingMode = false
+       // plantingMode = false
         plantingRadius?.remove()
         fabFlag = true
         card.isVisible = false
