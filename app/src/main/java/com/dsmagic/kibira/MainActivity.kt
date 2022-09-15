@@ -132,13 +132,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var pace: TextView
     lateinit var linesMarked: TextView
     lateinit var totalPoints: TextView
-    var delta = 0.5 //6 inches
+    var delta = 0.134 //6 inches
     var projectLoaded = false
     lateinit var positionText: TextView
     lateinit var positionLayout: LinearLayout
     lateinit var displayedDistance: TextView
     lateinit var displayedDistanceUnits: TextView
     lateinit var displayedPoints: TextView
+    lateinit var fixType:TextView
+    var fixValue = ""
 
     companion object {
         lateinit var projectLines: MutableList<PlantingLine>
@@ -211,7 +213,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         displayedDistance = findViewById<TextView>(R.id.distance)
         displayedDistanceUnits = findViewById(R.id.distanceUnits)
         displayedPoints = findViewById(R.id.numberOfPoints)
-
+fixType = findViewById(R.id.fixTextValue)
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
 
         drawerlayout.addDrawerListener(toggle)
@@ -310,12 +312,12 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         lastAcceleration = SensorManager.GRAVITY_EARTH
 
         NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
-            override fun onLocationChanged(loc: Location) {
+            override fun onLocationChanged(loc: Location,fix:LongLat.FixType) {
 
                 if (map == null)
                     return // Not yet...
                 fromRTKFeed = LatLng(loc.latitude, loc.longitude)
-
+                fixValue = fix.toString()
                 if (marker == null) {
                     map?.moveCamera(CameraUpdateFactory.newLatLngZoom(fromRTKFeed, zoomLevel))
                     firstPoint = loc as LongLat // Grab it
@@ -340,13 +342,16 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     marker?.let {
                         pulseUserLocationCircle(it)
                     }
-
+                    //if(fixValue != fix.toString()){
+                        fixType.text = fix.toString()
+                   // }
                     plotFunc()
                     distanceToPoint(fromRTKFeed)
                     approachingPoint()
 
                 }
             }
+
         })
 
         //displayBluetoothDevices()
@@ -368,6 +373,8 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                         item.isClickable = false
 
                     }
+                    card.isVisible = false
+                    directionCardLayout.isVisible = false
                     activePlantingLine.isVisible = true
                     removeMarkedCirclesFromUI(listofmarkedcircles)
 
@@ -385,7 +392,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                         c?.isVisible = true
                         c?.isClickable = true
                     }
-
                     activePlantingLine.isVisible = true
                     displayMarkedPointsOnUI(listOfMarkedPoints)
                     fabFlag = false
@@ -411,38 +417,64 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
             if ((distanceAway < toleranceRadius)) {
                 if (pointOfInterest in listOfMarkedPoints) {
-                    //vibration(this)
-                } else {
 
-                    if (!isBeeping && reasonForBeeping != "Slow Down") {
-                        beepingSoundForMarkingPosition("Slow Down", this)
-                        isBeeping = true
-                        reasonForBeeping = "Slow Down"
-                    } else {
-                        //Toast.makeText(this," tolerance $isBeeping $reasonForBeeping",Toast.LENGTH_SHORT).show()
+                    if(distanceAway < delta){
+                        NotifyUserSignals.flashPosition("Green", positionText, this)
+                        vibration(this)
                     }
+                    else
+                    {
+                        NotifyUserSignals.flashPosition("Orange", positionText, this)
 
-                   // NotifyUserSignals.flashPosition("Orange", positionText, this)
-
-                }
-                NotifyUserSignals.flashPosition("Orange", positionText, this)
-
-                if (distanceAway < delta) {
-                    if (isBeeping && reasonForBeeping != "At Point") {
-                        stopBeep(this)
-                        beepingSoundForMarkingPosition("At Point", this)
-                        isBeeping = true
-                        reasonForBeeping = "At Point"
+                        if(isBeeping ){
+                            stopBeep(this)
+                        }
                     }
-                    NotifyUserSignals.flashPosition("Green", positionText, this)
-                    markPoint(pointOfInterest)
                 }
+                else {
+
+                    NotifyUserSignals.flashPosition("Orange", positionText, this)
+
+                    if (distanceAway < delta) {
+                        NotifyUserSignals.flashPosition("Green", positionText, this)
+
+                        if (isBeeping && reasonForBeeping != "At Point") {
+                            stopBeep(this)
+                            beepingSoundForMarkingPosition("At Point", this)
+                            isBeeping = true
+                            reasonForBeeping = "At Point"
+                        }
+                        markedCirclePoint = map?.addCircle(
+                            CircleOptions().center(pointOfInterest)
+                                .fillColor(Color.GREEN)
+                                .radius(circleRadius)
+                                .strokeWidth(1.0f)
+                        )
+                        markPoint(pointOfInterest)
+
+                    }
+                    else  {
+                        if (!isBeeping && reasonForBeeping != "Slow Down") {
+                            beepingSoundForMarkingPosition("Slow Down", this)
+                            isBeeping = true
+                            reasonForBeeping = "Slow Down"
+                        }
+                        else {
+                            //Toast.makeText(this," tolerance $isBeeping $reasonForBeeping",Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+
+
             }
+
             if (distanceAway > toleranceRadius) {
                 stopBeep(this)
                 //Toast.makeText(this," stop $isBeeping $reasonForBeeping",Toast.LENGTH_SHORT).show()
                 NotifyUserSignals.flashPosition("Stop", positionText, this)
+                stopBeep(this)
             }
+
         }
     }
 
@@ -1649,7 +1681,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             BearingPhoneIsFacing = newAngel
         }
         it.isClickable = false
-
         if (listOfPlantingLines.isEmpty()) {
             listOfPlantingLines.add(it)
             it.color = Color.GREEN
@@ -1684,7 +1715,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             )
         }
 
-        //Give the process of drawing points on line a thread --- makes the process faster
+        //Get the process to be handled by the main thread through a handler--- makes the process faster
         handler.post {
 
             //make the lines and circles on other polylines disaapear, once we have line of interest
@@ -1893,6 +1924,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
             return
         }
+
         if(pointOfInterestOnPolyline in listOfMarkedPoints){
             return
         }
@@ -1900,17 +1932,6 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
             handler.post {
 
-                markedCirclePoint = map?.addCircle(
-                    CircleOptions().center(pointOfInterestOnPolyline)
-                        .fillColor(Color.YELLOW)
-                        .radius(circleRadius)
-                        .strokeWidth(1.0f)
-                )
-
-                if (markedCirclePoint!!.center in listOfMarkedPoints) {
-                    return@post
-                }
-                listofmarkedcircles.add(markedCirclePoint!!)
                 if (listOfMarkedPoints.add(pointOfInterestOnPolyline)) {
                     plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
 
@@ -1924,12 +1945,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     vibration(this)
                     blinkEffectOfMarkedPoints("Cyan", displayedPoints)
 
-                    val point = S2LatLng.fromDegrees(
-                        pointOfInterestOnPolyline.latitude,
-                        pointOfInterestOnPolyline.longitude
-                    )
-                    val pointData = PointData(point.toPoint(), point)
-                    lineInS2Format.remove(pointData)
+                    listofmarkedcircles.add(markedCirclePoint!!)
+
+//                    val point = S2LatLng.fromDegrees(
+//                        pointOfInterestOnPolyline.latitude,
+//                        pointOfInterestOnPolyline.longitude
+//                    )
+//                    val pointData = PointData(point.toPoint(), point)
+//                    lineInS2Format.remove(pointData)
 
                 }
                 var index = listofmarkedcircles[listofmarkedcircles.lastIndex]
@@ -1941,18 +1964,24 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 if (tempClosestPoint.isNotEmpty()) {
                     tempClosestPoint.clear()
                 }
+                mark(pointOfInterestOnPolyline)
             }
             DbFunctions.savePoints(pointOfInterestOnPolyline, ProjectID.toInt())
-            markedCirclePoint = map?.addCircle(
-                CircleOptions().center(pointOfInterestOnPolyline)
-                    .fillColor(Color.GREEN)
-                    .radius(circleRadius)
-                    .strokeWidth(1.0f)
-            )
-            listofmarkedcircles.add(markedCirclePoint!!)
+
+
        // }
     }
 
+fun mark(pt:LatLng){
+    markedCirclePoint = map?.addCircle(
+        CircleOptions().center(pt)
+            .fillColor(Color.CYAN)
+            .radius(circleRadius)
+            .strokeWidth(1.0f)
+    )
+
+    listofmarkedcircles.add(markedCirclePoint!!)
+}
     var bearing: Double? = null
     var diff: Float? = null
     private var lastRotateDegree = 0f
@@ -2011,13 +2040,13 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             val delta: Float = currentAcceleration - lastAcceleration
             acceleration = acceleration * 0.9f + delta
 
-
-            if (acceleration > 10) {
-
-                ForcefullyMarkOrUnmarkPoint()
-
-
-            }
+//
+//            if (acceleration > 20) {
+//
+//                ForcefullyMarkOrUnmarkPoint()
+//
+//
+//            }
         }
 
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
@@ -2063,13 +2092,17 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     )
                 if (pt !in listOfMarkedPoints) {
                     val acceptedPlantingRadius = tempPlantingRadius
-                    if ((distanceAway < acceptedPlantingRadius) && (pt !in listOfMarkedPoints)) {
-
-                        markPoint(pt)
-
-
+                    if (distanceAway < acceptedPlantingRadius && pt !in listOfMarkedPoints) {
+                       // markPoint(pt)
+                    } else {
+                        Toast.makeText(
+                            applicationContext,
+                            "funny business",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
-                } else {
+                }
+                else {
 
                     //circles drawn on the map are 0.3 in radius, thus the 1.0
                     //this prevents the immediate re Marking of that point

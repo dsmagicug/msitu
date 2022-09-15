@@ -118,7 +118,7 @@ class NmeaReader {
                                //if(longlat.fixType == LongLat.FixType.RTKFloat || longlat.fixType == LongLat.FixType.RTKFix){
                                     // Send it to the Location Source... BUT ONLY when we have rtk data--(more accurate than other fixtypes)
                                     handler.post {
-                                        listener.postNewLocation(longlat)
+                                        listener.postNewLocation(longlat,longlat.fixType)
                                     }
                                 //}
                             }

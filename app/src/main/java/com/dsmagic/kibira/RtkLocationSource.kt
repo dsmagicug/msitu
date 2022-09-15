@@ -4,7 +4,7 @@ import android.location.Location
 import com.google.android.gms.maps.LocationSource
 
 interface LocationChanged {
-    fun onLocationChanged(loc: Location)
+    fun onLocationChanged(loc: Location, fix: LongLat.FixType)
 }
 
 class RtkLocationSource : LocationSource {
@@ -22,8 +22,8 @@ class RtkLocationSource : LocationSource {
         this.locationChanged = locationChanged
     }
 
-    fun postNewLocation(l: Location) {
+    fun postNewLocation(l: Location,fix:LongLat.FixType) {
         listener?.onLocationChanged(l)
-        locationChanged?.onLocationChanged(l) // trigger it...
+        locationChanged?.onLocationChanged(l,fix) // trigger it...
     }
 }

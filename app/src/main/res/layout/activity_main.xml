@@ -52,6 +52,7 @@
                     android:layout_height="423dp"
                     android:layout_gravity="top|end"
                     android:layout_marginTop="200dp"
+
                     android:visibility="invisible"
                     app:cardBackgroundColor="@color/teal"
                     app:cardCornerRadius="20dp"
@@ -64,8 +65,9 @@
                     app:layout_constraintTop_toBottomOf="@+id/button_first">
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="324dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="0dp"
                         android:orientation="vertical">
 
                         <LinearLayout
@@ -422,10 +424,10 @@
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/directionsLayout"
-                    android:layout_width="330dp"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="top|end"
-                    android:layout_marginTop="95dp"
+                    android:layout_width="230dp"
+                    android:layout_height="177dp"
+                    android:layout_gravity="top|start"
+                    android:layout_marginTop="85dp"
                     android:visibility="invisible"
                     app:cardBackgroundColor="@color/teal"
                     app:cardCornerRadius="20dp"
@@ -436,11 +438,11 @@
 
                     <LinearLayout
                         android:id="@+id/leftLayout"
-                        android:layout_width="308dp"
-                        android:layout_height="90dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="163dp"
                         android:layout_marginStart="5dp"
 
-                        android:orientation="horizontal"
+                        android:orientation="vertical"
                         android:visibility="visible"
                         app:layout_constraintBottom_toBottomOf="@+id/appToolbar"
                         tools:ignore="UseCompoundDrawables">
@@ -448,9 +450,9 @@
                         <ImageView
                             android:id="@+id/directionImageValue"
 
-                            android:layout_width="85dp"
-                            android:layout_height="60dp"
-                            android:layout_gravity="center"
+                            android:layout_width="144dp"
+                            android:layout_height="49dp"
+                            android:layout_gravity="start"
                             android:layout_margin="5dp"
                             android:autofillHints=""
                             android:padding="5dp"
@@ -466,7 +468,7 @@
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
                             android:layout_margin="5dp"
-                            android:layout_marginTop="5dp"
+                            android:layout_marginTop="0dp"
                             android:padding="5dp"
                             android:text="Turn Right"
                             android:textAlignment="center"
@@ -479,13 +481,68 @@
                     </LinearLayout>
 
                 </androidx.cardview.widget.CardView>
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/fixtype"
+                    android:layout_width="330dp"
+                    android:layout_height="157dp"
+                    android:layout_gravity="top|end"
+                    android:layout_marginTop="85dp"
+                    android:visibility="visible"
+                    app:cardBackgroundColor="@color/teal"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="10dp"
+                    app:cardPreventCornerOverlap="true"
+                    app:cardUseCompatPadding="true">
+
+
+                    <LinearLayout
+                        android:id="@+id/fixLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="5dp"
+                        android:orientation="horizontal"
+                        android:visibility="visible"
+                        app:layout_constraintBottom_toBottomOf="@+id/appToolbar"
+                        tools:ignore="UseCompoundDrawables">
+
+                        <TextView
+                            android:id="@+id/fixText"
+                            android:layout_width="103dp"
+                            android:layout_height="49dp"
+                            android:layout_gravity="center"
+                            android:layout_margin="5dp"
+                            android:autofillHints=""
+                            android:padding="5dp"
+                            android:text="FixType:"
+                            android:textColor="@color/white"
+                            android:textSize="25sp"
+                            android:visibility="visible"
+                            tools:ignore="UseAppTint" />
+
+                        <TextView
+                            android:id="@+id/fixTextValue"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+
+                            android:text=""
+                            android:textAlignment="center"
+                            android:layout_marginTop="35dp"
+
+                            android:textColor="@color/white"
+                            android:textSize="25sp"
+
+                            android:textStyle="normal|bold"
+                            android:visibility="visible" />
+                    </LinearLayout>
+
+                </androidx.cardview.widget.CardView>
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/positionCardView"
                     android:layout_width="230dp"
                     android:layout_height="260dp"
                     android:layout_gravity="top"
-                    android:layout_marginTop="95dp"
+                    android:layout_marginTop="230dp"
                     android:visibility="invisible"
                     app:cardBackgroundColor="@color/white"
                     app:cardCornerRadius="20dp"
@@ -504,6 +561,18 @@
                         app:layout_constraintBottom_toBottomOf="@+id/appToolbar"
                         tools:ignore="UseCompoundDrawables">
 
+                        <ImageView
+                            android:id="@+id/plantValue"
+                            android:layout_width="103dp"
+                            android:layout_height="83dp"
+                            android:layout_gravity="center"
+                            android:layout_margin="5dp"
+                            android:autofillHints=""
+                            android:padding="5dp"
+                            android:src="@drawable/tick"
+                            android:visibility="visible"
+                            app:tint="@color/black"
+                            tools:ignore="UseAppTint" />
 
                         <TextView
                             android:id="@+id/plantText"
@@ -521,23 +590,9 @@
 
                             android:textStyle="normal|bold"
                             android:visibility="visible" />
-                        <ImageView
-                            android:id="@+id/plantValue"
-                            android:layout_width="103dp"
-                            android:layout_height="83dp"
-                            android:layout_gravity="center"
-                            android:layout_margin="5dp"
-                            android:autofillHints=""
-                            android:padding="5dp"
-                            android:src="@drawable/tick"
-                            android:visibility="visible"
-                            app:tint="@color/black"
-                            tools:ignore="UseAppTint" />
-
 
 
                     </LinearLayout>
-
 
 
                 </androidx.cardview.widget.CardView>
