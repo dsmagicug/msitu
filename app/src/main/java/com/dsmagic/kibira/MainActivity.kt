@@ -39,7 +39,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
-
 import com.dsmagic.kibira.notifications.NotifyUserSignals
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.beepingSoundForMarkingPosition
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.isBeeping
@@ -79,7 +78,6 @@ import dilivia.s2.index.shape.MutableS2ShapeIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.security.AccessController.getContext
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -132,15 +130,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var pace: TextView
     lateinit var linesMarked: TextView
     lateinit var totalPoints: TextView
-    var delta = 0.134 //6 inches
+    var delta = 0.146  //6 inches
     var projectLoaded = false
     lateinit var positionText: TextView
     lateinit var positionLayout: LinearLayout
     lateinit var displayedDistance: TextView
     lateinit var displayedDistanceUnits: TextView
     lateinit var displayedPoints: TextView
-    lateinit var fixType:TextView
-    var fixValue = ""
+    lateinit var fixType: TextView
+    //  var fixValue = ""
 
     companion object {
         lateinit var projectLines: MutableList<PlantingLine>
@@ -177,6 +175,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         var gapUnits = " "
         var meshUnits = " "
         var position = "None"
+        var created = false
 
     }
 
@@ -213,7 +212,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         displayedDistance = findViewById<TextView>(R.id.distance)
         displayedDistanceUnits = findViewById(R.id.distanceUnits)
         displayedPoints = findViewById(R.id.numberOfPoints)
-fixType = findViewById(R.id.fixTextValue)
+        // fixType = findViewById(R.id.fixTextValue)
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
 
         drawerlayout.addDrawerListener(toggle)
@@ -225,6 +224,14 @@ fixType = findViewById(R.id.fixTextValue)
         val btnCloseDrawer = headerView.findViewById<View>(R.id.btnCloseDrawer) as ImageButton
         btnCloseDrawer.setOnClickListener {
             drawerlayout.closeDrawer(Gravity.LEFT)
+        }
+        if(created){
+            val newAngel = GeneralHelper.sanitizeMagnetometerBearing(lastRotateDegree)
+            if (map != null) {
+                GeneralHelper.changeMapPosition(map, newAngel)
+            }
+            BearingPhoneIsFacing = newAngel
+            created = false
         }
 
         fabCampus.setOnClickListener {
@@ -312,12 +319,12 @@ fixType = findViewById(R.id.fixTextValue)
         lastAcceleration = SensorManager.GRAVITY_EARTH
 
         NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
-            override fun onLocationChanged(loc: Location,fix:LongLat.FixType) {
+            override fun onLocationChanged(loc: Location, fix: LongLat.FixType) {
 
                 if (map == null)
                     return // Not yet...
                 fromRTKFeed = LatLng(loc.latitude, loc.longitude)
-                fixValue = fix.toString()
+                //fixValue = fix.toString()
                 if (marker == null) {
                     map?.moveCamera(CameraUpdateFactory.newLatLngZoom(fromRTKFeed, zoomLevel))
                     firstPoint = loc as LongLat // Grab it
@@ -343,8 +350,8 @@ fixType = findViewById(R.id.fixTextValue)
                         pulseUserLocationCircle(it)
                     }
                     //if(fixValue != fix.toString()){
-                        fixType.text = fix.toString()
-                   // }
+                    // fixType.text = fix.toString()
+                    // }
                     plotFunc()
                     distanceToPoint(fromRTKFeed)
                     approachingPoint()
@@ -417,50 +424,39 @@ fixType = findViewById(R.id.fixTextValue)
 
             if ((distanceAway < toleranceRadius)) {
                 if (pointOfInterest in listOfMarkedPoints) {
-
-                    if(distanceAway < delta){
+                    if (distanceAway < delta) {
                         NotifyUserSignals.flashPosition("Green", positionText, this)
                         vibration(this)
-                    }
-                    else
-                    {
+                        if (isBeeping) {
+                            stopBeep(this)
+                        }
+                    } else {
                         NotifyUserSignals.flashPosition("Orange", positionText, this)
 
-                        if(isBeeping ){
+                        if (isBeeping) {
                             stopBeep(this)
                         }
                     }
-                }
-                else {
+                } else {
 
                     NotifyUserSignals.flashPosition("Orange", positionText, this)
 
                     if (distanceAway < delta) {
                         NotifyUserSignals.flashPosition("Green", positionText, this)
 
-                        if (isBeeping && reasonForBeeping != "At Point") {
-                            stopBeep(this)
-                            beepingSoundForMarkingPosition("At Point", this)
-                            isBeeping = true
-                            reasonForBeeping = "At Point"
-                        }
-                        markedCirclePoint = map?.addCircle(
-                            CircleOptions().center(pointOfInterest)
-                                .fillColor(Color.GREEN)
-                                .radius(circleRadius)
-                                .strokeWidth(1.0f)
-                        )
+//                        if (isBeeping && reasonForBeeping != "At Point") {
+                           stopBeep(this)
+//                            beepingSoundForMarkingPosition("At Point", this)
+//                            isBeeping = true
+//                            reasonForBeeping = "At Point"
+//                        }
                         markPoint(pointOfInterest)
 
-                    }
-                    else  {
+                    } else {
                         if (!isBeeping && reasonForBeeping != "Slow Down") {
                             beepingSoundForMarkingPosition("Slow Down", this)
                             isBeeping = true
                             reasonForBeeping = "Slow Down"
-                        }
-                        else {
-                            //Toast.makeText(this," tolerance $isBeeping $reasonForBeeping",Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -470,7 +466,6 @@ fixType = findViewById(R.id.fixTextValue)
 
             if (distanceAway > toleranceRadius) {
                 stopBeep(this)
-                //Toast.makeText(this," stop $isBeeping $reasonForBeeping",Toast.LENGTH_SHORT).show()
                 NotifyUserSignals.flashPosition("Stop", positionText, this)
                 stopBeep(this)
             }
@@ -1298,7 +1293,7 @@ fixType = findViewById(R.id.fixTextValue)
         }
     }
 
-    fun discoverBluetoothDevices() {
+    fun discoverBluetoothDevices(){
 
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
         if (ActivityCompat.checkSelfPermission(
@@ -1445,10 +1440,10 @@ fixType = findViewById(R.id.fixTextValue)
 //                    provider!!.resetCalibration() })
 //                .setMessage(R.string.calibrate_message)
 //                .show()
-          //  return true
+        //  return true
 
-            // If we got here, the user's action was not recognized.
-            // Invoke the superclass to handle it.
+        // If we got here, the user's action was not recognized.
+        // Invoke the superclass to handle it.
         //}
         return super.onOptionsItemSelected(item)
     }
@@ -1918,20 +1913,29 @@ fixType = findViewById(R.id.fixTextValue)
         }
 
     }
+
     var markedCirclePoint: Circle? = null
+    var thread: Thread? = null
     fun markPoint(pointOfInterestOnPolyline: LatLng) {
 
         if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
             return
         }
 
-        if(pointOfInterestOnPolyline in listOfMarkedPoints){
+        if (pointOfInterestOnPolyline in listOfMarkedPoints) {
             return
         }
-        //if (plantingMode) {
+        thread = Thread {
+            thread!!.priority = Thread.MAX_PRIORITY
+            val point = S2LatLng.fromDegrees(
+                pointOfInterestOnPolyline.latitude,
+                pointOfInterestOnPolyline.longitude
+            )
+            val pointData = PointData(point.toPoint(), point)
+            lineInS2Format.remove(pointData)
 
+            //hand over UI Updates to the UI Thread
             handler.post {
-
                 if (listOfMarkedPoints.add(pointOfInterestOnPolyline)) {
                     plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
 
@@ -1939,25 +1943,8 @@ fixType = findViewById(R.id.fixTextValue)
                         tempListMarker.clear()
                     }
 
-                    Toast.makeText(
-                        this, "Point Marked", Toast.LENGTH_SHORT
-                    ).show()
-                    vibration(this)
-                    blinkEffectOfMarkedPoints("Cyan", displayedPoints)
-
-                    listofmarkedcircles.add(markedCirclePoint!!)
-
-//                    val point = S2LatLng.fromDegrees(
-//                        pointOfInterestOnPolyline.latitude,
-//                        pointOfInterestOnPolyline.longitude
-//                    )
-//                    val pointData = PointData(point.toPoint(), point)
-//                    lineInS2Format.remove(pointData)
-
                 }
-                var index = listofmarkedcircles[listofmarkedcircles.lastIndex]
-                var fill = index.fillColor
-                Log.d("Yellow", "$fill")
+
                 if (templist.isNotEmpty()) {
                     templist.clear()
                 }
@@ -1965,23 +1952,32 @@ fixType = findViewById(R.id.fixTextValue)
                     tempClosestPoint.clear()
                 }
                 mark(pointOfInterestOnPolyline)
+                vibration(this)
+                blinkEffectOfMarkedPoints("Cyan", displayedPoints)
+                Toast.makeText(
+                    this, "Point Marked", Toast.LENGTH_SHORT
+                ).show()
+
             }
-            DbFunctions.savePoints(pointOfInterestOnPolyline, ProjectID.toInt())
 
+        }
+        thread!!.start()
 
-       // }
+        DbFunctions.savePoints(pointOfInterestOnPolyline, ProjectID.toInt())
+
     }
 
-fun mark(pt:LatLng){
-    markedCirclePoint = map?.addCircle(
-        CircleOptions().center(pt)
-            .fillColor(Color.CYAN)
-            .radius(circleRadius)
-            .strokeWidth(1.0f)
-    )
+    fun mark(pt: LatLng) {
+        markedCirclePoint = map?.addCircle(
+            CircleOptions().center(pt)
+                .fillColor(Color.YELLOW)
+                .radius(circleRadius)
+                .strokeWidth(1.0f)
+        )
 
-    listofmarkedcircles.add(markedCirclePoint!!)
-}
+        listofmarkedcircles.add(markedCirclePoint!!)
+    }
+
     var bearing: Double? = null
     var diff: Float? = null
     private var lastRotateDegree = 0f
@@ -2093,7 +2089,7 @@ fun mark(pt:LatLng){
                 if (pt !in listOfMarkedPoints) {
                     val acceptedPlantingRadius = tempPlantingRadius
                     if (distanceAway < acceptedPlantingRadius && pt !in listOfMarkedPoints) {
-                       // markPoint(pt)
+                        // markPoint(pt)
                     } else {
                         Toast.makeText(
                             applicationContext,
@@ -2101,8 +2097,7 @@ fun mark(pt:LatLng){
                             Toast.LENGTH_LONG
                         ).show()
                     }
-                }
-                else {
+                } else {
 
                     //circles drawn on the map are 0.3 in radius, thus the 1.0
                     //this prevents the immediate re Marking of that point
@@ -2271,7 +2266,7 @@ fun mark(pt:LatLng){
     fun cleanUpExistingFragment() {
 
         meshDone = false
-       // plantingMode = false
+        // plantingMode = false
         plantingRadius?.remove()
         fabFlag = true
         card.isVisible = false

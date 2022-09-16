@@ -251,6 +251,7 @@ object CreateProjectDialog : DialogFragment() {
                 editor.putString("productID_key", ProjectID.toString())
                 editor.apply()
                 editor.commit()
+                   MainActivity.created = true
 
                 map?.mapType = GoogleMap.MAP_TYPE_SATELLITE
                 MainActivity().cleanUpExistingFragment()
@@ -271,6 +272,10 @@ object CreateProjectDialog : DialogFragment() {
                 .show()
 
         }
+    }
+
+    override fun onDestroy(){
+    super.onDestroy()
     }
 }
 

@@ -266,7 +266,7 @@
 
                                 android:layout_marginStart="5dp"
                                 android:padding="5dp"
-                                android:text="Points on line:"
+                                android:text="Points on the line:"
                                 android:textAlignment="textStart"
                                 android:textColor="@color/white"
 
@@ -353,8 +353,6 @@
                     app:popupTheme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
 
                     >
-
-
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -424,9 +422,9 @@
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/directionsLayout"
-                    android:layout_width="230dp"
-                    android:layout_height="177dp"
-                    android:layout_gravity="top|start"
+                    android:layout_width="330dp"
+                    android:layout_height="166dp"
+                    android:layout_gravity="top|end"
                     android:layout_marginTop="85dp"
                     android:visibility="invisible"
                     app:cardBackgroundColor="@color/teal"
@@ -439,10 +437,10 @@
                     <LinearLayout
                         android:id="@+id/leftLayout"
                         android:layout_width="match_parent"
-                        android:layout_height="163dp"
+                        android:layout_height="116dp"
                         android:layout_marginStart="5dp"
 
-                        android:orientation="vertical"
+                        android:orientation="horizontal"
                         android:visibility="visible"
                         app:layout_constraintBottom_toBottomOf="@+id/appToolbar"
                         tools:ignore="UseCompoundDrawables">
@@ -450,9 +448,9 @@
                         <ImageView
                             android:id="@+id/directionImageValue"
 
-                            android:layout_width="144dp"
-                            android:layout_height="49dp"
-                            android:layout_gravity="start"
+                            android:layout_width="87dp"
+                            android:layout_height="70dp"
+                            android:layout_gravity="center"
                             android:layout_margin="5dp"
                             android:autofillHints=""
                             android:padding="5dp"
@@ -464,7 +462,7 @@
 
                         <TextView
                             android:id="@+id/directionText"
-                            android:layout_width="186dp"
+                            android:layout_width="187dp"
                             android:layout_height="wrap_content"
                             android:layout_gravity="center"
                             android:layout_margin="5dp"
@@ -481,68 +479,68 @@
                     </LinearLayout>
 
                 </androidx.cardview.widget.CardView>
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/fixtype"
-                    android:layout_width="330dp"
-                    android:layout_height="157dp"
-                    android:layout_gravity="top|end"
-                    android:layout_marginTop="85dp"
-                    android:visibility="visible"
-                    app:cardBackgroundColor="@color/teal"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="10dp"
-                    app:cardPreventCornerOverlap="true"
-                    app:cardUseCompatPadding="true">
+<!--                <androidx.cardview.widget.CardView-->
+<!--                    android:id="@+id/fixtype"-->
+<!--                    android:layout_width="330dp"-->
+<!--                    android:layout_height="157dp"-->
+<!--                    android:layout_gravity="top|end"-->
+<!--                    android:layout_marginTop="85dp"-->
+<!--                    android:visibility="visible"-->
+<!--                    app:cardBackgroundColor="@color/teal"-->
+<!--                    app:cardCornerRadius="20dp"-->
+<!--                    app:cardElevation="10dp"-->
+<!--                    app:cardPreventCornerOverlap="true"-->
+<!--                    app:cardUseCompatPadding="true">-->
 
 
-                    <LinearLayout
-                        android:id="@+id/fixLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_marginStart="5dp"
-                        android:orientation="horizontal"
-                        android:visibility="visible"
-                        app:layout_constraintBottom_toBottomOf="@+id/appToolbar"
-                        tools:ignore="UseCompoundDrawables">
+<!--                    <LinearLayout-->
+<!--                        android:id="@+id/fixLayout"-->
+<!--                        android:layout_width="match_parent"-->
+<!--                        android:layout_height="match_parent"-->
+<!--                        android:layout_marginStart="5dp"-->
+<!--                        android:orientation="horizontal"-->
+<!--                        android:visibility="visible"-->
+<!--                        app:layout_constraintBottom_toBottomOf="@+id/appToolbar"-->
+<!--                        tools:ignore="UseCompoundDrawables">-->
 
-                        <TextView
-                            android:id="@+id/fixText"
-                            android:layout_width="103dp"
-                            android:layout_height="49dp"
-                            android:layout_gravity="center"
-                            android:layout_margin="5dp"
-                            android:autofillHints=""
-                            android:padding="5dp"
-                            android:text="FixType:"
-                            android:textColor="@color/white"
-                            android:textSize="25sp"
-                            android:visibility="visible"
-                            tools:ignore="UseAppTint" />
+<!--                        <TextView-->
+<!--                            android:id="@+id/fixText"-->
+<!--                            android:layout_width="103dp"-->
+<!--                            android:layout_height="49dp"-->
+<!--                            android:layout_gravity="center"-->
+<!--                            android:layout_margin="5dp"-->
+<!--                            android:autofillHints=""-->
+<!--                            android:padding="5dp"-->
+<!--                            android:text="FixType:"-->
+<!--                            android:textColor="@color/white"-->
+<!--                            android:textSize="25sp"-->
+<!--                            android:visibility="visible"-->
+<!--                            tools:ignore="UseAppTint" />-->
 
-                        <TextView
-                            android:id="@+id/fixTextValue"
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+<!--                        <TextView-->
+<!--                            android:id="@+id/fixTextValue"-->
+<!--                            android:layout_width="match_parent"-->
+<!--                            android:layout_height="match_parent"-->
 
-                            android:text=""
-                            android:textAlignment="center"
-                            android:layout_marginTop="35dp"
+<!--                            android:text=""-->
+<!--                            android:textAlignment="center"-->
+<!--                            android:layout_marginTop="35dp"-->
 
-                            android:textColor="@color/white"
-                            android:textSize="25sp"
+<!--                            android:textColor="@color/white"-->
+<!--                            android:textSize="25sp"-->
 
-                            android:textStyle="normal|bold"
-                            android:visibility="visible" />
-                    </LinearLayout>
+<!--                            android:textStyle="normal|bold"-->
+<!--                            android:visibility="visible" />-->
+<!--                    </LinearLayout>-->
 
-                </androidx.cardview.widget.CardView>
+<!--                </androidx.cardview.widget.CardView>-->
 
                 <androidx.cardview.widget.CardView
                     android:id="@+id/positionCardView"
                     android:layout_width="230dp"
                     android:layout_height="260dp"
                     android:layout_gravity="top"
-                    android:layout_marginTop="230dp"
+                    android:layout_marginTop="95dp"
                     android:visibility="invisible"
                     app:cardBackgroundColor="@color/white"
                     app:cardCornerRadius="20dp"

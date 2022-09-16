@@ -56,33 +56,40 @@ class NotifyUserSignals {
             }
             return mediaPlayer
         }
-
-        fun beepingSoundForMarkingPosition(scenario: String,context:Context): MediaPlayer {
+var playerThread:Thread? = null
+        fun beepingSoundForMarkingPosition(scenario: String,context:Context) {
+            playerThread = Thread {
             try {
-                when (scenario) {
-                    "ShortBeep" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.beepmp3)
-                        //startPlayer(mediaPlayer!!, scenario, oldScenario)
-                    }
-                    "At Point" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.markheremp3)
-                        //startPlayer(mediaPlayer!!, scenario, oldScenario)
-                    }
-                    "Slow Down" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.slowdownmp3)
+                    when (scenario) {
+                        "ShortBeep" -> {
+                            mediaPlayer = MediaPlayer.create(context, R.raw.beepmp3)
+                            //startPlayer(mediaPlayer!!, scenario, oldScenario)
+                        }
+                        "At Point" -> {
+                            mediaPlayer = MediaPlayer.create(context, R.raw.markheremp3)
+                            //startPlayer(mediaPlayer!!, scenario, oldScenario)
+                        }
+                        "Slow Down" -> {
+                            mediaPlayer = MediaPlayer.create(context, R.raw.slowdownmp3)
 
-                        //startPlayer(mediaPlayer!!, scenario, oldScenario)
+                            //startPlayer(mediaPlayer!!, scenario, oldScenario)
+                        }
                     }
+                handler.post{
+                    mediaPlayer.start()
+                    mediaPlayer.isLooping = true
+                    reasonForBeeping = scenario
+                    isBeeping = true
                 }
-                mediaPlayer.start()
-                mediaPlayer.isLooping = true
-                reasonForBeeping = scenario
-                isBeeping = true
 
-            } catch (e: IOException) {
-                e.printStackTrace()
+
+                } catch (e: IOException) {
+                    e.printStackTrace()
+                }
+
             }
-            return mediaPlayer
+            playerThread!!.start()
+
         }
 //        fun startPlayer (player: MediaPlayer, s: String, os:String ):MediaPlayer{
 //           player.start()
