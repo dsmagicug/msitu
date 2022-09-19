@@ -30,7 +30,7 @@ class NotifyUserSignals {
         var isBeeping = false
         var reasonForBeeping = ""
         var oldScenario = ""
-        fun beepingSoundForDirectionIndicator(scenario: String,context:Context): MediaPlayer {
+        fun beepingSoundForDirectionIndicator(scenario: String, context: Context): MediaPlayer {
             try {
                 when (scenario) {
                     "ShortBeep" -> {
@@ -56,10 +56,11 @@ class NotifyUserSignals {
             }
             return mediaPlayer
         }
-var playerThread:Thread? = null
-        fun beepingSoundForMarkingPosition(scenario: String,context:Context) {
+
+        var playerThread: Thread? = null
+        fun beepingSoundForMarkingPosition(scenario: String, context: Context) {
             playerThread = Thread {
-            try {
+                try {
                     when (scenario) {
                         "ShortBeep" -> {
                             mediaPlayer = MediaPlayer.create(context, R.raw.beepmp3)
@@ -75,18 +76,17 @@ var playerThread:Thread? = null
                             //startPlayer(mediaPlayer!!, scenario, oldScenario)
                         }
                     }
-                handler.post{
-                    mediaPlayer.start()
-                    mediaPlayer.isLooping = true
-                    reasonForBeeping = scenario
-                    isBeeping = true
-                }
+                    handler.post {
+                        mediaPlayer.start()
+                        mediaPlayer.isLooping = true
+                        reasonForBeeping = scenario
+                        isBeeping = true
+                    }
 
 
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
-
             }
             playerThread!!.start()
 
@@ -108,7 +108,8 @@ var playerThread:Thread? = null
             oldScenario = s
             return player
         }
-        fun keepPlaying(){
+
+        fun keepPlaying() {
 
         }
 
@@ -119,7 +120,7 @@ var playerThread:Thread? = null
 
         }
 
-        fun stopBeep(context:Context) {
+        fun stopBeep(context: Context) {
             mediaPlayer = MediaPlayer.create(context, R.raw.signalbeepmp3)
             if (mediaPlayer.isPlaying) {
                 mediaPlayer.stop()
@@ -164,7 +165,13 @@ var playerThread:Thread? = null
 
         }
 
-        fun statisticsWindow(activity: Activity,size: Int, textView: TextView, list: MutableList<*>, distance: Float) {
+        fun statisticsWindow(
+            activity: Activity,
+            size: Int,
+            textView: TextView,
+            list: MutableList<*>,
+            distance: Float
+        ) {
             decimalFormat.roundingMode = RoundingMode.DOWN
             val dist = decimalFormat.format(distance)
             val d = dist.toString()
