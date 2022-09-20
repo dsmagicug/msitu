@@ -13,9 +13,28 @@
         android:backgroundTint="@color/lightGreen"
         android:fitsSystemWindows="true">
 
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginStart="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginEnd="1dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
+
+
+            <fragment
+                android:id="@+id/mapFragment"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/appToolbar"
@@ -171,8 +190,8 @@
                     app:cardBackgroundColor="@color/white"
                     app:cardCornerRadius="20dp"
                     app:cardElevation="10dp"
-                    app:cardPreventCornerOverlap="true"
-                    app:cardUseCompatPadding="true"
+                    app:cardPreventCornerOverlap="false"
+                    app:cardUseCompatPadding="false"
                     app:layout_constraintBottom_toTopOf="@+id/lThirdGuideline"
                     app:layout_constraintEnd_toStartOf="@+id/lvFirstGuideline"
                     app:layout_constraintStart_toStartOf="parent"
@@ -475,6 +494,12 @@
                                             app:layout_constraintEnd_toStartOf="@+id/cardviewVGuideline"
                                             app:layout_constraintStart_toStartOf="parent"
                                             app:layout_constraintTop_toTopOf="parent" />
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="2dp"
+                                            android:background="@color/hr"
+                                            app:layout_constraintBottom_toBottomOf="parent"
+                                            tools:layout_editor_absoluteY="71dp" />
 
                                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -563,9 +588,8 @@
                                             android:layout_width="match_parent"
                                             android:layout_height="2dp"
                                             android:background="@color/hr"
-                                            app:layout_constraintEnd_toEndOf="parent"
-                                            app:layout_constraintStart_toStartOf="parent"
-                                            app:layout_constraintTop_toBottomOf="@+id/myTextView2" />
+                                            app:layout_constraintBottom_toBottomOf="parent"
+                                            tools:layout_editor_absoluteY="71dp" />
 
 
                                     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -646,6 +670,12 @@
                                             app:layout_constraintEnd_toEndOf="parent"
                                             app:layout_constraintStart_toStartOf="@+id/cardviewV4Guideline"
                                             app:layout_constraintTop_toTopOf="parent" />
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="2dp"
+                                            android:background="@color/hr"
+                                            app:layout_constraintBottom_toBottomOf="parent"
+                                            tools:layout_editor_absoluteY="71dp" />
                                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                                 </LinearLayout>
@@ -705,9 +735,7 @@
                                             android:layout_width="match_parent"
                                             android:layout_height="2dp"
                                             android:background="@color/hr"
-                                            app:layout_constraintEnd_toEndOf="parent"
-                                            app:layout_constraintStart_toStartOf="parent"
-                                            app:layout_constraintTop_toTopOf="parent"
+                                            app:layout_constraintBottom_toBottomOf="parent"
                                             tools:layout_editor_absoluteY="71dp" />
 
                                     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -856,6 +884,7 @@
                 tools:visibility="invisible" />
         </RelativeLayout>
 
+</FrameLayout>
         <com.google.android.material.navigation.NavigationView
             android:id="@+id/navView"
             android:layout_width="wrap_content"

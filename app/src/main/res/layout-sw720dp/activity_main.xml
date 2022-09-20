@@ -13,9 +13,29 @@
         android:backgroundTint="@color/lightGreen"
         android:fitsSystemWindows="true">
 
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginStart="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginEnd="1dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
+
+
+            <fragment
+                android:id="@+id/mapFragment"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/appToolbar"
@@ -315,6 +335,7 @@
 
                             <ImageView
                                 android:id="@+id/directionImageValue"
+
                                 android:layout_width="0dp"
                                 android:layout_height="0dp"
                                 android:layout_gravity="center"
@@ -711,6 +732,15 @@
                                             tools:layout_editor_absoluteY="71dp" />
 
                                     </androidx.constraintlayout.widget.ConstraintLayout>
+                                    <ProgressBar
+                                        android:id="@+id/progressBar"
+                                        style="?android:attr/progressBarStyleLarge"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:layout_centerHorizontal="true"
+                                        android:layout_marginTop="320dp"
+                                        android:visibility="gone"
+                                        tools:visibility="invisible" />
 
                                 </LinearLayout>
 
@@ -845,16 +875,9 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <ProgressBar
-                android:id="@+id/progressBar"
-                style="?android:attr/progressBarStyleLarge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="320dp"
-                android:visibility="gone"
-                tools:visibility="invisible" />
+
         </RelativeLayout>
+        </FrameLayout>
 
         <com.google.android.material.navigation.NavigationView
             android:id="@+id/navView"

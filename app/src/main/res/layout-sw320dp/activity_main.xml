@@ -12,10 +12,28 @@
         android:layout_height="match_parent"
         android:backgroundTint="@color/lightGreen"
         android:fitsSystemWindows="true">
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginStart="1dp"
+            android:layout_marginTop="1dp"
+            android:layout_marginEnd="1dp"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
+
+
+            <fragment
+                android:id="@+id/mapFragment"
+                android:name="com.google.android.gms.maps.SupportMapFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/appToolbar"
@@ -63,7 +81,7 @@
                         android:layout_width="0dp"
                         android:layout_height="51dp"
                         android:gravity="center"
-                        android:text = " "
+                        android:text = " gfgfgg"
                         android:textAlignment="center"
                         android:textAllCaps="false"
                         android:textColor="@color/white"
@@ -125,14 +143,14 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    app:layout_constraintGuide_percent="0.5" />
+                    app:layout_constraintGuide_percent="0.47" />
 
                 <androidx.constraintlayout.widget.Guideline
                     android:id="@+id/lFirstGuideline"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    app:layout_constraintGuide_percent="0.1" />
+                    app:layout_constraintGuide_percent="0.12" />
 
                 <androidx.constraintlayout.widget.Guideline
                     android:id="@+id/lAnotherGuideline"
@@ -171,8 +189,8 @@
                     app:cardBackgroundColor="@color/white"
                     app:cardCornerRadius="20dp"
                     app:cardElevation="10dp"
-                    app:cardPreventCornerOverlap="true"
-                    app:cardUseCompatPadding="true"
+                    app:cardPreventCornerOverlap="false"
+                    app:cardUseCompatPadding="false"
                     app:layout_constraintBottom_toTopOf="@+id/lThirdGuideline"
                     app:layout_constraintEnd_toStartOf="@+id/lvFirstGuideline"
                     app:layout_constraintStart_toStartOf="parent"
@@ -212,14 +230,14 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:orientation="vertical"
-                                    app:layout_constraintGuide_percent="0.30" />
+                                    app:layout_constraintGuide_percent="0.21" />
 
                                 <androidx.constraintlayout.widget.Guideline
                                     android:id="@+id/cardviewThirdVGuideline"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:orientation="vertical"
-                                    app:layout_constraintGuide_percent="0.70" />
+                                    app:layout_constraintGuide_percent="0.75" />
 
                                 <androidx.constraintlayout.widget.Guideline
                                     android:id="@+id/cardviewFirstVGuideline"
@@ -257,9 +275,9 @@
                                     android:layout_width="0dp"
                                     android:layout_height="0dp"
                                     android:layout_gravity="center"
-                                    android:text="Mark here"
+                                    android:text="Slow Down"
                                     android:textColor="@color/black"
-                                    android:textSize="25sp"
+                                    android:textSize="22sp"
                                     android:textStyle="normal|bold"
                                     android:visibility="visible"
                                     app:layout_constraintBottom_toBottomOf="parent"
@@ -315,6 +333,7 @@
 
                             <ImageView
                                 android:id="@+id/directionImageValue"
+
                                 android:layout_width="0dp"
                                 android:layout_height="0dp"
                                 android:layout_gravity="center"
@@ -334,14 +353,14 @@
 
                             <TextView
                                 android:id="@+id/directionText"
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="0dp"
                                 android:layout_gravity="center"
-                                android:padding="25dp"
+                                android:padding="13dp"
                                 android:text="Turn Right"
                                 android:textAlignment="center"
                                 android:textColor="@color/white"
-                                android:textSize="25sp"
+                                android:textSize="22sp"
                                 android:textStyle="normal|bold"
                                 android:visibility="visible"
                                 app:layout_constraintBottom_toBottomOf="parent"
@@ -400,21 +419,21 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:orientation="horizontal"
-                                    app:layout_constraintGuide_percent="0.7" />
+                                    app:layout_constraintGuide_percent="0.78" />
 
                                 <androidx.constraintlayout.widget.Guideline
                                     android:id="@+id/cardviewThirdGuideline"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:orientation="horizontal"
-                                    app:layout_constraintGuide_percent="0.90" />
+                                    app:layout_constraintGuide_percent="0.97" />
 
                                 <androidx.constraintlayout.widget.Guideline
                                     android:id="@+id/cardviewHFourthGuideline"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:orientation="horizontal"
-                                    app:layout_constraintGuide_percent="0.5" />
+                                    app:layout_constraintGuide_percent="0.53" />
 
                                 <androidx.constraintlayout.widget.Guideline
                                     android:id="@+id/cardviewHFirthGuideline"
@@ -465,16 +484,22 @@
                                             android:id="@+id/myTextView"
                                             android:layout_width="0dp"
                                             android:layout_height="0dp"
-                                            android:padding="7dp"
+                                            android:padding="5dp"
                                             android:text="Marked Pts: "
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="22sp"
+                                            android:textSize="21sp"
                                             android:textStyle="bold|normal"
                                             app:layout_constraintBottom_toBottomOf="parent"
                                             app:layout_constraintEnd_toStartOf="@+id/cardviewVGuideline"
                                             app:layout_constraintStart_toStartOf="parent"
                                             app:layout_constraintTop_toTopOf="parent" />
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="2dp"
+                                            android:background="@color/hr"
+                                            app:layout_constraintBottom_toBottomOf="parent"
+                                            tools:layout_editor_absoluteY="71dp" />
 
                                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -499,14 +524,14 @@
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:orientation="vertical"
-                                            app:layout_constraintGuide_percent="0.5" />
+                                            app:layout_constraintGuide_percent="0.48" />
 
                                         <androidx.constraintlayout.widget.Guideline
                                             android:id="@+id/cardviewV3Guideline"
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:orientation="vertical"
-                                            app:layout_constraintGuide_percent="0.85" />
+                                            app:layout_constraintGuide_percent="0.80" />
 
                                         <TextView
                                             android:id="@+id/myTextView2"
@@ -516,7 +541,7 @@
                                             android:text="Next Pt:"
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="25sp"
+                                            android:textSize="22sp"
                                             android:textStyle="bold"
                                             app:layout_constraintBottom_toBottomOf="parent"
                                             app:layout_constraintEnd_toStartOf="@+id/cardviewV2Guideline"
@@ -530,12 +555,12 @@
                                             android:layout_margin="5dp"
                                             android:layout_weight="1"
                                             android:autofillHints=""
-                                            android:padding="5dp"
+                                            android:padding="2dp"
                                             android:shadowColor="@color/white"
                                             android:text="FT"
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="18sp"
+                                            android:textSize="14sp"
                                             android:textStyle="bold"
                                             app:layout_constraintBottom_toBottomOf="parent"
                                             app:layout_constraintEnd_toEndOf="parent"
@@ -552,7 +577,7 @@
                                             android:text="5000"
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="25sp"
+                                            android:textSize="20sp"
                                             android:textStyle="bold|normal"
                                             app:layout_constraintBottom_toBottomOf="parent"
                                             app:layout_constraintEnd_toStartOf="@+id/cardviewV3Guideline"
@@ -563,9 +588,8 @@
                                             android:layout_width="match_parent"
                                             android:layout_height="2dp"
                                             android:background="@color/hr"
-                                            app:layout_constraintEnd_toEndOf="parent"
-                                            app:layout_constraintStart_toStartOf="parent"
-                                            app:layout_constraintTop_toBottomOf="@+id/myTextView2" />
+                                            app:layout_constraintBottom_toBottomOf="parent"
+                                            tools:layout_editor_absoluteY="71dp" />
 
 
                                     </androidx.constraintlayout.widget.ConstraintLayout>
@@ -605,11 +629,11 @@
                                             android:id="@+id/pace"
                                             android:layout_width="0dp"
                                             android:layout_height="0dp"
-                                            android:padding="7dp"
+                                            android:padding="5dp"
                                             android:text="Marking Pace:"
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="20sp"
+                                            android:textSize="17sp"
                                             android:textStyle="bold|normal"
                                             app:layout_constraintBottom_toBottomOf="parent"
                                             app:layout_constraintEnd_toStartOf="@+id/cardviewV5Guideline"
@@ -618,14 +642,14 @@
 
                                         <TextView
                                             android:id="@+id/paceValue"
-                                            android:layout_width="0dp"
-                                            android:layout_height="0dp"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
                                             android:layout_margin="5dp"
                                             android:padding="5dp"
                                             android:text="555"
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="30sp"
+                                            android:textSize="20sp"
                                             android:textStyle="bold"
                                             app:layout_constraintBottom_toBottomOf="parent"
                                             app:layout_constraintEnd_toStartOf="@+id/cardviewV4Guideline"
@@ -637,6 +661,7 @@
                                             android:layout_width="0dp"
                                             android:layout_height="0dp"
                                             android:layout_weight="1"
+                                            android:padding="1dp"
                                             android:text="(Pts/min)"
                                             android:textAlignment="center"
                                             android:textColor="@color/white"
@@ -646,6 +671,12 @@
                                             app:layout_constraintEnd_toEndOf="parent"
                                             app:layout_constraintStart_toStartOf="@+id/cardviewV4Guideline"
                                             app:layout_constraintTop_toTopOf="parent" />
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="2dp"
+                                            android:background="@color/hr"
+                                            app:layout_constraintBottom_toBottomOf="parent"
+                                            tools:layout_editor_absoluteY="71dp" />
                                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                                 </LinearLayout>
@@ -674,11 +705,12 @@
                                             android:id="@+id/linesMarked"
                                             android:layout_width="0dp"
                                             android:layout_height="0dp"
-                                            android:padding="5dp"
+                                            android:layout_margin="5dp"
+                                            android:padding="2dp"
                                             android:text="Marked Lines:"
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="22sp"
+                                            android:textSize="18sp"
                                             android:textStyle="bold|normal"
                                             app:layout_constraintBottom_toBottomOf="@+id/linesMarkedValue"
                                             app:layout_constraintEnd_toStartOf="@+id/cardviewV6Guideline"
@@ -687,14 +719,14 @@
 
                                         <TextView
                                             android:id="@+id/linesMarkedValue"
-                                            android:layout_width="0dp"
-                                            android:layout_height="0dp"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
                                             android:layout_margin="5dp"
                                             android:padding="5dp"
                                             android:text="199"
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="30sp"
+                                            android:textSize="20sp"
                                             android:textStyle="bold"
                                             app:layout_constraintBottom_toBottomOf="parent"
                                             app:layout_constraintEnd_toEndOf="parent"
@@ -705,12 +737,12 @@
                                             android:layout_width="match_parent"
                                             android:layout_height="2dp"
                                             android:background="@color/hr"
-                                            app:layout_constraintEnd_toEndOf="parent"
-                                            app:layout_constraintStart_toStartOf="parent"
-                                            app:layout_constraintTop_toTopOf="parent"
+                                            app:layout_constraintBottom_toBottomOf="parent"
                                             tools:layout_editor_absoluteY="71dp" />
 
+
                                     </androidx.constraintlayout.widget.ConstraintLayout>
+
 
                                 </LinearLayout>
 
@@ -738,12 +770,11 @@
                                             android:id="@+id/totalPoints"
                                             android:layout_width="0dp"
                                             android:layout_height="0dp"
-
                                             android:padding="5dp"
                                             android:text="Points on the line:"
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="22sp"
+                                            android:textSize="18sp"
                                             android:textStyle="bold|normal"
                                             app:layout_constraintBottom_toBottomOf="parent"
                                             app:layout_constraintEnd_toStartOf="@+id/cardviewVlast2Guideline"
@@ -759,12 +790,13 @@
                                             android:text="48999"
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="30sp"
+                                            android:textSize="20sp"
                                             android:textStyle="bold"
                                             app:layout_constraintBottom_toBottomOf="parent"
                                             app:layout_constraintEnd_toEndOf="parent"
                                             app:layout_constraintStart_toStartOf="@+id/cardviewVlast2Guideline"
                                             app:layout_constraintTop_toTopOf="parent" />
+
 
                                     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -844,7 +876,6 @@
 
 
             </androidx.constraintlayout.widget.ConstraintLayout>
-
             <ProgressBar
                 android:id="@+id/progressBar"
                 style="?android:attr/progressBarStyleLarge"
@@ -854,8 +885,9 @@
                 android:layout_marginTop="320dp"
                 android:visibility="gone"
                 tools:visibility="invisible" />
-        </RelativeLayout>
 
+        </RelativeLayout>
+        </FrameLayout>
         <com.google.android.material.navigation.NavigationView
             android:id="@+id/navView"
             android:layout_width="wrap_content"
