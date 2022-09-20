@@ -8,7 +8,6 @@
     android:backgroundTint="@color/lightGreen"
     android:fitsSystemWindows="true">
 
-
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -683,7 +682,7 @@
                     tools:layout_editor_absoluteY="363dp">
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+
                         android:layout_height="match_parent"
                         android:layout_marginEnd="0dp"
                         android:orientation="vertical">

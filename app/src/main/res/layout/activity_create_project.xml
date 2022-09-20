@@ -89,12 +89,12 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
-                    android:layout_width="200dp"
+                    android:layout_width="152dp"
                     android:layout_height="match_parent"
                     android:layout_marginStart="10dp"
                     android:layout_marginTop="5dp"
-                    app:shapeAppearanceOverlay="@style/button1"
-                    app:boxStrokeColor="@color/quantum_googgreen">
+                    app:boxStrokeColor="@color/quantum_googgreen"
+                    app:shapeAppearanceOverlay="@style/button1">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/MeshSize"
@@ -102,9 +102,9 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/rosemary"
                         android:hint="Line length"
+                        android:inputType="number"
                         android:textSize="16sp"
-                        android:textStyle="normal"
-                        />
+                        android:textStyle="normal" />
 
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -118,8 +118,8 @@
 
                     <AutoCompleteTextView
                         android:id="@+id/plotsizeDropDown"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_width="120dp"
+                        android:layout_height="47dp"
                         android:layout_marginLeft="10dp"
                         android:layout_weight="1"
                         android:fontFamily="@font/rosemary"
@@ -141,12 +141,12 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
-                    android:layout_width="200dp"
+                    android:layout_width="150dp"
                     android:layout_height="match_parent"
                     android:layout_marginStart="10dp"
                     android:layout_marginTop="5dp"
-                    app:shapeAppearanceOverlay="@style/button1"
-                    app:boxStrokeColor="@color/quantum_googgreen">
+                    app:boxStrokeColor="@color/quantum_googgreen"
+                    app:shapeAppearanceOverlay="@style/button1">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/gapSize"
@@ -154,6 +154,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/rosemary"
                         android:hint="Gap Size (m)"
+                        android:inputType="number"
                         android:textSize="16sp"
                         android:textStyle="normal" />
 
@@ -170,8 +171,8 @@
                     <AutoCompleteTextView
 
                         android:id="@+id/gapsizeDropDown"
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
+                        android:layout_width="120dp"
+                        android:layout_height="46dp"
                         android:layout_weight="1"
                         android:fontFamily="@font/rosemary"
                         android:hint="@string/units"
