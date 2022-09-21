@@ -8,6 +8,7 @@ import android.Manifest
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.app.PendingIntent
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.*
@@ -17,6 +18,8 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.hardware.usb.UsbAccessory
+import android.hardware.usb.UsbManager
 import android.location.Location
 import android.location.Location.distanceBetween
 import android.location.LocationManager
@@ -24,6 +27,7 @@ import android.net.ConnectivityManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.ParcelFileDescriptor
 import android.util.Log
 import android.view.Gravity
 import android.view.Menu
@@ -78,6 +82,8 @@ import dilivia.s2.index.shape.MutableS2ShapeIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import java.io.FileInputStream
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -406,6 +412,63 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
             } catch (e: Exception) {
 
+            }
+        }
+        val filter = IntentFilter(ACTION_USB_PERMISSION)
+        registerReceiver(usbReceiver, filter)
+
+        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
+        val accessory =  intent.getParcelableExtra<UsbAccessory>(UsbManager.EXTRA_ACCESSORY) as UsbAccessory
+        val permissionIntent = PendingIntent.getBroadcast(this, 0, Intent(ACTION_USB_PERMISSION), 0)
+        val accessoryList: Array<out UsbAccessory> = manager.accessoryList
+        manager.requestPermission(accessory, permissionIntent)
+    }
+    fun usb(){
+        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
+        val accessory =  intent.getParcelableExtra<UsbAccessory>(UsbManager.EXTRA_ACCESSORY) as UsbAccessory
+//        var permissionIntent = PendingIntent.getBroadcast(this, 0, Intent(ACTION_USB_PERMISSION), 0)
+//        val accessoryList: Array<out UsbAccessory> = manager.accessoryList
+//        manager.requestPermission(accessory, permissionIntent)
+
+//        fileDescriptor = manager.openAccessory(accessory)
+//        fileDescriptor?.fileDescriptor?.also { fd ->
+//            inputStream = FileInputStream(fd)
+//            outputStream = FileOutputStream(fd)
+
+        //val thread = Thread{null, this, "AccessoryThread"}
+        usbThread =  Thread {
+            fileDescriptor = manager.openAccessory(accessory)
+            fileDescriptor?.fileDescriptor?.also { fd ->
+                inputStream = FileInputStream(fd)
+                outputStream = FileOutputStream(fd)
+            }
+        }
+        usbThread!!.start()
+
+    }
+    var usbThread:Thread? = null
+
+    var fileDescriptor: ParcelFileDescriptor? = null
+    var inputStream: FileInputStream? = null
+    var outputStream: FileOutputStream? = null
+    private  val ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION"
+
+    private val usbReceiver = object : BroadcastReceiver() {
+
+        override fun onReceive(context: Context, intent: Intent) {
+            if (ACTION_USB_PERMISSION == intent.action) {
+                synchronized(this) {
+                    val accessory: UsbAccessory? = intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY)
+
+                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                        accessory?.apply {
+                            //call method to set up accessory communication
+                            usb()
+                        }
+                    } else {
+                        Log.d("TAG", "permission denied for accessory $accessory")
+                    }
+                }
             }
         }
     }
