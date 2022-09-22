@@ -104,8 +104,10 @@ class NmeaReader {
                         val b = ByteArray(n)
                         input?.read(b)
                         val s = String(b, Charset.forName("UTF-8"))
+                        Log.d("Bluetooth","$s")
                         val l =
                             s.split("\n") // Into lines... Crude. What if we read only up to part of sentence??
+                      var t = 8
                         for (xs in l) {
                             // Hand off to higher level...
                             val longlat = LongLat(xs)
