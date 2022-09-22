@@ -61,6 +61,9 @@ import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.retrieveMarkedpoint
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Project
 import com.dsmagic.kibira.ui.login.LoginActivity
+import com.dsmagic.kibira.usb.USBSupport.Companion.ACTION_USB_PERMISSION
+import com.dsmagic.kibira.usb.USBSupport.Companion.mUsbManager
+import com.dsmagic.kibira.usb.USBSupport.Companion.usbReceiver
 import com.dsmagic.kibira.utils.Alerts
 import com.dsmagic.kibira.utils.Alerts.Companion.undoAlertWarning
 import com.dsmagic.kibira.utils.Alerts.Companion.warningAlert
@@ -304,6 +307,15 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         }
         onLoad = false
         //register bluetooth broadcaster for scanning devices
+
+        mUsbManager = getSystemService(Context.USB_SERVICE) as UsbManager
+        val filter = IntentFilter()
+        filter.addAction(ACTION_USB_PERMISSION)
+        filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
+        filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED)
+        registerReceiver(usbReceiver,filter)
+
+
         val intent = IntentFilter(BluetoothDevice.ACTION_FOUND)
         registerReceiver(receiver, intent)
 
@@ -414,14 +426,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
             }
         }
-        val filter = IntentFilter(ACTION_USB_PERMISSION)
-        registerReceiver(usbReceiver, filter)
-
-        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
-        val accessory =  intent.getParcelableExtra<UsbAccessory>(UsbManager.EXTRA_ACCESSORY) as UsbAccessory
-        val permissionIntent = PendingIntent.getBroadcast(this, 0, Intent(ACTION_USB_PERMISSION), 0)
-        val accessoryList: Array<out UsbAccessory> = manager.accessoryList
-        manager.requestPermission(accessory, permissionIntent)
+//        val filter = IntentFilter(ACTION_USB_PERMISSION)
+//        registerReceiver(usbReceiver, filter)
+//
+//        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
+//        val accessory =  intent.getParcelableExtra<UsbAccessory>(UsbManager.EXTRA_ACCESSORY) as UsbAccessory
+//        val permissionIntent = PendingIntent.getBroadcast(this, 0, Intent(ACTION_USB_PERMISSION), 0)
+//        val accessoryList: Array<out UsbAccessory> = manager.accessoryList
+//        manager.requestPermission(accessory, permissionIntent)
     }
     fun usb(){
         val manager = getSystemService(Context.USB_SERVICE) as UsbManager
@@ -436,42 +448,42 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 //            outputStream = FileOutputStream(fd)
 
         //val thread = Thread{null, this, "AccessoryThread"}
-        usbThread =  Thread {
-            fileDescriptor = manager.openAccessory(accessory)
-            fileDescriptor?.fileDescriptor?.also { fd ->
-                inputStream = FileInputStream(fd)
-                outputStream = FileOutputStream(fd)
-            }
-        }
-        usbThread!!.start()
+//        usbThread =  Thread {
+//            fileDescriptor = manager.openAccessory(accessory)
+//            fileDescriptor?.fileDescriptor?.also { fd ->
+//                inputStream = FileInputStream(fd)
+//                outputStream = FileOutputStream(fd)
+//            }
+//        }
+//        usbThread!!.start()
 
     }
-    var usbThread:Thread? = null
+//    var usbThread:Thread? = null
+//
+//    var fileDescriptor: ParcelFileDescriptor? = null
+//    var inputStream: FileInputStream? = null
+//    var outputStream: FileOutputStream? = null
+//    private  val ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION"
 
-    var fileDescriptor: ParcelFileDescriptor? = null
-    var inputStream: FileInputStream? = null
-    var outputStream: FileOutputStream? = null
-    private  val ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION"
-
-    private val usbReceiver = object : BroadcastReceiver() {
-
-        override fun onReceive(context: Context, intent: Intent) {
-            if (ACTION_USB_PERMISSION == intent.action) {
-                synchronized(this) {
-                    val accessory: UsbAccessory? = intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY)
-
-                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-                        accessory?.apply {
-                            //call method to set up accessory communication
-                            usb()
-                        }
-                    } else {
-                        Log.d("TAG", "permission denied for accessory $accessory")
-                    }
-                }
-            }
-        }
-    }
+//    private val usbReceiver = object : BroadcastReceiver() {
+//
+//        override fun onReceive(context: Context, intent: Intent) {
+//            if (ACTION_USB_PERMISSION == intent.action) {
+//                synchronized(this) {
+//                    val accessory: UsbAccessory? = intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY)
+//
+//                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+//                        accessory?.apply {
+//                            //call method to set up accessory communication
+//                            usb()
+//                        }
+//                    } else {
+//                        Log.d("TAG", "permission denied for accessory $accessory")
+//                    }
+//                }
+//            }
+//        }
+//    }
 
     private fun approachingPoint() {
 

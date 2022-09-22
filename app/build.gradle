@@ -104,6 +104,7 @@ dependencies {
     implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3"
 
     implementation 'androidx.preference:preference:1.1.1'
+    implementation 'com.github.felHR85:UsbSerial:6.1.0'
 
 
     //    // Room

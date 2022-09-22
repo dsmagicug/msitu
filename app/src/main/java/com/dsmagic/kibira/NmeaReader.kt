@@ -78,10 +78,8 @@ class NmeaReader {
                     UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // Serial port UUID
                 val socket = device.createRfcommSocketToServiceRecord(uuid)
               val con =  socket?.connect()
-                Log.d("socket","$con")
-                //pbar.isVisible = false
                 input = socket?.inputStream
-//
+
                 Toast.makeText(context, "Device successfully paired", Toast.LENGTH_LONG).show()
                 startDataListener()
             } catch (e: IOException) {
@@ -98,8 +96,6 @@ class NmeaReader {
 
             val looper = Looper.getMainLooper()
             val handler = Handler(looper)
-
-
             thread = Thread {
                 readingStarted = true
                 while (!stopIt) {
