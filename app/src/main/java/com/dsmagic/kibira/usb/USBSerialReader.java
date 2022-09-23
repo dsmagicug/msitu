@@ -106,10 +106,10 @@ public class USBSerialReader {
                                 LongLat longlat = new LongLat(str);
                                 if (longlat.getFixType() != LongLat.FixType.NoFixData) {
 
-                                    if(longlat.getFixType() == LongLat.FixType.RTKFloat || longlat.getFixType() == LongLat.FixType.RTKFix){
+                                  //  if(longlat.getFixType() == LongLat.FixType.RTKFloat || longlat.getFixType() == LongLat.FixType.RTKFix){
                                         // Send it to the Location Source... BUT ONLY when we have rtk data--(more accurate than other fixtypes)
                                         handler.post(()-> listener.postNewLocation(longlat,longlat.getFixType()));
-                                    }
+                                  //  }
                                 }
                                 Log.d("FROM USB", str+ "\n");
                             }

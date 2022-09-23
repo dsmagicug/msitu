@@ -48,6 +48,7 @@ object CreateProjectDialog : DialogFragment() {
 
             val inflater = requireActivity().layoutInflater
 
+
             val l: Array<String> = projectList.toTypedArray().reversedArray()
             val ar: Array<String>
 

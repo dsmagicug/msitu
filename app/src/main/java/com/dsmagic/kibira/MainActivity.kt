@@ -289,7 +289,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             startActivity(intent)
 
         }
-        // Getting the Sensor Manager instance
+
        // retrieveProjectsFromBackend(userID!!.toInt())
         onLoad = true
         createDialog("onLoad")
@@ -306,7 +306,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
         filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED)
         registerReceiver(usbSupport.usbReceiver,filter)
-
 
         val intent = IntentFilter(BluetoothDevice.ACTION_FOUND)
         registerReceiver(receiver, intent)
@@ -690,37 +689,42 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     private fun retrieveProjectsFromBackend(UID: Int): MutableList<String> {
 
         GlobalScope.launch(Dispatchers.IO) {
-            try {
 
                 val listOfProjects = appdb.kibiraDao().getAllProjects(UID)
 
-                listOfProjects as MutableList<Project>
-                if (projectList.isNotEmpty()) {
-                    projectList.clear()
-                    projectIDList.clear()
-                    projectMeshSizeList.clear()
-                    projectSizeList.clear()
-                    meshTypeList.clear()
-                    gapUnitsList.clear()
-                }
-                for (project in listOfProjects) {
-                    projectList.add(project.name)
-                    projectIDList.add(project.id!!)
-                    projectMeshSizeList.add(project.lineLength)
-                    projectSizeList.add(project.gapsize)
-                    meshTypeList.add(project.MeshType)
-                    gapUnitsList.add(project.gapsizeunits)
-                }
+                if(listOfProjects.isEmpty()){
+                    runOnUiThread{
+                        Toast.makeText(applicationContext,"No projects Created yet",Toast.LENGTH_LONG).show()
+                    }
 
-                runOnUiThread {
-                    displayProjects()
+                    return@launch
                 }
+                else {
 
-            } catch (e: NullPointerException) {
-                Log.d("Projects", "Empty Project")
+                    listOfProjects as MutableList<Project>
+                    if (projectList.isNotEmpty()) {
+                        projectList.clear()
+                        projectIDList.clear()
+                        projectMeshSizeList.clear()
+                        projectSizeList.clear()
+                        meshTypeList.clear()
+                        gapUnitsList.clear()
+                    }
+                    for (project in listOfProjects) {
+                        projectList.add(project.name)
+                        projectIDList.add(project.id!!)
+                        projectMeshSizeList.add(project.lineLength)
+                        projectSizeList.add(project.gapsize)
+                        meshTypeList.add(project.MeshType)
+                        gapUnitsList.add(project.gapsizeunits)
+                    }
+
+                    runOnUiThread {
+                        displayProjects()
+                    }
+                }
 
             }
-        }
 
         return projectList
     }
@@ -1979,7 +1983,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
     }
 
-
     fun radius(size: Double): Double {
         val sizeInCentimeters = size * 100
         return ((0.1 * sizeInCentimeters) / 100) + 1.0
@@ -1987,7 +1990,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-
         when (item.itemId) {
 
             R.id.logOut -> {
@@ -1996,11 +1998,13 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             }
             R.id.action_create -> {
                 onLoad = false
+
                 val createNewProject = CreateProjectDialog
-                createNewProject.show(supportFragmentManager, "onLoad")
+                createNewProject.show(supportFragmentManager, "create")
                 return true
             }
             R.id.action_view_projects -> {
+
                 if (projectList.isNotEmpty()) {
                     projectList.clear()
                     projectIDList.clear()
@@ -2008,8 +2012,11 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     projectSizeList.clear()
                     meshTypeList.clear()
                     gapUnitsList.clear()
+                } else{
+                    var y = 90
                 }
-                retrieveProjectsFromBackend(userID!!.toInt())
+                Log.d("User","$userID")
+              //  retrieveProjectsFromBackend(userID!!.toInt())
                 return true
             }
         }
