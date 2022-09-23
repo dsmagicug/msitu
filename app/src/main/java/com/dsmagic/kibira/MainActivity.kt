@@ -18,16 +18,13 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.hardware.usb.UsbAccessory
 import android.hardware.usb.UsbManager
 import android.location.Location
 import android.location.Location.distanceBetween
 import android.location.LocationManager
-import android.net.ConnectivityManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.os.ParcelFileDescriptor
 import android.util.Log
 import android.view.Gravity
 import android.view.Menu
@@ -62,9 +59,6 @@ import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Project
 import com.dsmagic.kibira.ui.login.LoginActivity
 import com.dsmagic.kibira.usb.USBSerialReader
-import com.dsmagic.kibira.usb.USBSupport.Companion.ACTION_USB_PERMISSION
-import com.dsmagic.kibira.usb.USBSupport.Companion.manager
-import com.dsmagic.kibira.usb.USBSupport.Companion.usbReceiver
 import com.dsmagic.kibira.utils.Alerts
 import com.dsmagic.kibira.utils.Alerts.Companion.undoAlertWarning
 import com.dsmagic.kibira.utils.Alerts.Companion.warningAlert
@@ -86,8 +80,6 @@ import dilivia.s2.index.shape.MutableS2ShapeIndex
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.ExecutorService
@@ -148,7 +140,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var displayedDistanceUnits: TextView
     lateinit var displayedPoints: TextView
     lateinit var fixType: TextView
-    //  var fixValue = ""
+    val usbSupport = USBSerialReader()
 
     companion object {
         lateinit var projectLines: MutableList<PlantingLine>
@@ -308,7 +300,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         }
         onLoad = false
         //register bluetooth broadcaster for scanning devices
-        val usbSupport = USBSerialReader()
         usbSupport.manager = getSystemService(Context.USB_SERVICE) as UsbManager
         val filter = IntentFilter()
         filter.addAction(USBSerialReader.ACTION_USB_PERMISSION)
@@ -427,64 +418,9 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
             }
         }
-//        val filter = IntentFilter(ACTION_USB_PERMISSION)
-//        registerReceiver(usbReceiver, filter)
-//
-//        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
-//        val accessory =  intent.getParcelableExtra<UsbAccessory>(UsbManager.EXTRA_ACCESSORY) as UsbAccessory
-//        val permissionIntent = PendingIntent.getBroadcast(this, 0, Intent(ACTION_USB_PERMISSION), 0)
-//        val accessoryList: Array<out UsbAccessory> = manager.accessoryList
-//        manager.requestPermission(accessory, permissionIntent)
-    }
-    fun usb(){
-        val manager = getSystemService(Context.USB_SERVICE) as UsbManager
-        val accessory =  intent.getParcelableExtra<UsbAccessory>(UsbManager.EXTRA_ACCESSORY) as UsbAccessory
-//        var permissionIntent = PendingIntent.getBroadcast(this, 0, Intent(ACTION_USB_PERMISSION), 0)
-//        val accessoryList: Array<out UsbAccessory> = manager.accessoryList
-//        manager.requestPermission(accessory, permissionIntent)
-
-//        fileDescriptor = manager.openAccessory(accessory)
-//        fileDescriptor?.fileDescriptor?.also { fd ->
-//            inputStream = FileInputStream(fd)
-//            outputStream = FileOutputStream(fd)
-
-        //val thread = Thread{null, this, "AccessoryThread"}
-//        usbThread =  Thread {
-//            fileDescriptor = manager.openAccessory(accessory)
-//            fileDescriptor?.fileDescriptor?.also { fd ->
-//                inputStream = FileInputStream(fd)
-//                outputStream = FileOutputStream(fd)
-//            }
-//        }
-//        usbThread!!.start()
 
     }
-//    var usbThread:Thread? = null
-//
-//    var fileDescriptor: ParcelFileDescriptor? = null
-//    var inputStream: FileInputStream? = null
-//    var outputStream: FileOutputStream? = null
-//    private  val ACTION_USB_PERMISSION = "com.android.example.USB_PERMISSION"
 
-//    private val usbReceiver = object : BroadcastReceiver() {
-//
-//        override fun onReceive(context: Context, intent: Intent) {
-//            if (ACTION_USB_PERMISSION == intent.action) {
-//                synchronized(this) {
-//                    val accessory: UsbAccessory? = intent.getParcelableExtra(UsbManager.EXTRA_ACCESSORY)
-//
-//                    if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
-//                        accessory?.apply {
-//                            //call method to set up accessory communication
-//                            usb()
-//                        }
-//                    } else {
-//                        Log.d("TAG", "permission denied for accessory $accessory")
-//                    }
-//                }
-//            }
-//        }
-//    }
 
     private fun approachingPoint() {
 
@@ -591,49 +527,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
     }
 
-
-    private fun CheckConnectivity(): Boolean {
-        val connectivity =
-            this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val wifiConnection = connectivity.getNetworkInfo(ConnectivityManager.TYPE_WIFI)
-        val mobileConnection = connectivity.getNetworkInfo(ConnectivityManager.TYPE_MOBILE)
-
-        return wifiConnection!!.isConnected || mobileConnection!!.isConnected
-    }
-
-
-    //fun getPoints(id: Int) {
-
-
-//        val retrofitGetPointsObject = AppModule.retrofitInstance()
-//        val modal = RequestPoints(id, userID)
-//
-//        GlobalScope.launch(Dispatchers.IO) {
-//
-//            val retrofitData = retrofitGetPointsObject.retrievePoints(modal)
-//            if (retrofitData.isSuccessful) {
-//                if (retrofitData.body()!!.message == "Success") {
-//
-//                    val result = retrofitData.body()!!.results
-//                    if (result.isNotEmpty()) {
-//                        for (r in result) {
-//                            val point = LatLng(r.Lat.toDouble(), r.Long.toDouble())
-//
-//                            listOfMarkedPoints.add(point)
-//                        }
-//
-//                    } else {
-//                        listOfMarkedPoints.clear()
-//                    }
-//
-//                    Log.d("points", "${Thread().name}")
-//                }
-//            } else {
-//                alertfail("Could not retrieve points at this time!")
-//            }
-//        }
-    // }
-
     private var pressedTime: Long = 0
     override fun onBackPressed() {
         if (pressedTime + 2000 > System.currentTimeMillis()) {
@@ -647,48 +540,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     }
 
     var selectedProject: String = " "
-//
-//    fun retrieveProjectsFromBackend(): ArrayList<String> {
-//
-//        val apiToken: String? = sharedPreferences.getString("apiToken_key", "defaultValue")
-//
-//        GlobalScope.launch(Dispatchers.IO) {
-//            val retrofitDataObject = ServiceInterceptor("Bearer", apiToken!!).httpClient(apiToken)
-//            val retrofitData = retrofitDataObject.getProjectsList(apiToken)
-//
-//            if (retrofitData.isSuccessful) {
-//                //Crude: clear the lists to avoid duplicates
-//                // or! Make name unique, and check its existance before adding i to list to avoid duplicates.
-//                projectList.clear()
-//                projectIDList.clear()
-//                projectMeshSizeList.clear()
-//                projectSizeList.clear()
-//
-//                for (data in retrofitData.body()!!) {
-//                    projectList.add(data.name)
-//                    projectIDList.add(data.id)
-//                    projectMeshSizeList.add(data.mesh_size)
-//                    projectSizeList.add(data.gap_size)
-//                }
-//                if (ViewProjects) {
-//                    displayProjects(
-//
-//                    )
-//                }
-//
-//                Log.d("Projects", "$projectList")
-//
-//            } else {
-////                runOnUiThread {
-////                    alertfail("No response got from server")
-////                }
-//
-//            }
-//
-//        }
-//
-//        return projectList
-//    }
+
 
     fun exitAlert(S: String) {
         AlertDialog.Builder(this)
@@ -916,101 +768,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         }
 
     }
-
-/*
-        GlobalScope.launch(Dispatchers.IO) {
-            val retrofitGetPointsObject = AppModule.retrofitInstance()
-
-            val modal = RequestBasePointsDataClass(ProjectID)
-
-            val retrofitData = retrofitGetPointsObject.retrieveBasePoints(modal)
-            if (retrofitData.isSuccessful) {
-                if (retrofitData.body() != null) {
-                    val results = retrofitData.body()!!.points
-                    if (results.isNotEmpty()) {
-                        runOnUiThread {
-                            displayProjectName?.text = selectedProject
-                        }
-
-                        Log.d("results", "$results")
-                        val l = results[0]
-                        val y = results[1]
-                        val firstPoint = LongLat(l.Long.toDouble(), l.Lat.toDouble())
-                        val secondPoint = LongLat(y.Long.toDouble(), y.Lat.toDouble())
-
-                        Geoggapsize = Gapsize
-                        Geogmesh_size = Meshsize.toDouble()
-                        clearFragment = true
-
-                        runOnUiThread {
-                            plotMesh(firstPoint, secondPoint)
-                        }
-//
-
-                    } else {
-                        runOnUiThread {
-                            warningAlert(
-                                "\nProject is empty!! Might be best to delete it.",
-                                ProjectID
-                            )
-                        }
-
-                    }
-                }
-            } else {
-
-                Log.d("results", "Failed")
-
-            }
-
-        }*/
-
-//    fun deleteProjectFunc(ID: Int) {
-////        val sharedPreferences: SharedPreferences = this.getSharedPreferences(
-////            CreateProjectDialog().sharedPrefFile,
-////            Context.MODE_PRIVATE
-////        )!!
-//
-//        val ProjectIDString: String? = sharedPreferences.getString("productID_key", "0")
-//
-//        val ProjectID = ProjectIDString!!.toInt()
-//
-//        if (ProjectID == 0) {
-//            Toast.makeText(
-//                applicationContext, "Could not load project" +
-//                        "", Toast.LENGTH_SHORT
-//            ).show()
-//        }
-//
-//        val retrofitDeleteProjectInstance = AppModule.retrofitInstance()
-//
-//        val modal = deleteProjectDataClass(ID)
-//        val retrofitData = retrofitDeleteProjectInstance.deleteProject(modal)
-//
-//        retrofitData.enqueue(object : Callback<deleteProjectResponse?> {
-//            override fun onResponse(
-//                call: Call<deleteProjectResponse?>,
-//                response: Response<deleteProjectResponse?>
-//            ) {
-//                if (response.isSuccessful) {
-//                    if (response.body()!!.message == "success") {
-//                        Toast.makeText(applicationContext, "Project deleted", Toast.LENGTH_LONG)
-//                            .show()
-//
-//                    } else {
-//                        alertfail("Could not delete project :(")
-//                    }
-//                } else {
-//                    alertfail("Error!! We all have bad days!! :( $response")
-//                }
-//            }
-//
-//            override fun onFailure(call: Call<deleteProjectResponse?>, t: Throwable) {
-//                alertfail("Error ${t.message}")
-//            }
-//        })
-//
-//    }
 
     var polyline1: Polyline? = null
     var refPoint: LatLng? = null
@@ -1949,12 +1706,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
                 }
             }
-//            proximityCircle = map?.addCircle(
-//                CircleOptions().center(pt).fillColor(Color.GREEN).radius(proximityRadius(Geoggapsize!!))
-//                    .strokeWidth(1.0f)
-//
-//                    .strokeColor(Color.CYAN)
-//            )
             plantingRadius = map?.addCircle(
                 CircleOptions().center(pt).fillColor(Color.GREEN).radius(radius(GAP_SIZE_METRES))
                     .strokeWidth(1.0f)
@@ -2112,13 +1863,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             val delta: Float = currentAcceleration - lastAcceleration
             acceleration = acceleration * 0.9f + delta
 
-//
-//            if (acceleration > 20) {
-//
-//                ForcefullyMarkOrUnmarkPoint()
-//
-//
-//            }
         }
 
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
@@ -2139,7 +1883,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     override fun onPause() {
         sensorManager!!.unregisterListener(listener)
         super.onPause()
-
+        usbSupport.disconnect()
     }
 
     private fun ForcefullyMarkOrUnmarkPoint() {
@@ -2204,28 +1948,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
         }
     }
-//
-//    private fun deleteBasePoints(id: Int) {
-//
-//        val modal = projectID(id)
-//        val retrofitDataObject = AppModule.retrofitInstance()
-//
-//        val retrofitData = retrofitDataObject.deleteBasePoints(modal)
-//        retrofitData.enqueue(object : Callback<DeleteCoordsResponse?> {
-//            override fun onResponse(
-//                call: Call<DeleteCoordsResponse?>,
-//                response: Response<DeleteCoordsResponse?>
-//            ) {
-//                if (response.isSuccessful) {
-//
-//                }
-//            }
-//
-//            override fun onFailure(call: Call<DeleteCoordsResponse?>, t: Throwable) {
-//                TODO("Not yet implemented")
-//            }
-//        })
-//    }
+
 
     fun saveBasepoints(loc: LongLat) {
         val lat = loc.getLatitude()
@@ -2262,56 +1985,11 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         return ((0.1 * sizeInCentimeters) / 100) + 1.0
     }
 
-//    private fun proximityRadius(size: Int): Double {
-//        val size = radius(size)
-//        return (size * 2)
-//    }
-
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
 
         when (item.itemId) {
-//            R.id.measurements -> Toast.makeText(
-//                applicationContext,
-//                "TO DO",
-//                Toast.LENGTH_SHORT
-//            ).show()
-//            R.id.reset -> {
-//                map?.mapType = GoogleMap.MAP_TYPE_NORMAL
-//                for (line in polyLines) {
-//                    line!!.remove()
-//                }
-//                for (l in listofmarkedcircles) {
-//                    l.remove()
-//                }
-//                for (l in unmarkedCirclesList) {
-//                    l.remove()
-//                }
-//                if (listOfPlantingLines.isNotEmpty()) {
-//                    listOfPlantingLines.clear()
-//                }
-//            }
-//            R.id.mode -> {
-//                if (Darkmode) {
-//                    map?.mapType = GoogleMap.MAP_TYPE_NORMAL
-//                } else {
-//                    if (!Darkmode) {
-//                        val mapType = map?.mapType
-//                        if (mapType != GoogleMap.MAP_TYPE_NORMAL) {
-//                            map?.mapType = GoogleMap.MAP_TYPE_NORMAL
-//                        }
-//                        map?.setMapStyle(
-//                            MapStyleOptions.loadRawResourceStyle(this, R.raw.style_json)
-//                        )
-//                        Darkmode = true
-//                    } else {
-//                        map?.mapType = GoogleMap.MAP_TYPE_NORMAL
-//                    }
-//
-//
-//                }
-//                return true
-//            }
+
             R.id.logOut -> {
                 finish()
                 return true

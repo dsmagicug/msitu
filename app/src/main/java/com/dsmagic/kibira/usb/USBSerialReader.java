@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -19,12 +21,12 @@ import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 
 public class USBSerialReader {
+
 
     public UsbManager getManager() {
         return manager;
@@ -34,22 +36,24 @@ public class USBSerialReader {
         this.manager = manager;
     }
 
-    public String getACTION_USB_PERMISSION() {
-        return ACTION_USB_PERMISSION;
-    }
 
     private UsbManager manager;
     private UsbSerialDriver driver;
     private UsbDeviceConnection connection;
     private UsbSerialPort port;
     public static final String ACTION_USB_PERMISSION = "permission";
-    private static final int READ_WAIT_MILLIS = 2000;
+    private  final int READ_WAIT_MILLIS = 2000;
+    private final int BAUD_RATE = 115200;
+    private final int DATA_BITS = 8;
     byte[] buffer = new byte[8192];
     private boolean isReading = true;
+    private Thread thread;
 
+    //public static RtkLocationSource listener = new RtkLocationSource();
 
-    private void setUSBConnection(Context context){
+    private void setUSBConnection(Context context) {
         ProbeTable customTable = new ProbeTable();
+        // we can support multiple other devices whose vendorid and product id can not be automatically
         customTable.addProduct(0x1546, 0x1A9, CdcAcmSerialDriver.class);
         UsbSerialProber prober = new UsbSerialProber(customTable);
         List<UsbSerialDriver> availableDrivers = prober.findAllDrivers(manager);
@@ -59,19 +63,16 @@ public class USBSerialReader {
         // Open a connection to the first available driver.
         driver = availableDrivers.get(0);
 
-        if (connection == null){
+        if (connection == null) {
             PendingIntent intent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
             manager.requestPermission(driver.getDevice(), intent);
         }
-
-        Log.d("USB", "Device successfully connected");
-        Toast.makeText(context, "Device successfully connected", Toast.LENGTH_SHORT).show();
-
     }
 
-    private void disconnect() throws IOException {
-        if (port != null){
+    public void disconnect() throws IOException {
+        if (port != null) {
             port.close();
+            thread.interrupt();
             isReading = false;
         }
     }
@@ -81,7 +82,36 @@ public class USBSerialReader {
         return usbReceiver;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    private void dataReaderListener() throws IOException {
+
+        Looper looper = Looper.getMainLooper();
+        Handler handler = new Handler(looper);
+        thread = new Thread(() -> {
+            while (isReading) {
+
+                int len = 0;
+                try {
+                    len = port.read(buffer, READ_WAIT_MILLIS);
+                    if (len > 0 && buffer[0] > 0) {
+                        String s = new String(buffer, 0, len, StandardCharsets.UTF_8);
+                        String[] l = s.split("\n");
+                            for (String str : l) {
+                                //TODO making sense of these lines
+                                Log.d("FROM USB", str+ "\n");
+                            }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        thread.start();
+
+    }
+
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
+
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -93,40 +123,26 @@ public class USBSerialReader {
                         if (granted) {
                             port = driver.getPorts().get(0);
                             connection = manager.openDevice(driver.getDevice());
+                            Toast.makeText(context, "Device successfully connected", Toast.LENGTH_SHORT).show();
                             try {
                                 port.open(connection);
-                                port.setParameters(115200, 8, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
-
-                                while(isReading){
-
-                                   int len =  port.read(buffer, READ_WAIT_MILLIS);
-                                   byte[] cleanBytes = new byte[8192];
-                                   int index = 0;
-                                    for(byte b : buffer){
-                                        byte i = (byte) (b & 0xFF);
-                                        cleanBytes[index] = i;
-                                        index +=1;
-                                    }
-                                   if (len > 0){
-                                       String s = new String(cleanBytes,0,len, StandardCharsets.UTF_8);
-                                       Log.d("USB", s);
-                                   }
-
-                                }
+                                port.setParameters(BAUD_RATE, DATA_BITS, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
+                                dataReaderListener();
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
-                        }else{
+                        } else {
                             Toast.makeText(context, "USB Permissions not granted", Toast.LENGTH_SHORT).show();
                         }
                     }
                     break;
                 case UsbManager.ACTION_USB_DEVICE_ATTACHED:
-                    Log.d("USB", "Device attached");
+                    Toast.makeText(context, "USB Device Attached", Toast.LENGTH_SHORT).show();
                     setUSBConnection(context);
                     break;
                 case UsbManager.ACTION_USB_DEVICE_DETACHED:
                     Log.d("USB", "Device detached");
+                    Toast.makeText(context, "USB Device unplugged", Toast.LENGTH_SHORT).show();
                     try {
                         disconnect();
                     } catch (IOException e) {
