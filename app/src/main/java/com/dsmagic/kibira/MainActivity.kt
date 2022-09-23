@@ -61,8 +61,9 @@ import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.retrieveMarkedpoint
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Project
 import com.dsmagic.kibira.ui.login.LoginActivity
+import com.dsmagic.kibira.usb.USBSerialReader
 import com.dsmagic.kibira.usb.USBSupport.Companion.ACTION_USB_PERMISSION
-import com.dsmagic.kibira.usb.USBSupport.Companion.mUsbManager
+import com.dsmagic.kibira.usb.USBSupport.Companion.manager
 import com.dsmagic.kibira.usb.USBSupport.Companion.usbReceiver
 import com.dsmagic.kibira.utils.Alerts
 import com.dsmagic.kibira.utils.Alerts.Companion.undoAlertWarning
@@ -94,7 +95,7 @@ import java.util.concurrent.Executors
 import kotlin.math.abs
 import kotlin.math.sqrt
 
-class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
+class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     View.OnClickListener, NavigationView.OnNavigationItemSelectedListener {
 
     var device: BluetoothDevice? = null
@@ -297,7 +298,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
         }
         // Getting the Sensor Manager instance
-        retrieveProjectsFromBackend(userID!!.toInt())
+       // retrieveProjectsFromBackend(userID!!.toInt())
         onLoad = true
         createDialog("onLoad")
         if (savedInstanceState == null) {
@@ -307,13 +308,13 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         }
         onLoad = false
         //register bluetooth broadcaster for scanning devices
-
-        mUsbManager = getSystemService(Context.USB_SERVICE) as UsbManager
+        val usbSupport = USBSerialReader()
+        usbSupport.manager = getSystemService(Context.USB_SERVICE) as UsbManager
         val filter = IntentFilter()
-        filter.addAction(ACTION_USB_PERMISSION)
+        filter.addAction(USBSerialReader.ACTION_USB_PERMISSION)
         filter.addAction(UsbManager.ACTION_USB_DEVICE_ATTACHED)
         filter.addAction(UsbManager.ACTION_USB_ACCESSORY_ATTACHED)
-        registerReceiver(usbReceiver,filter)
+        registerReceiver(usbSupport.usbReceiver,filter)
 
 
         val intent = IntentFilter(BluetoothDevice.ACTION_FOUND)
