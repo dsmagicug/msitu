@@ -126,7 +126,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var fab_reset: FloatingActionButton
     lateinit var fab_map: FloatingActionButton
     lateinit var fab_moreLines: FloatingActionButton
-    lateinit var progressBar: ProgressBar
     lateinit var spinner: Spinner
     lateinit var buttonConnect: Button
     lateinit var pace: TextView
@@ -141,6 +140,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var displayedPoints: TextView
     lateinit var fixType: TextView
     val usbSupport = USBSerialReader()
+    lateinit var progressBar: ProgressBar
 
     companion object {
         lateinit var projectLines: MutableList<PlantingLine>
@@ -214,7 +214,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         displayedDistance = findViewById<TextView>(R.id.distance)
         displayedDistanceUnits = findViewById(R.id.distanceUnits)
         displayedPoints = findViewById(R.id.numberOfPoints)
-        // fixType = findViewById(R.id.fixTextValue)
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
 
         drawerlayout.addDrawerListener(toggle)
@@ -283,14 +282,15 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             editor.putString("apiToken_key", APIToken)
             editor.apply()
 
-        } else {
+        }
+        else {
 
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
 
+            retrieveProjectsFromBackend(userID!!.toInt())
         }
 
-       // retrieveProjectsFromBackend(userID!!.toInt())
         onLoad = true
         createDialog("onLoad")
         if (savedInstanceState == null) {
@@ -419,7 +419,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         }
 
     }
-
 
     private fun approachingPoint() {
 
@@ -696,8 +695,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     runOnUiThread{
                         Toast.makeText(applicationContext,"No projects Created yet",Toast.LENGTH_LONG).show()
                     }
-
-                    return@launch
                 }
                 else {
 
@@ -1133,6 +1130,11 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     fun discoverBluetoothDevices(){
 
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+        if (!bluetoothAdapter.isEnabled) {
+            val enableBT = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+            startActivity(enableBT)
+            return
+        }
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.BLUETOOTH_SCAN
@@ -1264,24 +1266,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             return true
 
         }
-        //else if (item.itemId == R.id.menu_calibrate) {
-//            AlertDialog.Builder(this)
-//                .setTitle("Calibrate")
-//                .setIcon(null)
-//                .setCancelable(true)
-//                .setPositiveButton(R.string.calibrate,DialogInterface.OnClickListener { _, _ ->
-//                provider!!.saveCalibration()
-//            })
-//                .setNegativeButton(R.string.cancel, null)
-//                .setNeutralButton(R.string.reset ,DialogInterface.OnClickListener { _, _ ->
-//                    provider!!.resetCalibration() })
-//                .setMessage(R.string.calibrate_message)
-//                .show()
-        //  return true
 
-        // If we got here, the user's action was not recognized.
-        // Invoke the superclass to handle it.
-        //}
         return super.onOptionsItemSelected(item)
     }
 
@@ -2015,8 +2000,8 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 } else{
                     var y = 90
                 }
-                Log.d("User","$userID")
-              //  retrieveProjectsFromBackend(userID!!.toInt())
+               // Log.d("User","$userID")
+               retrieveProjectsFromBackend(userID!!.toInt())
                 return true
             }
         }

@@ -34,7 +34,6 @@ class NmeaReader {
 
         private const val ANGLE_SIGNIFICANT_DIFF = 0.5e-7
         fun significantChange(old: Location?, new: Location): Boolean {
-
             return old == null || Math.abs(old.latitude - new.latitude) > ANGLE_SIGNIFICANT_DIFF ||
                     Math.abs(old.longitude - new.longitude) > ANGLE_SIGNIFICANT_DIFF
         }

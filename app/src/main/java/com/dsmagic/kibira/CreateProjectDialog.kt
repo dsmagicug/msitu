@@ -52,6 +52,7 @@ object CreateProjectDialog : DialogFragment() {
             val l: Array<String> = projectList.toTypedArray().reversedArray()
             val ar: Array<String>
 
+
             if (onLoad) {
                 if (l.isNotEmpty()) {
                     val r = inflater.inflate(layout.activity_create_project, null)

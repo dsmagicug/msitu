@@ -1,24 +1,31 @@
 package com.dsmagic.kibira.usb;
 
+import android.app.Activity;
+import android.app.Application;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.Display;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
 import com.dsmagic.kibira.LongLat;
+import com.dsmagic.kibira.MainActivity;
 import com.dsmagic.kibira.NmeaReader;
+import com.dsmagic.kibira.R;
 import com.dsmagic.kibira.RtkLocationSource;
-import com.hoho.android.usbserial.driver.CdcAcmSerialDriver;
-import com.hoho.android.usbserial.driver.ProbeTable;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
@@ -51,8 +58,10 @@ public class USBSerialReader {
     byte[] buffer = new byte[8192];
     private boolean isReading = true;
     private Thread thread;
+    private boolean gotReadings = false;
     private DeviceProber proberProvider;
     private RtkLocationSource listener = NmeaReader.Companion.getListener();
+    ProgressBar progressBar;
 
 
     //public static RtkLocationSource listener = new RtkLocationSource();
@@ -79,10 +88,10 @@ public class USBSerialReader {
         if (port != null) {
             port.close();
             thread.interrupt();
+            connection = null;
             isReading = false;
         }
     }
-
 
     public BroadcastReceiver getUsbReceiver() {
         return usbReceiver;
@@ -90,12 +99,14 @@ public class USBSerialReader {
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void dataReaderListener() throws IOException {
-
         Looper looper = Looper.getMainLooper();
         Handler handler = new Handler(looper);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            stopIsLoadingIcon(false);
+        }
         thread = new Thread(() -> {
             while (isReading) {
-
                 int len = 0;
                 try {
                     len = port.read(buffer, READ_WAIT_MILLIS);
@@ -105,8 +116,12 @@ public class USBSerialReader {
                             for (String str : l) {
                                 LongLat longlat = new LongLat(str);
                                 if (longlat.getFixType() != LongLat.FixType.NoFixData) {
+                                    gotReadings = true;
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
 
-                                  //  if(longlat.getFixType() == LongLat.FixType.RTKFloat || longlat.getFixType() == LongLat.FixType.RTKFix){
+                                        stopIsLoadingIcon(true);
+                                    }
+                                    //  if(longlat.getFixType() == LongLat.FixType.RTKFloat || longlat.getFixType() == LongLat.FixType.RTKFix){
                                         // Send it to the Location Source... BUT ONLY when we have rtk data--(more accurate than other fixtypes)
                                         handler.post(()-> listener.postNewLocation(longlat,longlat.getFixType()));
                                   //  }
@@ -123,6 +138,10 @@ public class USBSerialReader {
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.P)
+    public void stopIsLoadingIcon(boolean string){
+
+    }
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
 
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
