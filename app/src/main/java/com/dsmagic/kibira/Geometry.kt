@@ -165,11 +165,13 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
         } else if (sType.endsWith("gga", true)) {
             initGGA(l)
         } else if (sType.endsWith("gst", true)) {
-            lastVerticalAccuracy = l[6].toDouble()
-            lastHorizontalAccuracy = l[7].toDouble()
-            //   lastAltitudeAccuracy = l[7].toDouble() -- ignore, since has *checksum -- we don't need it.
+            if (l[6] != "" && l[7] != ""){
+                lastVerticalAccuracy = l[6].toDouble()
+                lastHorizontalAccuracy = l[7].toDouble()
+                //   lastAltitudeAccuracy = l[7].toDouble() -- ignore, since has *checksum -- we don't need it.
+                fixType = FixType.NoFixData
+            }
 
-            fixType = FixType.NoFixData
         } else
             fixType = FixType.NoFixData
 
@@ -197,52 +199,74 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
 
     private fun initGGA(l: List<String>) {
         // See http://lefebure.com/articles/nmea-gga/
-        dateFormat.parse(l[1] + "+0000").also { timeStamp = it }
-        lat = parseDegrees(l[2], l[3])
-        latitude = l[2] + l[3]
-        long = parseDegrees(l[4], l[5])
-        longitude = l[4] + l[5]
-        val x = l[6].toInt()
-        fixType = when (x) {
-            1 -> FixType.Autonomous
-            2 -> FixType.DGPS
-            3 -> FixType.PPS
-            4 -> FixType.RTKFix
-            5 -> FixType.RTKFloat
-            6 -> FixType.Estimated
-            7 -> FixType.ManualInput
-            8 -> FixType.Simulated
-            else -> FixType.NoFixData
+        val mandatoryInd = listOf<Int>(1,2,3,4,5,6,7,9)
+        var skip =  false
+        mandatoryInd.forEach{
+                idx->
+            if (l[idx] == ""){
+                skip = true
+            }
         }
-        numSatellites = l[7].toInt()
-        hdop = l[8].toDouble()
-        aboveSeaLevel = l[9].toDouble()
+        if(!skip){
+            dateFormat.parse(l[1] + "+0000").also { timeStamp = it }
+            lat = parseDegrees(l[2], l[3])
+            latitude = l[2] + l[3]
+            long = parseDegrees(l[4], l[5])
+            longitude = l[4] + l[5]
+            val x = l[6].toInt()
+            fixType = when (x) {
+                1 -> FixType.Autonomous
+                2 -> FixType.DGPS
+                3 -> FixType.PPS
+                4 -> FixType.RTKFix
+                5 -> FixType.RTKFloat
+                6 -> FixType.Estimated
+                7 -> FixType.ManualInput
+                8 -> FixType.Simulated
+                else -> FixType.NoFixData
+            }
+            numSatellites = l[7].toInt()
+            hdop = l[8].toDouble()
+            aboveSeaLevel = l[9].toDouble()
+        }
+
 
     }
 
     private fun initRMC(l: List<String>) {
         // See https://orolia.com/manuals/VSP/Content/NC_and_SS/Com/Topics/APPENDIX/NMEA_RMCmess.htm
-        val dd = l[9] + "-" + l[1] + "+0000"
-        timeStamp = dateFormatLong.parse(dd)
+        val mandatoryInd = listOf<Int>(1,2,3,4,5,6,7,9,12)
+        var skip =  false
+        mandatoryInd.forEach{
+                idx->
+                if (l[idx] == ""){
+                    skip = true
+                }
+        }
+        if (!skip){
+            val dd = l[9] + "-" + l[1] + "+0000"
+            timeStamp = dateFormatLong.parse(dd)
 
-        lat = parseDegrees(l[3], l[4])
-        latitude = l[3] + l[4]
-        long = parseDegrees(l[5], l[6])
-        longitude = l[5] + l[6]
-        speed = l[7].toDouble() * 1.8 * 1000 // Knots to km/hr
-        if (l[2].equals("V")) // Void as per spec
-            fixType = FixType.NoFixData
-        else
-            fixType = when (l[12]) {
-                "A" -> FixType.Autonomous
-                "D" -> FixType.DGPS
-                "E" -> FixType.Estimated
-                "F" -> FixType.RTKFloat
-                "M" -> FixType.ManualInput
-                "R" -> FixType.RTKFix
-                "S" -> FixType.Simulated
-                else -> FixType.NoFixData
-            }
+            lat = parseDegrees(l[3], l[4])
+            latitude = l[3] + l[4]
+            long = parseDegrees(l[5], l[6])
+            longitude = l[5] + l[6]
+            speed = l[7].toDouble() * 1.8 * 1000 // Knots to km/hr
+            if (l[2].equals("V")) // Void as per spec
+                fixType = FixType.NoFixData
+            else
+                fixType = when (l[12]) {
+                    "A" -> FixType.Autonomous
+                    "D" -> FixType.DGPS
+                    "E" -> FixType.Estimated
+                    "F" -> FixType.RTKFloat
+                    "M" -> FixType.ManualInput
+                    "R" -> FixType.RTKFix
+                    "S" -> FixType.Simulated
+                    else -> FixType.NoFixData
+                }
+        }
+
     }
 
 

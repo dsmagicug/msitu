@@ -11,7 +11,6 @@ import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.core.view.isVisible
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.IOException
 import java.io.InputStream
@@ -107,7 +106,6 @@ class NmeaReader {
                         Log.d("Bluetooth","$s")
                         val l =
                             s.split("\n") // Into lines... Crude. What if we read only up to part of sentence??
-                      var t = 8
                         for (xs in l) {
                             // Hand off to higher level...
                             val longlat = LongLat(xs)

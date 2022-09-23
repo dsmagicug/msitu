@@ -14,6 +14,9 @@ import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
+import com.dsmagic.kibira.LongLat;
+import com.dsmagic.kibira.NmeaReader;
+import com.dsmagic.kibira.RtkLocationSource;
 import com.hoho.android.usbserial.driver.CdcAcmSerialDriver;
 import com.hoho.android.usbserial.driver.ProbeTable;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
@@ -49,6 +52,7 @@ public class USBSerialReader {
     private boolean isReading = true;
     private Thread thread;
     private DeviceProber proberProvider;
+    private RtkLocationSource listener = NmeaReader.Companion.getListener();
 
 
     //public static RtkLocationSource listener = new RtkLocationSource();
@@ -57,6 +61,7 @@ public class USBSerialReader {
 
         proberProvider = new DeviceProber(manager);
         UsbSerialProber prober = proberProvider.getCustomProber();
+
         List<UsbSerialDriver> availableDrivers = prober.findAllDrivers(manager);
         if (availableDrivers.isEmpty()) {
             return;
@@ -98,7 +103,16 @@ public class USBSerialReader {
                         String s = new String(buffer, 0, len, StandardCharsets.UTF_8);
                         String[] l = s.split("\n");
                             for (String str : l) {
-                                //TODO making sense of these lines
+                                LongLat longlat = new LongLat(str);
+                                if (longlat.getFixType() != LongLat.FixType.NoFixData) {
+                                    handler.post(()-> listener.postNewLocation(longlat,longlat.getFixType()));
+                                    /*if(longlat.getFixType() == LongLat.FixType.RTKFloat || longlat.getFixType() == LongLat.FixType.RTKFix){
+                                        // Send it to the Location Source... BUT ONLY when we have rtk data--(more accurate than other fixtypes)
+                                        handler.post(()->{
+                                            listener.postNewLocation(longlat,longlat.getFixType());
+                                        });
+                                    }*/
+                                }
                                 Log.d("FROM USB", str+ "\n");
                             }
                     }

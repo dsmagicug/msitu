@@ -1997,7 +1997,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             R.id.action_create -> {
                 onLoad = false
                 val createNewProject = CreateProjectDialog
-                createNewProject.show(supportFragmentManager, "create")
+                createNewProject.show(supportFragmentManager, "onLoad")
                 return true
             }
             R.id.action_view_projects -> {
