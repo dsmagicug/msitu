@@ -48,14 +48,15 @@ public class USBSerialReader {
     byte[] buffer = new byte[8192];
     private boolean isReading = true;
     private Thread thread;
+    private DeviceProber proberProvider;
+
 
     //public static RtkLocationSource listener = new RtkLocationSource();
 
     private void setUSBConnection(Context context) {
-        ProbeTable customTable = new ProbeTable();
-        // we can support multiple other devices whose vendorid and product id can not be automatically
-        customTable.addProduct(0x1546, 0x1A9, CdcAcmSerialDriver.class);
-        UsbSerialProber prober = new UsbSerialProber(customTable);
+
+        proberProvider = new DeviceProber(manager);
+        UsbSerialProber prober = proberProvider.getCustomProber();
         List<UsbSerialDriver> availableDrivers = prober.findAllDrivers(manager);
         if (availableDrivers.isEmpty()) {
             return;
@@ -152,6 +153,5 @@ public class USBSerialReader {
             }
         }
     };
-
 
 }
