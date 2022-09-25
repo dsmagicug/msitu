@@ -40,9 +40,9 @@ public class GeneralHelper {
 
     public static float sanitizeMagnetometerBearing(Float bearing){
         if (bearing < 0) {
-            return -1 * bearing;
+            return -1 * bearing + 5 ;
         }
-        return 360f - bearing;
+        return 360f - bearing - 5;
     }
 
     public static void changeMapPosition(GoogleMap map, Float angle)  {
