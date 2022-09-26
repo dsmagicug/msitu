@@ -4,6 +4,7 @@ import android.Manifest
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.*
@@ -51,6 +52,8 @@ import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.retrieveMarkedpoints
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Project
+import com.dsmagic.kibira.roomDatabase.sharing.ImportProject
+import com.dsmagic.kibira.roomDatabase.sharing.ImportProject.Companion.REQUEST_CODE
 import com.dsmagic.kibira.ui.login.LoginActivity
 import com.dsmagic.kibira.usb.USBSerialReader
 import com.dsmagic.kibira.utils.Alerts
@@ -80,6 +83,7 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.abs
 import kotlin.math.sqrt
+
 
 class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     View.OnClickListener, NavigationView.OnNavigationItemSelectedListener {
@@ -571,7 +575,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     checkedItemIndex = which
                     selectedProject = projectListAsArray[which]
                 })
-            .setNegativeButton("Delete",
+            /*.setNegativeButton("Delete",
                 DialogInterface.OnClickListener { _, _ ->
                     for (j in projectListAsArray) {
                         if (j == selectedProject) {
@@ -585,6 +589,20 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
                     }
 
+                })*/
+            .setNegativeButton("Export",
+                DialogInterface.OnClickListener { _, _ ->
+                    for (j in projectListAsArray) {
+                        if (j == selectedProject) {
+                            val index = projectListAsArray.indexOf(j)
+                            val id = projectIDList[index]
+                            Alerts.confirmAlert(
+                                "\nConfirm Export Project '$selectedProject'",
+                                id, this
+                            )
+                        }
+
+                    }
 
                 })
             .setNeutralButton("More..",
@@ -1915,6 +1933,10 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                retrieveProjectsFromBackend(userID!!.toInt())
                 return true
             }
+            R.id.action_import_project->{
+                // open file uploader
+                openFilePicker()
+            }
         }
         return true
     }
@@ -1946,6 +1968,41 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         }
         if (listOfPlantingLines.isNotEmpty()) {
             listOfPlantingLines.clear()
+        }
+    }
+
+    fun  openFilePicker(){
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type="*/*"
+        startActivityForResult(intent, REQUEST_CODE)
+
+    }
+
+    override fun onActivityResult( requestCode: Int, resultCode: Int, resultData: Intent?) {
+        super.onActivityResult(requestCode, resultCode, resultData)
+        if (requestCode == REQUEST_CODE
+            && resultCode == Activity.RESULT_OK) {
+            // The result data contains a URI for the document or directory that
+            // the user selected.
+            resultData?.data?.also { uri ->
+                val importedProject = ImportProject.getImportedProjectObject(uri,contentResolver)
+                ///importedProject.coordinates is a list of JsonObjects.
+                // save this to room db
+                val name = importedProject?.name
+                val gapsize = importedProject?.gapsize
+                val lineLength = importedProject?.lineLength
+                val meshType: String? = importedProject?.meshType
+                val gapsizeunits: String? = importedProject?.gapsizeunits
+                val lineLengthUnits: String? = importedProject?.lineLengthUnits
+                //cooordinates
+                for (coord in importedProject?.coordinates!!){
+                    val coordinate = coord as com.google.gson.JsonObject
+                    val lat = coordinate.get("lat")
+                    val lng = coordinate.get("lng")
+                    //
+                }
+
+            }
         }
     }
 

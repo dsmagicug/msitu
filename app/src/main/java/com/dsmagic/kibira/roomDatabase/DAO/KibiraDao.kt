@@ -5,8 +5,6 @@ import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.roomDatabase.Entities.Project
 import com.dsmagic.kibira.roomDatabase.Entities.User
-import com.dsmagic.kibira.roomDatabase.relations.projectAndCoordinates
-import com.dsmagic.kibira.roomDatabase.relations.projectWithBasepoints
 import com.dsmagic.kibira.roomDatabase.relations.userAndProject
 
 @Dao

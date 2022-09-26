@@ -7,6 +7,10 @@ import com.dsmagic.kibira.MainActivity
 import com.dsmagic.kibira.R
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.deleteBasePoints
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.deleteProject
+import com.dsmagic.kibira.roomDatabase.sharing.ExportToFile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class Alerts {
     companion object{
@@ -83,6 +87,27 @@ class Alerts {
                 .setNegativeButton("Continue",
                     DialogInterface.OnClickListener { _, _ ->
                         MainActivity.meshDone = false
+                    })
+                .show()
+        }
+
+
+        fun confirmAlert(S: String, I: Int,context:Context) {
+            AlertDialog.Builder(context)
+                .setTitle("Confirm")
+                .setIcon(R.drawable.caution)
+                .setMessage(S)
+                .setPositiveButton(
+                    "Cancel",
+                    DialogInterface.OnClickListener { _, _ ->
+                        // do nothins
+                    })
+                .setNegativeButton("Yes Export",
+                    DialogInterface.OnClickListener { _, _ ->
+                        GlobalScope.launch(Dispatchers.IO) {
+                            ExportToFile.exportProjectById(I,context)
+                        }
+
                     })
                 .show()
         }

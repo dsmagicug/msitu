@@ -33,9 +33,4 @@
         tools:listitem="@layout/card_view_design"
         />
 
-
-
-
-
-
 </LinearLayout>

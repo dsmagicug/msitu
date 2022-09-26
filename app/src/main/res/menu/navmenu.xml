@@ -1,39 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-<!--    <item-->
-<!--        android:id="@+id/projectDetails"-->
-<!--        android:title="About Project"-->
-<!--        android:fontFamily="@font/rosemary"-->
-<!--        >-->
-
-<!--        <menu>-->
-
-<!--            <item-->
-<!--                android:id="@+id/measurements"-->
-<!--                android:title="Measurements" />-->
-<!--            <item-->
-<!--                android:id="@+id/reset"-->
-<!--                android:title="Reset" />-->
-<!--        </menu>-->
-<!--    </item>-->
-
-<!--    <item-->
-<!--        android:id="@+id/Display"-->
-<!--        android:title="Display Settings">-->
-<!--        <menu>-->
-<!--            <item-->
-<!--                android:id="@+id/mode"-->
-<!--                android:title="Mode"-->
-<!--                />-->
-<!--            <item-->
-<!--                android:id="@+id/meshType"-->
-<!--                android:title="MeshType" />-->
-
-<!--        </menu>-->
-
-
-<!--    </item>-->
-
 
     <item
         android:id="@+id/project_options"
@@ -58,6 +24,11 @@
                 android:fontFamily="@font/rosemary"
                 android:icon="@drawable/ic_baseline_sync_24"
                 android:title="@string/view_projects" />
+            <item
+                android:id="@+id/action_import_project"
+                android:fontFamily="@font/rosemary"
+                android:icon="@android:drawable/ic_menu_upload"
+                android:title="@string/import_project" />
         </menu>
     </item>
     <item

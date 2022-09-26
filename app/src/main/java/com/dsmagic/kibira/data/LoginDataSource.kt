@@ -2,8 +2,6 @@ package com.dsmagic.kibira.data
 
 import android.util.Log
 import com.dsmagic.kibira.data.model.LoggedInUser
-import com.dsmagic.kibira.ui.login.LoginActivity
-import kotlinx.android.synthetic.main.activity_login.*
 import java.io.IOException
 
 /**

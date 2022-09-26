@@ -4,6 +4,7 @@
     <!--    <string name="title_activity_main">MainActivity</string>-->
     <string name="create">New Project</string>
     <string name="view_projects">View Projects</string>
+    <string name="import_project">Import Project</string>
     <string name="description">Create Project</string>
     <string name="project_name">Project Name</string>
     <string name="gap_size"><font face="@font/rosemary">Gap Size(m)</font></string>
