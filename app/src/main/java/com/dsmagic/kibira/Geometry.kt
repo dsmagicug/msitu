@@ -165,13 +165,14 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
         } else if (sType.endsWith("gga", true)) {
             initGGA(l)
         } else if (sType.endsWith("gst", true)) {
-            if (l[6] != "" && l[7] != ""){
-                lastVerticalAccuracy = l[6].toDouble()
-                lastHorizontalAccuracy = l[7].toDouble()
-                //   lastAltitudeAccuracy = l[7].toDouble() -- ignore, since has *checksum -- we don't need it.
-                fixType = FixType.NoFixData
+            if (l.size >=7){
+                if (l[6] != "" && l[7] != ""){
+                    lastVerticalAccuracy = l[6].toDouble()
+                    lastHorizontalAccuracy = l[7].toDouble()
+                    //   lastAltitudeAccuracy = l[7].toDouble() -- ignore, since has *checksum -- we don't need it.
+                    fixType = FixType.NoFixData
+                }
             }
-
         } else
             fixType = FixType.NoFixData
 

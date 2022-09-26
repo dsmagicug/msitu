@@ -52,7 +52,7 @@ public class USBSerialReader {
     private UsbDeviceConnection connection;
     private UsbSerialPort port;
     public static final String ACTION_USB_PERMISSION = "permission";
-    private  final int READ_WAIT_MILLIS = 2000;
+    private final int READ_WAIT_MILLIS = 2000;
     private final int BAUD_RATE = 115200;
     private final int DATA_BITS = 8;
     byte[] buffer = new byte[8192];
@@ -113,21 +113,21 @@ public class USBSerialReader {
                     if (len > 0 && buffer[0] > 0) {
                         String s = new String(buffer, 0, len, StandardCharsets.UTF_8);
                         String[] l = s.split("\n");
-                            for (String str : l) {
-                                LongLat longlat = new LongLat(str);
-                                if (longlat.getFixType() != LongLat.FixType.NoFixData) {
-                                    gotReadings = true;
-                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        for (String str : l) {
+                            LongLat longlat = new LongLat(str);
+                            if (longlat.getFixType() != LongLat.FixType.NoFixData) {
+                                gotReadings = true;
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
 
-                                        stopIsLoadingIcon(true);
-                                    }
-                                    //  if(longlat.getFixType() == LongLat.FixType.RTKFloat || longlat.getFixType() == LongLat.FixType.RTKFix){
-                                        // Send it to the Location Source... BUT ONLY when we have rtk data--(more accurate than other fixtypes)
-                                        handler.post(()-> listener.postNewLocation(longlat,longlat.getFixType()));
-                                  //  }
+                                    stopIsLoadingIcon(true);
                                 }
-                                Log.d("FROM USB", str+ "\n");
+                                if (longlat.getFixType() == LongLat.FixType.RTKFloat || longlat.getFixType() == LongLat.FixType.RTKFix) {
+                                    // Send it to the Location Source... BUT ONLY when we have rtk data--(more accurate than other fixtypes)
+                                    handler.post(() -> listener.postNewLocation(longlat, longlat.getFixType()));
+                                }
                             }
+                            Log.d("FROM USB", str + "\n");
+                        }
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -139,9 +139,10 @@ public class USBSerialReader {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.P)
-    public void stopIsLoadingIcon(boolean string){
+    public void stopIsLoadingIcon(boolean string) {
 
     }
+
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
 
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
