@@ -63,9 +63,6 @@ public class USBSerialReader {
     private RtkLocationSource listener = NmeaReader.Companion.getListener();
     ProgressBar progressBar;
 
-
-    //public static RtkLocationSource listener = new RtkLocationSource();
-
     private void setUSBConnection(Context context) {
 
         proberProvider = new DeviceProber(manager);

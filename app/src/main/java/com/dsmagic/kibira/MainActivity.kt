@@ -1,14 +1,9 @@
 package com.dsmagic.kibira
 
-
-//import com.dsmagic.kibira.roomDatabase.AppDatabase
-//import com.dsmagic.kibira.roomDatabase.BasePoint
-
 import android.Manifest
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
-import android.app.PendingIntent
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.*
@@ -53,7 +48,6 @@ import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.vibration
 import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
-import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.deleteSavedPoints
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.retrieveMarkedpoints
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Project
@@ -460,7 +454,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 //                            isBeeping = true
 //                            reasonForBeeping = "At Point"
 //                        }
-                        markPoint(pointOfInterest)
+                            markPoint(pointOfInterest)
 
                     } else {
                         if (!isBeeping && reasonForBeeping != "Slow Down") {
@@ -470,8 +464,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                         }
                     }
                 }
-
-
             }
 
             if (distanceAway > toleranceRadius) {
@@ -514,7 +506,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         googleMap.setLocationSource(NmeaReader.listener)
         googleMap.setOnMapClickListener(onMapClick)
         googleMap.setOnPolylineClickListener(onPolyClick)
-        //googleMap.setInfoWindowAdapter(CustomInfoWindowAdapter())
         val isl = LatLng(-.366044, 32.441599)
         googleMap.mapType = GoogleMap.MAP_TYPE_SATELLITE
         googleMap.addMarker(MarkerOptions().position(isl).title("Marker in N Residence"))
@@ -1210,12 +1201,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             // return
         }
 
-//        for (d in
-//        bluetoothAdaptor.bondedDevices) {
-//            bluetoothList.add(d.name)
-//            deviceList.add(d)
-//        }
-
         val items = bluetoothList.toArray()
         val adaptor =
             ArrayAdapter(
@@ -1564,16 +1549,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         handler.post {
             //changing map type lags, so handle it ina thread as well
             map?.mapType = GoogleMap.MAP_TYPE_NORMAL
-//            try {
-//                // Customise the styling of the base map using a JSON object defined
-//                // in a raw resource file.
-//                map?.setMapStyle(
-//                    MapStyleOptions.loadRawResourceStyle(
-//                        this, R.raw.style_json));
-//
-//            } catch (e: java.lang.Exception) {
-//
-//            }
             val target = map?.cameraPosition?.target
             val bearing = map?.cameraPosition?.bearing
             val cameraPosition = CameraPosition.Builder()
@@ -1875,68 +1850,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         usbSupport.disconnect()
     }
 
-    private fun ForcefullyMarkOrUnmarkPoint() {
-        try {
-
-            val roverPoint = fromRTKFeed
-
-            val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
-
-            val l2 = lineOfInterest.tag as Collection<LatLng>
-
-            val S2Lineformat = GeneralHelper.convertLineToS2(l2)
-
-            val xloc = S2Helper.findClosestPointOnLine(S2Lineformat, roverPoint) as S2LatLng?
-
-            if (xloc != null) {
-                val pt = LatLng(xloc.latDegrees(), xloc.lngDegrees())
-                val distanceAway =
-                    GeneralHelper.findDistanceBtnTwoPoints(
-                        fromRTKFeed,
-                        pt
-                    )
-                if (pt !in listOfMarkedPoints) {
-                    val acceptedPlantingRadius = tempPlantingRadius
-                    if (distanceAway < acceptedPlantingRadius && pt !in listOfMarkedPoints) {
-                        // markPoint(pt)
-                    } else {
-                        Toast.makeText(
-                            applicationContext,
-                            "funny business",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                } else {
-
-                    //circles drawn on the map are 0.3 in radius, thus the 1.0
-                    //this prevents the immediate re Marking of that point
-
-                    if ((distanceAway < 1.0) && pt in listOfMarkedPoints) {
-                        val point = S2LatLng.fromDegrees(pt.latitude, pt.longitude)
-                        val pointData = PointData(point.toPoint(), point)
-                        lineInS2Format.add(pointData)
-                        listOfMarkedPoints.remove(pt)
-                        map?.addCircle(
-                            CircleOptions().center(pt)
-                                .fillColor(Color.RED)
-                                .radius(circleRadius)
-                                .strokeWidth(1.0f)
-                        )
-                        deleteSavedPoints(pt)
-                        Toast.makeText(
-                            applicationContext,
-                            "POINT UNMARKED",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                }
-
-            }
-        } catch (e: Exception) {
-            Log.d("error", "${e.message}")
-
-        }
-    }
 
 
     fun saveBasepoints(loc: LongLat) {
@@ -1950,8 +1863,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         val displayProjectName: TextView = findViewById(R.id.display_project_name)
 
         DbFunctions.ProjectID
-
-//             ProjectID = DbFunctions.getProjectID(Geoggapsize!!, displayProjectName.text.toString())
         val editor = sharedPreferences.edit()
         editor.putString("productID_key", "$ProjectID")
         if (ProjectID == 0L) {
@@ -2012,7 +1923,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     fun cleanUpExistingFragment() {
 
         meshDone = false
-        // plantingMode = false
         plantingRadius?.remove()
         fabFlag = true
         card.isVisible = false
@@ -2024,7 +1934,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         }
         removeMarkedCirclesFromUI(listofmarkedcircles)
         polyline1?.remove()
-
 
         for (l in unmarkedCirclesList) {
             l.remove()

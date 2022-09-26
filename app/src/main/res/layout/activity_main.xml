@@ -898,7 +898,7 @@
                     android:contentDescription="UnDo"
                     android:src="@drawable/ic_baseline_add_24"
                     android:visibility="visible"
-                    app:backgroundTint="@color/teal"
+                    app:backgroundTint="@color/green"
                     app:layout_constraintBottom_toTopOf="@+id/fab_compass"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/lThirdGuideline" />

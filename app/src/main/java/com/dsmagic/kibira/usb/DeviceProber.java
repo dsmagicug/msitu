@@ -1,10 +1,12 @@
+/*
+* Written by Keeya emmanuel
+* Digital Solutions
+* 23rd Sept 2022
+* */
 package com.dsmagic.kibira.usb;
 
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
-import android.os.Build;
-
-import androidx.annotation.RequiresApi;
 
 import com.hoho.android.usbserial.driver.CdcAcmSerialDriver;
 import com.hoho.android.usbserial.driver.ProbeTable;
