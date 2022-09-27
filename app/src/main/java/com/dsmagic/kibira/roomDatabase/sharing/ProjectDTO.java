@@ -12,6 +12,16 @@ public class ProjectDTO {
     private  String gapsizeunits;
     private String lineLengthUnits;
 
+    public List<?> getBasePoints() {
+        return basePoints;
+    }
+
+    public void setBasePoints(List<?> basePoints) {
+        this.basePoints = basePoints;
+    }
+
+    private List<?> basePoints;
+
     public List<?> getCoordinates() {
         return coordinates;
     }

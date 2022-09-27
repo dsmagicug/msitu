@@ -18,6 +18,7 @@ import android.hardware.usb.UsbManager
 import android.location.Location
 import android.location.Location.distanceBetween
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -27,6 +28,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -50,7 +52,9 @@ import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.retrieveMarkedpoints
+import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.saveProject
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
+import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.roomDatabase.Entities.Project
 import com.dsmagic.kibira.roomDatabase.sharing.ImportProject
 import com.dsmagic.kibira.roomDatabase.sharing.ImportProject.Companion.REQUEST_CODE
@@ -78,10 +82,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.abs
+import kotlin.math.ln
 import kotlin.math.sqrt
 
 
@@ -1978,7 +1984,8 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
     }
 
-    override fun onActivityResult( requestCode: Int, resultCode: Int, resultData: Intent?) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
         super.onActivityResult(requestCode, resultCode, resultData)
         if (requestCode == REQUEST_CODE
             && resultCode == Activity.RESULT_OK) {
@@ -1988,25 +1995,49 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 val importedProject = ImportProject.getImportedProjectObject(uri,contentResolver)
                 ///importedProject.coordinates is a list of JsonObjects.
                 // save this to room db
-                val name = importedProject?.name
-                val gapsize = importedProject?.gapsize
-                val lineLength = importedProject?.lineLength
-                val meshType: String? = importedProject?.meshType
-                val gapsizeunits: String? = importedProject?.gapsizeunits
-                val lineLengthUnits: String? = importedProject?.lineLengthUnits
-                //cooordinates
-                for (coord in importedProject?.coordinates!!){
-                    val coordinate = coord as com.google.gson.JsonObject
-                    val lat = coordinate.get("lat")
-                    val lng = coordinate.get("lng")
-                    //
+                if (importedProject != null && userID != null){
+                    val name = importedProject.name.replace("\\s".toRegex(), "").replace("\"","")
+                    val gapSize = importedProject.gapsize
+                    val lineLength=importedProject.lineLength
+                    val meshType = importedProject.meshType.replace("\"","")
+                    val gapSizeUnits = importedProject.gapsizeunits.replace("\\s".toRegex(), "").replace("\"","")
+                    val lineLengthUnits = importedProject.lineLengthUnits.replace("\\s".toRegex(), "").replace("\"","")
+                    val basePoints = importedProject.basePoints
+                     val epoch = Calendar.getInstance().time
+                   val project= Project(
+                        id=null,
+                        name= "$name-$epoch",
+                        gapsize = gapSize,
+                        lineLength = lineLength,
+                        MeshType = meshType,
+                        gapsizeunits=gapSizeUnits,
+                        lineLengthUnits=lineLengthUnits,
+                        userID=userID!!.toInt())
+                    GlobalScope.launch(Dispatchers.IO) {
+                        val projectUid = appdb.kibiraDao().insertProject(project)
+                        for (coord in importedProject.coordinates!!){
+                            val coordinate = coord as com.google.gson.JsonObject
+
+                            val lat = coordinate.get("lat").asDouble
+                            val lng = coordinate.get("lng").asDouble
+                            val point = Coordinates(id=null, lat, lng, projectUid.toInt())
+                            appdb.kibiraDao().insertCoordinates(point)
+                        }
+                        for(point  in basePoints){
+                            val pointJson = point as com.google.gson.JsonObject
+                            val lat =pointJson.get("lat").asDouble
+                            val lng = pointJson.get("lng").asDouble
+                            val pt = Basepoints(id=null, lat=lat,lng=lng, projectID=projectUid.toInt())
+                            appdb.kibiraDao().insertBasepoints(pt);
+                        }
+                    }
                 }
+
+
 
             }
         }
     }
-
-
 }
 
 

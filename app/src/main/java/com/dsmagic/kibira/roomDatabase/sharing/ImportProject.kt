@@ -40,11 +40,14 @@ class ImportProject {
            projectObj.gapsizeunits = jsonObject.get("gapsizeunits").toString()
            projectObj.gapsize = jsonObject.get("gapsize").asDouble
            projectObj.lineLength = jsonObject.get("lineLength").asDouble
+           projectObj.lineLengthUnits = jsonObject.get("lineLengthUnits").toString()
            projectObj.meshType = jsonObject.get("meshType").toString()
            val jsonCoords = JsonHelper.toJSON(jsonObject.get("coordinates")) as JSONArray
            val coordinateArray = JsonHelper.toList(jsonCoords)
+           val jsonBasePoints = JsonHelper.toJSON(jsonObject.get("basePoints")) as JSONArray
+           val basePointsCoordinateArray = JsonHelper.toList(jsonBasePoints)
            projectObj.coordinates = coordinateArray
-
+           projectObj.basePoints = basePointsCoordinateArray
             return projectObj
        }
 

@@ -6,6 +6,7 @@ import android.content.Context.DOWNLOAD_SERVICE
 import android.os.Environment
 import android.util.Log
 import com.dsmagic.kibira.MainActivity.Companion.appdb
+import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.roomDatabase.Entities.Project
 import com.google.gson.Gson
@@ -20,6 +21,7 @@ class ExportToFile() {
         lateinit var project: Project;
         lateinit var projectDTO: ProjectDTO;
         lateinit var points: List<Coordinates>
+        lateinit var basePoints: List<Basepoints>
         lateinit var context:Context
 
         suspend fun  exportProjectById(pid: Int, ctx: Context): Project {
@@ -35,13 +37,18 @@ class ExportToFile() {
             projectDTO.gapsizeunits = project.gapsizeunits
             projectDTO.lineLengthUnits= project.lineLengthUnits
             points = getProjectCoordinates(pid)
+            basePoints = getBasePoints(pid)
             projectDTO.coordinates = points
+            projectDTO.basePoints = basePoints
 
             transformToJson(projectDTO)
             return project
         }
         suspend fun getProjectCoordinates(projectId: Int): List<Coordinates> {
             return appdb.kibiraDao().getCoordinatesForProject(projectId)
+        }
+        suspend fun getBasePoints(projectId: Int):List<Basepoints>{
+            return appdb.kibiraDao().getBasepointsForProject(projectId)
         }
 
         fun transformToJson(projectDTO: ProjectDTO){
