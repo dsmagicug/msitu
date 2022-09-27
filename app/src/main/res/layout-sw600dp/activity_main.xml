@@ -841,6 +841,7 @@
                                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                                 </LinearLayout>
+
                                 <View
                                     android:layout_width="match_parent"
                                     android:layout_height="2dp"
@@ -916,8 +917,44 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/lThirdGuideline" />
 
+                <TextView
+                    android:id="@+id/fixType"
+                    android:layout_width="101dp"
+                    android:layout_height="50dp"
+                    android:padding="7dp"
+                    android:visibility="invisible"
+                    android:text="FixType:"
+                    android:textAlignment="textStart"
+                    android:textColor="@color/white"
+                    android:textSize="22sp"
+                    android:textStyle="bold|normal"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.05"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.853" />
+
+                <TextView
+                    android:id="@+id/fixTypeValue"
+                    android:layout_width="131dp"
+                    android:layout_height="36dp"
+                    android:padding="7dp"
+                    android:visibility="invisible"
+                    android:text="RTK"
+                    android:textAlignment="textStart"
+                    android:textColor="@color/white"
+                    android:textSize="20sp"
+                    android:textStyle="bold|normal"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.269"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintVertical_bias="0.84" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
+
 
             <ProgressBar
                 android:id="@+id/progressBar"

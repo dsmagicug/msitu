@@ -1,20 +1,17 @@
 package com.dsmagic.kibira.usb;
 
-import android.app.Activity;
-import android.app.Application;
+import static com.dsmagic.kibira.MainActivity.fixType;
+
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ApplicationInfo;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.view.Display;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -22,9 +19,7 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 
 import com.dsmagic.kibira.LongLat;
-import com.dsmagic.kibira.MainActivity;
 import com.dsmagic.kibira.NmeaReader;
-import com.dsmagic.kibira.R;
 import com.dsmagic.kibira.RtkLocationSource;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
@@ -52,12 +47,13 @@ public class USBSerialReader {
     private UsbDeviceConnection connection;
     private UsbSerialPort port;
     public static final String ACTION_USB_PERMISSION = "permission";
-    private final int READ_WAIT_MILLIS = 2000;
+    private final int READ_WAIT_MILLIS = 500;
     private final int BAUD_RATE = 115200;
     private final int DATA_BITS = 8;
     byte[] buffer = new byte[8192];
     private boolean isReading = true;
     private Thread thread;
+
     private boolean gotReadings = false;
     private DeviceProber proberProvider;
     private RtkLocationSource listener = NmeaReader.Companion.getListener();
@@ -83,6 +79,7 @@ public class USBSerialReader {
 
     public void disconnect() throws IOException {
         if (port != null) {
+            fixType.setVisibility(View.INVISIBLE);
             port.close();
             thread.interrupt();
             connection = null;
@@ -115,13 +112,15 @@ public class USBSerialReader {
                             if (longlat.getFixType() != LongLat.FixType.NoFixData) {
                                 gotReadings = true;
                                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-
                                     stopIsLoadingIcon(true);
                                 }
-                                if (longlat.getFixType() == LongLat.FixType.RTKFloat || longlat.getFixType() == LongLat.FixType.RTKFix) {
+                               // if (longlat.getFixType() == LongLat.FixType.RTKFloat || longlat.getFixType() == LongLat.FixType.RTKFix) {
                                     // Send it to the Location Source... BUT ONLY when we have rtk data--(more accurate than other fixtypes)
+                                    //TODO display we have RTK fix
                                     handler.post(() -> listener.postNewLocation(longlat, longlat.getFixType()));
-                                }
+                               // }else{
+                                    // TODO display fix type
+                                //}
                             }
                             Log.d("FROM USB", str + "\n");
                         }

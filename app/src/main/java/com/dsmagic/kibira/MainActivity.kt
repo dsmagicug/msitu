@@ -133,6 +133,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var spinner: Spinner
     lateinit var buttonConnect: Button
     lateinit var pace: TextView
+
     lateinit var linesMarked: TextView
     lateinit var totalPoints: TextView
     var delta = 0.146  //6 inches
@@ -142,12 +143,15 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var displayedDistance: TextView
     lateinit var displayedDistanceUnits: TextView
     lateinit var displayedPoints: TextView
-    lateinit var fixType: TextView
+
     val usbSupport = USBSerialReader()
     lateinit var progressBar: ProgressBar
 
     companion object {
         lateinit var projectLines: MutableList<PlantingLine>
+        lateinit var fixType: TextView
+        lateinit var fixTypeValue:TextView
+         var  lastFixType = ""
         var projectList = ArrayList<String>()
         var projectIDList = mutableListOf<Int>()
         var projectSizeList = mutableListOf<Double>()
@@ -218,6 +222,8 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         displayedDistance = findViewById<TextView>(R.id.distance)
         displayedDistanceUnits = findViewById(R.id.distanceUnits)
         displayedPoints = findViewById(R.id.numberOfPoints)
+        fixType =  findViewById(R.id.fixType)
+        fixTypeValue =  findViewById(R.id.fixTypeValue)
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
 
         drawerlayout.addDrawerListener(toggle)
@@ -338,6 +344,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     return // Not yet...
                 fromRTKFeed = LatLng(loc.latitude, loc.longitude)
                 //fixValue = fix.toString()
+
                 if (marker == null) {
                     map?.moveCamera(CameraUpdateFactory.newLatLngZoom(fromRTKFeed, zoomLevel))
                     firstPoint = loc as LongLat // Grab it
@@ -362,9 +369,14 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     marker?.let {
                         pulseUserLocationCircle(it)
                     }
-                    //if(fixValue != fix.toString()){
-                    // fixType.text = fix.toString()
-                    // }
+                    fixType.isVisible=true
+                    fixTypeValue.isVisible=true
+
+                    val cFix = fix.toString()
+                    if (cFix != lastFixType) {
+                        fixTypeValue.text = cFix
+                    }
+                    lastFixType = cFix
                     plotFunc()
                     distanceToPoint(fromRTKFeed)
                     approachingPoint()
@@ -773,10 +785,13 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 val firstPoint = LongLat(l.lng, l.lat)
                 val secondPoint = LongLat(y.lng, y.lat)
 
+
+
                 runOnUiThread {
                     displayProjectName!!.text = selectedProject
                     GAP_SIZE_METRES = Gapsize
                     MAX_MESH_SIZE = Meshsize
+
                     plotMesh(firstPoint, secondPoint, PID, meshType, listOfMarkedPoints, gapUnits)
 
                 }
@@ -1244,9 +1259,10 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         // Don't forget to unregister the ACTION_FOUND receiver.
         unregisterReceiver(receiver)
         NmeaReader.listener.deactivate()
+        fixType.isVisible=false
+        fixTypeValue.isVisible =false
         sensorManager!!.unregisterListener(listener)
         super.onDestroy()
-
     }
 
     // Display the menu layout
@@ -1388,6 +1404,18 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     CircleOptions().center(loc).fillColor(Color.YELLOW).radius(circleRadius)
                         .strokeWidth(1.0f)
                 )
+                val tapPt =  LatLng(
+                    firstPoint!!.getLatitude(),
+                    firstPoint!!.getLongitude()
+                )
+                val title  = "Tapped Point: ${tapPt.latitude} :  ${tapPt.longitude}"
+                val title2  = "Current  Location: ${loc.latitude} :  ${loc.longitude}"
+                map?.addMarker(MarkerOptions().position(tapPt).title(title).icon(BitmapDescriptorFactory
+                    .defaultMarker(BitmapDescriptorFactory.HUE_GREEN)))
+
+                map?.addMarker(MarkerOptions().position(loc).title(title2).icon(BitmapDescriptorFactory
+                    .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)))
+
                 map?.moveCamera(
                     CameraUpdateFactory.newLatLngZoom(
                         LatLng(
@@ -1421,7 +1449,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         }
 
         saveBasepoints(firstPoint!!)
-        saveBasepoints(secondPoint!!)
+        saveBasepoints(secondPoint!!,false)
 
         plotMesh(firstPoint!!, secondPoint!!, 0, "", mutableListOf<LatLng>(), "")
 
@@ -1478,6 +1506,20 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
             handler.post { // Centre it...
 
+                val firstpt =  LatLng(
+                    cp.getLatitude(),
+                    cp.getLongitude()
+                )
+                val secondPt =  LatLng(
+                    pp.getLatitude(),
+                    pp.getLongitude()
+                )
+                val title  = "First Point: ${firstpt.latitude} :  ${firstpt.longitude}"
+                val title2  = "Second Point: ${secondPt.latitude} :  ${secondPt.longitude}"
+                map?.addMarker(MarkerOptions().position(firstpt).title(title).icon(BitmapDescriptorFactory
+                    .defaultMarker(BitmapDescriptorFactory.HUE_GREEN)))
+                map?.addMarker(MarkerOptions().position(secondPt).title(title2).icon(BitmapDescriptorFactory
+                    .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)))
                 map?.moveCamera(
                     CameraUpdateFactory.newLatLngZoom(
                         LatLng(
@@ -1513,7 +1555,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
             Toast.makeText(applicationContext, "Planting line selected...", Toast.LENGTH_LONG)
                 .show()
-
         } else {
 
             val recentLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
@@ -1569,7 +1610,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
 
         }
-
         handler.post {
             //changing map type lags, so handle it ina thread as well
             map?.mapType = GoogleMap.MAP_TYPE_NORMAL
@@ -1834,8 +1874,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
                 }
             }
-
-
             //******** The shake event for marking points starts here *******//
 
             // Fetching x,y,z values
@@ -1874,9 +1912,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         usbSupport.disconnect()
     }
 
-
-
-    fun saveBasepoints(loc: LongLat) {
+    fun saveBasepoints(loc: LongLat, isStart:Boolean=true) {
         val lat = loc.getLatitude()
         val lng = loc.getLongitude()
         val sharedPreferences: SharedPreferences = this.getSharedPreferences(
