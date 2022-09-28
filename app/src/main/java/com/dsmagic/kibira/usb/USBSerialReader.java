@@ -1,7 +1,5 @@
 package com.dsmagic.kibira.usb;
 
-import static com.dsmagic.kibira.MainActivity.fixType;
-
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -79,7 +77,6 @@ public class USBSerialReader {
 
     public void disconnect() throws IOException {
         if (port != null) {
-            fixType.setVisibility(View.INVISIBLE);
             port.close();
             thread.interrupt();
             connection = null;

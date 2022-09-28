@@ -52,7 +52,6 @@ import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.retrieveMarkedpoints
-import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.saveProject
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.roomDatabase.Entities.Project
@@ -116,6 +115,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     private var plantingMode = false
     private var fabFlag = true
     private var zoomMode = false
+    lateinit var createNewProject :CreateProjectDialog
     var userID: String? = null
     var extras: Bundle? = null
     lateinit var debugXloc: LatLng
@@ -143,14 +143,18 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var displayedDistance: TextView
     lateinit var displayedDistanceUnits: TextView
     lateinit var displayedPoints: TextView
+    lateinit var fixType: TextView
+    lateinit var fixTypeValue:TextView
+
+    private val workerPool: ExecutorService = Executors.newFixedThreadPool(2)
 
     val usbSupport = USBSerialReader()
     lateinit var progressBar: ProgressBar
+    lateinit var alertDialog: AlertDialog
 
     companion object {
         lateinit var projectLines: MutableList<PlantingLine>
-        lateinit var fixType: TextView
-        lateinit var fixTypeValue:TextView
+
          var  lastFixType = ""
         var projectList = ArrayList<String>()
         var projectIDList = mutableListOf<Int>()
@@ -476,7 +480,10 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 //                            isBeeping = true
 //                            reasonForBeeping = "At Point"
 //                        }
+                        workerPool.submit {
                             markPoint(pointOfInterest)
+                        }
+
 
                     } else {
                         if (!isBeeping && reasonForBeeping != "Slow Down") {
@@ -554,7 +561,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
 
     fun exitAlert(S: String) {
-        AlertDialog.Builder(this)
+        alertDialog= AlertDialog.Builder(this)
             .setTitle("Warning")
             .setIcon(R.drawable.caution)
             .setMessage(S)
@@ -586,7 +593,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         } else {
             projectListAsArray
         }
-        AlertDialog.Builder(this)
+        alertDialog = AlertDialog.Builder(this)
             .setTitle("Projects")
             .setSingleChoiceItems(l, checkedItemIndex,
                 DialogInterface.OnClickListener { dialog, which ->
@@ -656,7 +663,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
     fun displayMoreProjects(list: Array<String>) {
         var checkedItemIndex = -1
-        AlertDialog.Builder(this)
+        alertDialog = AlertDialog.Builder(this)
             .setTitle("All Projects")
             // .setMessage(s)
             .setSingleChoiceItems(list, checkedItemIndex,
@@ -1259,10 +1266,14 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         // Don't forget to unregister the ACTION_FOUND receiver.
         unregisterReceiver(receiver)
         NmeaReader.listener.deactivate()
-        fixType.isVisible=false
-        fixTypeValue.isVisible =false
+        createNewProject.dismiss()
         sensorManager!!.unregisterListener(listener)
         super.onDestroy()
+    }
+
+    override fun onStop() {
+        createNewProject.dismiss()
+        super.onStop()
     }
 
     // Display the menu layout
@@ -1273,7 +1284,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
     // display the create dialog if no projects available.
     private fun createDialog(UserTag: String): Boolean {
-        val createNewProject = CreateProjectDialog
+        createNewProject = CreateProjectDialog
         createNewProject.show(supportFragmentManager, UserTag)
         return true
     }
@@ -1289,7 +1300,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             toggleWidgets()
 
             return true
-
         }
 
         return super.onOptionsItemSelected(item)
@@ -1763,14 +1773,12 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             plantingRadiusCircle = templist[templist.lastIndex]
             plantingMode = true
             tempPlantingRadius = plantingRadius!!.radius.toFloat()
-            // tempProximityRadius = proximityCircle!!.radius.toFloat()
 
         }
 
     }
 
     var markedCirclePoint: Circle? = null
-    var thread: Thread? = null
     fun markPoint(pointOfInterestOnPolyline: LatLng) {
 
         if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
@@ -1780,46 +1788,36 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         if (pointOfInterestOnPolyline in listOfMarkedPoints) {
             return
         }
-        thread = Thread {
-            thread!!.priority = Thread.MAX_PRIORITY
-            val point = S2LatLng.fromDegrees(
-                pointOfInterestOnPolyline.latitude,
-                pointOfInterestOnPolyline.longitude
-            )
-            val pointData = PointData(point.toPoint(), point)
-            lineInS2Format.remove(pointData)
+        val point = S2LatLng.fromDegrees(
+            pointOfInterestOnPolyline.latitude,
+            pointOfInterestOnPolyline.longitude
+        )
+        val pointData = PointData(point.toPoint(), point)
+        lineInS2Format.remove(pointData)
 
-            //hand over UI Updates to the UI Thread
-            handler.post {
-                if (listOfMarkedPoints.add(pointOfInterestOnPolyline)) {
-                    plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
+        //hand over UI Updates to the UI Thread
+        handler.post {
+            if (listOfMarkedPoints.add(pointOfInterestOnPolyline)) {
+                plantingRadiusCircle?.remove()   //remove planting radius, marker and clear list
 
-                    if (tempListMarker.isNotEmpty()) {
-                        tempListMarker.clear()
-                    }
-
+                if (tempListMarker.isNotEmpty()) {
+                    tempListMarker.clear()
                 }
-
-                if (templist.isNotEmpty()) {
-                    templist.clear()
-                }
-                if (tempClosestPoint.isNotEmpty()) {
-                    tempClosestPoint.clear()
-                }
-                mark(pointOfInterestOnPolyline)
-                vibration(this)
-                blinkEffectOfMarkedPoints("Cyan", displayedPoints)
-                Toast.makeText(
-                    this, "Point Marked", Toast.LENGTH_SHORT
-                ).show()
-
             }
-
+            if (templist.isNotEmpty()) {
+                templist.clear()
+            }
+            if (tempClosestPoint.isNotEmpty()) {
+                tempClosestPoint.clear()
+            }
+            mark(pointOfInterestOnPolyline)
+            vibration(this)
+            blinkEffectOfMarkedPoints("Cyan", displayedPoints)
+            Toast.makeText(
+                this, "Point Marked", Toast.LENGTH_SHORT
+            ).show()
         }
-        thread!!.start()
-
         DbFunctions.savePoints(pointOfInterestOnPolyline, ProjectID.toInt())
-
     }
 
     fun mark(pt: LatLng) {
@@ -1910,6 +1908,8 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         sensorManager!!.unregisterListener(listener)
         super.onPause()
         usbSupport.disconnect()
+        // kill the dialog
+        createNewProject.dismiss()
     }
 
     fun saveBasepoints(loc: LongLat, isStart:Boolean=true) {
