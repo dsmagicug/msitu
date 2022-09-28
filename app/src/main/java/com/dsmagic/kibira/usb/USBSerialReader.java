@@ -95,10 +95,6 @@ public class USBSerialReader {
     private void dataReaderListener() throws IOException {
         Looper looper = Looper.getMainLooper();
         Handler handler = new Handler(looper);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            stopIsLoadingIcon(false);
-        }
         thread = new Thread(() -> {
             while (isReading) {
                 int len = 0;
@@ -111,9 +107,6 @@ public class USBSerialReader {
                             LongLat longlat = new LongLat(str);
                             if (longlat.getFixType() != LongLat.FixType.NoFixData) {
                                 gotReadings = true;
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                    stopIsLoadingIcon(true);
-                                }
                                // if (longlat.getFixType() == LongLat.FixType.RTKFloat || longlat.getFixType() == LongLat.FixType.RTKFix) {
                                     // Send it to the Location Source... BUT ONLY when we have rtk data--(more accurate than other fixtypes)
                                     //TODO display we have RTK fix
@@ -122,7 +115,7 @@ public class USBSerialReader {
                                     // TODO display fix type
                                 //}
                             }
-                            Log.d("FROM USB", str + "\n");
+                            //Log.d("FROM USB", str + "\n");
                         }
                     }
                 } catch (IOException e) {
