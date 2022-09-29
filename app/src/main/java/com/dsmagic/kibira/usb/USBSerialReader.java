@@ -48,7 +48,7 @@ public class USBSerialReader {
     private final int READ_WAIT_MILLIS = 500;
     private final int BAUD_RATE = 115200;
     private final int DATA_BITS = 8;
-    byte[] buffer = new byte[8192];
+    byte[] buffer = new byte[1024];
     private boolean isReading = true;
     private Thread thread;
 

@@ -886,6 +886,23 @@
                     app:layout_constraintTop_toBottomOf="@+id/fab_compass" />
 
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fab_center"
+                    style="?attr/floatingActionButtonLargeStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end|bottom"
+                    android:contentDescription="@string/fab_map"
+                    android:src="@android:drawable/ic_menu_mylocation"
+                    app:backgroundTint="@color/green"
+                    android:visibility="invisible"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.018"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/fab_compass"
+                    app:layout_constraintVertical_bias="0.241" />
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/fab_compass"
                     style="?attr/floatingActionButtonLargeStyle"
                     android:layout_width="wrap_content"

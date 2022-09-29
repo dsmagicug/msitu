@@ -847,6 +847,23 @@
                     app:layout_constraintTop_toBottomOf="@+id/fab_compass" />
 
                 <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/fab_center"
+                    style="?attr/floatingActionButtonLargeStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end|bottom"
+                    android:visibility="invisible"
+                    android:contentDescription="@string/fab_map"
+                    android:src="@android:drawable/ic_menu_mylocation"
+                    app:backgroundTint="@color/green"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.018"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/fab_compass"
+                    app:layout_constraintVertical_bias="0.241" />
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
                     android:id="@+id/fab_compass"
                     style="?attr/floatingActionButtonLargeStyle"
                     android:layout_width="wrap_content"
@@ -884,7 +901,7 @@
                     android:text="FixType:"
                     android:textAlignment="textStart"
                     android:textColor="@color/black"
-                    android:textSize="22sp"
+                    android:textSize="18sp"
                     android:textStyle="bold|normal"
                     android:visibility="visible"
                     app:layout_constraintBottom_toBottomOf="parent"
@@ -902,7 +919,7 @@
                     android:text="No data"
                     android:textAlignment="textStart"
                     android:textColor="@color/black"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:textStyle="bold|normal"
                     android:visibility="visible"
                     app:layout_constraintBottom_toBottomOf="parent"

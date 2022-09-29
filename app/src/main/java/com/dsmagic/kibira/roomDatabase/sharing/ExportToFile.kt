@@ -59,7 +59,8 @@ class ExportToFile() {
             val downloadDirPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
 
             val dir =  File(downloadDirPath.toURI());
-            val name = project.name.replace(" ", "_")
+            val name = project.name.replace(" ", "_").replace("+", "").replace(":", "").replace("-","_")
+
             val extension = ".json"
             var fileName = "$name$extension"
             val inputStream: InputStream =

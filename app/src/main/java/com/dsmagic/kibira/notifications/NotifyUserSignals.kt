@@ -57,38 +57,32 @@ class NotifyUserSignals {
             return mediaPlayer
         }
 
-        var playerThread: Thread? = null
         fun beepingSoundForMarkingPosition(scenario: String, context: Context) {
-            playerThread = Thread {
-                try {
-                    when (scenario) {
-                        "ShortBeep" -> {
-                            mediaPlayer = MediaPlayer.create(context, R.raw.beepmp3)
-                            //startPlayer(mediaPlayer!!, scenario, oldScenario)
-                        }
-                        "At Point" -> {
-                            mediaPlayer = MediaPlayer.create(context, R.raw.markheremp3)
-                            //startPlayer(mediaPlayer!!, scenario, oldScenario)
-                        }
-                        "Slow Down" -> {
-                            mediaPlayer = MediaPlayer.create(context, R.raw.slowdownmp3)
-
-                            //startPlayer(mediaPlayer!!, scenario, oldScenario)
-                        }
+            try {
+                when (scenario) {
+                    "ShortBeep" -> {
+                        mediaPlayer = MediaPlayer.create(context, R.raw.beepmp3)
+                        //startPlayer(mediaPlayer!!, scenario, oldScenario)
                     }
-                    handler.post {
-                        mediaPlayer.start()
-                        mediaPlayer.isLooping = true
-                        reasonForBeeping = scenario
-                        isBeeping = true
+                    "At Point" -> {
+                        mediaPlayer = MediaPlayer.create(context, R.raw.markheremp3)
+                        //startPlayer(mediaPlayer!!, scenario, oldScenario)
                     }
-
-
-                } catch (e: IOException) {
-                    e.printStackTrace()
+                    "Slow Down" -> {
+                        mediaPlayer = MediaPlayer.create(context, R.raw.slowdownmp3)
+                    }
                 }
+                handler.post {
+                    mediaPlayer.start()
+                    mediaPlayer.isLooping = true
+                    reasonForBeeping = scenario
+                    isBeeping = true
+                }
+
+
+            } catch (e: IOException) {
+                e.printStackTrace()
             }
-            playerThread!!.start()
 
         }
 //        fun startPlayer (player: MediaPlayer, s: String, os:String ):MediaPlayer{
@@ -273,49 +267,6 @@ class NotifyUserSignals {
             }
             return direction
         }
-
-//        fun shrinkCircle(distance: Float, pt: LatLng) {
-//            val firstDistance = distance
-//            var secondDistance: Float = 0.0f
-//
-//            //ensure that we only loop through when it is necessary for us to do so.
-//            if (circleID.isBlank() || circle == null) {
-//                for (c in unmarkedCirclesList) {
-//                    if (c.center == pt) {
-//                        circleID = c.id
-//                        circle = c
-//                    }
-//                }
-//            } else {
-//                circleID
-//                circle
-//            }
-//            val diff = firstDistance - secondDistance
-//            when {
-//                diff == firstDistance -> {
-//                    secondDistance = firstDistance
-//                }
-//                //distance has reduced thus person is closer to point
-//                diff < 0 -> {
-//
-//                    circle!!.remove()
-//                    map?.addCircle(
-//                        CircleOptions().radius(distance.toDouble()).center(pt).fillColor(Color.RED)
-//                    )
-//                    secondDistance = firstDistance
-//                }
-//                //person is away from point
-//                diff > 0 -> {
-//                    circle!!.remove()
-//                    map?.addCircle(
-//                        CircleOptions().radius(distance.toDouble()).fillColor(Color.RED).center(pt)
-//                    )
-//                    secondDistance = firstDistance
-//                }
-//            }
-//
-//
-//        }
 
     }
 }

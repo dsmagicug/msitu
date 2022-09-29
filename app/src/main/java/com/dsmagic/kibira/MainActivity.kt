@@ -151,6 +151,8 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     val usbSupport = USBSerialReader()
     lateinit var progressBar: ProgressBar
     lateinit var alertDialog: AlertDialog
+    var showMe = true
+    lateinit var whereIamMarker:Marker
 
     companion object {
         lateinit var projectLines: MutableList<PlantingLine>
@@ -172,6 +174,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         var listOfMarkedPoints = mutableListOf<LatLng>()
         var listofmarkedcircles = mutableListOf<Circle>()
         lateinit var pointCardview: CardView
+
         var unmarkedCirclesList = mutableListOf<Circle>()
         var listOfPlantingLines = mutableListOf<Polyline>()
         var deviceList = ArrayList<BluetoothDevice>()
@@ -180,6 +183,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         lateinit var card: CardView
         lateinit var directionCardLayout: CardView
         lateinit var appdb: AppDatabase
+        lateinit var fab_center:FloatingActionButton
         lateinit var lineInS2Format: S2PointIndex<S2LatLng>
         var plantingRadius: Circle? = null
         var onLoad = false
@@ -190,6 +194,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         var meshUnits = " "
         var position = "None"
         var created = false
+
 
     }
 
@@ -231,6 +236,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
 
         drawerlayout.addDrawerListener(toggle)
+        fab_center= findViewById(R.id.fab_center)
         toggle.syncState()
 
         appdb = AppDatabase.dbInstance(this)
@@ -262,10 +268,24 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
             undoDrawingLines()
         }
+
+        fab_center.setOnClickListener {
+            if (showMe){
+                val loc = LatLng(lastLoc!!.latitude, lastLoc!!.longitude)
+                val title = "Where I am"
+                map?.moveCamera(CameraUpdateFactory.newLatLngZoom(loc, 21f))
+
+                whereIamMarker = map?.addMarker(MarkerOptions().position(loc).title(title).icon(BitmapDescriptorFactory
+                    .defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)))!!
+            }else{
+                whereIamMarker.remove()
+            }
+            showMe = !showMe
+        }
         fab_moreLines.setOnClickListener {
             val drawPoints = ScaleLargeProjects.updateProjectLines(this)
             Geometry.generateLongLat(projectStartPoint, drawPoints, drawLine)
-            if (listOfMarkedPoints.isNotEmpty()) {
+            /*if (listOfMarkedPoints.isNotEmpty()) {
                 for (point in listOfMarkedPoints) {
                     val c = map?.addCircle(
                         CircleOptions().center(point)
@@ -275,7 +295,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     )
                     listofmarkedcircles.add(c!!)
                 }
-            }
+            }*/
         }
         extras = intent.extras
 
@@ -357,6 +377,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 // Get the displacement from the last position.
                 val moved = NmeaReader.significantChange(lastLoc, loc)
                 lastLoc = loc // Grab last location
+                fab_center.isVisible=true
                 if (moved) { // If it has changed, move the thing...
                     marker?.remove()
                     // directionMarker?.remove()
@@ -384,7 +405,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     plotFunc()
                     distanceToPoint(fromRTKFeed)
                     approachingPoint()
-
                 }
             }
 
@@ -487,7 +507,9 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
                     } else {
                         if (!isBeeping && reasonForBeeping != "Slow Down") {
-                            beepingSoundForMarkingPosition("Slow Down", this)
+                            workerPool.submit {
+                                beepingSoundForMarkingPosition("Slow Down", this)
+                            }
                             isBeeping = true
                             reasonForBeeping = "Slow Down"
                         }
@@ -2042,7 +2064,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                      val epoch = Calendar.getInstance().time
                    val project= Project(
                         id=null,
-                        name= "$name-$epoch",
+                        name= "$name",
                         gapsize = gapSize,
                         lineLength = lineLength,
                         MeshType = meshType,
