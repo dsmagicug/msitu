@@ -165,7 +165,7 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
         } else if (sType.endsWith("gga", true)) {
             initGGA(l)
         } else if (sType.endsWith("gst", true)) {
-            if (l.size >=7){
+            if (l.size > 7){
                 if (l[6] != "" && l[7] != ""){
                     lastVerticalAccuracy = l[6].toDouble()
                     lastHorizontalAccuracy = l[7].toDouble()
@@ -202,11 +202,15 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
         // See http://lefebure.com/articles/nmea-gga/
         val mandatoryInd = listOf<Int>(1,2,3,4,5,6,7,9)
         var skip =  false
-        mandatoryInd.forEach{
-                idx->
-            if (l[idx] == ""){
-                skip = true
+        try{
+            mandatoryInd.forEach{
+                    idx->
+                if (l[idx] == ""){
+                    skip = true
+                }
             }
+        }catch (exception :Exception ){
+            skip = true
         }
         if(!skip){
             dateFormat.parse(l[1] + "+0000").also { timeStamp = it }
@@ -238,11 +242,15 @@ class LongLat(var long: Double, var lat: Double) : Location(LOCATION_PROVIDER) {
         // See https://orolia.com/manuals/VSP/Content/NC_and_SS/Com/Topics/APPENDIX/NMEA_RMCmess.htm
         val mandatoryInd = listOf<Int>(1,2,3,4,5,6,7,9,12)
         var skip =  false
-        mandatoryInd.forEach{
-                idx->
+        try{
+            mandatoryInd.forEach{
+                    idx->
                 if (l[idx] == ""){
                     skip = true
                 }
+            }
+        }catch (exception:Exception){
+            skip = true
         }
         if (!skip){
             val dd = l[9] + "-" + l[1] + "+0000"

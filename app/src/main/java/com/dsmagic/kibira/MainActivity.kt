@@ -872,6 +872,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     }
                 }
 
+
                 if (lastRotateDegree in (-180.0..90.0)) {
 
                     distance = 0f
@@ -880,6 +881,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
                     if (latLng in listOfMarkedPoints) {
                         nextIndex = index - 1
+
                         latLng = l[nextIndex] as LatLng
                     }
 

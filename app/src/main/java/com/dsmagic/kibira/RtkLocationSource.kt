@@ -15,7 +15,8 @@ class RtkLocationSource : LocationSource {
     }
 
     override fun deactivate() {
-     deactivate()
+
+    // deactivate()
     }
 
     fun setLocationChangedTrigger(locationChanged: LocationChanged) {
