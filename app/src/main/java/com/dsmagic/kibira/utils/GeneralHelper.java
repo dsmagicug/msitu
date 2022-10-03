@@ -1,8 +1,11 @@
 package com.dsmagic.kibira.utils;
 
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.location.Location;
 import android.location.LocationManager;
 
+import com.dsmagic.kibira.MainActivity;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -55,4 +58,5 @@ public class GeneralHelper {
                 .build();
         map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
+
 }

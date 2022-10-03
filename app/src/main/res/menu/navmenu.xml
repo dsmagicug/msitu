@@ -29,6 +29,11 @@
                 android:fontFamily="@font/rosemary"
                 android:icon="@android:drawable/ic_menu_upload"
                 android:title="@string/import_project" />
+            <item
+                android:id="@+id/action_clipboard_copy"
+                android:fontFamily="@font/rosemary"
+                android:icon="?attr/actionModeCopyDrawable"
+                android:title="@string/clipboard_copy" />
         </menu>
     </item>
     <item

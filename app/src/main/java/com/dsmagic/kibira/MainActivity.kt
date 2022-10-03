@@ -1,5 +1,6 @@
 package com.dsmagic.kibira
 
+//import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.beepingSoundForMarkingPosition
 import android.Manifest
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
@@ -39,7 +40,6 @@ import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import com.dsmagic.kibira.data.LocationDependant.LocationDependantFunctions
 import com.dsmagic.kibira.notifications.NotifyUserSignals
-import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.beepingSoundForMarkingPosition
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.isBeeping
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.isUserlocationOnPath
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.keepUserInStraightLine
@@ -81,12 +81,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.abs
-import kotlin.math.ln
 import kotlin.math.sqrt
 
 
@@ -132,9 +130,9 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var fab_moreLines: FloatingActionButton
     lateinit var spinner: Spinner
     lateinit var buttonConnect: Button
-    lateinit var pace: TextView
+    lateinit var longValue: TextView
 
-    lateinit var linesMarked: TextView
+    lateinit var latValue: TextView
     lateinit var totalPoints: TextView
     var delta = 0.146  //6 inches
     var projectLoaded = false
@@ -146,18 +144,19 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
     lateinit var fixType: TextView
     lateinit var fixTypeValue:TextView
 
-    private val workerPool: ExecutorService = Executors.newFixedThreadPool(2)
+    private val workerPool: ExecutorService = Executors.newFixedThreadPool(3)
 
     val usbSupport = USBSerialReader()
     lateinit var progressBar: ProgressBar
     lateinit var alertDialog: AlertDialog
     var showMe = true
     lateinit var whereIamMarker:Marker
+    var locationString = ""
 
     companion object {
         lateinit var projectLines: MutableList<PlantingLine>
 
-         var  lastFixType = ""
+        var  lastFixType = ""
         var projectList = ArrayList<String>()
         var projectIDList = mutableListOf<Int>()
         var projectSizeList = mutableListOf<Double>()
@@ -218,9 +217,9 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         buttonConnect = findViewById(R.id.buttonConnect)
         spinner = findViewById(R.id.spinner)
         card = findViewById<CardView>(R.id.cardView2)
-        pace = findViewById(R.id.paceValue)
-        linesMarked = findViewById(R.id.linesMarkedValue)
-        totalPoints = findViewById(R.id.totalPointsValue)
+        latValue = findViewById(R.id.latValue)
+        longValue = findViewById(R.id.longValue)
+        //totalPoints = findViewById(R.id.totalPointsValue)
         directionImage = findViewById(R.id.directionImageValue)
         positionText = findViewById(R.id.plantText)
 
@@ -285,17 +284,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         fab_moreLines.setOnClickListener {
             val drawPoints = ScaleLargeProjects.updateProjectLines(this)
             Geometry.generateLongLat(projectStartPoint, drawPoints, drawLine)
-            /*if (listOfMarkedPoints.isNotEmpty()) {
-                for (point in listOfMarkedPoints) {
-                    val c = map?.addCircle(
-                        CircleOptions().center(point)
-                            .fillColor(Color.YELLOW)
-                            .radius(circleRadius)
-                            .strokeWidth(1.0f)
-                    )
-                    listofmarkedcircles.add(c!!)
-                }
-            }*/
+
         }
         extras = intent.extras
 
@@ -374,6 +363,8 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                     firstPoint = loc as LongLat // Grab it
 
                 }
+                latValue.text = loc.latitude.toString()
+                longValue.text = loc.longitude.toString()
                 // Get the displacement from the last position.
                 val moved = NmeaReader.significantChange(lastLoc, loc)
                 lastLoc = loc // Grab last location
@@ -507,9 +498,9 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
                     } else {
                         if (!isBeeping && reasonForBeeping != "Slow Down") {
-                            workerPool.submit {
+                            /*workerPool.submit {
                                 beepingSoundForMarkingPosition("Slow Down", this)
-                            }
+                            }*/
                             isBeeping = true
                             reasonForBeeping = "Slow Down"
                         }
@@ -944,13 +935,13 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
 
                 val distanceInUnitsRespectiveToProject =
                     Conversions.ftToMeters(distance.toString(), gapUnits)
-                statisticsWindow(
+                /*statisticsWindow(
                     this,
                     size,
                     totalPoints,
                     l,
                     distanceInUnitsRespectiveToProject.toFloat()
-                )
+                )*/
 
                 //when straying from line
                 if (distance > (GAP_SIZE_METRES * 0.5)) {
@@ -1187,7 +1178,12 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             displayBluetoothDevices()
         }
     }
-
+    fun copyToClipBoard(str: String?, label:String?) {
+        val clipboardManager = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+        var clipData = ClipData.newPlainText(label, str)
+        clipboardManager.setPrimaryClip(clipData)
+        Toast.makeText(this, "Base coordinates to clipboard!", Toast.LENGTH_SHORT).show()
+    }
     fun discoverBluetoothDevices(){
 
         val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -1605,15 +1601,15 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 templist[templist.lastIndex].remove()
                 templist.clear()
             }
-            val textViewPace = findViewById<TextView>(R.id.paceValue)
-            val textViewMarkedLines = findViewById<TextView>(R.id.linesMarkedValue)
+            //val textViewPace = findViewById<TextView>(R.id.paceValue)
+            //val textViewMarkedLines = findViewById<TextView>(R.id.linesMarkedValue)
             val end = System.currentTimeMillis()
-            LocationDependantFunctions().pace(textViewPace, end, this)
-            LocationDependantFunctions().markedLines(
-                recentLine,
-                listOfMarkedPoints,
-                textViewMarkedLines
-            )
+            //LocationDependantFunctions().pace(textViewPace, end, this)
+//            LocationDependantFunctions().markedLines(
+//                recentLine,
+//                listOfMarkedPoints,
+//                textViewMarkedLines
+//            )
         }
 
         //Get the process to be handled by the main thread through a handler--- makes the process faster
@@ -1808,7 +1804,6 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
             return
         }
-
         if (pointOfInterestOnPolyline in listOfMarkedPoints) {
             return
         }
@@ -1851,9 +1846,9 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
                 .radius(circleRadius)
                 .strokeWidth(1.0f)
         )
-
         listofmarkedcircles.add(markedCirclePoint!!)
     }
+
 
     var bearing: Double? = null
     var diff: Float? = null
@@ -1957,8 +1952,7 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
         val basePoints = Basepoints(null, lat, lng, ProjectID.toInt())
 
         GlobalScope.launch(Dispatchers.IO) {
-            val d = appdb.kibiraDao().insertBasepoints(basePoints)
-
+            appdb.kibiraDao().insertBasepoints(basePoints)
         }
 
     }
@@ -2002,6 +1996,17 @@ class MainActivity  : AppCompatActivity(), AdapterView.OnItemSelectedListener,
             R.id.action_import_project->{
                 // open file uploader
                 openFilePicker()
+            }
+            R.id.action_clipboard_copy->{
+                if(lastLoc != null){
+                    val lat = lastLoc?.latitude
+                    val long = lastLoc?.longitude
+                    locationString += "{\"lat\":$lat, \"lng\":$long},"
+                    copyToClipBoard(locationString, "Current position")
+                }else{
+
+                    Toast.makeText(this, "No location to copy", Toast.LENGTH_SHORT).show()
+                }
             }
         }
         return true

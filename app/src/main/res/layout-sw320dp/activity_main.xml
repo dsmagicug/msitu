@@ -94,13 +94,14 @@
 
                     <Button
                         android:id="@+id/buttonConnect"
-                        android:layout_width="0dp"
-                        android:layout_height="51dp"
+                        android:layout_width="81dp"
+                        android:layout_height="41dp"
                         android:backgroundTint="@color/greenish"
                         android:gravity="center"
                         android:text="Pair"
-
                         android:textAllCaps="false"
+
+                        android:textSize="12dp"
                         android:visibility="visible"
 
                         app:layout_constraintBottom_toBottomOf="parent"
@@ -377,9 +378,9 @@
                 <androidx.cardview.widget.CardView
                     android:id="@+id/cardView2"
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
+                    android:layout_height="250dp"
                     android:layout_gravity="top|end"
-                    android:visibility="invisible"
+                    android:visibility="visible"
                     app:cardBackgroundColor="@color/teal"
                     app:cardCornerRadius="20dp"
                     app:cardElevation="10dp"
@@ -396,16 +397,17 @@
                         android:layout_height="match_parent">
 
                         <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_width="298dp"
+                            android:layout_height="276dp"
                             android:orientation="vertical"
                             app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintHorizontal_bias="0.0"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent">
 
                             <androidx.constraintlayout.widget.ConstraintLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent">
+                                android:layout_width="212dp"
+                                android:layout_height="253dp">
 
                                 <androidx.constraintlayout.widget.Guideline
                                     android:id="@+id/cardviewHFirstGuideline"
@@ -415,25 +417,11 @@
                                     app:layout_constraintGuide_percent="0.21" />
 
                                 <androidx.constraintlayout.widget.Guideline
-                                    android:id="@+id/cardviewHSecondGuideline"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    app:layout_constraintGuide_percent="0.78" />
-
-                                <androidx.constraintlayout.widget.Guideline
-                                    android:id="@+id/cardviewThirdGuideline"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    app:layout_constraintGuide_percent="0.97" />
-
-                                <androidx.constraintlayout.widget.Guideline
                                     android:id="@+id/cardviewHFourthGuideline"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:orientation="horizontal"
-                                    app:layout_constraintGuide_percent="0.53" />
+                                    app:layout_constraintGuide_percent="0.82" />
 
                                 <androidx.constraintlayout.widget.Guideline
                                     android:id="@+id/cardviewHFirthGuideline"
@@ -462,7 +450,7 @@
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:orientation="vertical"
-                                            app:layout_constraintGuide_percent="0.53" />
+                                            app:layout_constraintGuide_percent="0.5" />
 
                                         <TextView
                                             android:id="@+id/numberOfPoints"
@@ -473,7 +461,7 @@
                                             android:text=""
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="22sp"
+                                            android:textSize="18sp"
                                             android:textStyle="bold|normal"
                                             app:layout_constraintBottom_toBottomOf="parent"
                                             app:layout_constraintEnd_toEndOf="parent"
@@ -488,7 +476,7 @@
                                             android:text="Marked Pts: "
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="21sp"
+                                            android:textSize="20sp"
                                             android:textStyle="bold|normal"
                                             app:layout_constraintBottom_toBottomOf="parent"
                                             app:layout_constraintEnd_toStartOf="@+id/cardviewVGuideline"
@@ -525,7 +513,7 @@
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:orientation="vertical"
-                                            app:layout_constraintGuide_percent="0.48" />
+                                            app:layout_constraintGuide_percent="0.5" />
 
                                         <androidx.constraintlayout.widget.Guideline
                                             android:id="@+id/cardviewV3Guideline"
@@ -542,7 +530,7 @@
                                             android:text="Next Pt:"
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="22sp"
+                                            android:textSize="20sp"
                                             android:textStyle="bold"
                                             app:layout_constraintBottom_toBottomOf="parent"
                                             app:layout_constraintEnd_toStartOf="@+id/cardviewV2Guideline"
@@ -610,205 +598,98 @@
 
                                     <androidx.constraintlayout.widget.ConstraintLayout
                                         android:layout_width="match_parent"
-                                        android:layout_height="match_parent">
+                                        android:layout_height="115dp">
 
-                                        <androidx.constraintlayout.widget.Guideline
-                                            android:id="@+id/cardviewV4Guideline"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:orientation="vertical"
-                                            app:layout_constraintGuide_percent="0.8" />
+                                        <TextView
+                                            android:id="@+id/linesMarked"
+                                            android:layout_width="53dp"
+                                            android:layout_height="32dp"
+                                            android:layout_margin="5dp"
+                                            android:padding="2dp"
+                                            android:text="Long:"
+                                            android:textAlignment="textStart"
+                                            android:textColor="@color/white"
+                                            android:textSize="18sp"
+                                            android:textStyle="bold|normal"
+                                            app:layout_constraintBottom_toBottomOf="parent"
+                                            app:layout_constraintEnd_toEndOf="parent"
+                                            app:layout_constraintHorizontal_bias="0.037"
+                                            app:layout_constraintStart_toStartOf="parent"
+                                            app:layout_constraintTop_toTopOf="parent"
+                                            app:layout_constraintVertical_bias="0.578" />
 
                                         <androidx.constraintlayout.widget.Guideline
                                             android:id="@+id/cardviewV5Guideline"
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
                                             android:orientation="vertical"
-                                            app:layout_constraintGuide_percent="0.5" />
+                                            app:layout_constraintGuide_percent="0.27" />
 
                                         <TextView
                                             android:id="@+id/pace"
-                                            android:layout_width="0dp"
-                                            android:layout_height="0dp"
-                                            android:padding="5dp"
-                                            android:text="Marking Pace:"
+                                            android:layout_width="44dp"
+                                            android:layout_height="28dp"
+                                            android:padding="2dp"
+                                            android:text="Lat:"
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="17sp"
+                                            android:textSize="18sp"
                                             android:textStyle="bold|normal"
                                             app:layout_constraintBottom_toBottomOf="parent"
                                             app:layout_constraintEnd_toStartOf="@+id/cardviewV5Guideline"
+                                            app:layout_constraintHorizontal_bias="0.444"
                                             app:layout_constraintStart_toStartOf="parent"
-                                            app:layout_constraintTop_toTopOf="parent" />
+                                            app:layout_constraintTop_toTopOf="parent"
+                                            app:layout_constraintVertical_bias="0.192" />
+
+                                        <View
+                                            android:layout_width="match_parent"
+                                            android:layout_height="2dp"
+                                            android:background="@color/hr"
+                                            app:layout_constraintBottom_toBottomOf="parent"
+                                            app:layout_constraintTop_toBottomOf="parent"
+                                            app:layout_constraintVertical_bias="1.0"
+                                            tools:layout_editor_absoluteX="0dp" />
 
                                         <TextView
-                                            android:id="@+id/paceValue"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
+                                            android:id="@+id/longValue"
+                                            android:layout_width="138dp"
+                                            android:layout_height="35dp"
                                             android:layout_margin="5dp"
                                             android:padding="5dp"
                                             android:text=""
                                             android:textAlignment="textStart"
                                             android:textColor="@color/white"
-                                            android:textSize="20sp"
+                                            android:textSize="12sp"
                                             android:textStyle="bold"
                                             app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintEnd_toStartOf="@+id/cardviewV4Guideline"
+                                            app:layout_constraintEnd_toEndOf="parent"
+                                            app:layout_constraintHorizontal_bias="0.968"
+                                            app:layout_constraintStart_toStartOf="@+id/linesMarked"
+                                            app:layout_constraintTop_toTopOf="parent"
+                                            app:layout_constraintVertical_bias="0.562" />
+
+                                        <TextView
+                                            android:id="@+id/latValue"
+                                            android:layout_width="148dp"
+                                            android:layout_height="37dp"
+                                            android:layout_margin="5dp"
+                                            android:padding="5dp"
+                                            android:text=""
+                                            android:textAlignment="textStart"
+                                            android:textColor="@color/white"
+                                            android:textSize="12sp"
+                                            android:textStyle="bold"
+                                            app:layout_constraintBottom_toBottomOf="parent"
+                                            app:layout_constraintEnd_toEndOf="parent"
+                                            app:layout_constraintHorizontal_bias="0.0"
                                             app:layout_constraintStart_toStartOf="@+id/cardviewV5Guideline"
-                                            app:layout_constraintTop_toTopOf="parent" />
-
-                                        <TextView
-                                            android:id="@+id/textView2"
-                                            android:layout_width="0dp"
-                                            android:layout_height="0dp"
-                                            android:layout_weight="1"
-                                            android:padding="1dp"
-                                            android:text="(Pts/min)"
-                                            android:textAlignment="center"
-                                            android:textColor="@color/white"
-                                            android:textSize="15sp"
-                                            android:textStyle="bold"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintEnd_toEndOf="parent"
-                                            app:layout_constraintStart_toStartOf="@+id/cardviewV4Guideline"
-                                            app:layout_constraintTop_toTopOf="parent" />
-
-                                        <View
-                                            android:layout_width="match_parent"
-                                            android:layout_height="2dp"
-                                            android:background="@color/hr"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            tools:layout_editor_absoluteY="71dp" />
-                                    </androidx.constraintlayout.widget.ConstraintLayout>
-
-                                </LinearLayout>
-
-                                <LinearLayout
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:orientation="horizontal"
-                                    app:layout_constraintBottom_toTopOf="@+id/cardviewHSecondGuideline"
-                                    app:layout_constraintEnd_toEndOf="parent"
-                                    app:layout_constraintStart_toStartOf="parent"
-                                    app:layout_constraintTop_toTopOf="@+id/cardviewHFourthGuideline">
-
-                                    <androidx.constraintlayout.widget.ConstraintLayout
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent">
-
-                                        <androidx.constraintlayout.widget.Guideline
-                                            android:id="@+id/cardviewV6Guideline"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:orientation="vertical"
-                                            app:layout_constraintGuide_percent="0.5" />
-
-                                        <TextView
-                                            android:id="@+id/linesMarked"
-                                            android:layout_width="0dp"
-                                            android:layout_height="0dp"
-                                            android:layout_margin="5dp"
-                                            android:padding="2dp"
-                                            android:text="Marked Lines:"
-                                            android:textAlignment="textStart"
-                                            android:textColor="@color/white"
-                                            android:textSize="18sp"
-                                            android:textStyle="bold|normal"
-                                            app:layout_constraintBottom_toBottomOf="@+id/linesMarkedValue"
-                                            app:layout_constraintEnd_toStartOf="@+id/cardviewV6Guideline"
-                                            app:layout_constraintStart_toStartOf="parent"
-                                            app:layout_constraintTop_toTopOf="parent" />
-
-                                        <TextView
-                                            android:id="@+id/linesMarkedValue"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:layout_margin="5dp"
-                                            android:padding="5dp"
-                                            android:text=""
-                                            android:textAlignment="textStart"
-                                            android:textColor="@color/white"
-                                            android:textSize="20sp"
-                                            android:textStyle="bold"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintEnd_toEndOf="parent"
-                                            app:layout_constraintStart_toEndOf="@+id/cardviewV6Guideline"
-                                            app:layout_constraintTop_toTopOf="parent" />
-
-                                        <View
-                                            android:layout_width="match_parent"
-                                            android:layout_height="2dp"
-                                            android:background="@color/hr"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            tools:layout_editor_absoluteY="71dp" />
-
-
-                                    </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-                                </LinearLayout>
-
-                                <LinearLayout
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:orientation="horizontal"
-                                    app:layout_constraintBottom_toTopOf="@+id/cardviewThirdGuideline"
-                                    app:layout_constraintEnd_toEndOf="parent"
-                                    app:layout_constraintStart_toStartOf="parent"
-                                    app:layout_constraintTop_toTopOf="@+id/cardviewHSecondGuideline">
-
-                                    <androidx.constraintlayout.widget.ConstraintLayout
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent">
-
-                                        <androidx.constraintlayout.widget.Guideline
-                                            android:id="@+id/cardviewVlast2Guideline"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:orientation="vertical"
-                                            app:layout_constraintGuide_percent="0.5" />
-
-                                        <TextView
-                                            android:id="@+id/totalPoints"
-                                            android:layout_width="0dp"
-                                            android:layout_height="0dp"
-                                            android:padding="5dp"
-                                            android:text="Points on the line:"
-                                            android:textAlignment="textStart"
-                                            android:textColor="@color/white"
-                                            android:textSize="18sp"
-                                            android:textStyle="bold|normal"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintEnd_toStartOf="@+id/cardviewVlast2Guideline"
-                                            app:layout_constraintStart_toStartOf="parent"
-                                            app:layout_constraintTop_toTopOf="parent" />
-
-                                        <TextView
-                                            android:id="@+id/totalPointsValue"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:layout_margin="5dp"
-                                            android:padding="5dp"
-                                            android:text=""
-                                            android:textAlignment="textStart"
-                                            android:textColor="@color/white"
-                                            android:textSize="20sp"
-                                            android:textStyle="bold"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintEnd_toEndOf="parent"
-                                            app:layout_constraintStart_toStartOf="@+id/cardviewVlast2Guideline"
-                                            app:layout_constraintTop_toTopOf="parent" />
-
+                                            app:layout_constraintTop_toTopOf="parent"
+                                            app:layout_constraintVertical_bias="0.081" />
 
                                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                                 </LinearLayout>
-
-                                <View
-                                    android:layout_width="match_parent"
-                                    android:layout_height="2dp"
-                                    android:background="@color/hr"
-                                    app:layout_constraintTop_toTopOf="@+id/cardviewThirdGuideline" />
 
 
                             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -852,9 +733,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="end|bottom"
-                    android:visibility="invisible"
                     android:contentDescription="@string/fab_map"
                     android:src="@android:drawable/ic_menu_mylocation"
+                    android:visibility="invisible"
                     app:backgroundTint="@color/green"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -931,6 +812,7 @@
 
 
             </androidx.constraintlayout.widget.ConstraintLayout>
+
             <ProgressBar
                 android:id="@+id/progressBar"
                 style="?android:attr/progressBarStyleLarge"
