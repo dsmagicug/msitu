@@ -1,15 +1,22 @@
 # kibira
 Kibira is a tree planting app meant to simplify the pegging and rope-tying process, during tree planting.
 The app is used in conjuction with a RTK Rover and RTK base station. This allows us to map statelite provided coordinates onto the ground with an error margin margin of just 1cm.
+
+## License
+This project has a GPL License, and it is attached in the repository.
+
+## Installation.
+The project is ready to use out of the box, once you clone and run it in Android studio.
+But a few side notes below.
+* Note that the minimum sdk is `23` and target sdk is `32`.
+* The project uses the MVVM Model so ensure that `View Binding` is enabled in your gradle scripts.
+* Incase of serialization issues, add "org.jetbrains.kotlin:kotlin-serialization:1.6.10" as a classpath in your project `gradle` file, under `buildScript` section.
+* In addition, don't forget to add 'org.jetbrains.kotlin.plugin.serialization' and 'kotlin-kapt' plugins in your app `gradle` file, under the `plugin` section.
+
 ## Basic Usage.
 * Start with setting up the equipment. PS. Ensure that the base station has a clear view of the sky- For accurate statelite readings.
 * Once both the base station and the rover are communicating, turn on the app.
 * Connect the app to the rover either using Bluetooth or USB and wait untill it indicates that you have an RTK Fix. This takes between a few minutes.
-
-
-## More about how RTK Works
-* [What is rtk?]( https://www.youtube.com/watch?v=257WX_agvtg)
-* [How The rover and base work?](https://www.youtube.com/watch?v=Rk09oMD_I24&t=4s)
 
 ## How to start project.
 * Create a new project by filling in the necessary fields.
@@ -35,3 +42,7 @@ If using two different sets of equipment, we advise the below to be followed.
 * Replace the existing base points of `Project A` with the copied base points and save it.
 * Open the app, when you tap `Import prject` the version of `Project A` with the new base points, will be available. This will successfully be the same project as `Project A` from equipment `Set one` despite the fact that two different equipment sets were used. The planting lines will be right after the last line drawn by equipment `Set one`, with a negligeable offset of about 1-2 inches.
 
+
+## Resources
+* [What is rtk?]( https://www.youtube.com/watch?v=257WX_agvtg)
+* [How The rover and base work?](https://www.youtube.com/watch?v=Rk09oMD_I24&t=4s)
