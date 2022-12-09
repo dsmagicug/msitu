@@ -1,5 +1,25 @@
 package com.dsmagic.kibira.usb;
 
+/*
+ *  This file is part of Kibira.
+ *  <https://github.com/kitandara/kibira>
+ *
+ *  Copyright (C) 2022 Digital Solutions
+ *
+ *  Kibira is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Kibira is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Kibira. If not, see <http://www.gnu.org/licenses/>
+ */
+
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,15 +30,14 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 
-import com.dsmagic.kibira.LongLat;
-import com.dsmagic.kibira.NmeaReader;
-import com.dsmagic.kibira.RtkLocationSource;
+import com.dsmagic.kibira.dataReadings.LongLat;
+import com.dsmagic.kibira.dataReadings.NmeaReader;
+import com.dsmagic.kibira.dataReadings.RtkLocationSource;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
 import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;

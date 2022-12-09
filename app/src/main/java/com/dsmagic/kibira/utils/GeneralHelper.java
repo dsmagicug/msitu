@@ -1,11 +1,29 @@
 package com.dsmagic.kibira.utils;
 
-import android.content.ClipboardManager;
-import android.content.Context;
+/*
+ *  This file is part of Kibira.
+ *  <https://github.com/kitandara/kibira>
+ *
+ *  Copyright (C) 2022 Digital Solutions
+ *
+ *  Kibira is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Kibira is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Kibira. If not, see <http://www.gnu.org/licenses/>
+ */
+
 import android.location.Location;
 import android.location.LocationManager;
 
-import com.dsmagic.kibira.MainActivity;
+import com.dsmagic.kibira.activities.MainActivity;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
@@ -29,6 +47,7 @@ public class GeneralHelper {
     }
 
     public static float findDistanceBtnTwoPoints(LatLng pt1, LatLng pt2){
+
         Location firstPoint = new Location(LocationManager.GPS_PROVIDER);
         Location secondPoint = new Location(LocationManager.GPS_PROVIDER);
         // set latLong for first point
@@ -38,7 +57,8 @@ public class GeneralHelper {
         secondPoint.setLatitude(pt2.latitude);
         secondPoint.setLongitude(pt2.longitude);
 
-        return firstPoint.distanceTo(secondPoint); // in metres
+            return firstPoint.distanceTo(secondPoint); // in metres
+
     }
 
     public static float sanitizeMagnetometerBearing(Float bearing){

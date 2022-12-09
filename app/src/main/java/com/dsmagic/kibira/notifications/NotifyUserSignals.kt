@@ -1,5 +1,25 @@
 package com.dsmagic.kibira.notifications
 
+/*
+ *  This file is part of Kibira.
+ *  <https://github.com/kitandara/kibira>
+ *
+ *  Copyright (C) 2022 Digital Solutions
+ *
+ *  Kibira is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Kibira is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Kibira. If not, see <http://www.gnu.org/licenses/>
+ */
+
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
@@ -11,9 +31,8 @@ import android.media.MediaPlayer
 import android.os.*
 import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.view.isVisible
-import com.dsmagic.kibira.MainActivity
+import com.dsmagic.kibira.activities.MainActivity
 import com.dsmagic.kibira.R
 import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.LatLng
@@ -30,43 +49,18 @@ class NotifyUserSignals {
         var isBeeping = false
         var reasonForBeeping = ""
         var oldScenario = ""
-        fun beepingSoundForDirectionIndicator(scenario: String, context: Context): MediaPlayer {
-            try {
-                when (scenario) {
-                    "ShortBeep" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.signalbeepmp3)
-                        startPlayer(mediaPlayer, scenario, oldScenario)
-                    }
-                    "ErrorBeep" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.errorbeep)
-                        startPlayer(mediaPlayer, scenario, oldScenario)
-                    }
-                    "Left" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.turnleftmp3)
-                        startPlayer(mediaPlayer, scenario, oldScenario)
-                    }
-                    "Right" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.turnrightmp3)
-                        startPlayer(mediaPlayer, scenario, oldScenario)
-                    }
 
-                }
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            return mediaPlayer
-        }
-
+        // beeping sound for when one is close to a point or at point
         fun beepingSoundForMarkingPosition(scenario: String, context: Context) {
             try {
                 when (scenario) {
                     "ShortBeep" -> {
                         mediaPlayer = MediaPlayer.create(context, R.raw.beepmp3)
-                        //startPlayer(mediaPlayer!!, scenario, oldScenario)
+                        startPlayer(mediaPlayer, scenario, oldScenario)
                     }
                     "At Point" -> {
                         mediaPlayer = MediaPlayer.create(context, R.raw.markheremp3)
-                        //startPlayer(mediaPlayer!!, scenario, oldScenario)
+                        startPlayer(mediaPlayer, scenario, oldScenario)
                     }
                     "Slow Down" -> {
                         mediaPlayer = MediaPlayer.create(context, R.raw.slowdownmp3)
@@ -85,12 +79,6 @@ class NotifyUserSignals {
             }
 
         }
-//        fun startPlayer (player: MediaPlayer, s: String, os:String ):MediaPlayer{
-//           player.start()
-//            player.isLooping =  true
-//            return player
-//        }
-
 
         fun startPlayer(player: MediaPlayer, s: String, os: String): MediaPlayer {
             if (!player.isPlaying && s != os) {
@@ -103,29 +91,17 @@ class NotifyUserSignals {
             return player
         }
 
-        fun keepPlaying() {
-
-        }
-
-        fun stopActivePlayer(activePlayer: MediaPlayer) {
-            if (activePlayer != activePlayer && !activePlayer.isPlaying) {
-                activePlayer.stop()
-            }
-
-        }
 
         fun stopBeep(context: Context) {
             mediaPlayer = MediaPlayer.create(context, R.raw.signalbeepmp3)
             if (mediaPlayer.isPlaying) {
                 mediaPlayer.stop()
-            } else {
-                //Toast.makeText(context,"stop $isBeeping $reasonForBeeping",Toast.LENGTH_SHORT).show()
             }
             isBeeping = false
             reasonForBeeping = " "
         }
 
-        fun pulseUserLocationCircle(circle: Circle) {
+        fun pulseEffectOnUserLocationCircle(circle: Circle) {
 
             val runnableCode = object : Runnable {
                 override fun run() {
@@ -159,7 +135,7 @@ class NotifyUserSignals {
 
         }
 
-        fun statisticsWindow(
+        fun displayStats(
             activity: Activity,
             size: Int,
             textView: TextView,
@@ -194,24 +170,7 @@ class NotifyUserSignals {
                     activity.findViewById<ImageView>(R.id.plantValue)
                         .setImageResource(R.drawable.hand)
                 }
-                "Red" -> {
-                    MainActivity.pointCardview.isVisible = true
-                    animationColor = Color.YELLOW
-                    activity.findViewById<TextView>(R.id.plantText).text =
-                        "Point In front or behind"
-                    activity.findViewById<ImageView>(R.id.plantValue)
-                        .setImageResource(R.drawable.hand)
 
-                }
-                "Yellow" -> {
-                    MainActivity.pointCardview.isVisible = true
-                    animationColor = Color.YELLOW
-                    activity.findViewById<TextView>(R.id.plantText).text =
-                        "Point In front or behind"
-                    activity.findViewById<ImageView>(R.id.plantValue)
-                        .setImageResource(R.drawable.hand)
-
-                }
                 "Stop" -> {
                     MainActivity.pointCardview.isVisible = false
 

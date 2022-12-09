@@ -19,9 +19,6 @@
 
     <uses-feature android:name="android.hardware.usb.host" />
 
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:allowBackup="false"
@@ -30,12 +27,11 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Kibira"
+        android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true">
+
         <activity
-            android:name=".SpinnerActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.login.LoginActivity"
+            android:name="com.dsmagic.kibira.ui.login.LoginActivity"
             android:exported="true"
             android:label="Kibira">
             <intent-filter>
@@ -45,8 +41,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".RegisterActivity"
-            android:exported="true"></activity> <!-- <meta-data -->
+            android:name="com.dsmagic.kibira.activities.RegisterActivity"
+            android:exported="true"/> <!-- <meta-data -->
         <!-- android:name="com.google.android.actions" -->
         <!-- android:value="" /> -->
         <!--
@@ -68,11 +64,12 @@
           add launchmode = "singleTask" to prevent that from happening.
         -->
         <activity
-            android:name=".MainActivity"
+            android:name="com.dsmagic.kibira.activities.MainActivity"
             android:configChanges="orientation|screenSize"
             android:exported="true"
             android:launchMode="singleTask"
-            android:theme="@style/Theme.Kibira.NoActionBar"></activity>
+            android:requestLegacyExternalStorage="true"
+            android:theme="@style/Theme.Kibira.NoActionBar"/>
     </application>
 
 </manifest>

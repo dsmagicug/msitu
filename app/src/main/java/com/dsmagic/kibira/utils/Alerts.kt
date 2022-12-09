@@ -1,9 +1,30 @@
 package com.dsmagic.kibira.utils
 
+/*
+ *  This file is part of Kibira.
+ *  <https://github.com/kitandara/kibira>
+ *
+ *  Copyright (C) 2022 Digital Solutions
+ *
+ *  Kibira is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Kibira is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Kibira. If not, see <http://www.gnu.org/licenses/>
+ */
+
+import android.app.Activity
 import android.content.Context
 import android.content.DialogInterface
 import androidx.appcompat.app.AlertDialog
-import com.dsmagic.kibira.MainActivity
+import com.dsmagic.kibira.activities.MainActivity
 import com.dsmagic.kibira.R
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.deleteBasePoints
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.deleteProject
@@ -24,7 +45,7 @@ class Alerts {
 
                     DialogInterface.OnClickListener { _, _ ->
 
-                       var deletedRow = deleteProject(I)
+                       val deletedRow = deleteProject(I)
                         if(deletedRow > 0 ){
                             SuccessAlert("Successfully Deleted",context)
                         }
@@ -61,14 +82,6 @@ class Alerts {
                         deleteBasePoints(PID)
                         MainActivity.meshDone = false
                     })
-//                .setNegativeButton(
-//                    "Edit Project",
-//                    DialogInterface.OnClickListener{
-//                        dialog,id ->
-//
-//                    }
-//                )
-
 
                 .show()
 
@@ -120,6 +133,27 @@ class Alerts {
                 .show()
         }
 
+        lateinit var alertDialog: AlertDialog
+
+        fun exitAlert(S: String,a: Activity) {
+            alertDialog =
+                AlertDialog.Builder(a.applicationContext).setTitle("Warning").setIcon(R.drawable.caution).setMessage(S)
+                    .setPositiveButton("Exit",
+
+                        DialogInterface.OnClickListener { _, _ ->
+
+                            a.finish()
+
+                        }).setNegativeButton("Stay",
+
+                        DialogInterface.OnClickListener { _, _ ->
+
+                        })
+
+                    .show()
+        }
+
     }
+
 
 }

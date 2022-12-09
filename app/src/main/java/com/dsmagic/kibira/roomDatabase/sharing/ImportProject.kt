@@ -2,10 +2,8 @@ package com.dsmagic.kibira.roomDatabase.sharing
 
 import android.content.ContentResolver
 import android.net.Uri
-import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.google.gson.JsonParser
 import org.json.JSONArray
-import org.json.JSONObject
 import java.io.InputStream
 import java.util.*
 

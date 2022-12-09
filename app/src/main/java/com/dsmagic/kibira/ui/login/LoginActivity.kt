@@ -1,6 +1,25 @@
 package com.dsmagic.kibira.ui.login
 
-//import com.dsmagic.kibira.MainActivity
+/*
+ *  This file is part of Kibira.
+ *  <https://github.com/kitandara/kibira>
+ *
+ *  Copyright (C) 2022 Digital Solutions
+ *
+ *  Kibira is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Kibira is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Kibira. If not, see <http://www.gnu.org/licenses/>
+ */
+
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -17,13 +36,13 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.dsmagic.kibira.MainActivity
+import com.dsmagic.kibira.activities.MainActivity
 import com.dsmagic.kibira.R
-import com.dsmagic.kibira.RegisterActivity
+import com.dsmagic.kibira.activities.RegisterActivity
 import com.dsmagic.kibira.roomDatabase.AppDatabase
-import com.dsmagic.kibira.services.AppModule
-import com.dsmagic.kibira.services.LoginDataClassX
-import com.dsmagic.kibira.services.loginDataclass
+import com.dsmagic.kibira.services.retrofit.AppModule
+import com.dsmagic.kibira.services.retrofit.LoginDataClassX
+import com.dsmagic.kibira.services.retrofit.loginDataclass
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -48,8 +67,6 @@ class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        binding = ActivityLoginBinding.inflate(layoutInflater)
-//        setContentView(binding.root)
         sharedPreferences =
             this.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
         if (loginMode) {
@@ -113,7 +130,7 @@ class LoginActivity : AppCompatActivity() {
             setResult(Activity.RESULT_OK)
 
             //Complete and destroy login activity once successful
-            finish()
+           // finish()
         })
 
         username.afterTextChanged {
@@ -144,8 +161,6 @@ class LoginActivity : AppCompatActivity() {
 
             login.setOnClickListener {
                 loading.visibility = View.VISIBLE
-
-                // loginUser(username.text.toString(), password.text.toString())
                 offlineLogin(username.text.toString(), password.text.toString())
             }
 
@@ -215,53 +230,6 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    fun loginUser(email: String, password: String) {
-        Log.d("values", "$email $password")
-        val retrofitDataObject = AppModule.retrofitInstance()
-
-        val modal = LoginDataClassX(email, password)
-        val retrofitData = retrofitDataObject.loginUser(modal)
-        retrofitData.enqueue(object : Callback<loginDataclass?> {
-            override fun onResponse(
-                call: Call<loginDataclass?>,
-                response: Response<loginDataclass?>
-            ) {
-                loading.visibility = View.INVISIBLE
-                if (response.isSuccessful) {
-                    if (response.body() != null) {
-                        val tag = response.body()!!.tag
-                        val myemail = response.body()!!.email
-                        val user_id = response.body()!!.user_id
-                        val token = response.body()!!.token
-                        if (tag == "V") {
-                            updateUiWithUser(myemail, user_id, token)
-                            Toast.makeText(
-                                applicationContext, "Logged in " +
-                                        "", Toast.LENGTH_SHORT
-                            ).show()
-//                            SuccessAlert("Successfully Logged in")
-                        } else {
-                            alertfail("Invalid Credentials!")
-                        }
-
-
-                    } else {
-                        alertfail("Body null!")
-                    }
-                } else {
-                    alertfail("Response not successful! ${response}")
-                }
-
-
-            }
-
-            override fun onFailure(call: Call<loginDataclass?>, t: Throwable) {
-                loading.visibility = View.INVISIBLE
-                alertfail("something Went wrong! ${t.message}")
-            }
-        })
-    }
-
     fun alertfail(S: String) {
         AlertDialog.Builder(this)
             .setTitle("Error")
@@ -270,13 +238,6 @@ class LoginActivity : AppCompatActivity() {
             .show()
     }
 
-    fun SuccessAlert(S: String) {
-        AlertDialog.Builder(this)
-            .setTitle("Success")
-            .setIcon(R.drawable.tick)
-            .setMessage(S)
-            .show()
-    }
 
     private fun updateUiWithUserOffline(email: String, user_id: Int) {
 
@@ -293,12 +254,7 @@ class LoginActivity : AppCompatActivity() {
         intent.putExtra("userID", "$user_id")
         intent.putExtra("email", "$displayEmail")
         startActivity(intent)
-//
-//        Toast.makeText(
-//            applicationContext,
-//            "$welcome $displayEmail",
-//            Toast.LENGTH_LONG
-//        ).show()
+
     }
 
     private fun updateUiWithUser(email: String, user_id: Int, token: String) {
@@ -312,19 +268,12 @@ class LoginActivity : AppCompatActivity() {
         editor.putInt("userID", user_id)
         editor.putString("token", apiToken)
         editor.apply()
-        editor.commit()
 
         val intent = Intent(this, MainActivity::class.java)
         intent.putExtra("userID", "$user_id")
         intent.putExtra("email", "$displayEmail")
         intent.putExtra("token", "$apiToken")
         startActivity(intent)
-//
-//        Toast.makeText(
-//            applicationContext,
-//            "$welcome $displayEmail",
-//            Toast.LENGTH_LONG
-//        ).show()
     }
 
     private fun showLoginFailed(@StringRes errorString: Int) {

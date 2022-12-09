@@ -1,0 +1,12 @@
+package com.dsmagic.kibira.services.retrofit
+
+data class savePointsResponse(
+    val message: String
+
+)
+
+data class SaveBasePointsResponse(
+    val message: String,
+    val meta:String,
+
+)

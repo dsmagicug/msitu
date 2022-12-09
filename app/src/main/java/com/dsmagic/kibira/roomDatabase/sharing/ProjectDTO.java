@@ -1,7 +1,6 @@
 package com.dsmagic.kibira.roomDatabase.sharing;
 
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ProjectDTO {

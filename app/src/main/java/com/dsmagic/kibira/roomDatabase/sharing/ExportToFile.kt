@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Context.DOWNLOAD_SERVICE
 import android.os.Environment
 import android.util.Log
-import com.dsmagic.kibira.MainActivity.Companion.appdb
+import com.dsmagic.kibira.activities.MainActivity.Companion.appdb
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.roomDatabase.Entities.Project
@@ -28,8 +28,7 @@ class ExportToFile() {
             project = appdb.kibiraDao().getParticularProject(pid)
             context = ctx
             Log.d("Called","this has been called $pid")
-            projectDTO =
-                ProjectDTO()
+            projectDTO = ProjectDTO()
             projectDTO.name = project.name
             projectDTO.gapsize = project.gapsize
             projectDTO.lineLength = project.lineLength
@@ -51,7 +50,7 @@ class ExportToFile() {
             return appdb.kibiraDao().getBasepointsForProject(projectId)
         }
 
-        fun transformToJson(projectDTO: ProjectDTO){
+        private fun transformToJson(projectDTO: ProjectDTO){
             val gson = Gson()
             val json = gson.toJson(projectDTO)
 
