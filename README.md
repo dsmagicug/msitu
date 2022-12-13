@@ -1,16 +1,21 @@
 # kibira
 Kibira is a tree planting app meant to simplify the pegging and rope-tying process, during tree planting.
-The app is used in conjuction with a RTK Rover and RTK base station. This allows us to map statelite provided coordinates onto the ground with an error margin margin of just 1cm.
+The app is used in conjunction with a RTK Rover and RTK base station. This allows us to map statelite provided coordinates onto the ground with an error margin margin of just 1cm.
 
 ## License
 This project has a GPL License, and it is attached in the repository.
 
 ## Installation.
-The project is ready to use out of the box, once you clone and run it in Android studio.
-But a few side notes below.
+The project is ready to use out of the box, once you clone and run it in Android studio. 
+Android studio `Dolphin` was used for the project, but the plugins were successfully compatible with `Chipmuck` and `Bumblebee`
+
+** How to clone:
+In your desired directory, clone the repository using `git clone https://github.com/kitandara/kibira.git -b main`
+Open the project using android studio, and wait for gradle to download the dependencies and build the project.
+If it does not successfully build, the below could be the cause. 
 * Note that the minimum sdk is `23` and target sdk is `32`.
 * The project uses the MVVM Model so ensure that `View Binding` is enabled in your gradle scripts.
-* Incase of serialization issues, add "org.jetbrains.kotlin:kotlin-serialization:1.6.10" as a classpath in your project `gradle` file, under `buildScript` section.
+* In case of serialization issues, add "org.jetbrains.kotlin:kotlin-serialization:1.6.10" as a classpath in your project `gradle` file, under `buildScript` section.
 * In addition, don't forget to add 'org.jetbrains.kotlin.plugin.serialization' and 'kotlin-kapt' plugins in your app `gradle` file, under the `plugin` section.
 
 ## Basic Usage.
