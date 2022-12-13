@@ -28,7 +28,7 @@ import com.dsmagic.kibira.R
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class ScaleLargeProjects {
-    //make sure we are loading 10 lines each time, to prevent app from crashing.
+    //make sure we are loading 10 lines each time, to improve performance and manage large projects.
     companion object{
         fun updateProjectLines(activity: Activity): MutableList<PlantingLine> {
             val fab_moreLines = activity.findViewById<FloatingActionButton>(R.id.fab_moreLines)

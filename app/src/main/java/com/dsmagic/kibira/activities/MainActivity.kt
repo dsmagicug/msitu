@@ -61,17 +61,14 @@ import com.dsmagic.kibira.R
 import com.dsmagic.kibira.bluetooth.BluetoothFunctions
 import com.dsmagic.kibira.dataReadings.*
 import com.dsmagic.kibira.notifications.NotifyUserSignals
-import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.isBeeping
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.isUserlocationOnPath
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.keepUserInStraightLine
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.pulseEffectOnUserLocationCircle
-import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.reasonForBeeping
-import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.stopBeep
-import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.vibration
+import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.vibrate
 import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
-import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.retrieveMarkedpoints
+import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.retrieveMarkedPoints
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.roomDatabase.Entities.Project
@@ -105,13 +102,10 @@ import java.util.concurrent.*
 import kotlin.math.abs
 import kotlin.math.sqrt
 import android.widget.Toast
-import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.displayStats
-import com.dsmagic.kibira.utils.Conversions
 
 
 class MainActivity : AppCompatActivity(),
     NavigationView.OnNavigationItemSelectedListener {
-
 
     private var marker: Circle? = null
     private var tempListMarker = mutableListOf<Marker>()
@@ -123,7 +117,7 @@ class MainActivity : AppCompatActivity(),
     private var linesIndex = MutableS2ShapeIndex() // S2 index of lines...
     private var pointsIndex = S2PointIndex<S2LatLng>()
     private var asyncExecutor: ExecutorService = Executors.newCachedThreadPool()
-    private var closestPointRadius = ArrayList<Any>()
+    private var closestPointAndRadiusArray = ArrayList<Any>()
     private lateinit var fromRTKFeed: LatLng
 
     /*Declaring sensorManager and acceleration constants*/
@@ -151,10 +145,8 @@ class MainActivity : AppCompatActivity(),
     lateinit var fab_moreLines: FloatingActionButton
 
     lateinit var longValue: TextView
-    lateinit var pointsMarked: TextView
-
     lateinit var latValue: TextView
-    var delta = 1 //6 inches
+    var delta = 0.146 // small enough to increase accuracy but big enough that it is achievable.
     var projectLoaded = false
     lateinit var positionText: TextView
     lateinit var positionLayout: LinearLayout
@@ -177,11 +169,9 @@ class MainActivity : AppCompatActivity(),
 
     companion object {
 
-
         var device: BluetoothDevice? = null
 
         lateinit var projectLines: MutableList<PlantingLine>
-
         var lastFixType = ""
         var projectList = ArrayList<String>()
         var projectIDList = mutableListOf<Int>()
@@ -193,8 +183,7 @@ class MainActivity : AppCompatActivity(),
         lateinit var initialTimeValue: String
         val bluetoothList = ArrayList<String>()
         var map: GoogleMap? = null
-        var tempPlantingRadius = 0.0f
-        var toleranceRadius = 0.0f
+        var toleranceCircleRadius = 0.0f
         var circleRadius = 0.4
         var listOfMarkedPoints = mutableListOf<LatLng>()
         var listofmarkedcircles = mutableListOf<Circle>()
@@ -210,7 +199,7 @@ class MainActivity : AppCompatActivity(),
         lateinit var appdb: AppDatabase
         lateinit var fab_center: FloatingActionButton
         lateinit var lineInS2Format: S2PointIndex<S2LatLng>
-        var plantingRadius: Circle? = null
+        var plantingToleranceCircle: Circle? = null
         var onLoad = false
 
         lateinit var projectStartPoint: Point
@@ -220,8 +209,8 @@ class MainActivity : AppCompatActivity(),
         var position = "None"
         var created = false
 
-        //Use a safer alternative to a cachedThreadPool (To prevent OutofMemoryException) while handling processes
-//that are short lived
+       /* Use a safer alternative to a cachedThreadPool (To prevent OutOfMemoryException) while handling processes
+        that are short lived*/
         val corePoolSize = 4
         val maximumPoolSize = corePoolSize * 4
         val keepAliveTime = 100L
@@ -229,7 +218,6 @@ class MainActivity : AppCompatActivity(),
         val MapWorkerPool: ExecutorService = ThreadPoolExecutor(
             corePoolSize, maximumPoolSize, keepAliveTime, TimeUnit.SECONDS, workQueue
         )
-
 
     }
 
@@ -280,6 +268,8 @@ class MainActivity : AppCompatActivity(),
         btnCloseDrawer.setOnClickListener {
             drawerlayout.closeDrawer(Gravity.LEFT)
         }
+
+        //Change the map orientation to match the direction that the user is facing, once they have created a project.
         if (created) {
             val newAngel = GeneralHelper.sanitizeMagnetometerBearing(lastRotateDegree)
             if (map != null) {
@@ -290,7 +280,9 @@ class MainActivity : AppCompatActivity(),
         }
 
         fabCampus.setOnClickListener {
-            // rotate the map accordingly
+            /*
+            * rotate the map accordingly
+            * */
             val newAngel = GeneralHelper.sanitizeMagnetometerBearing(lastRotateDegree)
             if (map != null) {
                 GeneralHelper.changeMapPosition(map, newAngel)
@@ -303,6 +295,9 @@ class MainActivity : AppCompatActivity(),
             undoDrawingLines()
         }
 
+        /*
+        * show the current real time position of the user
+        * */
         fab_center.setOnClickListener {
             if (showMe) {
                 val loc = LatLng(lastLoc!!.latitude, lastLoc!!.longitude)
@@ -320,13 +315,13 @@ class MainActivity : AppCompatActivity(),
             showMe = !showMe
         }
 
+       /* draw more planting lines on the map */
         fab_moreLines.setOnClickListener {
             val drawPoints = ScaleLargeProjects.updateProjectLines(this)
             Geometry.generateLongLat(projectStartPoint, drawPoints, drawLine)
-
         }
-        extras = intent.extras
 
+        extras = intent.extras
         sharedPreferences = this.getSharedPreferences(
             CreateProjectDialog.sharedPrefFile, Context.MODE_PRIVATE
         )!!
@@ -348,7 +343,6 @@ class MainActivity : AppCompatActivity(),
             workerPool.submit {
                 retrieveProjectsFromBackend(userID!!.toInt())
             }
-
         }
 
         onLoad = true
@@ -427,9 +421,9 @@ class MainActivity : AppCompatActivity(),
                     }
                     else {
                         val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
-                        val listOfPointsOnLine = lineOfInterest.tag as MutableList<LatLng>
-                        plotFunc(fromRTKFeed, listOfPointsOnLine)
-                        distanceToPoint(fromRTKFeed)
+                        val listOfPointsOnLineOfInterest = lineOfInterest.tag as MutableList<LatLng>
+                        getClosestPointOnLineRelativeToUserLocation(fromRTKFeed, listOfPointsOnLineOfInterest)
+                        distanceToTheNextPointOfInterest(fromRTKFeed)
                         approachingPoint()
                     }
 
@@ -504,61 +498,38 @@ class MainActivity : AppCompatActivity(),
 
     private fun approachingPoint() {
 
-        // We need to calculate distance of where we are to point to be marked
-        if (closestPointRadius.size > 0) {
-            toleranceRadius = tempPlantingRadius
-            val pointOfInterest = closestPointRadius[0] as LatLng
+        if (closestPointAndRadiusArray.size > 0) {
+            val pointOfInterest = closestPointAndRadiusArray[0] as LatLng
             val distanceAway = GeneralHelper.findDistanceBtnTwoPoints(
                 fromRTKFeed, pointOfInterest
             )
 
-            if ((distanceAway < toleranceRadius)) {
+            if ((distanceAway < toleranceCircleRadius)) {
                 if (pointOfInterest in listOfMarkedPoints) {
                     if (distanceAway < delta) {
-                        NotifyUserSignals.flashPosition("Green", positionText, this)
-                        vibration(this)
-                        if (isBeeping) {
-                            stopBeep(this)
-                        }
-                    } else {
-                        NotifyUserSignals.flashPosition("Orange", positionText, this)
+                        NotifyUserSignals.flashSignal("Green", positionText, this)
+                        vibrate(this)
 
-                        if (isBeeping) {
-                            stopBeep(this)
-                        }
+                    } else {
+                        NotifyUserSignals.flashSignal("Orange", positionText, this)
+
                     }
                 } else {
 
-                    NotifyUserSignals.flashPosition("Orange", positionText, this)
+                    NotifyUserSignals.flashSignal("Orange", positionText, this)
 
                     if (distanceAway < delta) {
-                        NotifyUserSignals.flashPosition("Green", positionText, this)
+                        NotifyUserSignals.flashSignal("Green", positionText, this)
 
-//                        if (isBeeping && reasonForBeeping != "At Point") {
-                        stopBeep(this)
-//                            beepingSoundForMarkingPosition("At Point", this)
-//                            isBeeping = true
-//                            reasonForBeeping = "At Point"
-//                        }
                         workerPool.submit {
                             markPoint(pointOfInterest)
-                        }
-
-
-                    } else {
-                        if (!isBeeping && reasonForBeeping != "Slow Down") {
-
-                            isBeeping = true
-                            reasonForBeeping = "Slow Down"
                         }
                     }
                 }
             }
 
-            if (distanceAway > toleranceRadius) {
-                stopBeep(this)
-                NotifyUserSignals.flashPosition("Stop", positionText, this)
-                stopBeep(this)
+            if (distanceAway > toleranceCircleRadius) {
+                NotifyUserSignals.flashSignal("Stop", positionText, this)
             }
 
         }
@@ -577,8 +548,6 @@ class MainActivity : AppCompatActivity(),
                         listofmarkedcircles.add(c!!)
                     }
 
-                } else {
-                    Log.d("empty", "empty")
                 }
             }
 
@@ -594,7 +563,7 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    val callback = OnMapReadyCallback { googleMap ->
+    private val callback = OnMapReadyCallback { googleMap ->
         map = googleMap
         googleMap.setLocationSource(NmeaReader.listener)
         googleMap.setOnMapClickListener(onMapClick)
@@ -621,7 +590,6 @@ class MainActivity : AppCompatActivity(),
     }
 
     var selectedProject: String = " "
-
 
     fun displayProjects() {
         onLoad = false
@@ -685,7 +653,6 @@ class MainActivity : AppCompatActivity(),
     fun displayMoreProjects(list: Array<String>) {
         var checkedItemIndex = -1
         alertDialog = AlertDialog.Builder(this).setTitle("All Projects")
-            // .setMessage(s)
             .setSingleChoiceItems(
                 list,
                 checkedItemIndex,
@@ -777,22 +744,9 @@ class MainActivity : AppCompatActivity(),
         return projectList
     }
 
-    private fun checkPermission(): Boolean {
-        return if (SDK_INT >= Build.VERSION_CODES.R) {
-            Environment.isExternalStorageManager()
-        } else {
-            val result =
-                if (SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                    ContextCompat.checkSelfPermission(this, READ_EXTERNAL_STORAGE)
-                } else {
-                    TODO("VERSION.SDK_INT < JELLY_BEAN")
-                }
-            val result1 =
-                ContextCompat.checkSelfPermission(this, WRITE_EXTERNAL_STORAGE)
-            result == PackageManager.PERMISSION_GRANTED && result1 == PackageManager.PERMISSION_GRANTED
-        }
-    }
-   var PERMISSION_REQUEST_CODE = 1
+    /*
+    * Android versions below 11 require for explicit permssion for device storage
+    * */
     private fun requestPermission() {
         if (SDK_INT >= Build.VERSION_CODES.R) {
             try {
@@ -834,7 +788,7 @@ class MainActivity : AppCompatActivity(),
         ).show()
         cleanUpExistingFragment()
 
-        listOfMarkedPoints = retrieveMarkedpoints(PID)
+        listOfMarkedPoints = retrieveMarkedPoints(PID)
 
         var listOfBasePoints: MutableList<Basepoints>
         GlobalScope.launch(Dispatchers.IO) {
@@ -857,7 +811,7 @@ class MainActivity : AppCompatActivity(),
                     MAX_MESH_SIZE = Meshsize
 
                     plotMesh(firstPoint, secondPoint, PID, meshType, listOfMarkedPoints, gapUnits)
-                   // plotMesh2(firstPoint, secondPoint, PID, meshType, gapUnits, listOfMarkedPoints)
+                    //plotMesh2(firstPoint, secondPoint, PID, meshType, gapUnits, listOfMarkedPoints)
 
                 }
             }
@@ -871,7 +825,12 @@ class MainActivity : AppCompatActivity(),
     var latLng: LatLng? = null
 
 
-    private fun distanceToPoint(loc: LatLng) {
+    /*
+    * function to calculate the distance between the next point to be marked and the user location(rover location)
+    * The next point to be marked can be either in front or behind the user, depending on the planting direction
+    * being followed at that time. hence the degree stuff.
+    * */
+    private fun distanceToTheNextPointOfInterest(loc: LatLng) {
         val locationOfNextPoint = Location(LocationManager.GPS_PROVIDER)
         val locationOfRoverLatLng = Location(LocationManager.GPS_PROVIDER)
         val locationOfCurrentPoint = Location(LocationManager.GPS_PROVIDER)
@@ -889,9 +848,6 @@ class MainActivity : AppCompatActivity(),
             card.isVisible = true
             directionCardLayout.isVisible = true
 
-            displayedDistance.text = ""
-            displayedPoints.text = listOfMarkedPoints.size.toString()
-
             refPoint = listOfMarkedPoints[listOfMarkedPoints.lastIndex]
             var index = 0
 
@@ -902,6 +858,7 @@ class MainActivity : AppCompatActivity(),
                         index = LatLngIndex
                 }
 
+                // when the point is behind the user
                 if (lastRotateDegree in (-180.0..90.0)) {
 
                     distance = 0f
@@ -924,7 +881,9 @@ class MainActivity : AppCompatActivity(),
                         distance = distanceTo(locationOfNextPoint)
                     }
 
-                } else {
+                }
+                //when point is in front of the user
+                else {
                     distance = 0f
                     var nextIndex = index - 1
 
@@ -968,13 +927,15 @@ class MainActivity : AppCompatActivity(),
                     blink(position)
                 }
 
-//                val distanceInUnitsRespectiveToProject =
-//                    Conversions.ftToMeters(distance.toString(), gapUnits)
+                displayedDistance.text = distance.toString()
+                displayedPoints.text = listOfMarkedPoints.size.toString()
+//
+//               val distanceInUnitsRespectiveToProject =
+//                   Conversions.ftToMeters(distance.toString(), gapUnits)
 //                displayStats(
 //                   this,
 //                    size,
 //                    totalPoints,
-//                    l,
 //                    distanceInUnitsRespectiveToProject.toFloat()
 //                )
 
@@ -993,9 +954,9 @@ class MainActivity : AppCompatActivity(),
 
         } else {
             //ensure we have a point first
-            if (closestPointRadius.size > 0) {
+            if (closestPointAndRadiusArray.size > 0) {
                 directionCardLayout.isVisible = true
-                val pointOfInterest = closestPointRadius[0] as LatLng
+                val pointOfInterest = closestPointAndRadiusArray[0] as LatLng
                 val positionOfPoint = l.indexOf(pointOfInterest)
 
                 val lastIndex = lineAsList.lastIndex
@@ -1049,7 +1010,7 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    fun actionWhenPersonIsStraying(loc: LatLng) {
+    private fun actionWhenPersonIsStraying(loc: LatLng) {
         polyline1 = map?.addPolyline(
             PolylineOptions().color(Color.BLACK).jointType(JointType.DEFAULT).width(3.5f)
                 .geodesic(true).startCap(RoundCap()).add(
@@ -1100,7 +1061,7 @@ class MainActivity : AppCompatActivity(),
     fun blinkEffectOfMarkedPoints(color: String, T: TextView) {
         var animationColor = 0
         when (color) {
-            "Green" -> {
+            "GreenHex" -> {
                 animationColor = Color.rgb(0, 206, 209)
             }
             "Orange" -> {
@@ -1110,7 +1071,7 @@ class MainActivity : AppCompatActivity(),
                 animationColor = Color.RED
 
             }
-            "Cyan" -> {
+            "Green" -> {
                 animationColor = Color.GREEN
 
             }
@@ -1523,9 +1484,9 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
             Toast.makeText(applicationContext, "Switching Lines..", Toast.LENGTH_SHORT).show()
 
             //remove the planting radius circle if it exists
-            if (templist.isNotEmpty()) {
-                templist[templist.lastIndex].remove()
-                templist.clear()
+            if (listOfToleranceCircles.isNotEmpty()) {
+                listOfToleranceCircles[listOfToleranceCircles.lastIndex].remove()
+                listOfToleranceCircles.clear()
             }
 
         }
@@ -1641,47 +1602,49 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
     }
 
     var plantingRadiusCircle: Circle? = null
-    val templist = mutableListOf<Circle>()
+    private val listOfToleranceCircles = mutableListOf<Circle>()
     val tempClosestPoint =
         mutableSetOf<LatLng>() //set allow only unique elements which is what we want
 
 
-    private fun plotFunc(roverPoint: LatLng, l2: MutableList<LatLng>) {
+    private fun getClosestPointOnLineRelativeToUserLocation(roverPoint: LatLng, listOfPointsOnlineOfInterest: MutableList<LatLng>) {
 
-        closestPointRadius.clear()
-
+        closestPointAndRadiusArray.clear()
         fab_reset.hide()
 
-        lineInS2Format = GeneralHelper.convertLineToS2(l2)
-
+        /* Convert polyline of interest into an S2 Line, so that we can use S2 Geometry, to get the closest point
+         to the user-- its much faster
+        */
+        lineInS2Format = GeneralHelper.convertLineToS2(listOfPointsOnlineOfInterest)
         val xloc = S2Helper.findClosestPointOnLine(lineInS2Format, roverPoint) as S2LatLng?
 
         if (xloc != null) {
             val pt = LatLng(xloc.latDegrees(), xloc.lngDegrees())
-            closestPointRadius.add(pt)
-            debugXloc = pt
-
-            //check if returned point is not already marked
+            closestPointAndRadiusArray.add(pt)
 
             if (pt in listOfMarkedPoints) {
                 return
             }
+            /*
+            * Add the found point to a set, it is used to track the points as the user moves along the line
+            *  */
             tempClosestPoint.add(pt)
 
-            //handle visibility and lifecycle of the radius circle
-            if (pt !in l2) {
+            /* Focus only on the points on the line of interest*/
+            if (pt !in listOfPointsOnlineOfInterest) {
                 return
-            } else {
-
-                //templist holds the light green circle that show tolerance
-                if (templist.isNotEmpty()) {
-
-                    for (c in templist) {
+            }
+            else {
+                /*
+                * listOfToleranceCircles holds the light green circle that shows planting tolerance
+                * */
+                if (listOfToleranceCircles.isNotEmpty()) {   //we have found a point on the line
+                    for (c in listOfToleranceCircles) {
                         if (c.center == pt) {
                             return    //do nothing if a circle is already drawn at that point
                         }
                         if (c.center !in tempClosestPoint) {
-                            //removes the planting radius circle as one walks away from that point
+                            //remove the planting tolerance circle as one walks away from that point
                             c.remove()
 
                         }
@@ -1690,7 +1653,7 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
                 }
             }
 
-            plantingRadius = map?.addCircle(
+            plantingToleranceCircle = map?.addCircle(
                 CircleOptions().center(pt).fillColor(Color.GREEN).radius(radius(GAP_SIZE_METRES))
                     .strokeWidth(1.0f).fillColor(0x22228B22).strokeColor(Color.GREEN)
             )!!
@@ -1701,22 +1664,27 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
             tempClosestPoint.clear()
         }
 
-        if (plantingRadius != null) {
-            closestPointRadius.add(plantingRadius!!.radius.toFloat())
+        if (plantingToleranceCircle != null) {
+            closestPointAndRadiusArray.add(plantingToleranceCircle!!.radius.toFloat())
 
-            if (templist.isNotEmpty()) {
-                templist.forEach {
+            if (listOfToleranceCircles.isNotEmpty()) {
+                listOfToleranceCircles.forEach {
                     it.remove()
                 }
-                templist.clear()
-                templist.add((plantingRadius!!))
+                listOfToleranceCircles.clear()
+                listOfToleranceCircles.add((plantingToleranceCircle!!))
 
             } else {
-                templist.add((plantingRadius!!))
+                listOfToleranceCircles.add((plantingToleranceCircle!!))
             }
-            plantingRadiusCircle = templist[templist.lastIndex]
+            /*
+            * The function that calculates the closest point, returns multiple points depending on the position the user is
+            * in. But we are always interested in the most recent tolerance circle drawn
+            * as that is the best reflection of where the user is, hence it is our circle of interest
+            *  */
+            plantingRadiusCircle = listOfToleranceCircles[listOfToleranceCircles.lastIndex]
             plantingMode = true
-            tempPlantingRadius = plantingRadius!!.radius.toFloat()
+            toleranceCircleRadius = plantingToleranceCircle!!.radius.toFloat()
 
         }
     }
@@ -1747,22 +1715,18 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
                     tempListMarker.clear()
                 }
             }
-            if (templist.isNotEmpty()) {
-                templist.clear()
+            if (listOfToleranceCircles.isNotEmpty()) {
+                listOfToleranceCircles.clear()
             }
             if (tempClosestPoint.isNotEmpty()) {
                 tempClosestPoint.clear()
             }
             val unMarkedCirclesSequence = unmarkedCirclesList.asSequence()
 
-            val redCircleCircleToBeRemoved = unMarkedCirclesSequence.filter {
-                it.center == pointOfInterestOnPolyline
-            }
-            //redCircleCircleToBeRemoved.first().remove()
             mark(pointOfInterestOnPolyline)
-            vibration(this)
+            vibrate(this)
 
-            blinkEffectOfMarkedPoints("Cyan", displayedPoints)
+            blinkEffectOfMarkedPoints("Green", displayedPoints)
             Toast.makeText(
                 this, "Point Marked", Toast.LENGTH_SHORT
             ).show()
@@ -1777,7 +1741,6 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
         )
         listofmarkedcircles.add(markedCirclePoint!!)
     }
-
 
     var bearing: Double? = null
     var diff: Float? = null
@@ -1847,9 +1810,6 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
             ), SensorManager.SENSOR_DELAY_NORMAL
         )
         super.onResume()
-        Log.d("Level", "Level resumed")
-        //provider = OrientationProvider.getInstance()
-
     }
 
     override fun onPause() {
@@ -1944,7 +1904,7 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
     fun cleanUpExistingFragment() {
 
         meshDone = false
-        plantingRadius?.remove()
+        plantingToleranceCircle?.remove()
         fabFlag = true
         card.isVisible = false
         pointCardview.isVisible = false

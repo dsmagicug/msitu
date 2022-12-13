@@ -57,7 +57,6 @@ object CreateProjectDialog : DialogFragment() {
     lateinit var previewTriangular: TextView
 
     val sharedPrefFile = "kibirasharedfile"
-    var clean = false
 
     @SuppressLint("SetTextI18n")
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -243,7 +242,7 @@ object CreateProjectDialog : DialogFragment() {
                 MAX_MESH_SIZE = meshSize
                 GAP_SIZE_METRES = gapSize
                 MeshType = selectedType
-                    //Ft is the default units
+                    //Ft is the default units: Note: Leave as is " Ft"
                 gapUnits = if (gapUnit == "") {
                     " Ft"
                 } else {

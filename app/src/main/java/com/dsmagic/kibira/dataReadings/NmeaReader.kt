@@ -83,13 +83,7 @@ class NmeaReader {
                 // for ActivityCompat#requestPermissions for more details.
                 //  return
             }
-//            val uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // Serial port UUID
-//            val socket = device.createRfcommSocketToServiceRecord(uuid)
-//            socket.connect()
-//            input = socket.inputStream
-//            Log.d("bt", "Bluetooth connect complete")
-//            startDataListener()
-           // val pbar = MainActivity().progressBar
+
             try {
                 val uuid =
                     UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // Serial port UUID
@@ -100,7 +94,7 @@ class NmeaReader {
                 Toast.makeText(context, "Device successfully paired", Toast.LENGTH_LONG).show()
                 startDataListener()
             } catch (e: IOException) {
-               // pbar.isVisible = false
+
                 Toast.makeText(context, "Could not Pair! Make sure device is on", Toast.LENGTH_LONG)
                     .show()
                 e.printStackTrace()
@@ -129,13 +123,10 @@ class NmeaReader {
                             try{
                                 val longlat = LongLat(xs)
                                 if (longlat.fixType != LongLat.FixType.NoFixData) {
-
-                                    // if(longlat.fixType == LongLat.FixType.RTKFloat || longlat.fixType == LongLat.FixType.RTKFix){
-                                    // Send it to the Location Source... BUT ONLY when we have rtk data--(more accurate than other fixtypes)
                                     handler.post {
                                         listener.postNewLocation(longlat,longlat.fixType)
                                     }
-                                    //}
+
                                 }
                             }catch (exception :Exception){
                                 Log.d("Bluetooth","${exception.message}")

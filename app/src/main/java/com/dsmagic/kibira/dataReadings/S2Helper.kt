@@ -53,8 +53,6 @@ class S2Helper {
             index.add(s)
         }
 
-    //fun getDistance(target: S2MinDistanceTarget): S1ChordAngle = findClosestEdge(target).distance.value
-
         fun findClosestLine(index: MutableS2ShapeIndex, loc: LatLng, ptList: List<Any?>): Any? {
             val q = S2ClosestEdgeQuery(index)
             val p = S2ClosestEdgeQuery.PointTarget(makeS2PointFromLngLat(loc))
@@ -65,19 +63,6 @@ class S2Helper {
                 return null
             Log.d("closest", "Found closest point $r")
             return ptList[r.shapeId]
-        }
-
-        fun isPointWithInPlantingRadius(
-            index: S2PointIndex<*>,
-            pointLoc: LatLng,
-            roverLoc: LatLng,
-        ): Boolean {
-            val target = S2ClosestPointQuery(index)
-            val p = S2ClosestPointQuery.S2ClosestPointQueryPointTarget(makeS2PointFromLngLat(pointLoc))
-
-         val result =  S1ChordAngle(makeS2PointFromLngLat(pointLoc), makeS2PointFromLngLat(roverLoc))
-            return target.isDistanceLess(p,result)
-
         }
 
         fun findClosestPointOnLine(index: S2PointIndex<*>, loc: LatLng): Any? {

@@ -37,72 +37,15 @@ import com.dsmagic.kibira.R
 import com.google.android.gms.maps.model.Circle
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.PolyUtil
-import java.io.IOException
 import java.math.RoundingMode
 import java.text.DecimalFormat
 
 class NotifyUserSignals {
     companion object {
-        lateinit var mediaPlayer: MediaPlayer
         val decimalFormat = DecimalFormat("##.##")
         val handler = Handler(Looper.getMainLooper())
-        var isBeeping = false
-        var reasonForBeeping = ""
-        var oldScenario = ""
-
-        // beeping sound for when one is close to a point or at point
-        fun beepingSoundForMarkingPosition(scenario: String, context: Context) {
-            try {
-                when (scenario) {
-                    "ShortBeep" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.beepmp3)
-                        startPlayer(mediaPlayer, scenario, oldScenario)
-                    }
-                    "At Point" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.markheremp3)
-                        startPlayer(mediaPlayer, scenario, oldScenario)
-                    }
-                    "Slow Down" -> {
-                        mediaPlayer = MediaPlayer.create(context, R.raw.slowdownmp3)
-                    }
-                }
-                handler.post {
-                    mediaPlayer.start()
-                    mediaPlayer.isLooping = true
-                    reasonForBeeping = scenario
-                    isBeeping = true
-                }
-
-
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-
-        }
-
-        fun startPlayer(player: MediaPlayer, s: String, os: String): MediaPlayer {
-            if (!player.isPlaying && s != os) {
-                player.start()
-                player.isLooping = true
-            } else {
-                player.stop()
-            }
-            oldScenario = s
-            return player
-        }
-
-
-        fun stopBeep(context: Context) {
-            mediaPlayer = MediaPlayer.create(context, R.raw.signalbeepmp3)
-            if (mediaPlayer.isPlaying) {
-                mediaPlayer.stop()
-            }
-            isBeeping = false
-            reasonForBeeping = " "
-        }
 
         fun pulseEffectOnUserLocationCircle(circle: Circle) {
-
             val runnableCode = object : Runnable {
                 override fun run() {
                     var w = circle.radius
@@ -118,7 +61,7 @@ class NotifyUserSignals {
             handler.postDelayed(runnableCode, 50)
         }
 
-        fun vibration(activity: Activity) {
+        fun vibrate(activity: Activity) {
             val vibrator = activity.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
             val vibrationEffect: VibrationEffect
             if (!vibrator.hasVibrator()) {
@@ -137,7 +80,7 @@ class NotifyUserSignals {
 
         fun displayStats(
             activity: Activity,
-            size: Int,
+           // size: Int,
             textView: TextView,
             list: MutableList<*>,
             distance: Float
@@ -147,12 +90,12 @@ class NotifyUserSignals {
             val d = dist.toString()
             activity.findViewById<TextView>(R.id.distance).text = d
             activity.findViewById<TextView>(R.id.distanceUnits).text = MainActivity.gapUnits
-            activity.findViewById<TextView>(R.id.numberOfPoints).text = size.toString()
+            //activity.findViewById<TextView>(R.id.numberOfPoints).text = size.toString()
             textView.text = list.size.toString()
         }
 
         lateinit var proximityAnimator: ObjectAnimator
-        fun flashPosition(color: String, T: TextView, activity: Activity) {
+        fun flashSignal(color: String, T: TextView, activity: Activity) {
             val textViewToBlink = T
             var animationColor: Int = 0
             when (color) {

@@ -22,12 +22,14 @@ package com.dsmagic.kibira.activities
  */
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -35,22 +37,12 @@ import com.dsmagic.kibira.R
 import com.dsmagic.kibira.databinding.ActivityLoginBinding
 import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.Entities.User
-import com.dsmagic.kibira.services.retrofit.AppModule
-import com.dsmagic.kibira.services.retrofit.RegisterDataclassX
-import com.dsmagic.kibira.services.retrofit.ResponseRegister
 import com.dsmagic.kibira.ui.login.LoginActivity
 import com.dsmagic.kibira.ui.login.LoginViewModel
-import kotlinx.android.synthetic.main.activity_login.loginLayout
-import kotlinx.android.synthetic.main.activity_login.signUp
-import kotlinx.android.synthetic.main.activity_login.signupLayout
-import kotlinx.android.synthetic.main.activity_login.thelogin
-import kotlinx.android.synthetic.main.activity_register.*
+import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class RegisterActivity : AppCompatActivity() {
 
@@ -58,14 +50,14 @@ class RegisterActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
 
     companion object {
-        lateinit var authbd: AppDatabase
+        lateinit var authDB: AppDatabase
     }
 
+    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
 
-        //binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(R.layout.activity_register)
         signUp.setOnClickListener {
             signUp.background = resources.getDrawable(R.drawable.switch_tucks, null)
@@ -76,7 +68,7 @@ class RegisterActivity : AppCompatActivity() {
             signUp.setTextColor(resources.getColor(R.color.white))
 
         }
-        authbd = AppDatabase.dbInstance(this)
+        authDB = AppDatabase.dbInstance(this)
 
         var login = findViewById<TextView>(R.id.thelogin)
         var registerName = findViewById<EditText>(R.id.register_name)
@@ -109,10 +101,9 @@ class RegisterActivity : AppCompatActivity() {
                 register_loading.isVisible = false
                 alertfail("Passwords don't match")
             } else {
-                //MainActivity().registerUser(name,email,password,password_confirm)
 
                 saveUser(name, email, password)
-//                registerUser(name, email, password, password_confirm)
+
             }
 
 
@@ -136,49 +127,17 @@ class RegisterActivity : AppCompatActivity() {
 
 
         GlobalScope.launch(Dispatchers.IO) {
-            var d = authbd.kibiraDao().insertUser(user)
+            var d = authDB.kibiraDao().insertUser(user)
             if (d > 0) {
                 UID = d
-                lo()
+                registeredUser()
             }
 
         }
 
     }
 
-    fun registerUser(name: String, email: String, password: String, password_confirm: String) {
-        val retrofitDataObject = AppModule.retrofitInstance()
-        val modal = RegisterDataclassX(email, name, password, password_confirm)
-        val retrofitData = retrofitDataObject.registerUser(modal)
-        retrofitData.enqueue(object : Callback<ResponseRegister?> {
-            override fun onResponse(
-                call: Call<ResponseRegister?>,
-                response: Response<ResponseRegister?>
-            ) {
-                if (response.isSuccessful) {
-                    if (response.body()!!.message == "Success") {
-                        register_loading.isVisible = false
-                        SuccessAlert("Successfully Registered")
-                        lo()
-                    } else {
-
-                        alertfail("Email already taken")
-                    }
-                } else {
-                    alertfail("$response")
-                }
-
-
-            }
-
-            override fun onFailure(call: Call<ResponseRegister?>, t: Throwable) {
-
-                alertfail("Something went wrong")
-            }
-        })
-    }
-
-    fun lo() {
+    fun registeredUser() {
         val intent = Intent(this, LoginActivity::class.java)
         startActivity(intent)
     }
@@ -190,11 +149,4 @@ class RegisterActivity : AppCompatActivity() {
             .show()
     }
 
-    fun SuccessAlert(S: String) {
-        AlertDialog.Builder(this)
-            .setTitle("Success")
-            .setIcon(R.drawable.tick)
-            .setMessage(S)
-            .show()
-    }
 }

@@ -40,6 +40,7 @@ class Conversions {
 
             }
 
+            //Note: Leave as is.. " mmm"
             when (userUnits) {
                 " Meters" -> {
                     rawUserInput = userInput.toDouble()
