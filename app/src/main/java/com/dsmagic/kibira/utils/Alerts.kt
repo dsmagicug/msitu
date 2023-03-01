@@ -57,6 +57,13 @@ class Alerts {
 
                 .show()
         }
+        fun requestLocation(S:String,context: Context){
+            AlertDialog.Builder(context)
+                .setTitle("Turn on location")
+                .setMessage(S)
+                .show()
+
+        }
 
         fun alertfail(S: String,context:Context) {
             AlertDialog.Builder(context)

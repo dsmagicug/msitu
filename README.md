@@ -7,11 +7,14 @@ This project has a GPL License, and it is attached in the repository.
 
 ## Installation.
 The project is ready to use out of the box, once you clone and run it in Android studio. 
-Android studio `Dolphin` was used for the project, but the plugins were successfully compatible with `Chipmuck` and `Bumblebee`
 
 ** How to clone:
-In your desired directory, clone the repository using `git clone https://github.com/kitandara/kibira.git -b main`
+*mkdir `myDir`
+*cd `myDir`
+*`git clone https://github.com/kitandara/kibira.git`
 Open the project using android studio, and wait for gradle to download the dependencies and build the project.
+Android studio `Dolphin` was used for the project, but the plugins were successfully compatible with `Chipmuck` and `Bumblebee`.
+
 If it does not successfully build, the below could be the cause. 
 * Note that the minimum sdk is `23` and target sdk is `32`.
 * The project uses the MVVM Model so ensure that `View Binding` is enabled in your gradle scripts.
@@ -21,7 +24,7 @@ If it does not successfully build, the below could be the cause.
 ## Basic Usage.
 * Start with setting up the equipment. PS. Ensure that the base station has a clear view of the sky- For accurate statelite readings.
 * Once both the base station and the rover are communicating, turn on the app.
-* Connect the app to the rover either using Bluetooth or USB and wait untill it indicates that you have an RTK Fix. This takes between a few minutes.
+* Connect the app to the rover either using Bluetooth or USB and wait until it indicates that you have an RTK Fix. This takes between a few minutes.
 
 ## How to start project.
 * Create a new project by filling in the necessary fields.

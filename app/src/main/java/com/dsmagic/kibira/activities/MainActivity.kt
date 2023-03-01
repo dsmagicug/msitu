@@ -39,8 +39,11 @@ import android.hardware.usb.UsbManager
 import android.location.Location
 import android.location.LocationManager
 import android.net.Uri
-import android.os.*
+import android.os.Build
 import android.os.Build.VERSION.SDK_INT
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.Gravity
@@ -77,15 +80,19 @@ import com.dsmagic.kibira.roomDatabase.sharing.ImportProject.Companion.REQUEST_C
 import com.dsmagic.kibira.ui.login.LoginActivity
 import com.dsmagic.kibira.usb.USBSerialReader
 import com.dsmagic.kibira.utils.Alerts
+import com.dsmagic.kibira.utils.Alerts.Companion.requestLocation
 import com.dsmagic.kibira.utils.Alerts.Companion.undoAlertWarning
 import com.dsmagic.kibira.utils.Alerts.Companion.warningAlert
 import com.dsmagic.kibira.utils.GeneralHelper
 import com.dsmagic.kibira.utils.ScaleLargeProjects
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.gms.tasks.Task
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import com.google.maps.android.ktx.utils.contains
@@ -101,7 +108,6 @@ import java.util.*
 import java.util.concurrent.*
 import kotlin.math.abs
 import kotlin.math.sqrt
-import android.widget.Toast
 
 
 class MainActivity : AppCompatActivity(),
@@ -610,6 +616,7 @@ class MainActivity : AppCompatActivity(),
                 selectedProject = projectListAsArray[which]
             })
           .setNegativeButton("Export", DialogInterface.OnClickListener { _, _ ->
+              //request storage permission
               requestPermission()
                 for (j in projectListAsArray) {
                     if (j == selectedProject) {
@@ -745,7 +752,7 @@ class MainActivity : AppCompatActivity(),
     }
 
     /*
-    * Android versions below 11 require for explicit permssion for device storage
+    * Android versions below 11 require for explicit permission for device storage
     * */
     private fun requestPermission() {
         if (SDK_INT >= Build.VERSION_CODES.R) {
@@ -764,13 +771,13 @@ class MainActivity : AppCompatActivity(),
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(WRITE_EXTERNAL_STORAGE),
-                1
+                2
             )
 
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(READ_EXTERNAL_STORAGE),
-                1
+                2
             )
         }
     }
@@ -810,8 +817,8 @@ class MainActivity : AppCompatActivity(),
                     GAP_SIZE_METRES = Gapsize
                     MAX_MESH_SIZE = Meshsize
 
-                    plotMesh(firstPoint, secondPoint, PID, meshType, listOfMarkedPoints, gapUnits)
-                    //plotMesh2(firstPoint, secondPoint, PID, meshType, gapUnits, listOfMarkedPoints)
+                    //plotMesh(firstPoint, secondPoint, PID, meshType, listOfMarkedPoints, gapUnits)
+                    plotMesh2(firstPoint, secondPoint, PID, meshType, gapUnits, listOfMarkedPoints)
 
                 }
             }
@@ -1112,19 +1119,10 @@ class MainActivity : AppCompatActivity(),
                             this, Manifest.permission.ACCESS_FINE_LOCATION
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
-                        Toast.makeText(this, "Permission Granted", Toast.LENGTH_SHORT).show()
-                    }
-                     else if (ActivityCompat.checkSelfPermission(
-                                this, Manifest.permission.WRITE_EXTERNAL_STORAGE
-                            ) == PackageManager.PERMISSION_GRANTED)
-                        {
-                            Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT)
-                                .show()
-                        }
-                        else {
 
-                                Toast.makeText(this, "Allow permission for storage access in order to export projects!", Toast.LENGTH_SHORT)
-                                    .show()
+                        isLocationTurnedOn()
+                        Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT)
+                            .show()
 
 
                     }
@@ -1134,29 +1132,81 @@ class MainActivity : AppCompatActivity(),
                 }
                 return
             }
-//            2296 -> if (grantResults.size > 0) {
-//                val readExternalStorage = grantResults[0] == PackageManager.PERMISSION_GRANTED
-//                val writeExternalStorage = grantResults[1] == PackageManager.PERMISSION_GRANTED
-//                if (readExternalStorage && writeExternalStorage) {
-//                    if (ActivityCompat.checkSelfPermission(
-//                            this, Manifest.permission.WRITE_EXTERNAL_STORAGE
-//                        ) == PackageManager.PERMISSION_GRANTED)
-//                       {
-//                        Toast.makeText(this, "Storage Permission granted!", Toast.LENGTH_SHORT)
-//                            .show()
-//                    }
-//
-//                    // perform action when allow permission success
-//
-//                } else {
-//                    Toast.makeText(this, "Allow permission for storage access inorder to export projects!", Toast.LENGTH_SHORT)
-//                        .show()
-//                }
-//            }
+   2 -> {
+
+       if (ActivityCompat.checkSelfPermission(
+               this, Manifest.permission.WRITE_EXTERNAL_STORAGE
+           ) == PackageManager.PERMISSION_GRANTED)
+       {
+           Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT)
+               .show()
+       }
+       else {
+
+           Toast.makeText(this, "Allow permission for storage access in order to export projects!", Toast.LENGTH_SHORT)
+               .show()
+
+
+       }
+   }
+            2296 -> {
+                if (ActivityCompat.checkSelfPermission(
+                        this, Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    ) == PackageManager.PERMISSION_GRANTED)
+                {
+                    Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT)
+                        .show()
+                }
+                else {
+
+                    Toast.makeText(this, "Allow permission for storage access in order to export projects!", Toast.LENGTH_SHORT)
+                        .show()
+
+
+                }
+            }
+
+   }
 
         }
-    }
 
+   var REQUEST_CHECK_SETTINGS = 199
+
+    //check whether Location is enabled in settings, and if not, request for it from user
+    private fun isLocationTurnedOn(){
+        val locationRequest = LocationRequest.create().apply {
+            interval = 10000
+            fastestInterval = 5000
+            priority = Priority.PRIORITY_HIGH_ACCURACY
+        }
+
+        val builder = LocationSettingsRequest.Builder()
+            .addLocationRequest(locationRequest)
+
+        val client: SettingsClient = LocationServices.getSettingsClient(this)
+        val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
+
+        task.addOnSuccessListener { _ ->
+            // All location settings are satisfied. The client can initialize
+            Toast.makeText(this, "GPS Turned on!", Toast.LENGTH_SHORT)
+                .show()
+        }
+
+        task.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException){
+                // Location settings are not satisfied, but this can be fixed
+                // by showing the user a dialog.
+                try {
+                    // Show the dialog by calling startResolutionForResult(),
+                    // and check the result in onActivityResult().
+                    exception.startResolutionForResult(this@MainActivity,
+                        REQUEST_CHECK_SETTINGS)
+                } catch (sendEx: IntentSender.SendIntentException) {
+                    // Ignore the error.
+                }
+            }
+        }
+    }
 
     override fun onDestroy() {
         // Don't forget to unregister the ACTION_FOUND receiver.
@@ -1186,13 +1236,16 @@ class MainActivity : AppCompatActivity(),
     }
 
     //Handling the options in the menu layout
+    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (toggle.onOptionsItemSelected(item)) {
             return true
         }
 
         if (item.itemId == R.id.bluetooth_spinner) {
+
             BluetoothFunctions.discoverBluetoothDevices(this)
+            BluetoothFunctions.checkLocationPermissions(this)
             toggleWidgets()
 
             return true
@@ -1208,7 +1261,6 @@ class MainActivity : AppCompatActivity(),
             spinner.visibility = Spinner.VISIBLE
             buttonConnect.visibility = Button.VISIBLE
 
-            BluetoothFunctions.checkLocationPermissions(this)
 
         } else {
             spinner.visibility = Spinner.INVISIBLE
@@ -1302,8 +1354,8 @@ class MainActivity : AppCompatActivity(),
         saveBasepoints(firstPoint!!)
         saveBasepoints(secondPoint!!, false)
 
-        plotMesh(firstPoint!!, secondPoint!!, 0, "", mutableListOf<LatLng>(), "")
-       // plotMesh2(firstPoint!!,secondPoint!!,0)
+        //plotMesh(firstPoint!!, secondPoint!!, 0, "", mutableListOf<LatLng>(), "")
+        plotMesh2(firstPoint!!,secondPoint!!,0)
 
         l?.remove()
     }
@@ -1548,8 +1600,6 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
         workerPool.submit {
             handler.post {
                 //A sequence scales better than a list, with large items.
-
-                val startTimeFilter = System.currentTimeMillis()
                 val lineAsSequence = line.asSequence()
                 val markedPointsSequence = lineAsSequence.filter {
                     it in listOfMarkedPoints
@@ -1588,9 +1638,6 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
                     }
 
                 }
-                val EndTimeFilter = System.currentTimeMillis()
-                println("Seq: ${EndTimeFilter - startTimeFilter}")
-
             }
         }
 

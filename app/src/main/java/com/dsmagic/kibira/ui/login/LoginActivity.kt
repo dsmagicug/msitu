@@ -28,7 +28,6 @@ import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.*
@@ -38,20 +37,14 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import com.dsmagic.kibira.activities.MainActivity
 import com.dsmagic.kibira.R
+import com.dsmagic.kibira.activities.MainActivity
 import com.dsmagic.kibira.activities.RegisterActivity
 import com.dsmagic.kibira.roomDatabase.AppDatabase
-import com.dsmagic.kibira.services.retrofit.AppModule
-import com.dsmagic.kibira.services.retrofit.LoginDataClassX
-import com.dsmagic.kibira.services.retrofit.loginDataclass
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 
 class LoginActivity : AppCompatActivity() {
@@ -133,7 +126,7 @@ class LoginActivity : AppCompatActivity() {
             setResult(Activity.RESULT_OK)
 
             //Complete and destroy login activity once successful
-           // finish()
+            // finish()
         })
 
         username.afterTextChanged {
