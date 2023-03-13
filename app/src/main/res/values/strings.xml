@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Kibira</string>
+    <string name="app_name">Msitu</string>
     <string name="title_activity_maps">MapsActivity</string>
     <!--    <string name="title_activity_main">MainActivity</string>-->
     <string name="create">New Project</string>

@@ -118,7 +118,10 @@ class NmeaReader {
 
                         val l =
                             s.split("\n") // Into lines... Crude. What if we read only up to part of sentence??
+
+                        Log.d("message" ,"$l")
                         for (xs in l) {
+
                             // Hand off to higher level...
                             try{
                                 val longlat = LongLat(xs)

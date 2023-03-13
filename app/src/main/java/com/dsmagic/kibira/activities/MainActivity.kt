@@ -755,17 +755,19 @@ class MainActivity : AppCompatActivity(),
     * Android versions below 11 require for explicit permission for device storage
     * */
     private fun requestPermission() {
+        var r =10
         if (SDK_INT >= Build.VERSION_CODES.R) {
-            try {
-                val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
-                intent.addCategory("android.intent.category.DEFAULT")
-                intent.data = Uri.parse(String.format("package:%s", applicationContext.packageName))
-                startActivityForResult(intent, 2296)
-            } catch (e: java.lang.Exception) {
-                val intent = Intent()
-                intent.action = Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
-                startActivityForResult(intent, 2296)
-            }
+//            try {
+//                val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+//                intent.addCategory("android.intent.category.DEFAULT")
+//                intent.data = Uri.parse(String.format("package:%s", applicationContext.packageName))
+//                this.startActivityForResult(intent, 2296)
+//            } catch (e: java.lang.Exception) {
+//                val intent = Intent()
+//                intent.action = Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION
+//
+//                startActivityForResult(intent, 2296)
+//            }
         } else {
             //below android 11
             ActivityCompat.requestPermissions(
@@ -774,11 +776,13 @@ class MainActivity : AppCompatActivity(),
                 2
             )
 
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(READ_EXTERNAL_STORAGE),
-                2
-            )
+            if (SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(READ_EXTERNAL_STORAGE),
+                    2
+                )
+            }
         }
     }
 
@@ -1114,7 +1118,7 @@ class MainActivity : AppCompatActivity(),
         when (requestCode) {
             1 -> {
                 if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//
+
                     if (ActivityCompat.checkSelfPermission(
                             this, Manifest.permission.ACCESS_FINE_LOCATION
                         ) == PackageManager.PERMISSION_GRANTED
@@ -1123,7 +1127,6 @@ class MainActivity : AppCompatActivity(),
                         isLocationTurnedOn()
                         Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT)
                             .show()
-
 
                     }
 
@@ -1173,7 +1176,7 @@ class MainActivity : AppCompatActivity(),
    var REQUEST_CHECK_SETTINGS = 199
 
     //check whether Location is enabled in settings, and if not, request for it from user
-    private fun isLocationTurnedOn(){
+     fun isLocationTurnedOn(){
         val locationRequest = LocationRequest.create().apply {
             interval = 10000
             fastestInterval = 5000
@@ -1206,6 +1209,29 @@ class MainActivity : AppCompatActivity(),
                 }
             }
         }
+    }
+
+    private fun checkLocationPermissions(activity: Activity) {
+        if (ActivityCompat.checkSelfPermission(
+                activity.applicationContext, Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(
+                    activity, Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            ) {
+                ActivityCompat.requestPermissions(
+                    activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1
+                )
+            } else {
+                ActivityCompat.requestPermissions(
+                    activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1
+                )
+            }
+        } else {
+            isLocationTurnedOn()
+        }
+
     }
 
     override fun onDestroy() {
@@ -1245,7 +1271,7 @@ class MainActivity : AppCompatActivity(),
         if (item.itemId == R.id.bluetooth_spinner) {
 
             BluetoothFunctions.discoverBluetoothDevices(this)
-            BluetoothFunctions.checkLocationPermissions(this)
+           checkLocationPermissions(this)
             toggleWidgets()
 
             return true

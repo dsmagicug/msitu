@@ -119,6 +119,7 @@ public class USBSerialReader {
                     if (len > 0 && buffer[0] > 0) {
                         String s = new String(buffer, 0, len, StandardCharsets.UTF_8);
                         String[] l = s.split("\n");
+
                         for (String str : l) {
                             LongLat longlat = new LongLat(str);
                             if (longlat.getFixType() != LongLat.FixType.NoFixData) {
@@ -131,7 +132,7 @@ public class USBSerialReader {
                                     // TODO display fix type
                                 //}
                             }
-                            //Log.d("FROM USB", str + "\n");
+
                         }
                     }
                 } catch (IOException e) {

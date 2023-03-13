@@ -146,26 +146,7 @@ class BluetoothFunctions : AdapterView.OnItemSelectedListener {
             }
         }
 
-        fun checkLocationPermissions(activity: Activity) {
-            if (ActivityCompat.checkSelfPermission(
-                    activity.applicationContext, Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(
-                        activity, Manifest.permission.ACCESS_FINE_LOCATION
-                    )
-                ) {
-                    ActivityCompat.requestPermissions(
-                        activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1
-                    )
-                } else {
-                    ActivityCompat.requestPermissions(
-                        activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1
-                    )
-                }
-            }
 
-        }
     }
 
     override fun onItemSelected(
