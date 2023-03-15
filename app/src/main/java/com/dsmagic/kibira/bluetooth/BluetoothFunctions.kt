@@ -2,23 +2,23 @@ package com.dsmagic.kibira.bluetooth
 
 
 /*
- *  This file is part of Kibira.
+ *  This file is part of Msitu.
  *  <https://github.com/kitandara/kibira>
  *
  *  Copyright (C) 2022 Digital Solutions
  *
- *  Kibira is free software: you can redistribute it and/or modify
+ *  Msitu is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  Kibira is distributed in the hope that it will be useful,
+ *  Msitu is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with Kibira. If not, see <http://www.gnu.org/licenses/>
+ *  along with Msitu. If not, see <http://www.gnu.org/licenses/>
  */
 
 import android.Manifest
@@ -26,6 +26,7 @@ import android.R
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
+import android.bluetooth.BluetoothManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -39,6 +40,9 @@ import android.widget.Button
 import android.widget.Spinner
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ActivityCompat.startActivityForResult
+import androidx.core.content.ContextCompat.checkSelfPermission
+import androidx.core.content.ContextCompat.getSystemService
 import com.dsmagic.kibira.activities.MainActivity
 import com.dsmagic.kibira.activities.MainActivity.Companion.deviceList
 import com.dsmagic.kibira.dataReadings.NmeaReader
@@ -50,6 +54,7 @@ class BluetoothFunctions : AdapterView.OnItemSelectedListener {
         val receiver = object : BroadcastReceiver() {
 
             override fun onReceive(context: Context, intent: Intent) {
+                var t = 90
                 when (intent.action) {
                     BluetoothDevice.ACTION_FOUND -> {
                         val device: BluetoothDevice? =
@@ -115,35 +120,49 @@ class BluetoothFunctions : AdapterView.OnItemSelectedListener {
 
         }
 
+        @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
         fun discoverBluetoothDevices(activity: Activity) {
 
             val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
+            val enableBT = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
+
             if (!bluetoothAdapter.isEnabled) {
-                val enableBT = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
-                activity.startActivity(enableBT)
-                return
+                if (checkSelfPermission(activity.applicationContext, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.BLUETOOTH_CONNECT), 2)
+
+                                          return
+
+                    } else {
+                        activity.startActivity(enableBT)
+                    }
+                } else {
+                    activity.startActivity(enableBT)
+                }
+
             }
             if (ActivityCompat.checkSelfPermission(
                     activity.applicationContext, Manifest.permission.BLUETOOTH_SCAN
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                //return
-            }
 
-            if (bluetoothAdapter.isDiscovering) {
-                bluetoothAdapter.cancelDiscovery()
-                bluetoothAdapter.startDiscovery()
-            } else {
-                bluetoothAdapter.startDiscovery()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.BLUETOOTH_SCAN), 3)
+                return
+
+                }
 
             }
+                if (bluetoothAdapter.isDiscovering) {
+                    bluetoothAdapter.cancelDiscovery()
+                    bluetoothAdapter.startDiscovery()
+                } else {
+                    bluetoothAdapter.startDiscovery()
+
+
+            }
+
+
         }
 
 
