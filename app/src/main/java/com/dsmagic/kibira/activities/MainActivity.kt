@@ -808,7 +808,7 @@ class MainActivity : AppCompatActivity(),
 
             if (listOfBasePoints.size == 0) {
                 runOnUiThread {
-                    warningAlert("Project Empty", PID, applicationContext)
+                    warningAlert("Project has no base points", PID, this@MainActivity)
                 }
             } else {
                 val l = listOfBasePoints[0]

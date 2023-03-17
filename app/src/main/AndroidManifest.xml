@@ -72,7 +72,8 @@
             android:exported="true"
             android:launchMode="singleTask"
             android:requestLegacyExternalStorage="true"
-            android:theme="@style/Theme.Kibira.NoActionBar"/>
+            android:theme="@style/Theme.Kibira.NoActionBar"
+            />
     </application>
 
 </manifest>
