@@ -469,11 +469,11 @@ class MainActivity : AppCompatActivity(),
             )
             map?.mapType = GoogleMap.MAP_TYPE_NORMAL
             runOnUiThread {
-                for (item in polyLines) {
-                    item!!.isVisible = false
-                    item.isClickable = false
-
+                polyLines.forEach {
+                    it?.isVisible = false
+                    it?.isClickable = false
                 }
+
             }
             card.isVisible = false
             directionCardLayout.isVisible = false
@@ -488,12 +488,13 @@ class MainActivity : AppCompatActivity(),
                     applicationContext, R.drawable.walk_mode
                 )
             )
-            map?.mapType = GoogleMap.MAP_TYPE_SATELLITE
+//            map?.mapType = GoogleMap.MAP_TYPE_SATELLITE
             runOnUiThread{
-                for (c in polyLines) {
-                    c?.isVisible = true
-                    c?.isClickable = true
+                polyLines.forEach{
+                    it?.isVisible = true
+                    it?.isClickable =true
                 }
+
                 activePlantingLine.isVisible = true
             }
 
@@ -821,7 +822,6 @@ class MainActivity : AppCompatActivity(),
                     GAP_SIZE_METRES = Gapsize
                     MAX_MESH_SIZE = Meshsize
 
-                    //plotMesh(firstPoint, secondPoint, PID, meshType, listOfMarkedPoints, gapUnits)
                     plotMesh2(firstPoint, secondPoint, PID, meshType, gapUnits, listOfMarkedPoints)
 
                 }
@@ -938,17 +938,9 @@ class MainActivity : AppCompatActivity(),
                     blink(position)
                 }
 
-                displayedDistance.text = distance.toString()
+//                displayedDistance.text = distance.toString()
                 displayedPoints.text = listOfMarkedPoints.size.toString()
-//
-//               val distanceInUnitsRespectiveToProject =
-//                   Conversions.ftToMeters(distance.toString(), gapUnits)
-//                displayStats(
-//                   this,
-//                    size,
-//                    totalPoints,
-//                    distanceInUnitsRespectiveToProject.toFloat()
-//                )
+
 
                 //when straying from line
                 if (distance > (GAP_SIZE_METRES * 0.5)) {
@@ -1461,82 +1453,6 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
     projectLoaded = true
     fab_reset.show()
 }
-
-    private fun plotMesh(
-        cp: LongLat, pp: LongLat, id: Int, mesh: String, list: MutableList<LatLng>, gapunits: String
-    ) {
-        // i.e calling this func with parameters from the db
-        if (id != 0) {
-            MeshType = mesh
-            gapUnits = gapunits
-            ProjectID = id.toLong()
-
-        }
-        progressBar.isVisible = true
-
-        asyncExecutor.execute {
-
-            val c = Point(cp)
-            val p = Point(pp)
-            projectStartPoint = c
-
-            when (MeshType) {
-                "Triangular Grid" -> {
-                    projectLines = Geometry.generateTriangleMesh(
-                        c, p, MeshDirection.RIGHT
-                    ) as MutableList<PlantingLine>
-
-                    val drawPoints = ScaleLargeProjects.updateProjectLines(this)
-                    Geometry.generateLongLat(c, drawPoints, drawLine)
-                }
-                "Square Grid" -> {
-                    projectLines = Geometry.generateSquareMesh(
-                        c, p, MeshDirection.RIGHT
-                    ) as MutableList<PlantingLine>
-                    val drawPoints = ScaleLargeProjects.updateProjectLines(this)
-                    Geometry.generateLongLat(c, drawPoints, drawLine)
-                }
-            }
-            meshDone = true
-
-            handler.post {
-
-                val firstpt = LatLng(
-                    cp.getLatitude(), cp.getLongitude()
-                )
-                val secondPt = LatLng(
-                    pp.getLatitude(), pp.getLongitude()
-                )
-                val title = "First Point: ${firstpt.latitude} :  ${firstpt.longitude}"
-                val title2 = "Second Point: ${secondPt.latitude} :  ${secondPt.longitude}"
-                map?.addMarker(
-                    MarkerOptions().position(firstpt).title(title).icon(
-                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
-                    )
-                )
-                map?.addMarker(
-                    MarkerOptions().position(secondPt).title(title2).icon(
-                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)
-                    )
-                )
-                map?.moveCamera(
-                    CameraUpdateFactory.newLatLngZoom(
-                        LatLng(
-                            cp.getLatitude(), cp.getLongitude()
-                        ), 21.0f
-                    )
-                )
-
-            }
-        }
-
-        displayMarkedPointsOnUI(list)
-        progressBar.isVisible = false
-        projectLoaded = true
-        fab_reset.show()
-
-    }
-
     private val onPolyClick = GoogleMap.OnPolylineClickListener { polyline ->
         // rotate the map accordingly
         val newAngel = GeneralHelper.sanitizeMagnetometerBearing(lastRotateDegree)
@@ -1549,7 +1465,7 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
             listOfPlantingLines.add(polyline)
             polyline.color = Color.GREEN
 
-            Toast.makeText(applicationContext, "Planting line selected...", Toast.LENGTH_LONG)
+            Toast.makeText(applicationContext, "Planting line selected...", Toast.LENGTH_SHORT)
                 .show()
         } else {
 
@@ -1582,7 +1498,8 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
 
             if (unmarkedCirclesList.isNotEmpty()) {
                 unmarkedCirclesList.forEach {
-                    it.isVisible = false
+                    it.remove()
+//                    it.isVisible = true
                 }
 
                 unmarkedCirclesList.clear()
@@ -1590,7 +1507,8 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
 
             if (listofmarkedcircles.isNotEmpty()) {
                 listofmarkedcircles.forEach {
-                    it.isVisible = false
+                    it.remove()
+//                    it.isVisible = true
                 }
             }
             polyline.isClickable = true
@@ -1610,7 +1528,6 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
             }
 
         }
-
         zoomMode = true
     }
 
@@ -1778,7 +1695,6 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
         val pointData = PointData(point.toPoint(), point)
         lineInS2Format.remove(pointData)
 
-
         //hand over UI Updates to the UI Thread
         handler.post {
             if (listOfMarkedPoints.add(pointOfInterestOnPolyline)) {
@@ -1794,7 +1710,6 @@ private fun plotMesh2(firstBasePoint:LongLat, secondBasePoint:LongLat, id:Int, v
             if (tempClosestPoint.isNotEmpty()) {
                 tempClosestPoint.clear()
             }
-            val unMarkedCirclesSequence = unmarkedCirclesList.asSequence()
 
             mark(pointOfInterestOnPolyline)
             vibrate(this)

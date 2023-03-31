@@ -360,7 +360,7 @@
                     android:layout_width="0dp"
                     android:layout_height="250dp"
                     android:layout_gravity="top|end"
-                    android:visibility="visible"
+                    android:visibility="invisible"
                     app:cardBackgroundColor="@color/teal"
                     app:cardCornerRadius="20dp"
                     app:cardElevation="10dp"

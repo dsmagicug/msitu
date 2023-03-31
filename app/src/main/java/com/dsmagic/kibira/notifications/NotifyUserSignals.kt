@@ -136,7 +136,7 @@ class NotifyUserSignals {
         }
 
         fun isUserlocationOnPath(userLatLng: LatLng, line: MutableList<LatLng>): Boolean {
-            val start = System.currentTimeMillis()
+
             return PolyUtil.isLocationOnPath(userLatLng, line, true, 0.2)
         }
 

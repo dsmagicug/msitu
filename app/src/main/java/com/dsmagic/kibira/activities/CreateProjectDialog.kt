@@ -49,12 +49,9 @@ import com.google.android.gms.maps.GoogleMap
 
 
 //Returning a layout as a dialog box
-@SuppressLint("StaticFieldLeak")
-object CreateProjectDialog : DialogFragment() {
-    lateinit var appdbInstance: AppDatabase
-    lateinit var radiogroup: RadioGroup
-    lateinit var previewSquare: TextView
-    lateinit var previewTriangular: TextView
+
+ object CreateProjectDialog : DialogFragment() {
+      lateinit var appdbInstance: AppDatabase
 
     val sharedPrefFile = "kibirasharedfile"
 
@@ -75,9 +72,9 @@ object CreateProjectDialog : DialogFragment() {
             if (onLoad) {
                 if (l.isNotEmpty()) {
                     val r = inflater.inflate(R.layout.activity_create_project, null)
-                    radiogroup = r.findViewById<RadioGroup>(R.id.meshType)
-                    previewSquare = r.findViewById(R.id.previewSquare)
-                    previewTriangular = r.findViewById(R.id.previewTriangular)
+                   var radiogroup = r.findViewById<RadioGroup>(R.id.meshType)
+                   var previewSquare :TextView= r.findViewById(R.id.previewSquare)
+                   var previewTriangular:TextView = r.findViewById(R.id.previewTriangular)
 
                     //dropdown menu
                     val gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
@@ -125,9 +122,9 @@ object CreateProjectDialog : DialogFragment() {
             //creation of new project
             if (tag == "create") {
                 val r = inflater.inflate(R.layout.activity_create_project, null)
-                radiogroup = r.findViewById<RadioGroup>(R.id.meshType)
-                previewSquare = r.findViewById(R.id.previewSquare)
-                previewTriangular = r.findViewById(R.id.previewTriangular)
+               var radiogroup = r.findViewById<RadioGroup>(R.id.meshType)
+               var previewSquare:TextView = r.findViewById(R.id.previewSquare)
+               var previewTriangular:TextView = r.findViewById(R.id.previewTriangular)
 
                 //dropdown menu
                 val gapsize_units = resources.getStringArray(R.array.gapsizeUnits)
@@ -191,8 +188,8 @@ object CreateProjectDialog : DialogFragment() {
 
     private fun createProject() {
 
-        val meshID = radiogroup.checkedRadioButtonId
-        val selectedType = dialog?.findViewById<RadioButton>(meshID)?.text.toString()
+        val meshID = this.dialog?.findViewById<RadioGroup>(R.id.meshType)?.checkedRadioButtonId
+        val selectedType = dialog?.findViewById<RadioButton>(meshID!!)!!.text.toString()
         val projectname = dialog?.findViewById<EditText>(R.id.ProjectName)
         val meshSize = dialog?.findViewById<EditText>(R.id.MeshSize)
 
@@ -273,6 +270,7 @@ object CreateProjectDialog : DialogFragment() {
 
                 map?.mapType = GoogleMap.MAP_TYPE_SATELLITE
                 MainActivity().cleanUpExistingFragment()
+                    dismiss()
 
             }
             } else {
@@ -294,9 +292,7 @@ object CreateProjectDialog : DialogFragment() {
         }
     }
 
-    override fun onDestroy(){
-    super.onDestroy()
-    }
+
 }
 
 

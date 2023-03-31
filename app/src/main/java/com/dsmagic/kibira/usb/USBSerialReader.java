@@ -76,6 +76,7 @@ public class USBSerialReader {
     private RtkLocationSource listener = NmeaReader.Companion.getListener();
     ProgressBar progressBar;
 
+
     private void setUSBConnection(Context context) {
 
         proberProvider = new DeviceProber(manager);
@@ -89,17 +90,31 @@ public class USBSerialReader {
         driver = availableDrivers.get(0);
 
         if (connection == null) {
-            PendingIntent intent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
+            PendingIntent intent = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                intent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), PendingIntent.FLAG_IMMUTABLE);
+            } else {
+                intent = PendingIntent.getBroadcast(context, 0, new Intent(ACTION_USB_PERMISSION), 0);
+            }
+
             manager.requestPermission(driver.getDevice(), intent);
+
         }
     }
 
     public void disconnect() throws IOException {
         if (port != null) {
-            port.close();
-            thread.interrupt();
-            connection = null;
-            isReading = false;
+            try {
+                port.close();
+                thread.interrupt();
+                connection = null;
+                isReading = false;
+            }
+            finally {
+
+            }
+
+
         }
     }
 
@@ -107,7 +122,7 @@ public class USBSerialReader {
         return usbReceiver;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+//    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void dataReaderListener() throws IOException {
         Looper looper = Looper.getMainLooper();
         Handler handler = new Handler(looper);
@@ -117,7 +132,10 @@ public class USBSerialReader {
                 try {
                     len = port.read(buffer, READ_WAIT_MILLIS);
                     if (len > 0 && buffer[0] > 0) {
-                        String s = new String(buffer, 0, len, StandardCharsets.UTF_8);
+                        String s = null;
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+                            s = new String(buffer, 0, len, StandardCharsets.UTF_8);
+                        }
                         String[] l = s.split("\n");
 
                         for (String str : l) {
@@ -151,14 +169,25 @@ public class USBSerialReader {
 
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
 
-        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+//        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             switch (action) {
                 case ACTION_USB_PERMISSION:
                     synchronized (this) {
-                        boolean granted = intent.getExtras().getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED, false);
+                        boolean granted = false;
+
+                        if (intent.hasExtra(UsbManager.EXTRA_PERMISSION_GRANTED)){
+                             granted = intent.getExtras().getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED, false);
+                        }
+                        else {
+                           int flag = intent.getFlags();
+                           if (flag == 16){
+                               granted = true;
+                           }
+                        }
+
                         if (granted) {
                             port = driver.getPorts().get(0);
                             connection = manager.openDevice(driver.getDevice());
@@ -166,7 +195,9 @@ public class USBSerialReader {
                             try {
                                 port.open(connection);
                                 port.setParameters(BAUD_RATE, DATA_BITS, UsbSerialPort.STOPBITS_1, UsbSerialPort.PARITY_NONE);
-                                dataReaderListener();
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                                    dataReaderListener();
+                                }
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
