@@ -1,0 +1,357 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_height="470dp"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    tools:context=".activities.MainActivity">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+
+        <TextView
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:fontFamily="@font/rosemary"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:text="Area Covered"
+            android:textAlignment="center"
+            android:textSize="25sp"
+            android:textStyle="normal"
+
+            >
+
+        </TextView>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/hr" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        >
+
+        <RadioGroup
+            android:id="@+id/area_units"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="11dp">
+
+            <RadioButton
+                android:id="@+id/acres"
+                android:layout_width="202dp"
+                android:layout_height="wrap_content"
+                android:width="50dp"
+                android:fontFamily="@font/rosemary"
+                android:text="In acres"
+                android:textSize="16sp">
+
+            </RadioButton>
+
+            <!--                </LinearLayout>-->
+            <!--                <LinearLayout-->
+            <!--                    android:layout_width="match_parent"-->
+            <!--                    android:layout_height="match_parent"-->
+            <!--                    android:orientation="horizontal">-->
+
+<!--            <TextView-->
+<!--                android:id="@+id/previewTriangular"-->
+<!--                android:layout_width="137dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginStart="35dp"-->
+<!--                android:fontFamily="@font/rosemary"-->
+<!--                android:text="@string/preview"-->
+<!--                android:textAlignment="textStart"-->
+<!--                android:textSize="15sp"-->
+<!--                android:textStyle="bold" />-->
+<!--            <ImageView-->
+<!--                android:id = "@+id/tmesh"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:src = "@drawable/tmesh"-->
+<!--                android:layout_marginStart="35dp"-->
+<!--                android:visibility="gone"/>-->
+
+            <RadioButton
+                android:id ="@+id/hectares"
+                android:layout_width="202dp"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/rosemary"
+                android:text="In hectares"
+                android:textSize="16sp">
+
+            </RadioButton>
+
+<!--            <TextView-->
+<!--                android:id="@+id/previewSquare"-->
+<!--                android:layout_width="137dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginStart="35dp"-->
+<!--                android:width="40dp"-->
+<!--                android:fontFamily="@font/rosemary"-->
+<!--                android:text="@string/preview"-->
+<!--                android:textAlignment="textStart"-->
+<!--                android:textSize="15sp"-->
+<!--                android:textStyle="bold" />-->
+<!--            <ImageView-->
+<!--                android:id = "@+id/smesh"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:src = "@drawable/mmesh"-->
+<!--                android:layout_marginStart="35dp"-->
+<!--                android:visibility="gone"/>-->
+            <!--                </LinearLayout>-->
+
+
+        </RadioGroup>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/area_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+            android:fontFamily="@font/rosemary"
+            android:text="Get Area"
+            android:textAlignment="textStart"
+            android:textSize="15sp"
+            />
+
+
+        <TextView
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:fontFamily="@font/rosemary"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:layout_marginLeft="25dp"
+            android:text="Area value"
+            android:textAlignment="textEnd"
+            android:id="@+id/area_value"
+
+            android:textSize="20sp"
+            android:textStyle="normal">
+
+        </TextView>
+
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+
+            android:id="@+id/summary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+
+            android:layout_marginTop="1dp"
+            android:fontFamily="@font/rosemary"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:text="Summary"
+            android:textAlignment="center"
+            android:textSize="25sp"
+            android:textStyle="normal" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="2dp"
+            android:background="@color/hr" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+
+            <TextView
+
+                android:id="@+id/vertice_number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="1dp"
+                android:fontFamily="@font/rosemary"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:text="Number of Vertices"
+                android:textAlignment="textStart"
+
+                android:textSize="20sp"
+                android:textStyle="normal"/>
+
+            <TextView
+
+                android:id="@+id/vertice_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="35dp"
+                android:layout_marginTop="1dp"
+                android:fontFamily="@font/rosemary"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:text="Value"
+                android:textAlignment="textStart"
+
+                android:textSize="20sp"
+                android:textStyle="normal"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+
+                android:id="@+id/points"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="1dp"
+                android:fontFamily="@font/rosemary"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:text="Points used"
+                android:textAlignment="textStart"
+
+                android:textSize="20sp"
+                android:textStyle="normal">
+
+            </TextView>
+
+
+        </LinearLayout>
+
+        <TextView
+
+            android:id="@+id/points_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="1dp"
+            android:fontFamily="@font/rosemary"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:text="Value"
+            android:textAlignment="textEnd"
+
+            android:textSize="20sp"
+            android:textStyle="normal">
+
+        </TextView>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+
+                android:id="@+id/visual"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="1dp"
+                android:fontFamily="@font/rosemary"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:text="Show Area visual on Map"
+                android:textAlignment="textEnd"
+
+                android:textSize="20sp"
+                android:textStyle="normal">
+
+            </TextView>
+
+            <ImageView
+
+                android:id="@+id/visual_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:layout_marginTop="1dp"
+                android:fontFamily="@font/rosemary"
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp"
+                android:text="Value"
+                android:textAlignment="textEnd"
+
+                android:textSize="20sp"
+                android:textStyle="normal">
+
+            </ImageView>
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+    <View
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:layout_marginTop="5dp"
+                android:background="@color/hr" />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+       >
+
+        <Button
+            android:id="@+id/trees_btn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="5dp"
+
+            android:fontFamily="@font/rosemary"
+            android:text="Tree Estimate"
+            android:textAlignment="textStart"
+            android:textSize="15sp"
+            />
+
+
+        <TextView
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="1dp"
+            android:fontFamily="@font/rosemary"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:layout_marginLeft="35dp"
+            android:text=" Value"
+            android:textAlignment="textEnd"
+            android:id="@+id/trees_value"
+
+            android:textSize="20sp"
+            android:textStyle="normal">
+
+        </TextView>
+
+    </LinearLayout>
+
+
+</LinearLayout>
+
+

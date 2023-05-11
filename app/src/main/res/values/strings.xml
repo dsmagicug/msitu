@@ -1,0 +1,104 @@
+<resources>
+    <string name="app_name">Msitu</string>
+    <string name="title_activity_maps">MapsActivity</string>
+    <!--    <string name="title_activity_main">MainActivity</string>-->
+    <string name="create">New Project</string>
+    <string name="view_projects">View Projects</string>
+    <string name="import_project">Import Project</string>
+    <string name="clipboard_copy">Copy LatLong</string>
+    <string name="description">Create Project</string>
+    <string name="project_name">Project Name</string>
+    <string name="gap_size"><font face="@font/rosemary">Gap Size(m)</font></string>
+    <string name="list_projects"><font face="@font/rosemary">Choose Project</font></string>
+    <string name="create_new_project"><font face="@font/rosemary">Create Project</font></string>
+    <string name="cancel"><font face="@font/rosemary">Cancel</font></string>
+    <string name="pair"><font face="@font/rosemary">Pair</font></string>
+
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Marked points here</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">Not a valid Email</string>
+    <string name="invalid_password">Password must be >4 characters</string>
+    <string name="login_failed">"Login failed"</string>
+    <string name="register">REGISTER</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="name">Name</string>
+    <string name="email">Email</string>
+    <string name="default_info_title">Default info</string>
+    <string name="default_info_snippet">Default info Snippet</string>
+    <string name="fab_map">Map_Mode</string>
+    <string name="fab_center">Center map</string>
+    <string name="compass">compass</string>
+    <string name="directionarrow">DirectionArrow</string>
+    <string name="login">LOGIN</string>
+    <string name="title_activity_main2">MainActivity2</string>
+    <string name="units">Units</string>
+    <string name="metres">Metres</string>
+    <string-array name="plotSizeUnits">
+        <item> <font face="@font/rosemary">Ft</font></item>
+        <item> <font face="@font/rosemary">Meters</font></item>
+        <item> <font face="@font/rosemary">Acres</font></item>
+        <item> <font face="@font/rosemary">Miles</font></item>
+    </string-array>
+    <string-array name="gapsizeUnits">
+        <item> <font face="@font/rosemary">Ft</font></item>
+        <item> <font face="@font/rosemary">Meters</font></item>
+        <item> <font face="@font/rosemary">Inches</font></item>
+    </string-array>
+
+    <string name="close">Close</string>
+    <string name="open">Open</string>
+    <string name="scanning_for_devices">Scanning for devices...</string>
+    <string name="log_out"><font face="@font/rosemary">Log Out</font></string>
+    <string name="square_mesh">Square Grid</string>
+    <string name="triangular_mesh">Triangular Grid</string>
+    <string name="preview">Preview</string>
+    <string name="preferences">settings</string>
+    <string name="prefKey_showAngle">show angle</string>
+    <string name="preference_show_angle_summary">show angle summary</string>
+    <string name="preference_show_angle">show angle2</string>
+    <string name="prefKey_enableSound">sound</string>
+    <string name="preference_sound_summary">sound summary</string>
+    <string name="preference_sound">preference_sound</string>
+    <string name="preference_viscosity">preference_viscosity</string>
+    <string name="prefKey_viscosity">pref_key</string>
+    <string name="prefKey_viscosity_medium">viscosity medium</string>
+    <string name="preference_lockprefere">preference lock</string>
+    <string name="preference_lock_summary">preference lock summary</string>
+    <string name="prefKey_lockOrientation">lock orientation</string>
+    <string name="preference_lock">preference lock</string>
+    <string name="prefKey_displayType_angle">display tone angle</string>
+    <string name="prefKey_displayType">display type</string>
+    <string name="preference_display_type">preference display type</string>
+    <string name="calibrate">Calibrate</string>
+    <string name="calibrate_info">press MENU to calibrate...</string>
+    <string name="calibrate_restored">calibration restored</string>
+    <string name="calibrate_failed">calibration failed</string>
+    <string name="calibrate_saved">calibration saved</string>
+    <string name="lock_info">tap to lock level orientation</string>
+    <string name="not_supported">not supported</string>
+    <string name="reset">RESET</string>
+    <string name="calibrate_message">Put any side (including the back) of your Android device on a flat horizontal surface and press the Calibrate button.\n\nOr reset the calibration for all the phone sides.</string>
+
+    <string name="inclination">Inclination</string>
+    <string name="angle_summary">Angle in degrees</string>
+    <string name="inclination_summary">Inclination in percents\n100&#37; &#126; 45°</string>
+    <string name="viscosity_low">Low</string>
+    <string name="viscosity_medium">Medium</string>
+    <string name="viscosity_high">High</string>
+    <string name="paste_basepoints">Paste Basepoints</string>
+    <string name="area">Calculate Area</string>
+</resources>
