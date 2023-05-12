@@ -71,11 +71,13 @@ import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.retrieveMarkedPoints
+import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.saveAreaPoints
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.roomDatabase.Entities.Project
 import com.dsmagic.kibira.roomDatabase.sharing.ImportProject
 import com.dsmagic.kibira.roomDatabase.sharing.ImportProject.Companion.REQUEST_CODE
+import com.dsmagic.kibira.services.BasePoints.projectID
 import com.dsmagic.kibira.ui.login.LoginActivity
 import com.dsmagic.kibira.usb.USBSerialReader
 import com.dsmagic.kibira.utils.Alerts
@@ -424,7 +426,7 @@ class MainActivity : AppCompatActivity(),
                     }
                     fixType.isVisible = true
                     fixTypeValue.isVisible = true
-                    fixTypeValue.setTextColor(Color.WHITE)
+
 
                     val cFix = fix.toString()
                     if (cFix != lastFixType) {
@@ -432,27 +434,20 @@ class MainActivity : AppCompatActivity(),
                     }
                     lastFixType = cFix
                     if(onCreation){
-                        Log.d("Null","$onCreation")
+
                         var firstPointC: LongLat? = null
                         var secondPointC:LongLat? = null
-                        for (i in 0 until jsonArray.length()) {
-                            val json = jsonArray.getJSONObject(i)
-                            val lat = json.getDouble("lat")
-                            val lng = json.getDouble("lng")
-                            firstPointC = LongLat(lng, lat)
-                            secondPointC = LongLat(lng, lat)
 
-                        }
-                        firstPointC.let { secondPointC.let { it1 ->
-                            if (it != null && it1 != null) {
-                                plotMesh(it, it1,0)
-                            } else {
-                                Log.d("Null","Null")
-                            }
-                        } }
-                    }
-                    else {
-                        Log.d("Null","$onCreation")
+                        val firstObj = jsonArray.getJSONObject(0)
+                        val secondObj = jsonArray.getJSONObject(1)
+                        firstPointC  = LongLat(firstObj.getDouble("lng"),firstObj.getDouble("lat"))
+                        secondPointC = LongLat(secondObj.getDouble("lng"), secondObj.getDouble("lat"))
+
+                        plotMesh(firstPointC, secondPointC,0)
+                        saveBasepoints(firstPointC)
+                        saveBasepoints(secondPointC)
+
+                        Log.d("Points","$firstPointC + $secondPointC")
 
                     }
 
@@ -496,7 +491,7 @@ class MainActivity : AppCompatActivity(),
 
         fab_area.setOnClickListener {
             try {
-                val u = 70
+
                 AlertDialog.Builder(this)
                     .setTitle("Warning")
                     .setIcon(R.drawable.caution)
@@ -511,6 +506,7 @@ class MainActivity : AppCompatActivity(),
                                     latVertexList.add(lat)
                                     longVertexList.add(long)
                                     VerticePoints.add(LatLng(lat,long))
+                                    saveAreaPoints(LatLng(lat,long),ProjectID.toInt())
                                     Toast.makeText(this, "Point added", Toast.LENGTH_SHORT).show()
                                 }
 
@@ -569,14 +565,15 @@ class MainActivity : AppCompatActivity(),
             directionCardLayout.isVisible = false
             activePlantingLine.isVisible = true
             removeMarkedCirclesFromUI(listofmarkedcircles)
-            val fix: TextView = findViewById(R.id.fixTypeValue)
-            fix.setTextColor(Color.WHITE)
+            fixTypeValue.setTextColor(Color.BLACK)
+            fixType.setTextColor(Color.BLACK)
 
             fabFlag = true
 
         } else if (fabFlag) {
-            val fix: TextView = findViewById(R.id.fixTypeValue)
-            fix.setTextColor(Color.BLACK)
+
+            fixTypeValue.setTextColor(Color.BLACK)
+            fixType.setTextColor(Color.BLACK)
 
             fab_map.setImageDrawable(
                 ContextCompat.getDrawable(
@@ -901,9 +898,10 @@ class MainActivity : AppCompatActivity(),
 
             if (listOfBasePoints.size == 0) {
                 runOnUiThread {
-                    warningAlert("Project has no base points", PID, this@MainActivity)
+                    warningAlert("Project was created without base points", PID, this@MainActivity)
                 }
-            } else {
+            }
+            else {
                 val l = listOfBasePoints[0]
                 val y = listOfBasePoints[1]
                 val firstPoint = LongLat(l.lng, l.lat)
@@ -1627,6 +1625,8 @@ class MainActivity : AppCompatActivity(),
 
             handler.post {
                 map?.mapType = GoogleMap.MAP_TYPE_NORMAL
+                fixTypeValue.setTextColor(Color.BLACK)
+                fixType.setTextColor(Color.BLACK)
                 val target = map?.cameraPosition?.target
                 val bearing = map?.cameraPosition?.bearing
                 val cameraPosition =
