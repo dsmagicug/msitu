@@ -8,7 +8,7 @@ This project has a GPL License, and it is attached in the repository.
 ## Installation.
 The project is ready to use out of the box, once you clone and run it in Android studio.
 
-** How to clone:
+# How to clone:
 *mkdir `myDir`
 *cd `myDir`
 *`git clone https://github.com/kitandara/kibira.git`
