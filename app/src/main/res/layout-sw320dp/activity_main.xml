@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--    This file is part of Msitu.
+     <https://github.com/kitandara/kibira>
+
+     Copyright (C) 2022 Digital Solutions
+
+     Msitu is free software: you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+     the Free Software Foundation, either version 3 of the License, or
+     (at your option) any later version.
+
+     Msitu is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+
+     You should have received a copy of the GNU General Public License
+     along with Msitu. If not, see <http://www.gnu.org/licenses/>-->
+
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -23,210 +41,304 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-
-
-            <fragment
-                android:id="@+id/mapFragment"
-                android:name="com.google.android.gms.maps.SupportMapFragment"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent">
 
-            <androidx.appcompat.widget.Toolbar
-                android:id="@+id/appToolbar"
-                android:layout_width="match_parent"
-                android:layout_height="90dp"
-                android:background="@color/lightGreen"
-                android:elevation="4dp"
-                android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
-                app:popupTheme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+                <fragment
+                    android:id="@+id/mapFragment"
+                    android:name="com.google.android.gms.maps.SupportMapFragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <androidx.appcompat.widget.Toolbar
+                    android:id="@+id/appToolbar"
+                    android:layout_width="match_parent"
+                    android:layout_height="80dp"
+                    android:background="@color/lightGreen"
+                    android:elevation="4dp"
+                    android:theme="@style/Theme.AppCompat.DayNight.NoActionBar"
+                    app:popupTheme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+
+                        <androidx.constraintlayout.widget.Guideline
+                            android:id="@+id/firstGuideline"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            app:layout_constraintGuide_percent="0.3" />
+
+                        <androidx.constraintlayout.widget.Guideline
+                            android:id="@+id/secondGuideline"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            app:layout_constraintGuide_percent="0.38" />
+
+                        <androidx.constraintlayout.widget.Guideline
+                            android:id="@+id/thirdGuideline"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            app:layout_constraintGuide_percent="0.62" />
+
+                        <androidx.constraintlayout.widget.Guideline
+                            android:id="@+id/fourthGuideline"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            app:layout_constraintGuide_percent="0.70" />
+
+                        <TextView
+                            android:id="@+id/display_project_name"
+                            android:layout_width="wrap_content"
+                            android:layout_height="48dp"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="15dp"
+                            android:gravity="center"
+                            android:text=""
+
+                            android:textAllCaps="false"
+                            android:textColor="@color/white"
+                            android:textSize="15sp"
+                            android:textStyle="normal|bold"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <Button
+                            android:id="@+id/buttonConnect"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_marginStart="15dp"
+
+                            android:layout_marginBottom="15dp"
+                            android:backgroundTint="@color/greenish"
+
+                            android:gravity="center"
+                            android:text="@string/bt_pair"
+                            android:textAllCaps="false"
+                            android:textSize="12sp"
+                            android:visibility="visible"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/display_project_name"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+                        <Spinner
+                            android:id="@+id/spinner"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_marginStart="10dp"
+                            android:layout_marginTop="5dp"
+                            android:layout_marginBottom="10dp"
+                            android:layout_weight="1"
+                            android:backgroundTint="@color/greenish"
+                            android:contentDescription="@string/pair"
+                            android:visibility="visible"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toEndOf="@+id/buttonConnect"
+                            app:layout_constraintTop_toTopOf="parent" />
+
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                </androidx.appcompat.widget.Toolbar>
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
                     <androidx.constraintlayout.widget.Guideline
-                        android:id="@+id/firstGuideline"
+                        android:id="@+id/lvFirstGuideline"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        app:layout_constraintGuide_percent="0.3" />
+                        app:layout_constraintGuide_percent="0.30" />
 
                     <androidx.constraintlayout.widget.Guideline
-                        android:id="@+id/secondGuideline"
+                        android:id="@+id/lvSecondGuideline"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        app:layout_constraintGuide_percent="0.38" />
+                        app:layout_constraintGuide_percent="0.47" />
 
                     <androidx.constraintlayout.widget.Guideline
-                        android:id="@+id/thirdGuideline"
+                        android:id="@+id/lFirstGuideline"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        app:layout_constraintGuide_percent="0.62" />
+                        android:orientation="horizontal"
+                        app:layout_constraintGuide_percent="0.12" />
 
                     <androidx.constraintlayout.widget.Guideline
-                        android:id="@+id/fourthGuideline"
+                        android:id="@+id/lAnotherGuideline"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        app:layout_constraintGuide_percent="0.70" />
+                        android:orientation="horizontal"
+                        app:layout_constraintGuide_percent="0.20" />
 
-                    <TextView
-                        android:id="@+id/display_project_name"
+                    <androidx.constraintlayout.widget.Guideline
+                        android:id="@+id/lFithGuideline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        app:layout_constraintGuide_percent="0.23" />
+
+                    <androidx.constraintlayout.widget.Guideline
+                        android:id="@+id/lThirdGuideline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        app:layout_constraintGuide_percent="0.28" />
+
+                    <androidx.constraintlayout.widget.Guideline
+                        android:id="@+id/lSecondGuideline"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        app:layout_constraintGuide_percent="0.6" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/positionCardView"
                         android:layout_width="0dp"
-                        android:layout_height="51dp"
-                        android:gravity="center"
-                        android:text = ""
-                        android:textAlignment="center"
-                        android:textAllCaps="false"
-                        android:textColor="@color/white"
-                        android:textSize="15sp"
-                        android:textStyle="normal|bold"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toStartOf="@id/firstGuideline"
+                        android:layout_height="0dp"
+                        android:layout_gravity="top"
+                        android:visibility="invisible"
+                        app:cardBackgroundColor="@color/white"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="10dp"
+                        app:cardPreventCornerOverlap="false"
+                        app:cardUseCompatPadding="false"
+                        app:layout_constraintBottom_toTopOf="@+id/lThirdGuideline"
+                        app:layout_constraintEnd_toStartOf="@+id/lvFirstGuideline"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        app:layout_constraintTop_toTopOf="@+id/lFirstGuideline">
 
-                    <Button
-                        android:id="@+id/buttonConnect"
-                        android:layout_width="81dp"
-                        android:layout_height="48dp"
-                        android:backgroundTint="@color/greenish"
-                        android:gravity="center"
-                        android:text="Pair"
-                        android:textAllCaps="false"
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
 
-                        android:textSize="12dp"
-                        android:visibility="visible"
+                            <LinearLayout
+                                android:id="@+id/plant"
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:background="@color/white"
+                                android:orientation="vertical"
+                                android:visibility="visible"
 
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toStartOf="@+id/thirdGuideline"
-                        app:layout_constraintStart_toStartOf="@+id/secondGuideline"
-                        app:layout_constraintTop_toTopOf="parent" />
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent"
+                                tools:ignore="UseCompoundDrawables">
 
-                    <Spinner
-                        android:id="@+id/spinner"
+                                <androidx.constraintlayout.widget.ConstraintLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent">
+
+                                    <androidx.constraintlayout.widget.Guideline
+                                        android:id="@+id/cardviewHGuideline"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="horizontal"
+                                        app:layout_constraintGuide_percent="0.50" />
+
+                                    <androidx.constraintlayout.widget.Guideline
+                                        android:id="@+id/cardviewSecondVGuideline"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical"
+                                        app:layout_constraintGuide_percent="0.21" />
+
+                                    <androidx.constraintlayout.widget.Guideline
+                                        android:id="@+id/cardviewThirdVGuideline"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical"
+                                        app:layout_constraintGuide_percent="0.75" />
+
+                                    <androidx.constraintlayout.widget.Guideline
+                                        android:id="@+id/cardviewFirstVGuideline"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical"
+                                        app:layout_constraintGuide_percent="0.10" />
+
+                                    <androidx.constraintlayout.widget.Guideline
+                                        android:id="@+id/cardviewLastVGuideline"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical"
+                                        app:layout_constraintGuide_percent="0.90" />
+
+                                    <ImageView
+                                        android:id="@+id/plantValue"
+                                        android:layout_width="0dp"
+                                        android:layout_height="0dp"
+                                        android:layout_gravity="center"
+                                        android:layout_margin="5dp"
+                                        android:autofillHints=""
+                                        android:padding="5dp"
+                                        android:src="@drawable/tick"
+                                        android:visibility="visible"
+                                        app:layout_constraintBottom_toTopOf="@+id/cardviewHGuideline"
+                                        app:layout_constraintEnd_toStartOf="@+id/cardviewThirdVGuideline"
+                                        app:layout_constraintStart_toStartOf="@+id/cardviewSecondVGuideline"
+                                        app:layout_constraintTop_toTopOf="parent"
+                                        app:tint="@color/black"
+                                        tools:ignore="UseAppTint" />
+
+                                    <TextView
+                                        android:id="@+id/plantText"
+                                        android:layout_width="0dp"
+                                        android:layout_height="0dp"
+                                        android:layout_gravity="center"
+                                        android:text="Slow Down"
+                                        android:textColor="@color/black"
+                                        android:textSize="22sp"
+                                        android:textStyle="normal|bold"
+                                        android:visibility="visible"
+                                        app:layout_constraintBottom_toBottomOf="parent"
+                                        app:layout_constraintEnd_toStartOf="@+id/cardviewLastVGuideline"
+                                        app:layout_constraintStart_toStartOf="@+id/cardviewFirstVGuideline"
+                                        app:layout_constraintTop_toTopOf="@+id/cardviewHGuideline" />
+                                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                            </LinearLayout>
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    </androidx.cardview.widget.CardView>
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/directionsLayout"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
-                        android:layout_marginEnd="36dp"
-                        android:layout_weight="1"
-                        android:backgroundTint="@color/greenish"
-                        android:contentDescription="@string/pair"
-                        android:gravity="center_horizontal"
-                        android:visibility="visible"
-                        app:layout_constraintBottom_toBottomOf="parent"
+                        android:layout_height="0dp"
+                        android:layout_gravity="top|end"
+                        android:visibility="invisible"
+                        app:cardBackgroundColor="@color/teal"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="10dp"
+                        app:cardPreventCornerOverlap="false"
+                        app:cardUseCompatPadding="false"
+                        app:layout_constraintBottom_toTopOf="@+id/lAnotherGuideline"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="@+id/fourthGuideline"
-                        app:layout_constraintTop_toTopOf="parent" />
+                        app:layout_constraintStart_toStartOf="@+id/lvSecondGuideline"
+                        app:layout_constraintTop_toTopOf="@+id/lFirstGuideline">
 
-
-                </androidx.constraintlayout.widget.ConstraintLayout>
-
-            </androidx.appcompat.widget.Toolbar>
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/lvFirstGuideline"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    app:layout_constraintBottom_toTopOf="@+id/lvSecondGuideline"
-                    app:layout_constraintGuide_percent="0.30"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/lvSecondGuideline"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="716dp"
-                    android:orientation="vertical"
-                    app:layout_constraintBottom_toTopOf="@+id/fixTypeValue"
-                    app:layout_constraintGuide_percent="0.47"
-                    app:layout_constraintTop_toBottomOf="@+id/lvFirstGuideline" />
-
-                <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/lFirstGuideline"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    app:layout_constraintGuide_percent="0.12" />
-
-                <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/lAnotherGuideline"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    app:layout_constraintEnd_toStartOf="@+id/lFithGuideline"
-                    app:layout_constraintGuide_percent="0.20"
-                    app:layout_constraintStart_toEndOf="@+id/positionCardView" />
-
-                <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/lFithGuideline"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="409dp"
-                    android:orientation="horizontal"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintGuide_percent="0.23"
-                    app:layout_constraintStart_toEndOf="@+id/lAnotherGuideline" />
-
-                <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/lThirdGuideline"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="192dp"
-                    android:orientation="horizontal"
-                    app:layout_constraintEnd_toStartOf="@+id/cardView2"
-                    app:layout_constraintGuide_percent="0.28"
-                    app:layout_constraintStart_toStartOf="parent" />
-
-                <androidx.constraintlayout.widget.Guideline
-                    android:id="@+id/lSecondGuideline"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    app:layout_constraintGuide_percent="0.6" />
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/positionCardView"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_gravity="top"
-                    android:visibility="invisible"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="10dp"
-                    app:cardPreventCornerOverlap="false"
-                    app:cardUseCompatPadding="false"
-                    app:layout_constraintBottom_toTopOf="@+id/lThirdGuideline"
-                    app:layout_constraintEnd_toStartOf="@+id/lAnotherGuideline"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/lFirstGuideline">
-
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent">
 
                         <LinearLayout
-                            android:id="@+id/plant"
-                            android:layout_width="0dp"
-                            android:layout_height="0dp"
-                            android:background="@color/white"
-                            android:orientation="vertical"
-                            android:visibility="visible"
+                            android:id="@+id/leftLayout"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="5dp"
 
-                            app:layout_constraintBottom_toBottomOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
+                            android:orientation="horizontal"
+                            android:visibility="visible"
+                            app:layout_constraintBottom_toBottomOf="@+id/appToolbar"
                             tools:ignore="UseCompoundDrawables">
 
                             <androidx.constraintlayout.widget.ConstraintLayout
@@ -234,628 +346,297 @@
                                 android:layout_height="match_parent">
 
                                 <androidx.constraintlayout.widget.Guideline
-                                    android:id="@+id/cardviewHGuideline"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    app:layout_constraintGuide_percent="0.50" />
-
-                                <androidx.constraintlayout.widget.Guideline
-                                    android:id="@+id/cardviewSecondVGuideline"
+                                    android:id="@+id/lvThirdGuideline"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:orientation="vertical"
-                                    app:layout_constraintGuide_percent="0.21" />
+                                    app:layout_constraintGuide_percent="0.34" />
 
-                                <androidx.constraintlayout.widget.Guideline
-                                    android:id="@+id/cardviewThirdVGuideline"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="vertical"
-                                    app:layout_constraintGuide_percent="0.75" />
-
-                                <androidx.constraintlayout.widget.Guideline
-                                    android:id="@+id/cardviewFirstVGuideline"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="vertical"
-                                    app:layout_constraintGuide_percent="0.10" />
-
-                                <androidx.constraintlayout.widget.Guideline
-                                    android:id="@+id/cardviewLastVGuideline"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="vertical"
-                                    app:layout_constraintGuide_percent="0.90" />
 
                                 <ImageView
-                                    android:id="@+id/plantValue"
+                                    android:id="@+id/directionImageValue"
+
                                     android:layout_width="0dp"
                                     android:layout_height="0dp"
                                     android:layout_gravity="center"
                                     android:layout_margin="5dp"
+                                    android:layout_marginStart="16dp"
                                     android:autofillHints=""
                                     android:padding="5dp"
-                                    android:src="@drawable/tick"
+                                    android:src="@drawable/leftarrow"
                                     android:visibility="visible"
-                                    app:layout_constraintBottom_toTopOf="@+id/cardviewHGuideline"
-                                    app:layout_constraintEnd_toStartOf="@+id/cardviewThirdVGuideline"
-                                    app:layout_constraintStart_toStartOf="@+id/cardviewSecondVGuideline"
+                                    app:layout_constraintBottom_toBottomOf="parent"
+                                    app:layout_constraintDimensionRatio="1:1"
+                                    app:layout_constraintEnd_toStartOf="@id/directionText"
+                                    app:layout_constraintStart_toStartOf="parent"
                                     app:layout_constraintTop_toTopOf="parent"
-                                    app:tint="@color/black"
+                                    app:tint="@color/white"
                                     tools:ignore="UseAppTint" />
 
                                 <TextView
-                                    android:id="@+id/plantText"
-                                    android:layout_width="0dp"
+                                    android:id="@+id/directionText"
+                                    android:layout_width="wrap_content"
                                     android:layout_height="0dp"
                                     android:layout_gravity="center"
-                                    android:text="Slow Down"
-                                    android:textColor="@color/black"
+                                    android:padding="13dp"
+                                    android:text="Turn Right"
+                                    android:textAlignment="center"
+                                    android:textColor="@color/white"
                                     android:textSize="22sp"
                                     android:textStyle="normal|bold"
                                     android:visibility="visible"
                                     app:layout_constraintBottom_toBottomOf="parent"
-                                    app:layout_constraintEnd_toStartOf="@+id/cardviewLastVGuideline"
-                                    app:layout_constraintStart_toStartOf="@+id/cardviewFirstVGuideline"
-                                    app:layout_constraintTop_toTopOf="@+id/cardviewHGuideline" />
+                                    app:layout_constraintEnd_toEndOf="parent"
+                                    app:layout_constraintStart_toStartOf="@+id/lvThirdGuideline"
+                                    app:layout_constraintTop_toTopOf="parent" />
+
                             </androidx.constraintlayout.widget.ConstraintLayout>
 
                         </LinearLayout>
-                    </androidx.constraintlayout.widget.ConstraintLayout>
 
-                </androidx.cardview.widget.CardView>
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/directionsLayout"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_gravity="top|end"
-                    android:visibility="invisible"
-                    app:cardBackgroundColor="@color/teal"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="10dp"
-                    app:cardPreventCornerOverlap="false"
-                    app:cardUseCompatPadding="false"
-                    app:layout_constraintBottom_toTopOf="@+id/lAnotherGuideline"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="@+id/lvSecondGuideline"
-                    app:layout_constraintTop_toTopOf="@+id/lFirstGuideline">
+                    </androidx.cardview.widget.CardView>
 
 
-                    <LinearLayout
-                        android:id="@+id/leftLayout"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_marginStart="5dp"
 
-                        android:orientation="horizontal"
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/fab_map"
+                        style="?attr/floatingActionButtonLargeStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|bottom"
+                        android:layout_marginStart="4dp"
+                        android:contentDescription="@string/fab_map"
+                        android:src="@drawable/ic_baseline_map_24"
+                        app:backgroundTint="@color/green"
+                        app:layout_constraintBottom_toTopOf="@+id/lSecondGuideline"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/fab_compass" />
+
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/fab_center"
+                        style="?attr/floatingActionButtonLargeStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end|bottom"
+                        android:layout_marginStart="4dp"
+                        android:contentDescription="@string/fab_map"
+                        android:src="@android:drawable/ic_menu_mylocation"
+                        android:visibility="invisible"
+                        app:backgroundTint="@color/green"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/fab_area" />
+
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/fab_compass"
+                        style="?attr/floatingActionButtonLargeStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical|end|bottom"
+                        android:layout_marginStart="4dp"
+                        android:contentDescription="@string/compass"
+                        android:src="@drawable/blackcompass"
+
+                        app:backgroundTint="@color/green"
+                        app:layout_constraintBottom_toTopOf="@+id/fab_map"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/fab_moreLines"
+                        app:rippleColor="#EDE8E8" />
+
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/fab_moreLines"
+                        style="?attr/floatingActionButtonLargeStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical|end|bottom"
+                        android:layout_marginStart="4dp"
+                        android:layout_marginBottom="58dp"
+                        android:contentDescription="UnDo"
+                        android:src="@drawable/ic_baseline_add_24"
                         android:visibility="visible"
-                        app:layout_constraintBottom_toBottomOf="@+id/appToolbar"
-                        tools:ignore="UseCompoundDrawables">
-
-                        <androidx.constraintlayout.widget.ConstraintLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-
-                            <androidx.constraintlayout.widget.Guideline
-                                android:id="@+id/lvThirdGuideline"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                app:layout_constraintGuide_percent="0.34" />
+                        app:backgroundTint="@color/green"
+                        app:layout_constraintBottom_toTopOf="@+id/fab_compass"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/lThirdGuideline" />
 
 
-                            <ImageView
-                                android:id="@+id/directionImageValue"
+                    <com.google.android.material.floatingactionbutton.FloatingActionButton
+                        android:id="@+id/fab_area"
+                        style="?attr/floatingActionButtonLargeStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_vertical|end|bottom"
+                        android:layout_marginEnd="5dp"
 
-                                android:layout_width="0dp"
-                                android:layout_height="0dp"
-                                android:layout_gravity="center"
-                                android:layout_margin="5dp"
-                                android:layout_marginStart="16dp"
-                                android:autofillHints=""
-                                android:padding="5dp"
-                                android:src="@drawable/leftarrow"
-                                android:visibility="visible"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintDimensionRatio="1:1"
-                                app:layout_constraintEnd_toStartOf="@id/directionText"
-                                app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintTop_toTopOf="parent"
-                                app:tint="@color/white"
-                                tools:ignore="UseAppTint" />
-
-                            <TextView
-                                android:id="@+id/directionText"
-                                android:layout_width="wrap_content"
-                                android:layout_height="0dp"
-                                android:layout_gravity="center"
-                                android:padding="13dp"
-                                android:text="Turn Right"
-                                android:textAlignment="center"
-                                android:textColor="@color/white"
-                                android:textSize="22sp"
-                                android:textStyle="normal|bold"
-                                android:visibility="visible"
-                                app:layout_constraintBottom_toBottomOf="parent"
-                                app:layout_constraintEnd_toEndOf="parent"
-                                app:layout_constraintStart_toStartOf="@+id/lvThirdGuideline"
-                                app:layout_constraintTop_toTopOf="parent" />
-
-                        </androidx.constraintlayout.widget.ConstraintLayout>
-
-                    </LinearLayout>
-
-                </androidx.cardview.widget.CardView>
-
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/cardView2"
-                    android:layout_width="0dp"
-                    android:layout_height="250dp"
-                    android:layout_gravity="top|end"
-                    android:visibility="invisible"
-                    app:cardBackgroundColor="@color/teal"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="10dp"
-                    app:cardMaxElevation="20dp"
-                    app:cardPreventCornerOverlap="false"
-                    app:cardUseCompatPadding="false"
-                    app:layout_constraintBottom_toTopOf="@+id/lSecondGuideline"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toEndOf="@+id/lThirdGuideline"
-                    app:layout_constraintStart_toStartOf="@+id/lvSecondGuideline"
-                    app:layout_constraintTop_toTopOf="@+id/lFithGuideline">
+                        android:layout_marginBottom="465dp"
+                        android:contentDescription="area"
+                        android:src="@drawable/ic_baseline_undo_24"
+                        app:backgroundTint="@color/green"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:rippleColor="#EDE8E8" />
 
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                        android:layout_height="match_parent"
+                        android:padding="16dp">
 
-                        <LinearLayout
-                            android:layout_width="298dp"
-                            android:layout_height="276dp"
-                            android:orientation="vertical"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintHorizontal_bias="0.0"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent">
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/material_switch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="5dp"
+                            android:layout_marginBottom="200dp"
+                            android:text="Planting Mode"
+                            android:textColor="@color/white"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintStart_toStartOf="parent" />
 
-                            <androidx.constraintlayout.widget.ConstraintLayout
-                                android:layout_width="212dp"
-                                android:layout_height="253dp">
-
-                                <androidx.constraintlayout.widget.Guideline
-                                    android:id="@+id/cardviewHFirstGuideline"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    app:layout_constraintGuide_percent="0.21" />
-
-                                <androidx.constraintlayout.widget.Guideline
-                                    android:id="@+id/cardviewHFourthGuideline"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    app:layout_constraintGuide_percent="0.82" />
-
-                                <androidx.constraintlayout.widget.Guideline
-                                    android:id="@+id/cardviewHFirthGuideline"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    app:layout_constraintGuide_percent="0.34" />
-
-                                <LinearLayout
-                                    android:id="@+id/linearLayout"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:orientation="horizontal"
-                                    android:showDividers="none"
-                                    app:layout_constraintBottom_toTopOf="@+id/cardviewHFirstGuideline"
-                                    app:layout_constraintEnd_toEndOf="parent"
-                                    app:layout_constraintStart_toStartOf="parent"
-                                    app:layout_constraintTop_toTopOf="parent">
-
-                                    <androidx.constraintlayout.widget.ConstraintLayout
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent">
-
-                                        <androidx.constraintlayout.widget.Guideline
-                                            android:id="@+id/cardviewVGuideline"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:orientation="vertical"
-                                            app:layout_constraintGuide_percent="0.5" />
-
-                                        <TextView
-                                            android:id="@+id/numberOfPoints"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:layout_weight="1"
-                                            android:padding="5dp"
-                                            android:text=""
-                                            android:textAlignment="textStart"
-                                            android:textColor="@color/white"
-                                            android:textSize="18sp"
-                                            android:textStyle="bold|normal"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintEnd_toEndOf="parent"
-                                            app:layout_constraintStart_toStartOf="@+id/cardviewVGuideline"
-                                            app:layout_constraintTop_toTopOf="parent" />
-
-                                        <TextView
-                                            android:id="@+id/myTextView"
-                                            android:layout_width="0dp"
-                                            android:layout_height="0dp"
-                                            android:padding="5dp"
-                                            android:text="Marked Pts: "
-                                            android:textAlignment="textStart"
-                                            android:textColor="@color/white"
-                                            android:textSize="15sp"
-                                            android:textStyle="bold|normal"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintEnd_toStartOf="@+id/cardviewVGuideline"
-                                            app:layout_constraintStart_toStartOf="parent"
-                                            app:layout_constraintTop_toTopOf="parent" />
-
-                                        <View
-                                            android:layout_width="match_parent"
-                                            android:layout_height="2dp"
-                                            android:background="@color/hr"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            tools:layout_editor_absoluteY="71dp" />
-
-                                    </androidx.constraintlayout.widget.ConstraintLayout>
-
-                                </LinearLayout>
-
-                                <LinearLayout
-                                    android:id="@+id/linearLayout2"
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:orientation="horizontal"
-                                    app:layout_constraintBottom_toTopOf="@+id/cardviewHFirthGuideline"
-                                    app:layout_constraintEnd_toEndOf="parent"
-                                    app:layout_constraintStart_toStartOf="parent"
-                                    app:layout_constraintTop_toTopOf="@+id/cardviewHFirstGuideline">
-
-                                    <androidx.constraintlayout.widget.ConstraintLayout
-                                        android:layout_width="match_parent"
-                                        android:layout_height="match_parent">
-
-                                        <androidx.constraintlayout.widget.Guideline
-                                            android:id="@+id/cardviewV2Guideline"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:orientation="vertical"
-                                            app:layout_constraintGuide_percent="0.5" />
-
-                                        <androidx.constraintlayout.widget.Guideline
-                                            android:id="@+id/cardviewV3Guideline"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:orientation="vertical"
-                                            app:layout_constraintGuide_percent="0.80" />
-
-                                        <TextView
-                                            android:id="@+id/myTextView2"
-                                            android:layout_width="0dp"
-                                            android:layout_height="0dp"
-                                            android:padding="5dp"
-                                            android:text="Next Pt:"
-                                            android:textAlignment="textStart"
-                                            android:textColor="@color/white"
-                                            android:textSize="15sp"
-                                            android:textStyle="bold"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintEnd_toStartOf="@+id/cardviewV2Guideline"
-                                            app:layout_constraintStart_toStartOf="parent"
-                                            app:layout_constraintTop_toTopOf="parent" />
-
-                                        <TextView
-                                            android:id="@+id/distanceUnits"
-                                            android:layout_width="0dp"
-                                            android:layout_height="0dp"
-                                            android:layout_margin="5dp"
-                                            android:layout_weight="1"
-                                            android:autofillHints=""
-                                            android:padding="2dp"
-                                            android:shadowColor="@color/white"
-                                            android:text="FT"
-                                            android:textAlignment="textStart"
-                                            android:textColor="@color/white"
-                                            android:textSize="14sp"
-                                            android:textStyle="bold"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintEnd_toEndOf="parent"
-                                            app:layout_constraintStart_toStartOf="@+id/cardviewV3Guideline"
-                                            app:layout_constraintTop_toTopOf="parent" />
-
-                                        <TextView
-                                            android:id="@+id/distance"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:layout_margin="5dp"
-                                            android:autofillHints=""
-                                            android:padding="5dp"
-                                            android:text=""
-                                            android:textAlignment="textStart"
-                                            android:textColor="@color/white"
-                                            android:textSize="20sp"
-                                            android:textStyle="bold|normal"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintEnd_toStartOf="@+id/cardviewV3Guideline"
-                                            app:layout_constraintStart_toStartOf="@+id/cardviewV2Guideline"
-                                            app:layout_constraintTop_toTopOf="parent" />
-
-                                        <View
-                                            android:layout_width="match_parent"
-                                            android:layout_height="2dp"
-                                            android:background="@color/hr"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            tools:layout_editor_absoluteY="71dp" />
-
-
-                                    </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-                                </LinearLayout>
-
-                                <LinearLayout
-                                    android:layout_width="0dp"
-                                    android:layout_height="0dp"
-                                    android:orientation="horizontal"
-                                    app:layout_constraintBottom_toTopOf="@+id/cardviewHFourthGuideline"
-                                    app:layout_constraintEnd_toEndOf="parent"
-                                    app:layout_constraintHorizontal_bias="1.0"
-                                    app:layout_constraintStart_toStartOf="parent"
-                                    app:layout_constraintTop_toTopOf="@+id/cardviewHFirthGuideline">
-
-                                    <androidx.constraintlayout.widget.ConstraintLayout
-                                        android:layout_width="match_parent"
-                                        android:layout_height="115dp">
-
-                                        <TextView
-                                            android:id="@+id/linesMarked"
-                                            android:layout_width="53dp"
-                                            android:layout_height="32dp"
-                                            android:layout_margin="5dp"
-                                            android:padding="2dp"
-                                            android:text="Long:"
-                                            android:textAlignment="textStart"
-                                            android:textColor="@color/white"
-                                            android:textSize="16sp"
-                                            android:textStyle="bold|normal"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintEnd_toEndOf="parent"
-                                            app:layout_constraintHorizontal_bias="0.0"
-                                            app:layout_constraintStart_toStartOf="parent"
-                                            app:layout_constraintTop_toTopOf="parent"
-                                            app:layout_constraintVertical_bias="0.578" />
-
-                                        <androidx.constraintlayout.widget.Guideline
-                                            android:id="@+id/cardviewV5Guideline"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:orientation="vertical"
-                                            app:layout_constraintGuide_percent="0.27" />
-
-                                        <TextView
-                                            android:id="@+id/pace"
-                                            android:layout_width="44dp"
-                                            android:layout_height="28dp"
-                                            android:padding="2dp"
-                                            android:text="Lat:"
-                                            android:textAlignment="textStart"
-                                            android:textColor="@color/white"
-                                            android:textSize="16sp"
-                                            android:textStyle="bold|normal"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintEnd_toStartOf="@+id/cardviewV5Guideline"
-                                            app:layout_constraintHorizontal_bias="0.444"
-                                            app:layout_constraintStart_toStartOf="parent"
-                                            app:layout_constraintTop_toTopOf="parent"
-                                            app:layout_constraintVertical_bias="0.192" />
-
-                                        <View
-                                            android:layout_width="match_parent"
-                                            android:layout_height="2dp"
-                                            android:background="@color/hr"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintTop_toBottomOf="parent"
-                                            app:layout_constraintVertical_bias="1.0"
-                                            tools:layout_editor_absoluteX="0dp" />
-
-                                        <TextView
-                                            android:id="@+id/longValue"
-                                            android:layout_width="138dp"
-                                            android:layout_height="35dp"
-                                            android:layout_margin="5dp"
-                                            android:padding="5dp"
-                                            android:text=""
-                                            android:textAlignment="textStart"
-                                            android:textColor="@color/white"
-                                            android:textSize="12sp"
-                                            android:textStyle="bold"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintEnd_toEndOf="parent"
-                                            app:layout_constraintHorizontal_bias="0.968"
-                                            app:layout_constraintStart_toStartOf="@+id/linesMarked"
-                                            app:layout_constraintTop_toTopOf="parent"
-                                            app:layout_constraintVertical_bias="0.562" />
-
-                                        <TextView
-                                            android:id="@+id/latValue"
-                                            android:layout_width="148dp"
-                                            android:layout_height="37dp"
-                                            android:layout_margin="5dp"
-                                            android:padding="5dp"
-                                            android:text=""
-                                            android:textAlignment="textStart"
-                                            android:textColor="@color/white"
-                                            android:textSize="12sp"
-                                            android:textStyle="bold"
-                                            app:layout_constraintBottom_toBottomOf="parent"
-                                            app:layout_constraintEnd_toEndOf="parent"
-                                            app:layout_constraintHorizontal_bias="0.0"
-                                            app:layout_constraintStart_toStartOf="@+id/cardviewV5Guideline"
-                                            app:layout_constraintTop_toTopOf="parent"
-                                            app:layout_constraintVertical_bias="0.081" />
-
-                                    </androidx.constraintlayout.widget.ConstraintLayout>
-
-                                </LinearLayout>
-
-
-                            </androidx.constraintlayout.widget.ConstraintLayout>
-
-                        </LinearLayout>
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
-                </androidx.cardview.widget.CardView>
+                    <TextView
+                        android:id="@+id/fixType"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginBottom="176dp"
+                        android:padding="5dp"
+                        android:text="FixType:"
+                        android:textAlignment="textStart"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold|normal"
+                        android:visibility="visible"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent" />
 
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fab_reset"
-                    style="?attr/floatingActionButtonLargeStyle"
+                    <TextView
+                        android:id="@+id/fixTypeValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_marginEnd="224dp"
+                        android:layout_marginBottom="176dp"
+                        android:padding="5dp"
+                        android:text="No data"
+                        android:textAlignment="textStart"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold|normal"
+                        android:visibility="visible"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
+
+                    <TextView
+                        android:id="@+id/myTextView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:layout_marginBottom="4dp"
+                        android:padding="5dp"
+                        android:text="Marked Pts: "
+                        android:textAlignment="textStart"
+                        android:textColor="@color/black"
+                        android:textSize="17sp"
+                        android:textStyle="bold|normal"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/linesMarked"
+                        app:layout_constraintVertical_bias="0.0" />
+
+                    <TextView
+                        android:id="@+id/numberOfPoints"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginEnd="224dp"
+                        android:layout_marginBottom="36dp"
+                        android:layout_weight="1"
+                        android:padding="5dp"
+                        android:text="700"
+                        android:textAlignment="textStart"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold|normal"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/myTextView"
+                        app:layout_constraintTop_toBottomOf="@+id/longValue"
+                        app:layout_constraintVertical_bias="0.0" />
+
+                    <TextView
+                        android:id="@+id/linesMarked"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+                        android:padding="5dp"
+                        android:text="Long:"
+                        android:textAlignment="textStart"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold|normal"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/pace" />
+
+                    <TextView
+                        android:id="@+id/pace"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="5dp"
+
+                        android:padding="5dp"
+                        android:text="Lat:"
+                        android:textAlignment="textStart"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold|normal"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@+id/fixType" />
+
+                    <TextView
+                        android:id="@+id/longValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="24dp"
+                        android:padding="5dp"
+                        android:text="43.9999995555555"
+                        android:textAlignment="textStart"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.0"
+                        app:layout_constraintStart_toEndOf="@+id/linesMarked"
+                        app:layout_constraintTop_toBottomOf="@+id/latValue" />
+
+                    <TextView
+                        android:id="@+id/latValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="224dp"
+                        android:padding="5dp"
+                        android:text="54.88888"
+                        android:textAlignment="textStart"
+                        android:textColor="@color/black"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toEndOf="@+id/pace"
+                        app:layout_constraintTop_toBottomOf="@+id/fixTypeValue" />
+
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    style="?android:attr/progressBarStyleLarge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|end|bottom"
-                    android:layout_marginStart="4dp"
-                    android:contentDescription="UnDo"
-                    android:src="@drawable/ic_baseline_undo_24"
-                    android:visibility="visible"
-                    app:backgroundTint="@color/green"
-                    app:layout_constraintBottom_toTopOf="@+id/fab_compass"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/fab_moreLines" />
-
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fab_map"
-                    style="?attr/floatingActionButtonLargeStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end|bottom"
-                    android:contentDescription="@string/fab_map"
-                    android:src="@drawable/ic_baseline_map_24"
-                    app:backgroundTint="@color/green"
-                    app:layout_constraintBottom_toTopOf="@+id/lSecondGuideline"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/fab_compass" />
-
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fab_center"
-                    style="?attr/floatingActionButtonLargeStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end|bottom"
-                    android:contentDescription="@string/fab_map"
-                    android:src="@android:drawable/ic_menu_mylocation"
-                    android:visibility="invisible"
-                    app:backgroundTint="@color/green"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.018"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/fab_compass"
-                    app:layout_constraintVertical_bias="0.241" />
-
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fab_compass"
-                    style="?attr/floatingActionButtonLargeStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|end|bottom"
-                    android:contentDescription="@string/compass"
-                    android:src="@drawable/blackcompass"
-                    app:backgroundTint="@color/green"
-
-                    app:layout_constraintBottom_toTopOf="@+id/fab_map"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/fab_moreLines"
-                    app:rippleColor="#EDE8E8" />
-
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fab_area"
-                    style="?attr/floatingActionButtonLargeStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|end|bottom"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginTop="12dp"
-                    android:contentDescription="area"
-
-                    android:src="@drawable/baseline_area_chart_24"
-                    app:backgroundTint="@color/green"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/fab_map"
-                    app:rippleColor="#EDE8E8" />
-
-                <com.google.android.material.floatingactionbutton.FloatingActionButton
-                    android:id="@+id/fab_moreLines"
-                    style="?attr/floatingActionButtonLargeStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical|end|bottom"
-                    android:layout_marginBottom="58dp"
-                    android:contentDescription="UnDo"
-                    android:src="@drawable/ic_baseline_add_24"
-                    android:visibility="visible"
-                    app:backgroundTint="@color/green"
-                    app:layout_constraintBottom_toTopOf="@+id/fab_compass"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/lThirdGuideline" />
-
-                <TextView
-                    android:id="@+id/fixType"
-                    android:layout_width="101dp"
-                    android:layout_height="50dp"
-                    android:padding="7dp"
-                    android:text="FixType:"
-                    android:textAlignment="textStart"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    android:textStyle="bold|normal"
-                    android:visibility="visible"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.05"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintVertical_bias="0.853" />
-
-                <TextView
-                    android:id="@+id/fixTypeValue"
-                    android:layout_width="131dp"
-                    android:layout_height="0dp"
-                    android:layout_marginBottom="138dp"
-                    android:padding="7dp"
-                    android:text="No data"
-                    android:textAlignment="textStart"
-                    android:textColor="@color/white"
-                    android:textSize="18sp"
-                    android:textStyle="bold|normal"
-                    android:visibility="visible"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintHorizontal_bias="0.417"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/lvSecondGuideline"
-                    app:layout_constraintVertical_bias="0.838" />
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginTop="320dp"
+                    android:visibility="gone"
+                    tools:visibility="invisible" />
 
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <ProgressBar
-                android:id="@+id/progressBar"
-                style="?android:attr/progressBarStyleLarge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:layout_marginTop="320dp"
-                android:visibility="gone"
-                tools:visibility="invisible" />
-
-        </RelativeLayout>
+            </RelativeLayout>
         </FrameLayout>
         <com.google.android.material.navigation.NavigationView
             android:id="@+id/navView"
@@ -867,6 +648,7 @@
             app:itemIconTint="@color/black"
             app:itemTextColor="@color/black"
             app:menu="@menu/navmenu" />
+
     </androidx.drawerlayout.widget.DrawerLayout>
 
 

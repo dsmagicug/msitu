@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--    This file is part of Msitu.
+     <https://github.com/kitandara/kibira>
+
+     Copyright (C) 2022 Digital Solutions
+
+     Msitu is free software: you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+     the Free Software Foundation, either version 3 of the License, or
+     (at your option) any later version.
+
+     Msitu is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+
+     You should have received a copy of the GNU General Public License
+     along with Msitu. If not, see <http://www.gnu.org/licenses/>-->
+
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -359,8 +377,8 @@
                     android:id="@+id/cardView2"
                     android:layout_width="0dp"
                     android:layout_height="250dp"
-                    android:layout_gravity="top|end"
-                    android:visibility="invisible"
+                    android:layout_gravity="bottom|end"
+                    android:visibility="visible"
                     app:cardBackgroundColor="@color/teal"
                     app:cardCornerRadius="20dp"
                     app:cardElevation="10dp"
@@ -591,7 +609,6 @@
                                             android:textColor="@color/white"
                                             android:textSize="18sp"
                                             android:textStyle="bold|normal"
-                                            app:layout_constraintBottom_toBottomOf="@+id/linesMarkedValue"
                                             app:layout_constraintEnd_toEndOf="parent"
                                             app:layout_constraintHorizontal_bias="0.028"
                                             app:layout_constraintStart_toStartOf="parent"

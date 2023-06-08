@@ -1,4 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--    This file is part of Msitu.
+     <https://github.com/kitandara/kibira>
+
+     Copyright (C) 2022 Digital Solutions
+
+     Msitu is free software: you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+     the Free Software Foundation, either version 3 of the License, or
+     (at your option) any later version.
+
+     Msitu is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+
+     You should have received a copy of the GNU General Public License
+     along with Msitu. If not, see <http://www.gnu.org/licenses/>-->
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -7,20 +25,6 @@
     android:orientation="vertical"
     tools:context=".activities.MainActivity">
 
-<!--    <androidx.cardview.widget.CardView-->
-<!--        android:id="@+id/createProjectLayout"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="446dp"-->
-<!--        android:layout_gravity="center"-->
-<!--        android:layout_marginStart="9dp"-->
-<!--        android:layout_marginTop="55dp"-->
-<!--        android:layout_marginEnd="9dp"-->
-<!--        app:cardBackgroundColor="@color/white"-->
-<!--        app:cardCornerRadius="20dp"-->
-<!--        app:cardElevation="10dp"-->
-<!--        app:cardMaxElevation="20dp"-->
-<!--        app:cardPreventCornerOverlap="true"-->
-<!--        app:cardUseCompatPadding="true">-->
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -38,6 +42,7 @@
                 android:paddingBottom="10dp"
                 android:text="Create Project"
                 android:textAlignment="center"
+                android:textColor="@color/black"
                 android:textSize="30sp"
                 android:textStyle="normal"
 
@@ -245,12 +250,6 @@
 
                     </RadioButton>
 
-                <!--                </LinearLayout>-->
-<!--                <LinearLayout-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="match_parent"-->
-<!--                    android:orientation="horizontal">-->
-
                 <TextView
                     android:id="@+id/previewTriangular"
                     android:layout_width="137dp"
@@ -298,6 +297,62 @@
                     android:layout_marginStart="35dp"
                     android:visibility="gone"/>
 <!--                </LinearLayout>-->
+
+            </RadioGroup>
+
+            <TextView
+                android:id="@+id/plant_direction"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="20dp"
+                android:fontFamily="@font/rosemary"
+                android:text="Direction in which to draw the planting lines\nEither to your left or to your right"
+                android:textAlignment="textStart"
+                android:textColor="@color/black"
+                android:textSize="18sp"
+                />
+
+
+            <RadioGroup
+                android:id="@+id/direction"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="11dp">
+                <!--                <LinearLayout-->
+                <!--                    android:layout_width="match_parent"-->
+                <!--                    android:layout_height="match_parent"-->
+                <!--                    android:orientation="horizontal">-->
+
+                <RadioButton
+                    android:id="@+id/left"
+                    android:layout_width="202dp"
+                    android:layout_height="wrap_content"
+                    android:width="50dp"
+                    android:fontFamily="@font/rosemary"
+                    android:text="@string/to_the_left"
+                    android:textSize="16sp">
+
+                </RadioButton>
+
+                <!--                </LinearLayout>-->
+                <!--                <LinearLayout-->
+                <!--                    android:layout_width="match_parent"-->
+                <!--                    android:layout_height="match_parent"-->
+                <!--                    android:orientation="horizontal">-->
+
+
+                <RadioButton
+                    android:id ="@+id/right"
+                    android:layout_width="202dp"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/rosemary"
+                    android:text="@string/to_the_right"
+                    android:textSize="16sp">
+
+                </RadioButton>
+
+                <!--                </LinearLayout>-->
 
             </RadioGroup>
 

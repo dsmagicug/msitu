@@ -20,6 +20,8 @@ package com.dsmagic.kibira.activities
  *  along with Msitu. If not, see <http://www.gnu.org/licenses/>
  */
 
+import GFG.getOrientation
+import GFG.orientation
 import android.Manifest
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -59,7 +61,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import com.dsmagic.kibira.R
-import com.dsmagic.kibira.activities.CreateProjectDialog.jsonArray
+import com.dsmagic.kibira.activities.CreateProjectDialog.basePointsJsonArray
 import com.dsmagic.kibira.bluetooth.BluetoothFunctions
 import com.dsmagic.kibira.dataReadings.*
 import com.dsmagic.kibira.notifications.NotifyUserSignals
@@ -77,11 +79,9 @@ import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.roomDatabase.Entities.Project
 import com.dsmagic.kibira.roomDatabase.sharing.ImportProject
 import com.dsmagic.kibira.roomDatabase.sharing.ImportProject.Companion.REQUEST_CODE
-import com.dsmagic.kibira.services.BasePoints.projectID
 import com.dsmagic.kibira.ui.login.LoginActivity
 import com.dsmagic.kibira.usb.USBSerialReader
 import com.dsmagic.kibira.utils.Alerts
-import com.dsmagic.kibira.utils.Alerts.Companion.undoAlertWarning
 import com.dsmagic.kibira.utils.Alerts.Companion.warningAlert
 import com.dsmagic.kibira.utils.GeneralHelper
 import com.dsmagic.kibira.utils.ScaleLargeProjects
@@ -110,12 +110,11 @@ import kotlin.math.abs
 import kotlin.math.sqrt
 
 
-class MainActivity : AppCompatActivity(),
-    NavigationView.OnNavigationItemSelectedListener {
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private var marker: Circle? = null
     private var tempListMarker = mutableListOf<Marker>()
-    private var lastLoc: Location? = null
+
     private var zoomLevel = 21.0f
     private var firstPoint: LongLat? = null
     private var secondPoint: LongLat? = null
@@ -138,7 +137,7 @@ class MainActivity : AppCompatActivity(),
     lateinit var areaDialog: AreaDialog
     var userID: String? = null
     var extras: Bundle? = null
-    lateinit var debugXloc: LatLng
+
     lateinit var toggle: ActionBarDrawerToggle
     lateinit var sharedPreferences: SharedPreferences
     lateinit var fabCampus: FloatingActionButton
@@ -147,7 +146,7 @@ class MainActivity : AppCompatActivity(),
     var BearingPhoneIsFacing: Float = 0.0f
     lateinit var drawerlayout: DrawerLayout
     lateinit var navView: NavigationView
-    lateinit var fab_reset: FloatingActionButton
+
     lateinit var fab_map: FloatingActionButton
     lateinit var fab_area: FloatingActionButton
     lateinit var fab_moreLines: FloatingActionButton
@@ -158,11 +157,19 @@ class MainActivity : AppCompatActivity(),
     var projectLoaded = false
     lateinit var positionText: TextView
     lateinit var positionLayout: LinearLayout
-    lateinit var displayedDistance: TextView
-    lateinit var displayedDistanceUnits: TextView
     lateinit var displayedPoints: TextView
     lateinit var fixType: TextView
     lateinit var fixTypeValue: TextView
+
+    lateinit var latT: TextView
+    lateinit var latTValue: TextView
+
+    lateinit var longT: TextView
+    lateinit var longTValue: TextView
+
+    lateinit var markedPoints: TextView
+    lateinit var markedPointsValue: TextView
+
 
     private val workerPool: ExecutorService = Executors.newFixedThreadPool(3)
 
@@ -177,12 +184,17 @@ class MainActivity : AppCompatActivity(),
 
     companion object {
 
+        var plant: MeshDirection? = null
         var device: BluetoothDevice? = null
+        var lastLoc: Location? = null
+        var areaMode: Boolean = true
+        lateinit var areaToggle:CompoundButton
 
         lateinit var projectLines: MutableList<PlantingLine>
         var lastFixType = ""
         var projectList = ArrayList<String>()
         var projectIDList = mutableListOf<Int>()
+        var plantingDirectionList = mutableListOf<String>()
         var projectSizeList = mutableListOf<Double>()
         var projectMeshSizeList = mutableListOf<Double>()
         var meshTypeList = mutableListOf<String>()
@@ -202,7 +214,6 @@ class MainActivity : AppCompatActivity(),
         var deviceList = ArrayList<BluetoothDevice>()
         var polyLines = ArrayList<Polyline?>()
         var meshDone = false
-        lateinit var card: CardView
         lateinit var directionCardLayout: CardView
         lateinit var appdb: AppDatabase
         lateinit var fab_center: FloatingActionButton
@@ -212,6 +223,7 @@ class MainActivity : AppCompatActivity(),
 
         lateinit var projectStartPoint: Point
         var MeshType = " "
+        var plantingDirection = " "
         var gapUnits = " "
         var meshUnits = " "
         var position = "None"
@@ -220,7 +232,8 @@ class MainActivity : AppCompatActivity(),
 
         var latVertexList = mutableListOf<Double>()
         var longVertexList = mutableListOf<Double>()
-        val VerticePoints  = mutableListOf<LatLng>()
+        val VerticePoints = mutableListOf<LatLng>()
+        val VerticesLongLat = mutableListOf<LongLat>()
 
         /* Use a safer alternative to a cachedThreadPool (To prevent OutOfMemoryException) while handling processes
          that are short lived*/
@@ -251,11 +264,10 @@ class MainActivity : AppCompatActivity(),
         drawerlayout = findViewById(R.id.drawerlayout)
         navView = findViewById(R.id.navView)
         fab_map = findViewById(R.id.fab_map)
-        fab_reset = findViewById(R.id.fab_reset)
+
         progressBar = findViewById(R.id.progressBar)
         buttonConnect = findViewById(R.id.buttonConnect)
         spinner = findViewById(R.id.spinner)
-        card = findViewById<CardView>(R.id.cardView2)
         latValue = findViewById(R.id.latValue)
         longValue = findViewById(R.id.longValue)
         directionImage = findViewById(R.id.directionImageValue)
@@ -265,11 +277,17 @@ class MainActivity : AppCompatActivity(),
         pointCardview = findViewById(R.id.positionCardView)
         positionLayout = findViewById(R.id.plant)
         directionCardLayout = findViewById(R.id.directionsLayout)
-        displayedDistance = findViewById<TextView>(R.id.distance)
-        displayedDistanceUnits = findViewById(R.id.distanceUnits)
         displayedPoints = findViewById(R.id.numberOfPoints)
         fixType = findViewById(R.id.fixType)
         fixTypeValue = findViewById(R.id.fixTypeValue)
+
+        latT = findViewById(R.id.pace)
+        latTValue = findViewById(R.id.latValue)
+        longT = findViewById(R.id.linesMarked)
+        longTValue = findViewById(R.id.longValue)
+        markedPoints = findViewById(R.id.myTextView)
+        markedPointsValue = findViewById(R.id.numberOfPoints)
+
         toggle = ActionBarDrawerToggle(this, drawerlayout, R.string.open, R.string.close)
 
         drawerlayout.addDrawerListener(toggle)
@@ -278,6 +296,7 @@ class MainActivity : AppCompatActivity(),
         toggle.syncState()
 
         appdb = AppDatabase.dbInstance(this)
+
         navView.setNavigationItemSelectedListener(this)
         val headerView: View = navView.getHeaderView(0)
         val btnCloseDrawer = headerView.findViewById<View>(R.id.btnCloseDrawer) as ImageButton
@@ -306,11 +325,6 @@ class MainActivity : AppCompatActivity(),
             BearingPhoneIsFacing = newAngel
         }
 
-        fab_reset.setOnClickListener {
-
-            undoDrawingLines()
-        }
-
         /*
         * show the current real time position of the user
         * */
@@ -323,6 +337,7 @@ class MainActivity : AppCompatActivity(),
                 whereIamMarker = map?.addMarker(
                     MarkerOptions().position(loc).title(title).icon(
                         BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)
+
                     )
                 )!!
             } else {
@@ -394,7 +409,6 @@ class MainActivity : AppCompatActivity(),
         lastAcceleration = SensorManager.GRAVITY_EARTH
 
 
-
         NmeaReader.listener.setLocationChangedTrigger(object : LocationChanged {
             override fun onLocationChanged(loc: Location, fix: LongLat.FixType) {
 
@@ -433,35 +447,33 @@ class MainActivity : AppCompatActivity(),
                         fixTypeValue.text = cFix
                     }
                     lastFixType = cFix
-                    if(onCreation){
+                    if (onCreation) {
 
-                        var firstPointC: LongLat? = null
-                        var secondPointC:LongLat? = null
+                        var firstBasePoint: LongLat? = null
+                        var secondBasePoint: LongLat? = null
 
-                        val firstObj = jsonArray.getJSONObject(0)
-                        val secondObj = jsonArray.getJSONObject(1)
-                        firstPointC  = LongLat(firstObj.getDouble("lng"),firstObj.getDouble("lat"))
-                        secondPointC = LongLat(secondObj.getDouble("lng"), secondObj.getDouble("lat"))
+                        val firstObj = basePointsJsonArray.getJSONObject(0)
+                        val secondObj = basePointsJsonArray.getJSONObject(1)
+                        firstBasePoint = LongLat(firstObj.getDouble("lng"), firstObj.getDouble("lat"))
+                        secondBasePoint =
+                            LongLat(secondObj.getDouble("lng"), secondObj.getDouble("lat"))
 
-                        plotMesh(firstPointC, secondPointC,0)
-                        saveBasepoints(firstPointC)
-                        saveBasepoints(secondPointC)
+                        plotMesh(firstBasePoint, secondBasePoint, 0)
+                        saveBasepoints(firstBasePoint)
+                        saveBasepoints(secondBasePoint)
 
-                        Log.d("Points","$firstPointC + $secondPointC")
+                        Log.d("Points", "$firstBasePoint + $secondBasePoint")
 
                     }
 
                     if (polyLines.size == 0 || listOfPlantingLines.size == 0 || unmarkedCirclesList.size == 0) {
                         return
 
-                    }
-
-                    else {
+                    } else {
                         val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
                         val listOfPointsOnLineOfInterest = lineOfInterest.tag as MutableList<LatLng>
                         getClosestPointOnLineRelativeToUserLocation(
-                            fromRTKFeed,
-                            listOfPointsOnLineOfInterest
+                            fromRTKFeed, listOfPointsOnLineOfInterest
                         )
                         distanceToTheNextPointOfInterest(fromRTKFeed)
                         approachingPoint()
@@ -492,42 +504,46 @@ class MainActivity : AppCompatActivity(),
         fab_area.setOnClickListener {
             try {
 
-                AlertDialog.Builder(this)
-                    .setTitle("Warning")
-                    .setIcon(R.drawable.caution)
-                    .setMessage("Add point to list of Vertices")
-                    .setPositiveButton(
-                        "Add ",
-                        DialogInterface.OnClickListener { _, _ ->
-                            if (lastLoc != null) {
-                                val lat = lastLoc?.latitude
-                                val long = lastLoc?.longitude
-                                if (lat != null && long != null) {
-                                    latVertexList.add(lat)
-                                    longVertexList.add(long)
-                                    VerticePoints.add(LatLng(lat,long))
-                                    saveAreaPoints(LatLng(lat,long),ProjectID.toInt())
-                                    Toast.makeText(this, "Point added", Toast.LENGTH_SHORT).show()
-                                }
+                AlertDialog.Builder(this).setTitle("Warning").setIcon(R.drawable.caution)
+                    .setMessage("Undo adding point?")
+                    .setPositiveButton("Undo ", DialogInterface.OnClickListener { _, _ ->
+                        latVertexList.removeLast()
+                        longVertexList.removeLast()
+                        VerticePoints.removeLast()
+                        VerticesLongLat.removeLast()
 
-                            } else {
+                        Toast.makeText(
+                            this,
+                            "Point removed from list. ${VerticesLongLat.size} points left",
+                            Toast.LENGTH_LONG
+                        ).show()
 
-                                Toast.makeText(this, "No point to use", Toast.LENGTH_SHORT).show()
-                            }
-
-                            polyVertex = true
-                        })
-                    .setNegativeButton("Cancel",
-                        DialogInterface.OnClickListener { _, _ ->
-                            polyVertex = false
-                        })
-                    .show()
+                        polyVertex = true
+                    }).setNegativeButton("Cancel", DialogInterface.OnClickListener { _, _ ->
+                        polyVertex = false
+                    })
+                    .setNeutralButton("CLEAR entire List", DialogInterface.OnClickListener { _, _ ->
+                        VerticesLongLat.clear()
+                    }).show()
 
 
             } catch (e: Exception) {
                 Log.d("TAG", "$e")
             }
         }
+
+
+ areaToggle = findViewById<CompoundButton>(R.id.material_switch)
+        areaToggle.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                areaMode = false
+                Toast.makeText(this,"Switching to planting Mode ",Toast.LENGTH_SHORT).show()
+            } else {
+                areaMode = true
+                Toast.makeText(this,"Area-Calculation mode",Toast.LENGTH_SHORT).show()
+            }
+        }
+
 
         val clipBoardManager = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
         clipBoardManager.addPrimaryClipChangedListener {
@@ -541,6 +557,21 @@ class MainActivity : AppCompatActivity(),
         }
 
 
+    }
+
+    fun checkOrienation() {
+        val orientation = orientation(latVertexList, longVertexList)
+        val o = getOrientation(VerticesLongLat)
+        if (orientation == 0.0) {
+//            Toast.makeText(this,"Linear",Toast.LENGTH_SHORT).show()
+//            Log.d("Direction","Linear")
+        } else if (orientation == 1.0) {
+//            Toast.makeText(this,"counterwise",Toast.LENGTH_SHORT).show()
+//            Log.d("Direction","CounterClockwise $orientation")
+        } else {
+//            Toast.makeText(this,"Clockwise",Toast.LENGTH_SHORT).show()
+//            Log.d("Direction","Clockwise $orientation")
+        }
     }
 
     fun fabMapAction() {
@@ -561,7 +592,7 @@ class MainActivity : AppCompatActivity(),
                 }
 
             }
-            card.isVisible = false
+
             directionCardLayout.isVisible = false
             activePlantingLine.isVisible = true
             removeMarkedCirclesFromUI(listofmarkedcircles)
@@ -580,7 +611,7 @@ class MainActivity : AppCompatActivity(),
                     applicationContext, R.drawable.walk_mode
                 )
             )
-//            map?.mapType = GoogleMap.MAP_TYPE_SATELLITE
+
             runOnUiThread {
                 polyLines.forEach {
                     it?.isVisible = true
@@ -701,14 +732,12 @@ class MainActivity : AppCompatActivity(),
         } else {
             projectListAsArray
         }
-        alertDialog = AlertDialog.Builder(this).setTitle("Projects").setSingleChoiceItems(
-            l,
+        alertDialog = AlertDialog.Builder(this).setTitle("Projects").setSingleChoiceItems(l,
             checkedItemIndex,
             DialogInterface.OnClickListener { dialog, which ->
                 checkedItemIndex = which
                 selectedProject = projectListAsArray[which]
-            })
-            .setNegativeButton("Export", DialogInterface.OnClickListener { _, _ ->
+            }).setNegativeButton("Export", DialogInterface.OnClickListener { _, _ ->
                 //request storage permission
                 requestPermission()
                 for (j in projectListAsArray) {
@@ -737,12 +766,12 @@ class MainActivity : AppCompatActivity(),
                             val mesh_size = projectMeshSizeList[index]
                             val mesh_type = meshTypeList[index]
                             val gapUnits = gapUnitsList[index]
-                            loadProject(id, mesh_size, gap_size, mesh_type, gapUnits)
+                            val plantingDirection = plantingDirectionList[index]
+                            loadProject(
+                                id, mesh_size, gap_size, mesh_type, gapUnits, plantingDirection
+                            )
                         }
-
                     }
-
-
                 }
 
             })
@@ -752,9 +781,7 @@ class MainActivity : AppCompatActivity(),
 
     fun displayMoreProjects(list: Array<String>) {
         var checkedItemIndex = -1
-        alertDialog = AlertDialog.Builder(this).setTitle("All Projects")
-            .setSingleChoiceItems(
-                list,
+        alertDialog = AlertDialog.Builder(this).setTitle("All Projects").setSingleChoiceItems(list,
                 checkedItemIndex,
                 DialogInterface.OnClickListener { _, which ->
                     checkedItemIndex = which
@@ -790,8 +817,14 @@ class MainActivity : AppCompatActivity(),
                                 val projectMeshSize = projectMeshSizeList[index]
                                 val projectMeshType = meshTypeList[index]
                                 val gapUnits = gapUnitsList[index]
+                                val plantingDirection = plantingDirectionList[index]
                                 loadProject(
-                                    id, projectMeshSize, projectGapSize, projectMeshType, gapUnits
+                                    id,
+                                    projectMeshSize,
+                                    projectGapSize,
+                                    projectMeshType,
+                                    gapUnits,
+                                    plantingDirection
                                 )
                             }
                         }
@@ -824,6 +857,7 @@ class MainActivity : AppCompatActivity(),
                     projectSizeList.clear()
                     meshTypeList.clear()
                     gapUnitsList.clear()
+                    plantingDirectionList.clear()
                 }
                 for (project in listOfProjects) {
                     projectList.add(project.name)
@@ -832,6 +866,7 @@ class MainActivity : AppCompatActivity(),
                     projectSizeList.add(project.gapsize)
                     meshTypeList.add(project.MeshType)
                     gapUnitsList.add(project.gapsizeunits)
+                    plantingDirectionList.add(project.plantingDirection)
                 }
 
                 runOnUiThread {
@@ -848,7 +883,7 @@ class MainActivity : AppCompatActivity(),
     * Android versions below 11 require for explicit permission for device storage
     * */
     private fun requestPermission() {
-        var r = 10
+
         if (SDK_INT >= Build.VERSION_CODES.R) {
 //            try {
 //                val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
@@ -864,16 +899,12 @@ class MainActivity : AppCompatActivity(),
         } else {
             //below android 11
             ActivityCompat.requestPermissions(
-                this,
-                arrayOf(WRITE_EXTERNAL_STORAGE),
-                2
+                this, arrayOf(WRITE_EXTERNAL_STORAGE), 2
             )
 
             if (SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
                 ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(READ_EXTERNAL_STORAGE),
-                    2
+                    this, arrayOf(READ_EXTERNAL_STORAGE), 2
                 )
             }
         }
@@ -881,7 +912,14 @@ class MainActivity : AppCompatActivity(),
 
 
     @OptIn(DelicateCoroutinesApi::class)
-    fun loadProject( PID: Int, Meshsize: Double, Gapsize: Double, meshType: String, gapUnits: String) {
+    fun loadProject(
+        PID: Int,
+        Meshsize: Double,
+        Gapsize: Double,
+        meshType: String,
+        gapUnits: String,
+        plantingDirection: String
+    ) {
         val displayProjectName: TextView? = findViewById(R.id.display_project_name)
 
         Toast.makeText(
@@ -900,8 +938,7 @@ class MainActivity : AppCompatActivity(),
                 runOnUiThread {
                     warningAlert("Project was created without base points", PID, this@MainActivity)
                 }
-            }
-            else {
+            } else {
                 val l = listOfBasePoints[0]
                 val y = listOfBasePoints[1]
                 val firstPoint = LongLat(l.lng, l.lat)
@@ -912,7 +949,15 @@ class MainActivity : AppCompatActivity(),
                     GAP_SIZE_METRES = Gapsize
                     MAX_MESH_SIZE = Meshsize
 
-                    plotMesh(firstPoint, secondPoint, PID, meshType, gapUnits, listOfMarkedPoints)
+                    plotMesh(
+                        firstPoint,
+                        secondPoint,
+                        PID,
+                        meshType,
+                        gapUnits,
+                        listOfMarkedPoints,
+                        plantingDirection
+                    )
 
                 }
             }
@@ -944,9 +989,8 @@ class MainActivity : AppCompatActivity(),
         val l = lineAsList.asSequence()
 
         if (plantingMode && listOfMarkedPoints.isNotEmpty()) {
-            fab_reset.isVisible = false
 
-            card.isVisible = true
+
             directionCardLayout.isVisible = true
 
             refPoint = listOfMarkedPoints[listOfMarkedPoints.lastIndex]
@@ -955,8 +999,7 @@ class MainActivity : AppCompatActivity(),
             try {
 
                 l.forEachIndexed { LatLngIndex, i ->
-                    if (i == refPoint)
-                        index = LatLngIndex
+                    if (i == refPoint) index = LatLngIndex
                 }
 
                 // when the point is behind the user
@@ -1129,6 +1172,7 @@ class MainActivity : AppCompatActivity(),
                 directionText.isVisible = true
 
             }
+
             "Right" -> {
                 directionImage.setImageResource(R.drawable.leftarrow)
                 directionImage.isVisible = true
@@ -1136,11 +1180,13 @@ class MainActivity : AppCompatActivity(),
                 directionText.isVisible = true
 
             }
+
             "Stop" -> {
                 directionText.isVisible = false
                 directionImage.isVisible = false
                 directionCardLayout.isVisible = false
             }
+
             "On track" -> {
                 directionImage.setImageResource(R.drawable.tick)
                 directionImage.isVisible = true
@@ -1157,13 +1203,16 @@ class MainActivity : AppCompatActivity(),
             "GreenHex" -> {
                 animationColor = Color.rgb(0, 206, 209)
             }
+
             "Orange" -> {
                 animationColor = Color.rgb(255, 215, 0)
             }
+
             "Red" -> {
                 animationColor = Color.RED
 
             }
+
             "Green" -> {
                 animationColor = Color.GREEN
 
@@ -1171,12 +1220,7 @@ class MainActivity : AppCompatActivity(),
         }
         handler.post {
             anim = ObjectAnimator.ofInt(
-                T,
-                "backgroundColor",
-                animationColor,
-                Color.WHITE,
-                animationColor,
-                animationColor
+                T, "backgroundColor", animationColor, Color.WHITE, animationColor, animationColor
             )
             anim.duration = 6000
             anim.setEvaluator(ArgbEvaluator())
@@ -1207,8 +1251,7 @@ class MainActivity : AppCompatActivity(),
                     ) {
 
                         isLocationTurnedOn()
-                        Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT)
-                            .show()
+                        Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT).show()
 
                     }
 
@@ -1217,41 +1260,39 @@ class MainActivity : AppCompatActivity(),
                 }
                 return
             }
+
             2 -> {
 
                 if (ActivityCompat.checkSelfPermission(
                         this, WRITE_EXTERNAL_STORAGE
                     ) == PackageManager.PERMISSION_GRANTED
                 ) {
-                    Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT).show()
                 } else {
 
                     Toast.makeText(
                         this,
                         "Allow permission for storage access in order to export projects!",
                         Toast.LENGTH_SHORT
-                    )
-                        .show()
+                    ).show()
 
 
                 }
             }
+
             2296 -> {
                 if (ActivityCompat.checkSelfPermission(
                         this, WRITE_EXTERNAL_STORAGE
                     ) == PackageManager.PERMISSION_GRANTED
                 ) {
-                    Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT).show()
                 } else {
 
                     Toast.makeText(
                         this,
                         "Allow permission for storage access in order to export projects!",
                         Toast.LENGTH_SHORT
-                    )
-                        .show()
+                    ).show()
 
 
                 }
@@ -1271,16 +1312,13 @@ class MainActivity : AppCompatActivity(),
             priority = Priority.PRIORITY_HIGH_ACCURACY
         }
 
-        val builder = LocationSettingsRequest.Builder()
-            .addLocationRequest(locationRequest)
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
 
         val client: SettingsClient = LocationServices.getSettingsClient(this)
         val task: Task<LocationSettingsResponse> = client.checkLocationSettings(builder.build())
 
         task.addOnSuccessListener { _ ->
-            // All location settings are satisfied. The client can initialize
-//            Toast.makeText(this, "GPS Turned on!", Toast.LENGTH_SHORT)
-//                .show()
+
         }
 
         task.addOnFailureListener { exception ->
@@ -1291,8 +1329,7 @@ class MainActivity : AppCompatActivity(),
                     // Show the dialog by calling startResolutionForResult(),
                     // and check the result in onActivityResult().
                     exception.startResolutionForResult(
-                        this@MainActivity,
-                        REQUEST_CHECK_SETTINGS
+                        this@MainActivity, REQUEST_CHECK_SETTINGS
                     )
                 } catch (sendEx: IntentSender.SendIntentException) {
                     // Ignore the error.
@@ -1385,7 +1422,7 @@ class MainActivity : AppCompatActivity(),
 
     }
 
-     val drawLine: (List<LongLat>) -> Unit = { it ->
+    val drawLine: (List<LongLat>) -> Unit = { it ->
 
         val ml = it.map {
             LatLng(
@@ -1415,104 +1452,135 @@ class MainActivity : AppCompatActivity(),
 
     private val onMapClick = GoogleMap.OnMapClickListener { loc ->
 
-        val pt = LongLat(loc.longitude, loc.latitude)
-        if (firstPoint == null) { // Special case, no BT
-            firstPoint = pt
-            handler.post {
-                marker = map?.addCircle(
-                    CircleOptions().center(loc).fillColor(Color.YELLOW).radius(circleRadius)
-                        .strokeWidth(1.0f)
-                )
-                val tapPt = LatLng(
-                    firstPoint!!.getLatitude(), firstPoint!!.getLongitude()
-                )
-                val title = "Tapped Point: ${tapPt.latitude} :  ${tapPt.longitude}"
-                val title2 = "Current  Location: ${loc.latitude} :  ${loc.longitude}"
-                map?.addMarker(
-                    MarkerOptions().position(tapPt).title(title).icon(
-                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
-                    )
-                )
+        if (areaMode) {
+            try {
+                if (lastLoc != null) {
+                    val lat = lastLoc?.latitude
+                    val long = lastLoc?.longitude
+                    if (lat != null && long != null) {
+                        latVertexList.add(lat)
+                        longVertexList.add(long)
+                        VerticePoints.add(LatLng(lat, long))
+                        VerticesLongLat.add(LongLat(long, lat))
+                        if (VerticesLongLat.size >= 3) {
+                            checkOrienation()
 
-                map?.addMarker(
-                    MarkerOptions().position(loc).title(title2).icon(
-                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)
-                    )
-                )
+                        }
 
-                map?.moveCamera(
-                    CameraUpdateFactory.newLatLngZoom(
-                        LatLng(
-                            firstPoint!!.getLatitude(), firstPoint!!.getLongitude()
-                        ), 21.0f
-                    )
-                )
+                        saveAreaPoints(LatLng(lat, long), ProjectID.toInt())
+                        vibrate(this)
+                        Toast.makeText(this, "Point added", Toast.LENGTH_SHORT).show()
+                    }
 
+                } else {
+
+                    Toast.makeText(this, "No point to use", Toast.LENGTH_SHORT).show()
+                }
+
+                polyVertex = true
+
+
+            } catch (e: Exception) {
+                Log.d("TAG", "$e")
             }
 
-            return@OnMapClickListener
-        }
-        secondPoint = pt
-
-        if (firstPoint == null || secondPoint == null || meshDone) return@OnMapClickListener
-
-        val l = map?.addCircle(
-            CircleOptions().center(loc).fillColor(Color.YELLOW).radius(circleRadius)
-                .strokeWidth(1.0f)
-        )
-        runOnUiThread {
-            Toast.makeText(
-                applicationContext, "Drawing grid! This won't take long..", Toast.LENGTH_LONG
-            ).show()
-
         }
 
-        saveBasepoints(firstPoint!!)
-        saveBasepoints(secondPoint!!, false)
-
-        plotMesh(firstPoint!!, secondPoint!!, 0)
-
-        l?.remove()
+//
+//        val pt = LongLat(loc.longitude, loc.latitude)
+//        if (firstPoint == null) { // Special case, no BT
+//            firstPoint = pt
+//            handler.post {
+//                marker = map?.addCircle(
+//                    CircleOptions().center(loc).fillColor(Color.YELLOW).radius(circleRadius)
+//                        .strokeWidth(1.0f)
+//                )
+//                map?.moveCamera(
+//                    CameraUpdateFactory.newLatLngZoom(
+//                        LatLng(
+//                            firstPoint!!.getLatitude(), firstPoint!!.getLongitude()
+//                        ), 21.0f
+//                    )
+//                )
+//
+//            }
+//
+//            return@OnMapClickListener
+//        }
+//        secondPoint = pt
+//
+//        if (firstPoint == null || secondPoint == null || meshDone) return@OnMapClickListener
+//
+//        val l = map?.addCircle(
+//            CircleOptions().center(loc).fillColor(Color.YELLOW).radius(circleRadius)
+//                .strokeWidth(1.0f)
+//        )
+//        runOnUiThread {
+//            Toast.makeText(
+//                applicationContext, "Drawing grid $selectedPlantingDirection. This won't take long..", Toast.LENGTH_LONG
+//            ).show()
+//
+//        }
+//
+//        saveBasepoints(firstPoint!!)
+//        saveBasepoints(secondPoint!!, false)
+//
+//        plotMesh(firstPoint!!, secondPoint!!, 0)
+//
+//        l?.remove()
     }
 
     @Suppress("UNCHECKED_CAST")
-     fun plotMesh(
-        firstBasePoint: LongLat,
-        secondBasePoint: LongLat,
-        id: Int,
-        vararg Misc: Any
+    fun plotMesh(
+        firstBasePoint: LongLat, secondBasePoint: LongLat, id: Int, vararg Misc: Any
     ) {
+
         var listOfSavedMarkedPoints = mutableListOf<LatLng>()
 
-        // i.e calling this func with parameters from the db, hence id will be id of the project
+        // i.e calling this function with parameters from the db, hence id will be id of the project
         if (id != 0) {
             ProjectID = id.toLong()
             MeshType = Misc[0].toString()
             gapUnits = Misc[1].toString()
             listOfSavedMarkedPoints = Misc[2] as MutableList<LatLng>
+            plantingDirection = Misc[3].toString()
 
+        }
+        if (plantingDirection == "null") {
+            Toast.makeText(this, "Select a direction in which to draw the lines", Toast.LENGTH_LONG).show()
+            return
+        }
+        when (plantingDirection) {
+            "R" -> {
+                plant = MeshDirection.LEFT
+            }
 
+            "L" -> {
+                plant = MeshDirection.RIGHT
+            }
         }
         progressBar.isVisible = true
 
         asyncExecutor.execute {
 
             val c = Point(firstBasePoint)
+
             val p = Point(secondBasePoint)
             projectStartPoint = c
 
             when (MeshType) {
                 "Triangular Grid" -> {
                     projectLines = Geometry.generateTriangleMesh(
-                        c, p, MeshDirection.RIGHT
+                        c, p, plant!!
                     ) as MutableList<PlantingLine>
 
                     val drawPoints = ScaleLargeProjects.updateProjectLines(this)
                     Geometry.generateLongLat(c, drawPoints, drawLine)
                 }
+
                 "Square Grid" -> {
                     projectLines = Geometry.generateSquareMesh(
-                        c, p, MeshDirection.RIGHT
+                        c, p, plant!!
                     ) as MutableList<PlantingLine>
                     val drawPoints = ScaleLargeProjects.updateProjectLines(this)
                     Geometry.generateLongLat(c, drawPoints, drawLine)
@@ -1530,16 +1598,16 @@ class MainActivity : AppCompatActivity(),
                 )
                 val title = "First Point: ${firstpt.latitude} :  ${firstpt.longitude}"
                 val title2 = "Second Point: ${secondPt.latitude} :  ${secondPt.longitude}"
-                map?.addMarker(
-                    MarkerOptions().position(firstpt).title(title).icon(
-                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
-                    )
-                )
-                map?.addMarker(
-                    MarkerOptions().position(secondPt).title(title2).icon(
-                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)
-                    )
-                )
+//                map?.addMarker(
+//                    MarkerOptions().position(firstpt).title(title).icon(
+//                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
+//                    )
+//                )
+//                map?.addMarker(
+//                    MarkerOptions().position(secondPt).title(title2).icon(
+//                        BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)
+//                    )
+//                )
                 map?.moveCamera(
                     CameraUpdateFactory.newLatLngZoom(
                         LatLng(
@@ -1554,7 +1622,7 @@ class MainActivity : AppCompatActivity(),
         displayMarkedPointsOnUI(listOfSavedMarkedPoints)
         progressBar.isVisible = false
         projectLoaded = true
-        fab_reset.show()
+
         onCreation = false
     }
 
@@ -1604,7 +1672,6 @@ class MainActivity : AppCompatActivity(),
                 if (unmarkedCirclesList.isNotEmpty()) {
                     unmarkedCirclesList.forEach {
                         it.remove()
-//                    it.isVisible = true
                     }
 
                     unmarkedCirclesList.clear()
@@ -1613,7 +1680,6 @@ class MainActivity : AppCompatActivity(),
                 if (listofmarkedcircles.isNotEmpty()) {
                     listofmarkedcircles.forEach {
                         it.remove()
-//                    it.isVisible = true
                     }
                 }
                 polyline.isClickable = true
@@ -1627,6 +1693,13 @@ class MainActivity : AppCompatActivity(),
                 map?.mapType = GoogleMap.MAP_TYPE_NORMAL
                 fixTypeValue.setTextColor(Color.BLACK)
                 fixType.setTextColor(Color.BLACK)
+                latT.setTextColor(Color.BLACK)
+                latTValue.setTextColor(Color.BLACK)
+                longT.setTextColor(Color.BLACK)
+                longTValue.setTextColor(Color.BLACK)
+                markedPointsValue.setTextColor(Color.BLACK)
+                markedPoints.setTextColor(Color.BLACK)
+
                 val target = map?.cameraPosition?.target
                 val bearing = map?.cameraPosition?.bearing
                 val cameraPosition =
@@ -1659,8 +1732,7 @@ class MainActivity : AppCompatActivity(),
                     for (pt in markedPointsSequence) {
                         val c = map?.addCircle(
                             CircleOptions().center(pt as LatLng).fillColor(Color.YELLOW)
-                                .radius(circleRadius)
-                                .strokeWidth(1.0f)
+                                .radius(circleRadius).strokeWidth(1.0f)
                             //if set to zero, no outline is drawn
                         )
                         listofmarkedcircles.add(c!!)
@@ -1671,8 +1743,7 @@ class MainActivity : AppCompatActivity(),
                     for (pt in unMarkedPointsSequence) {
                         val unmarkedCircles = map?.addCircle(
                             CircleOptions().center(pt as LatLng).fillColor(Color.RED)
-                                .radius(circleRadius)
-                                .strokeWidth(1.0f)
+                                .radius(circleRadius).strokeWidth(1.0f)
                         )
                         unmarkedCirclesList.add(unmarkedCircles!!)
                     }
@@ -1681,8 +1752,7 @@ class MainActivity : AppCompatActivity(),
                     line.forEach {
                         val unmarkedCircles = map?.addCircle(
                             CircleOptions().center(it as LatLng).fillColor(Color.RED)
-                                .radius(circleRadius)
-                                .strokeWidth(1.0f)
+                                .radius(circleRadius).strokeWidth(1.0f)
                         )
                         unmarkedCirclesList.add(unmarkedCircles!!)
                     }
@@ -1693,11 +1763,6 @@ class MainActivity : AppCompatActivity(),
 
     }
 
-    private fun undoDrawingLines() {
-
-        undoAlertWarning(ProjectID.toInt(), this)
-    }
-
     var plantingRadiusCircle: Circle? = null
     private val listOfToleranceCircles = mutableListOf<Circle>()
     val tempClosestPoint =
@@ -1705,12 +1770,11 @@ class MainActivity : AppCompatActivity(),
 
 
     private fun getClosestPointOnLineRelativeToUserLocation(
-        roverPoint: LatLng,
-        listOfPointsOnlineOfInterest: MutableList<LatLng>
+        roverPoint: LatLng, listOfPointsOnlineOfInterest: MutableList<LatLng>
     ) {
 
         closestPointAndRadiusArray.clear()
-        fab_reset.hide()
+
 
         /* Convert polyline of interest into an S2 Line, so that we can use S2 Geometry, to get the closest point
          to the user-- its much faster
@@ -1724,8 +1788,7 @@ class MainActivity : AppCompatActivity(),
 
             if (pt in listOfMarkedPoints) {
                 return
-            }
-            /*
+            }/*
             * Add the found point to a set, it is used to track the points as the user moves along the line
             *  */
             tempClosestPoint.add(pt)
@@ -1733,8 +1796,7 @@ class MainActivity : AppCompatActivity(),
             /* Focus only on the points on the line of interest*/
             if (pt !in listOfPointsOnlineOfInterest) {
                 return
-            } else {
-                /*
+            } else {/*
                 * listOfToleranceCircles holds the light green circle that shows planting tolerance
                 * */
                 if (listOfToleranceCircles.isNotEmpty()) {   //we have found a point on the line
@@ -1775,8 +1837,7 @@ class MainActivity : AppCompatActivity(),
 
             } else {
                 listOfToleranceCircles.add((plantingToleranceCircle!!))
-            }
-            /*
+            }/*
             * The function that calculates the closest point, returns multiple points depending on the position the user is
             * in. But we are always interested in the most recent tolerance circle drawn
             * as that is the best reflection of where the user is, hence it is our circle of interest
@@ -1843,8 +1904,8 @@ class MainActivity : AppCompatActivity(),
     var diff: Float? = null
     private var lastRotateDegree = 0f
     private var current_measured_bearing = 0f
+    var deltaT: Float = 0f
 
-    // Marking off points on a planting line section
     private val listener: SensorEventListener = object : SensorEventListener {
         var accelerometerValues = FloatArray(3)
         var magneticValues = FloatArray(3)
@@ -1858,8 +1919,6 @@ class MainActivity : AppCompatActivity(),
                 } else if (event.sensor.type == Sensor.TYPE_MAGNETIC_FIELD) {
                     magneticValues = event.values.clone()
                 }
-
-                //I don't remember why i was doing this :( Always comment your code!!!!
 
                 current_measured_bearing = (magneticValues[0] * 180 / Math.PI).toFloat()
                 if (current_measured_bearing < 0) current_measured_bearing += 360f
@@ -1880,21 +1939,41 @@ class MainActivity : AppCompatActivity(),
 
                 }
             }
-            //******** The shake event for marking points starts here *******//
 
             // Fetching x,y,z values
             val x = accelerometerValues[0]
             val y = accelerometerValues[1]
             val z = accelerometerValues[2]
 
-            lastAcceleration = currentAcceleration
 
             // Getting current accelerations
             // with the help of fetched x,y,z values
             currentAcceleration = sqrt((x * x + y * y + z * z).toDouble()).toFloat()
-            val delta: Float = currentAcceleration - lastAcceleration
-            acceleration = acceleration * 0.9f + delta
 
+            if(currentAcceleration == lastAcceleration){
+                return
+            }
+            deltaT = currentAcceleration - lastAcceleration
+            lastAcceleration = currentAcceleration
+
+            acceleration = (acceleration * 0.9f + deltaT)
+//
+//            if(deltaT == 0.0f){
+//                return
+//            }
+//            else {
+//                if((deltaT) >= 0.1){
+//                    moving()
+//                } else {
+//                    stopped()
+//                }
+//            }
+//
+//            Log.d(
+//                "ACC",
+//                "CUR: $currentAcceleration ,LAST:  $lastAcceleration DELTA: $acceleration , d:$deltaT"
+//            )
+//
         }
 
         override fun onAccuracyChanged(sensor: Sensor, accuracy: Int) {}
@@ -1915,6 +1994,18 @@ class MainActivity : AppCompatActivity(),
         usbSupport.disconnect()
         // kill the dialog
         createNewProject.dismiss()
+    }
+
+    fun stopped() {
+        Toast.makeText(
+            this, "Stopped", Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    fun moving() {
+        Toast.makeText(
+            this, "Moving", Toast.LENGTH_SHORT
+        ).show()
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -1955,6 +2046,7 @@ class MainActivity : AppCompatActivity(),
                 finish()
                 return true
             }
+
             R.id.action_create -> {
                 onLoad = false
 
@@ -1962,6 +2054,7 @@ class MainActivity : AppCompatActivity(),
                 createNewProject.show(supportFragmentManager, "create")
                 return true
             }
+
             R.id.action_view_projects -> {
 
                 if (projectList.isNotEmpty()) {
@@ -1979,10 +2072,12 @@ class MainActivity : AppCompatActivity(),
 
                 return true
             }
+
             R.id.action_import_project -> {
                 // open file uploader
                 openFilePicker()
             }
+
             R.id.action_clipboard_copy -> {
                 if (lastLoc != null) {
                     val lat = lastLoc?.latitude
@@ -1996,6 +2091,11 @@ class MainActivity : AppCompatActivity(),
             }
 
             R.id.action_area -> {
+//                val intent = Intent(this, AreaActivity::class.java)
+//                intent.putExtra("lat", "${lastLoc?.latitude}")
+//                intent.putExtra("long", "${lastLoc?.longitude}")
+//
+//                startActivity(intent)
                 val area = AreaDialog
                 area.show(supportFragmentManager, "AREA")
                 return true
@@ -2004,12 +2104,13 @@ class MainActivity : AppCompatActivity(),
         return true
     }
 
+
     fun cleanUpExistingFragment() {
 
         meshDone = false
         plantingToleranceCircle?.remove()
         fabFlag = true
-        card.isVisible = false
+
         pointCardview.isVisible = false
         directionCardLayout.isVisible = false
 
@@ -2070,6 +2171,8 @@ class MainActivity : AppCompatActivity(),
                         importedProject.lineLengthUnits.replace("\\s".toRegex(), "")
                             .replace("\"", "")
                     val basePoints = importedProject.basePoints
+                    val plantingDirection = importedProject.plantingDirection
+
                     val epoch = Calendar.getInstance().time
                     val project = Project(
                         id = null,
@@ -2079,7 +2182,8 @@ class MainActivity : AppCompatActivity(),
                         MeshType = meshType,
                         gapsizeunits = gapSizeUnits,
                         lineLengthUnits = lineLengthUnits,
-                        userID = userID!!.toInt()
+                        userID = userID!!.toInt(),
+                        plantingDirection = plantingDirection
                     )
                     GlobalScope.launch(Dispatchers.IO) {
                         val projectUid = appdb.kibiraDao().insertProject(project)

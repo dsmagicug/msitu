@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Msitu</string>
     <string name="title_activity_maps">MapsActivity</string>
-    <!--    <string name="title_activity_main">MainActivity</string>-->
+
     <string name="create">New Project</string>
     <string name="view_projects">View Projects</string>
     <string name="import_project">Import Project</string>
@@ -55,8 +55,9 @@
     </string-array>
     <string-array name="gapsizeUnits">
         <item> <font face="@font/rosemary">Ft</font></item>
-        <item> <font face="@font/rosemary">Meters</font></item>
+
         <item> <font face="@font/rosemary">Inches</font></item>
+        <item> <font face="@font/rosemary">Meters</font></item>
     </string-array>
 
     <string name="close">Close</string>
@@ -101,4 +102,11 @@
     <string name="viscosity_high">High</string>
     <string name="paste_basepoints">Paste Basepoints</string>
     <string name="area">Calculate Area</string>
+    <string name="title_activity_area">AreaActivity</string>
+    <string name="fix_type">Fix Type</string>
+    <string name="tree_estimate">Tree estimate</string>
+    <string name="visual_representation">Visual representation</string>
+    <string name="to_the_left">To The Left</string>
+    <string name="to_the_right">To The Right</string>
+    <string name="bt_pair">Pair</string>
 </resources>

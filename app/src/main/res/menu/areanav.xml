@@ -23,46 +23,33 @@
         android:id="@+id/project_options"
         android:fontFamily="@font/rosemary"
         android:icon="@drawable/ic_baseline_playlist_add_24"
-        android:title="Projects"
+        android:title="Area Menu"
 
         >
 
         <menu>
 
             <item
-                android:id="@+id/action_create"
+                android:id="@+id/tree_estimate"
                 android:fontFamily="@font/rosemary"
-                android:icon="@drawable/ic_baseline_create_new_folder_24"
-                android:title="@string/create"
-
-                />
-
-            <item
-                android:id="@+id/action_view_projects"
-                android:fontFamily="@font/rosemary"
-                android:icon="@drawable/ic_baseline_sync_24"
-                android:title="@string/view_projects" />
-            <item
-                android:id="@+id/action_import_project"
-                android:fontFamily="@font/rosemary"
-                android:icon="@android:drawable/ic_menu_upload"
-                android:title="@string/import_project" />
-            <item
-                android:id="@+id/action_clipboard_copy"
-                android:fontFamily="@font/rosemary"
-                android:icon="?attr/actionModeCopyDrawable"
-                android:title="@string/clipboard_copy" />
+                android:icon="@drawable/baseline_forest_24"
+                android:title="@string/tree_estimate" />
             <item
                 android:id="@+id/action_area"
                 android:fontFamily="@font/rosemary"
                 android:icon="@drawable/baseline_area_chart_24"
                 android:title="@string/area" />
+            <item
+                android:id="@+id/visual"
+                android:fontFamily="@font/rosemary"
+                android:icon="@drawable/baseline_area_chart_24"
+                android:title="@string/visual_representation" />
         </menu>
     </item>
     <item
         android:id="@+id/logOut"
         android:title="@string/log_out"
         android:icon="@drawable/ic_baseline_power_settings_new_24"
-       />
+        />
 
 </menu>
