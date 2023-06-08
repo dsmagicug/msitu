@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--    This file is part of Msitu.
+     <https://github.com/kitandara/kibira>
+
+     Copyright (C) 2022 Digital Solutions
+
+     Msitu is free software: you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+     the Free Software Foundation, either version 3 of the License, or
+     (at your option) any later version.
+
+     Msitu is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+
+     You should have received a copy of the GNU General Public License
+     along with Msitu. If not, see <http://www.gnu.org/licenses/>-->
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/project_options"
+        android:fontFamily="@font/rosemary"
+        android:icon="@drawable/ic_baseline_playlist_add_24"
+        android:title="Projects"
+
+        >
+
+        <menu>
+
+            <item
+                android:id="@+id/action_create"
+                android:fontFamily="@font/rosemary"
+                android:icon="@drawable/ic_baseline_create_new_folder_24"
+                android:title="@string/create"
+
+                />
+
+            <item
+                android:id="@+id/action_view_projects"
+                android:fontFamily="@font/rosemary"
+                android:icon="@drawable/ic_baseline_sync_24"
+                android:title="@string/view_projects" />
+            <item
+                android:id="@+id/action_import_project"
+                android:fontFamily="@font/rosemary"
+                android:icon="@android:drawable/ic_menu_upload"
+                android:title="@string/import_project" />
+            <item
+                android:id="@+id/action_clipboard_copy"
+                android:fontFamily="@font/rosemary"
+                android:icon="?attr/actionModeCopyDrawable"
+                android:title="@string/clipboard_copy" />
+
+            <item
+                android:id="@+id/action_area"
+                android:fontFamily="@font/rosemary"
+                android:icon="@drawable/baseline_area_chart_24"
+                android:title="@string/area" />
+
+        </menu>
+    </item>
+    <item
+        android:id="@+id/logOut"
+        android:title="@string/log_out"
+        android:icon="@drawable/ic_baseline_power_settings_new_24"
+       />
+
+</menu>

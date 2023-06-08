@@ -1,22 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.dsmagic.kibira">
 
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+<!--    This file is part of Msitu.
+     <https://github.com/kitandara/kibira>
+
+     Copyright (C) 2022 Digital Solutions
+
+     Msitu is free software: you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+     the Free Software Foundation, either version 3 of the License, or
+     (at your option) any later version.
+
+     Msitu is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+
+     You should have received a copy of the GNU General Public License
+     along with Msitu. If not, see <http://www.gnu.org/licenses/>-->
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-sdk android:minSdkVersion="23" />
+
     <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <uses-feature android:name="android.hardware.usb.host" />
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Kibira">
+        android:theme="@style/Theme.Kibira"
+        android:usesCleartextTraffic="true" >
 
+        <activity
+            android:name="com.dsmagic.kibira.ui.login.LoginActivity"
+            android:exported="true"
+            android:label="Kibira" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="com.dsmagic.kibira.activities.RegisterActivity"
+
+            android:exported="true" /> <!-- <meta-data -->
+
+        <!-- android:name="com.google.android.actions" -->
+        <!-- android:value="" /> -->
         <!--
              TODO: Before you run your application, you need a Google Maps API key.
 
@@ -28,23 +79,21 @@
              project's local.properties file (e.g. MAPS_API_KEY=Aiza...), and replace the
              "YOUR_API_KEY" string in this file with "${MAPS_API_KEY}".
         -->
-
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyCJUBKJ9odQqHyOG5N-FgQIqPJDXjTAHpI" />
-
+        <!--
+ The usb event prompts for re opening of the app therefore
+          add launchmode = "singleTask" to prevent that from happening.
+        -->
         <activity
-            android:name=".MainActivity"
+            android:name="com.dsmagic.kibira.activities.MainActivity"
+            android:configChanges="orientation|screenSize"
             android:exported="true"
-            android:label="@string/title_activity_main"
-            android:theme="@style/Theme.Kibira.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+            android:launchMode="singleTask"
+            android:requestLegacyExternalStorage="true"
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
+            android:theme="@style/Theme.Kibira.NoActionBar" />
 
     </application>
 
