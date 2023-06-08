@@ -1,5 +1,5 @@
-# kibira
-Kibira is a tree planting app meant to simplify the pegging and rope-tying process, during tree planting.
+# Msitu
+Msitu is a tree planting app meant to simplify the pegging and rope-tying process, during tree planting.
 The app is used in conjunction with a RTK Rover and RTK base station. This allows us to map statelite provided coordinates onto the ground with an error margin margin of just 1cm.
 
 ## License
@@ -13,7 +13,7 @@ The project is ready to use out of the box, once you clone and run it in Android
 *cd `myDir`
 *`git clone https://github.com/kitandara/kibira.git`
 Open the project using android studio, and wait for gradle to download the dependencies and build the project.
-Android studio `Dolphin` was used for the project, but the plugins were successfully compatible with `Chipmuck` and `Bumblebee`.
+Android studio `Dolphin` was used for the project, but the plugins were successfully compatible with `Chipmuck` ,`Bumblebee` and upgraded to be compatible with 'Dolphin`.
 
 If it does not successfully build, the below could be the cause. 
 * Note that the minimum sdk is `23` and target sdk is `32`.
@@ -24,31 +24,25 @@ If it does not successfully build, the below could be the cause.
 ## Basic Usage.
 * Start with setting up the equipment. PS. Ensure that the base station has a clear view of the sky- For accurate statelite readings.
 * Once both the base station and the rover are communicating, turn on the app.
-* Connect the app to the rover either using Bluetooth or USB and wait until it indicates that you have an RTK Fix. This takes between a few minutes.
+* Connect the app to the rover either using Bluetooth or USB and wait until it indicates that you have an RTK Fix. This takes a few minutes.
 
 ## How to start project.
-* Create a new project by filling in the necessary fields.
-However to draw lines, there are two options.
-If you have an internet connection, then you can have a visual map of where your location. With this, a simple tap on the screen, in the direction you want the lines to drawn will do.
-But if you have no internet connection, then there's a work around.
-* Place two pegs anywhere on the outskirt of the plot you are going to plant, using a rope, mimic a straight line using these two pegs as a reference.
-* Copy these two coordinates and export that project.
-* Using a `json editor` such as [json kitty](https://play.google.com/store/apps/details?id=codefeverr.json_kitty&hl=en&gl=US&pli=1), open that project.
-* Replace the base points with the new coordinates that you have copied and save the project.
-* Open the app again, tap `Import Project`. Here, the updated version of the project will be available. Once you open it, it will have the corresponding planting lines, with reference to the points/pegs you used in the beginning.
-* PS. It is advised that yo move around on the plot with the rover, just to establish a bearing. (Since you don't have a visual map to give you a visual representation.
+* You will need to capture two points which will act as base points, from which all other planting lines will be based.
+* In order to do this, make sure that you have an rtk fix established. The first thing to do is to place two pegs on the outskirt of the plot to be 
+planted;keep them at a distance of about 50m and endeavour to mimick the orientation in which you desire to plant the trees. Tie a rope on each end of the pegs to ensure straightness.
+* With the rope in place, using the app, copy any two coordinate values that lie on the rope. Keep them as far apart from eachother as you can. 
+* Noow create a new project by filling in the necessary fields, and pasting those points into the `Basepoints` field. This will create a project and draw planting lines as well.
+
+* PS. If you have no internet connection, It is advised that you move around on the plot with the rover, just to establish a bearing. (Since you don't have a visual map to give you a visual representation.
 
 
 ## Syncing different equipment sets.
 If using two different sets of equipment, we advise the below to be followed.
 * Create a project `Project A` using  equipment `Set One`.
-* Using the app, draw all the possible lines that can be handled by `Project A`.
-* Stand on the last line of `Project A` and copy any two coordinates off of that line.( These will act as the new base points for `Project A` which will be loaded with `Set two`.)
-* After copying the new base points, export `Project A`. It will be saved wherever your downloads are located on your phone/tablet.
-* Transfer `Project A` onto the phone/tablet you are going to use with equipment `Set Two`.
-* Open it using a `json editor` such as [json kitty](https://play.google.com/store/apps/details?id=codefeverr.json_kitty&hl=en&gl=US&pli=1)
-* Replace the existing base points of `Project A` with the copied base points and save it.
-* Open the app, when you tap `Import project` the version of `Project A` with the new base points, will be available. This will successfully be the same project as `Project A` from equipment `Set one` despite the fact that two different equipment sets were used. The planting lines will be right after the last line drawn by equipment `Set one`, with a negligible offset of about 1-2 inches.
+* Using the app, draw out all the possible lines that can be handled by `Project A`.
+* Stand on the last line of `Project A` ;using the second device which is connected to the second set of equipment, copy any two coordinates off of that line.( These will act as the new base points for `Project B` which will be loaded with `Set two`.)
+* After copying the new base points from `Project A`, simply create a project, all that is all to it.
+* `Project B` will be the same project as `Project A` from equipment `Set one`;Almost like an extension of it, despite the fact that two different equipment sets were used. The planting lines will be right after the last line drawn by equipment `Set one`, with a negligible offset of about 1-2 ft.
 
 
 ## Resources
