@@ -1,10 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<!--    This file is part of Msitu.
+     <https://github.com/kitandara/kibira>
+
+     Copyright (C) 2022 Digital Solutions
+
+     Msitu is free software: you can redistribute it and/or modify
+     it under the terms of the GNU General Public License as published by
+     the Free Software Foundation, either version 3 of the License, or
+     (at your option) any later version.
+
+     Msitu is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details.
+
+     You should have received a copy of the GNU General Public License
+     along with Msitu. If not, see <http://www.gnu.org/licenses/>-->
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.dsmagic.kibira">
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-sdk android:minSdkVersion="12" />
-
+    <uses-sdk android:minSdkVersion="23" />
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
@@ -13,7 +30,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.INTERNET" />
@@ -22,21 +40,21 @@
 
     <uses-feature android:name="android.hardware.usb.host" />
 
-
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Kibira"
-        android:requestLegacyExternalStorage="true"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true" >
 
         <activity
             android:name="com.dsmagic.kibira.ui.login.LoginActivity"
             android:exported="true"
-            android:label="Kibira">
+            android:label="Kibira" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -45,7 +63,9 @@
         </activity>
         <activity
             android:name="com.dsmagic.kibira.activities.RegisterActivity"
-            android:exported="true"/> <!-- <meta-data -->
+
+            android:exported="true" /> <!-- <meta-data -->
+
         <!-- android:name="com.google.android.actions" -->
         <!-- android:value="" /> -->
         <!--
@@ -72,8 +92,9 @@
             android:exported="true"
             android:launchMode="singleTask"
             android:requestLegacyExternalStorage="true"
-            android:theme="@style/Theme.Kibira.NoActionBar"
-            />
+
+            android:theme="@style/Theme.Kibira.NoActionBar" />
+
     </application>
 
 </manifest>

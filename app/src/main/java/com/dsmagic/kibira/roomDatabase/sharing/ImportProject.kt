@@ -1,5 +1,26 @@
 package com.dsmagic.kibira.roomDatabase.sharing
 
+/*
+ *  This file is part of Msitu.
+ *  <https://github.com/kitandara/kibira>
+ *
+ *  Copyright (C) 2022 Digital Solutions
+ *
+ *  Msitu is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Msitu is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Msitu. If not, see <http://www.gnu.org/licenses/>
+ */
+
+
 import android.content.ContentResolver
 import android.net.Uri
 import com.google.gson.JsonParser
@@ -40,6 +61,9 @@ class ImportProject {
            projectObj.lineLength = jsonObject.get("lineLength").asDouble
            projectObj.lineLengthUnits = jsonObject.get("lineLengthUnits").toString()
            projectObj.meshType = jsonObject.get("meshType").toString()
+
+           projectObj.plantingDirection = jsonObject.get("plantingDirection").toString()
+
            val jsonCoords = JsonHelper.toJSON(jsonObject.get("coordinates")) as JSONArray
            val coordinateArray = JsonHelper.toList(jsonCoords)
            val jsonBasePoints = JsonHelper.toJSON(jsonObject.get("basePoints")) as JSONArray

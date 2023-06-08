@@ -1,29 +1,30 @@
 package com.dsmagic.kibira.roomDatabase
-
 /*
- *  This file is part of Kibira.
+ *  This file is part of Msitu.
  *  <https://github.com/kitandara/kibira>
  *
  *  Copyright (C) 2022 Digital Solutions
  *
- *  Kibira is free software: you can redistribute it and/or modify
+ *  Msitu is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  Kibira is distributed in the hope that it will be useful,
+ *  Msitu is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with Kibira. If not, see <http://www.gnu.org/licenses/>
+ *  along with Msitu. If not, see <http://www.gnu.org/licenses/>
  */
 
 import android.util.Log
 import com.dsmagic.kibira.activities.CreateProjectDialog.appdbInstance
 import com.dsmagic.kibira.activities.MainActivity.Companion.appdb
 import com.dsmagic.kibira.activities.MainActivity.Companion.listOfMarkedPoints
+import com.dsmagic.kibira.roomDatabase.Entities.AreaCoordinates
+
 import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.roomDatabase.Entities.Project
 import com.google.android.gms.maps.model.LatLng
@@ -34,7 +35,7 @@ import kotlinx.coroutines.launch
 class DbFunctions {
     companion object {
 
-        var ProjectID: Long = 0
+        var ProjectID: Long = 1
 
         fun savePoints(point: LatLng, PID: Int) {
 
@@ -49,6 +50,19 @@ class DbFunctions {
 
         }
 
+        fun saveAreaPoints(point: LatLng, PID: Int) {
+
+            val lat = point.latitude
+            val lng = point.longitude
+
+            val points = AreaCoordinates(null, lat, lng, PID)
+
+            GlobalScope.launch(Dispatchers.IO) {
+                appdb.kibiraDao().insertAreaCoordinates(points)
+            }
+
+        }
+
         fun saveProject(
             name: String,
             GAPSIZE: Double,
@@ -56,18 +70,20 @@ class DbFunctions {
             UID: Int,
             Meshtype: String,
             gapUnits: String,
-            meshUnits: String
+
+            meshUnits: String,
+            plantingDirection:String
         ): Long {
 
             val project =
-                Project(null, name, GAPSIZE, LineLength, UID, Meshtype, gapUnits, meshUnits)
+                Project(null, name, GAPSIZE, LineLength, UID, Meshtype, gapUnits, meshUnits,plantingDirection)
+
 
             GlobalScope.launch(Dispatchers.IO) {
                 ProjectID = appdbInstance.kibiraDao().insertProject(project)
                 Log.d("PID", "$ProjectID")
                 ProjectID
             }
-
 
             return ProjectID
         }

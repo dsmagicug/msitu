@@ -1,4 +1,7 @@
-package com.dsmagic.kibira.ui.login
+package com.dsmagic.kibira.roomDatabase.Entities
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 /*
  *  This file is part of Msitu.
  *  <https://github.com/kitandara/kibira>
@@ -18,10 +21,12 @@ package com.dsmagic.kibira.ui.login
  *  You should have received a copy of the GNU General Public License
  *  along with Msitu. If not, see <http://www.gnu.org/licenses/>
  */
-/**
- * User details post authentication that is exposed to the UI
- */
-data class LoggedInUserView(
-    val displayName: String,
-    //... other data fields that may be accessible to the UI
+
+@Entity
+data class AreaCoordinates(
+    @PrimaryKey(autoGenerate = true)
+    val id:Int?,
+    val lat:Double,
+    val lng:Double,
+    val projectID:Int,
 )

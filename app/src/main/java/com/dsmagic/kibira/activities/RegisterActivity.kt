@@ -1,26 +1,27 @@
 package com.dsmagic.kibira.activities
 
-
 /*
- *  This file is part of Kibira.
+
+ *  This file is part of Msitu.
+
  *  <https://github.com/kitandara/kibira>
  *
  *  Copyright (C) 2022 Digital Solutions
- *
- *  Kibira is free software: you can redistribute it and/or modify
+
+ *  Msitu is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
  *
- *  Kibira is distributed in the hope that it will be useful,
+ *  Msitu is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with Kibira. If not, see <http://www.gnu.org/licenses/>
- */
+ *  along with Msitu. If not, see <http://www.gnu.org/licenses/>
 
+ */
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -53,7 +54,6 @@ class RegisterActivity : AppCompatActivity() {
         lateinit var authDB: AppDatabase
     }
 
-    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
     override fun onCreate(savedInstanceState: Bundle?) {
 
         super.onCreate(savedInstanceState)
@@ -70,13 +70,13 @@ class RegisterActivity : AppCompatActivity() {
         }
         authDB = AppDatabase.dbInstance(this)
 
-        var login = findViewById<TextView>(R.id.thelogin)
-        var registerName = findViewById<EditText>(R.id.register_name)
-        var registerEmail = findViewById<EditText>(R.id.register_email)
-        var registerPassword = findViewById<EditText>(R.id.register_password)
-        var registerConfirmPassword = findViewById<EditText>(R.id.register_confirm_password)
-        var registerButton = findViewById<Button>(R.id.register_button)
-        var register_loading = findViewById<ProgressBar>(R.id.register_loading)
+        val login = findViewById<TextView>(R.id.thelogin)
+        val registerName = findViewById<EditText>(R.id.register_name)
+        val registerEmail = findViewById<EditText>(R.id.register_email)
+        val registerPassword = findViewById<EditText>(R.id.register_password)
+        val registerConfirmPassword = findViewById<EditText>(R.id.register_confirm_password)
+        val registerButton = findViewById<Button>(R.id.register_button)
+        val register_loading = findViewById<ProgressBar>(R.id.register_loading)
 
         lateinit var name: String
         lateinit var email: String

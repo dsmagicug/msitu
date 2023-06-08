@@ -36,6 +36,9 @@ import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.*
 
+import kotlin.math.abs
+
+
 class NmeaReader {
     companion object {
         var readingStarted = false
@@ -54,7 +57,9 @@ class NmeaReader {
         private const val ANGLE_SIGNIFICANT_DIFF = 0.5e-7
         fun significantChange(old: Location?, new: Location): Boolean {
             return old == null || Math.abs(old.latitude - new.latitude) > ANGLE_SIGNIFICANT_DIFF ||
-                    Math.abs(old.longitude - new.longitude) > ANGLE_SIGNIFICANT_DIFF
+
+                    abs(old.longitude - new.longitude) > ANGLE_SIGNIFICANT_DIFF
+
         }
 
         fun start(context: Context, device: BluetoothDevice) {
@@ -119,7 +124,6 @@ class NmeaReader {
                         val l =
                             s.split("\n") // Into lines... Crude. What if we read only up to part of sentence??
 
-                        Log.d("message" ,"$l")
                         for (xs in l) {
 
                             // Hand off to higher level...
@@ -132,7 +136,7 @@ class NmeaReader {
 
                                 }
                             }catch (exception :Exception){
-                                Log.d("Bluetooth","${exception.message}")
+
                             }
 
                         }

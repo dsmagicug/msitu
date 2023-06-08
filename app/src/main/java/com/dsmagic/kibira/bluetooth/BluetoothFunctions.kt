@@ -120,7 +120,6 @@ class BluetoothFunctions : AdapterView.OnItemSelectedListener {
 
         }
 
-        @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
         fun discoverBluetoothDevices(activity: Activity) {
 
             val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
