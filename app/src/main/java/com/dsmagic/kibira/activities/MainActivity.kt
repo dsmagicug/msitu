@@ -459,7 +459,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 longValue.text = loc.longitude.toString()
                 // Get the displacement from the last position.
                 val moved = NmeaReader.significantChange(lastLoc, loc)
+
+
                 lastLoc = loc // Grab last location
+                Log.d("loc_bluetooth","$lastLoc")
                 fab_center.isVisible = true
                 if (moved) { // If it has changed, move the marker as well...
                     marker?.remove()
@@ -470,9 +473,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                             .strokeColor(Color.GREEN).fillColor(Color.BLUE)
                     )
 
-                    marker?.let {
-                        pulseEffectOnUserLocationCircle(it)
-                    }
+//                    marker?.let {
+//                        pulseEffectOnUserLocationCircle(it)
+//                    }
                     fixType.isVisible = true
                     fixTypeValue.isVisible = true
 

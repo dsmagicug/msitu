@@ -26,14 +26,23 @@ import android.bluetooth.BluetoothSocket
 import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Location
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileWriter
 import java.io.IOException
 import java.io.InputStream
+import java.net.URI
 import java.nio.charset.Charset
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardOpenOption
 import java.util.*
 
 import kotlin.math.abs
@@ -62,6 +71,7 @@ class NmeaReader {
 
         }
 
+        @RequiresApi(Build.VERSION_CODES.O)
         fun start(context: Context, device: BluetoothDevice) {
             if (socket != null) {
                 try {
@@ -108,26 +118,31 @@ class NmeaReader {
 
         }
 
+
         private fun startDataListener() {
 
             val looper = Looper.getMainLooper()
             val handler = Handler(looper)
             thread = Thread {
                 readingStarted = true
+                var buf = ""
                 while (!stopIt) {
                     val n = input?.available()
                     if (n != null && n > 0) {
                         val b = ByteArray(n)
                         input?.read(b)
                         val s = String(b, Charset.forName("UTF-8"))
+                        Log.d("loc_string", s)
+                        buf += s
+                        var i = buf.indexOf("\n", 0)
 
-                        val l =
-                            s.split("\n") // Into lines... Crude. What if we read only up to part of sentence??
-
-                        for (xs in l) {
-
+                        while (i >= 0) {
+                            val xs = buf.substring(0, i);
+                            Log.d("loc_string_e", xs)
+                            buf = buf.substring(i + 1)
+                            i = buf.indexOf("\n",0)
                             // Hand off to higher level...
-                            try{
+                             try{
                                 val longlat = LongLat(xs)
                                 if (longlat.fixType != LongLat.FixType.NoFixData) {
                                     handler.post {
@@ -136,7 +151,7 @@ class NmeaReader {
 
                                 }
                             }catch (exception :Exception){
-
+                                Log.e("Error","$exception")
                             }
 
                         }
