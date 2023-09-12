@@ -11,7 +11,7 @@ The project is ready to use out of the box, once you clone and run it in Android
 # How to clone:
 *mkdir `myDir`
 *cd `myDir`
-*`git clone https://github.com/kitandara/kibira.git`
+*`git clone https://github.com/dsmagicug/msitu.git`
 Open the project using android studio, and wait for gradle to download the dependencies and build the project.
 Android studio `Dolphin` was used for the project, but the plugins were successfully compatible with `Chipmuck` ,`Bumblebee` and upgraded to be compatible with 'Dolphin`.
 
@@ -46,5 +46,6 @@ If using two different sets of equipment, we advise the below to be followed.
 
 
 ## Resources
+* [Msitu Tech Website](http://www.msitu.tech)
 * [What is rtk?]( https://www.youtube.com/watch?v=257WX_agvtg)
 * [How The rover and base work?](https://www.youtube.com/watch?v=Rk09oMD_I24&t=4s)
