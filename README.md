@@ -46,6 +46,6 @@ If using two different sets of equipment, we advise the below to be followed.
 
 
 ## Resources
-* [Msitu Tech Website](http://www.msitu.tech)
+* [Msitu Tech Website](http://msitu.tech)
 * [What is rtk?]( https://www.youtube.com/watch?v=257WX_agvtg)
 * [How The rover and base work?](https://www.youtube.com/watch?v=Rk09oMD_I24&t=4s)
