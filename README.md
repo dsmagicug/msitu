@@ -1,6 +1,6 @@
 # Msitu
 Msitu is a tree planting app meant to simplify the pegging and rope-tying process, during tree planting.
-The app is used in conjunction with a RTK Rover and RTK base station. This allows us to map statelite provided coordinates onto the ground with an error margin margin of just 1cm.
+The app is used in conjunction with a RTK Rover and RTK base station. This allows us to map statelite provided coordinates onto the ground with an error margin of just 1cm.
 
 ## License
 This project has a GPL License, and it is attached in the repository.
