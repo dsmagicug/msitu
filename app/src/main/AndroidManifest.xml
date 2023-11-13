@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <!--    This file is part of Msitu.
-     <https://github.com/kitandara/kibira>
+     https://github.com/dsmagicug/msitu.git
 
      Copyright (C) 2022 Digital Solutions
 
@@ -81,7 +81,7 @@
         -->
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyCJUBKJ9odQqHyOG5N-FgQIqPJDXjTAHpI" />
+            android:value="${MAPS_API_KEY}" />
         <!--
  The usb event prompts for re opening of the app therefore
           add launchmode = "singleTask" to prevent that from happening.

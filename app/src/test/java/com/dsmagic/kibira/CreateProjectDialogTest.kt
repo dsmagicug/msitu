@@ -1,9 +1,8 @@
 package com.dsmagic.kibira
-<<<<<<< HEAD
-=======
 /*
  *  This file is part of Msitu.
- *  <https://github.com/kitandara/kibira>
+ *
+ *  https://github.com/dsmagicug/msitu.git
  *
  *  Copyright (C) 2022 Digital Solutions
  *
@@ -20,7 +19,6 @@ package com.dsmagic.kibira
  *  You should have received a copy of the GNU General Public License
  *  along with Msitu. If not, see <http://www.gnu.org/licenses/>
  */
->>>>>>> area
 
 import junit.framework.TestCase
 

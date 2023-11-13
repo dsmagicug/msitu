@@ -4,7 +4,7 @@ package com.dsmagic.kibira.activities
 /*
  *  This file is part of Msitu.
 
- *  <https://github.com/kitandara/kibira>
+ *  https://github.com/dsmagicug/msitu.git
  *
  *  Copyright (C) 2022 Digital Solutions
  *

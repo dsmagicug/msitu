@@ -4,7 +4,8 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 /*
  *  This file is part of Msitu.
- *  <https://github.com/kitandara/kibira>
+ *
+ *  https://github.com/dsmagicug/msitu.git
  *
  *  Copyright (C) 2022 Digital Solutions
  *

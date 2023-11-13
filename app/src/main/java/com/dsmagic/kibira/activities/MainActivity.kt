@@ -2,7 +2,8 @@ package com.dsmagic.kibira.activities
 
 /*
  *  This file is part of Msitu.
- *  <https://github.com/kitandara/kibira>
+ *
+ *  https://github.com/dsmagicug/msitu.git
  *
  *  Copyright (C) 2022 Digital Solutions
  *
@@ -1033,7 +1034,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     var distance = 0.0f
     var latLng: LatLng? = null
 
-
     /*
     * function to calculate the distance between the next point to be marked and the user location(rover location)
     * The next point to be marked can be either in front or behind the user, depending on the planting direction
@@ -1153,7 +1153,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 Log.d("ERROR", "frOM SWITCHING ${e.message}")
             }
 
-        } else {
+        }
+        else {
             //ensure we have a point first
             if (closestPointAndRadiusArray.size > 0) {
                 directionCardLayout.isVisible = true

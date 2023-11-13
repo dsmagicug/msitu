@@ -7,8 +7,8 @@ import java.io.IOException
 
  *  This file is part of Msitu.
 
- *  <https://github.com/kitandara/kibira>
- *
+ *  https://github.com/dsmagicug/msitu.git
+
  *  Copyright (C) 2022 Digital Solutions
 
  *  Msitu is free software: you can redistribute it and/or modify

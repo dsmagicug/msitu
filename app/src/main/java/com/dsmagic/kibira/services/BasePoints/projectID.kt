@@ -1,7 +1,8 @@
 package com.dsmagic.kibira.services.BasePoints
 /*
  *  This file is part of Msitu.
- *  <https://github.com/kitandara/kibira>
+ *
+ *  https://github.com/dsmagicug/msitu.git
  *
  *  Copyright (C) 2022 Digital Solutions
  *
