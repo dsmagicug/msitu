@@ -20,6 +20,7 @@ If it does not successfully build, the below could be the cause.
 * The project uses the MVVM Model so ensure that `View Binding` is enabled in your gradle scripts.
 * In case of serialization issues, add "org.jetbrains.kotlin:kotlin-serialization:1.6.10" as a classpath in your project `gradle` file, under `buildScript` section.
 * In addition, don't forget to add 'org.jetbrains.kotlin.plugin.serialization' and 'kotlin-kapt' plugins in your app `gradle` file, under the `plugin` section.
+* Don't forget to replace the API Key in the Android manifest file with your own Google maps API Key.
 
 ## Basic Usage.
 * Start with setting up the equipment. PS. Ensure that the base station has a clear view of the sky- For accurate statelite readings.
