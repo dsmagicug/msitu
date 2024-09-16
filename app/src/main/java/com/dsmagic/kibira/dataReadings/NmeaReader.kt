@@ -28,7 +28,6 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import java.io.IOException
@@ -93,7 +92,7 @@ class NmeaReader {
                 val uuid =
                     UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // Serial port UUID
                 val socket = device.createRfcommSocketToServiceRecord(uuid)
-              val con =  socket?.connect()
+                val con = socket?.connect()
                 input = socket?.inputStream
 
                 Toast.makeText(context, "Device successfully paired", Toast.LENGTH_LONG).show()
@@ -127,22 +126,22 @@ class NmeaReader {
                         for (xs in l) {
 
                             // Hand off to higher level...
-                            try{
+                            try {
                                 val longlat = LongLat(xs)
                                 if (longlat.fixType != LongLat.FixType.NoFixData) {
                                     handler.post {
-                                        listener.postNewLocation(longlat,longlat.fixType)
+                                        listener.postNewLocation(longlat, longlat.fixType)
                                     }
 
                                 }
-                            }catch (exception :Exception){
+                            } catch (exception: Exception) {
 
                             }
 
                         }
                     }
                 }
-             }
+            }
             thread!!.start()
         }
     }

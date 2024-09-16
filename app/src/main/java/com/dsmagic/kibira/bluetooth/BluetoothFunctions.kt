@@ -50,35 +50,36 @@ import com.dsmagic.kibira.dataReadings.NmeaReader
 class BluetoothFunctions : AdapterView.OnItemSelectedListener {
 
     companion object {
+        const val REQUEST_BLUETOOTH_CONNECT = 1
         // Create a BroadcastReceiver for ACTION_FOUND.
         val receiver = object : BroadcastReceiver() {
 
             override fun onReceive(context: Context, intent: Intent) {
-                var t = 90
                 when (intent.action) {
                     BluetoothDevice.ACTION_FOUND -> {
-                        val device: BluetoothDevice? =
-                            intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
+                        val device: BluetoothDevice? = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE)
 
                         if (ActivityCompat.checkSelfPermission(
                                 context, Manifest.permission.BLUETOOTH_CONNECT
                             ) != PackageManager.PERMISSION_GRANTED
                         ) {
-                            // TODO: Consider calling
-                            //    ActivityCompat#requestPermissions
-                            // here to request the missing permissions, and then overriding
-                            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                            //                                          int[] grantResults)
-                            // to handle the case where the user grants the permission. See the documentation
-                            // for ActivityCompat#requestPermissions for more details.
-                            //return
+                            // Request the BLUETOOTH_CONNECT permission
+                            ActivityCompat.requestPermissions(
+                                context as Activity, // The context needs to be cast to Activity
+                                arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                                REQUEST_BLUETOOTH_CONNECT
+                            )
+                            return  // Exit until the permission is granted
                         }
-                        if (!MainActivity.bluetoothList.contains(device!!.name)) {
-                            if (device.name == null) {
-                                return
+
+                        // Proceed if permission is granted
+                        device?.let {
+                            if (!MainActivity.bluetoothList.contains(it.name)) {
+                                if (it.name != null) {
+                                    MainActivity.bluetoothList.add(it.name)
+                                    deviceList.add(it)
+                                }
                             }
-                            MainActivity.bluetoothList.add(device.name)
-                            deviceList.add(device)
                         }
                     }
                 }

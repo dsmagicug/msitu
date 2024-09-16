@@ -1339,7 +1339,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 }
             }
 
-
             2296 -> {
                 if (ActivityCompat.checkSelfPermission(
                         this, WRITE_EXTERNAL_STORAGE
