@@ -111,6 +111,6 @@
     <string name="to_the_left">To The Left</string>
     <string name="to_the_right">To The Right</string>
     <string name="bt_pair">Pair</string>
-    <string name="direction">Direction in which to draw the planting lines\nEither to your left or to your right</string>
+    <string name="direction">Direction to draw the planting lines.</string>
 
 </resources>

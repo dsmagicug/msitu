@@ -141,7 +141,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var closestPointAndRadiusArray = ArrayList<Any>()
     private lateinit var fromRTKFeed: LatLng
 
-
     /*Declaring sensorManager and acceleration constants*/
     private var sensorManager: SensorManager? = null
     private var acceleration = 0f
@@ -336,7 +335,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         val headerView: View = navView.getHeaderView(0)
         val btnCloseDrawer = headerView.findViewById<View>(R.id.btnCloseDrawer) as ImageButton
         btnCloseDrawer.setOnClickListener {
-            drawerlayout.closeDrawer(Gravity.LEFT)
+            drawerlayout.closeDrawer(Gravity.START)
         }
 
         //Change the map orientation to match the direction that the user is facing, once they have created a project.
@@ -380,7 +379,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
             showMe = !showMe
         }
-
 
         /* draw more planting lines on the map */
 
@@ -525,8 +523,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
 
         })
-
-
         fab_map.setOnClickListener {
             try {
 
