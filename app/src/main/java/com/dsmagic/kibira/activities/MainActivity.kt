@@ -1589,6 +1589,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             return
         }
         when (plantingDirection) {
+            "\"R\"" -> {
+                plant = MeshDirection.LEFT
+            }
+
+            "\"L\"" -> {
+                plant = MeshDirection.RIGHT
+            }
             "R" -> {
                 plant = MeshDirection.LEFT
             }
