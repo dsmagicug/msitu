@@ -109,8 +109,7 @@ public class USBSerialReader {
                 thread.interrupt();
                 connection = null;
                 isReading = false;
-            }
-            finally {
+            } finally {
 
             }
 
@@ -122,7 +121,7 @@ public class USBSerialReader {
         return usbReceiver;
     }
 
-//    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    //    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void dataReaderListener() throws IOException {
         Looper looper = Looper.getMainLooper();
         Handler handler = new Handler(looper);
@@ -142,13 +141,7 @@ public class USBSerialReader {
                             LongLat longlat = new LongLat(str);
                             if (longlat.getFixType() != LongLat.FixType.NoFixData) {
                                 gotReadings = true;
-                               // if (longlat.getFixType() == LongLat.FixType.RTKFloat || longlat.getFixType() == LongLat.FixType.RTKFix) {
-                                    // Send it to the Location Source... BUT ONLY when we have rtk data--(more accurate than other fixtypes)
-                                    //TODO display we have RTK fix
-                                    handler.post(() -> listener.postNewLocation(longlat, longlat.getFixType()));
-                               // }else{
-                                    // TODO display fix type
-                                //}
+                                handler.post(() -> listener.postNewLocation(longlat, longlat.getFixType()));
                             }
 
                         }
@@ -169,7 +162,7 @@ public class USBSerialReader {
 
     private final BroadcastReceiver usbReceiver = new BroadcastReceiver() {
 
-//        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+        //        @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
@@ -178,14 +171,13 @@ public class USBSerialReader {
                     synchronized (this) {
                         boolean granted = false;
 
-                        if (intent.hasExtra(UsbManager.EXTRA_PERMISSION_GRANTED)){
-                             granted = intent.getExtras().getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED, false);
-                        }
-                        else {
-                           int flag = intent.getFlags();
-                           if (flag == 16){
-                               granted = true;
-                           }
+                        if (intent.hasExtra(UsbManager.EXTRA_PERMISSION_GRANTED)) {
+                            granted = intent.getExtras().getBoolean(UsbManager.EXTRA_PERMISSION_GRANTED, false);
+                        } else {
+                            int flag = intent.getFlags();
+                            if (flag == 16) {
+                                granted = true;
+                            }
                         }
 
                         if (granted) {

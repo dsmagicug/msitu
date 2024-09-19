@@ -28,6 +28,7 @@ import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import java.io.IOException
@@ -92,7 +93,7 @@ class NmeaReader {
                 val uuid =
                     UUID.fromString("00001101-0000-1000-8000-00805F9B34FB") // Serial port UUID
                 val socket = device.createRfcommSocketToServiceRecord(uuid)
-                val con = socket?.connect()
+                socket?.connect()
                 input = socket?.inputStream
 
                 Toast.makeText(context, "Device successfully paired", Toast.LENGTH_LONG).show()
@@ -108,42 +109,59 @@ class NmeaReader {
         }
 
         private fun startDataListener() {
-
             val looper = Looper.getMainLooper()
             val handler = Handler(looper)
             thread = Thread {
+                var pre = ""
+                val b = ByteArray(4096)
                 readingStarted = true
+
                 while (!stopIt) {
-                    val n = input?.available()
-                    if (n != null && n > 0) {
-                        val b = ByteArray(n)
-                        input?.read(b)
-                        val s = String(b, Charset.forName("UTF-8"))
+                    try {
+                        val ln = input?.read(b) ?: -1
+                        if (ln > 0) {
+                            val s = String(b, 0, ln, Charset.forName("UTF-8"))
+                            val sx = pre + s
+                            var i = 0
+                            val sn = sx.length
+                            val l = arrayListOf<String>()
+                            var idx = sx.indexOf("\n", i)
 
-                        val l =
-                            s.split("\n") // Into lines... Crude. What if we read only up to part of sentence??
-
-                        for (xs in l) {
-
-                            // Hand off to higher level...
-                            try {
-                                val longlat = LongLat(xs)
-                                if (longlat.fixType != LongLat.FixType.NoFixData) {
-                                    handler.post {
-                                        listener.postNewLocation(longlat, longlat.fixType)
-                                    }
-
-                                }
-                            } catch (exception: Exception) {
-
+                            while (idx > 0) {
+                                val xs = sx.substring(i, idx)
+                                l.add(xs)
+                                i = idx + 1
+                                if (i >= sn) break
+                                idx = sx.indexOf("\n", i)
                             }
+                            pre = if (i < sn) sx.substring(i) else ""
 
+                            for (xs in l) {
+                                Log.d("SENTENCE", xs)
+                                try {
+                                    val longlat = LongLat(xs)
+                                    if (longlat.fixType != LongLat.FixType.NoFixData) {
+                                        handler.post {
+                                            listener.postNewLocation(longlat, longlat.fixType)
+                                        }
+                                    }
+                                } catch (exception: Exception) {
+                                    Log.e("Parsing Error", "Failed to parse longlat", exception)
+                                }
+                            }
+                        } else {
+                            Thread.sleep(100)
                         }
+                    } catch (e: IOException) {
+                        Log.e("Bluetooth", "Socket closed or error reading", e)
+                        stopIt = true // Stop the loop on error
+
                     }
                 }
             }
             thread!!.start()
         }
+
     }
 
 }
