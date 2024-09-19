@@ -399,9 +399,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             editor.apply()
 
         } else {
+            LoginActivity.authbd
 
-            val intent = Intent(this, LoginActivity::class.java)
-            startActivity(intent)
+//            val intent = Intent(this, LoginActivity::class.java)
+//            startActivity(intent)
 
             workerPool.submit {
                 retrieveProjectsFromBackend(userID!!.toInt())

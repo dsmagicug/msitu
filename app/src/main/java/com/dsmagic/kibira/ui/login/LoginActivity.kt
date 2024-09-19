@@ -57,16 +57,17 @@ class LoginActivity : AppCompatActivity() {
 
     companion object {
         lateinit var authbd: AppDatabase
+
     }
 
     @RequiresApi(Build.VERSION_CODES.JELLY_BEAN)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        sharedPreferences =
+       sharedPreferences =
             this.getSharedPreferences(sharedPrefFile, Context.MODE_PRIVATE)!!
         if (loginMode) {
-            //  checkIfLoggedIn()
+              checkIfLoggedIn()
         }
         authbd = AppDatabase.dbInstance(this)
         setContentView(R.layout.activity_login)
@@ -167,7 +168,7 @@ class LoginActivity : AppCompatActivity() {
     fun checkIfLoggedIn() {
         val userEmail: String? =
             sharedPreferences.getString("loggedUserEmail", "defaultValue")
-        val userId: Int = sharedPreferences.getInt("userId", 0)
+        val userId: Int = sharedPreferences.getInt("userID", 0)
         val token = sharedPreferences.getString("token", "defaultValue")
 
         if (userId == 0) {
