@@ -22,7 +22,6 @@ package com.dsmagic.kibira.activities
 
 import GFG.getOrientation
 import GFG.orientation
-
 import android.Manifest
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -41,17 +40,11 @@ import android.hardware.SensorManager
 import android.hardware.usb.UsbManager
 import android.location.Location
 import android.location.LocationManager
-
-import android.net.Uri
-
 import android.os.Build
 import android.os.Build.VERSION.SDK_INT
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-
-import android.provider.Settings
-
 import android.util.Log
 import android.view.Gravity
 import android.view.Menu
@@ -68,12 +61,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import com.dsmagic.kibira.R
-
 import com.dsmagic.kibira.activities.CreateProjectDialog.basePointsJsonArray
-
 import com.dsmagic.kibira.bluetooth.BluetoothFunctions
 import com.dsmagic.kibira.dataReadings.*
-import com.dsmagic.kibira.dataReadings.NmeaReader.Companion.listener
 import com.dsmagic.kibira.notifications.NotifyUserSignals
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.isUserlocationOnPath
 import com.dsmagic.kibira.notifications.NotifyUserSignals.Companion.keepUserInStraightLine
@@ -83,9 +73,7 @@ import com.dsmagic.kibira.roomDatabase.AppDatabase
 import com.dsmagic.kibira.roomDatabase.DbFunctions
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.ProjectID
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.retrieveMarkedPoints
-
 import com.dsmagic.kibira.roomDatabase.DbFunctions.Companion.saveAreaPoints
-
 import com.dsmagic.kibira.roomDatabase.Entities.Basepoints
 import com.dsmagic.kibira.roomDatabase.Entities.Coordinates
 import com.dsmagic.kibira.roomDatabase.Entities.Project
@@ -94,7 +82,6 @@ import com.dsmagic.kibira.roomDatabase.sharing.ImportProject.Companion.REQUEST_C
 import com.dsmagic.kibira.ui.login.LoginActivity
 import com.dsmagic.kibira.usb.USBSerialReader
 import com.dsmagic.kibira.utils.Alerts
-
 import com.dsmagic.kibira.utils.Alerts.Companion.warningAlert
 import com.dsmagic.kibira.utils.GeneralHelper
 import com.dsmagic.kibira.utils.ScaleLargeProjects
@@ -109,11 +96,11 @@ import com.google.android.gms.tasks.Task
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.navigation.NavigationView
 import com.google.maps.android.ktx.utils.contains
-import dilivia.s2.S2Earth.radius
 import dilivia.s2.S2LatLng
 import dilivia.s2.index.point.PointData
 import dilivia.s2.index.point.S2PointIndex
 import dilivia.s2.index.shape.MutableS2ShapeIndex
+import dilivia.s2.region.S2Polyline
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -121,8 +108,6 @@ import kotlinx.coroutines.launch
 import java.util.*
 import java.util.concurrent.*
 import kotlin.math.abs
-import kotlin.math.sqrt
-
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -135,7 +120,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private var secondPoint: LongLat? = null
     private val handler = Handler(Looper.getMainLooper())
     private var linesIndex = MutableS2ShapeIndex() // S2 index of lines...
-    private var pointsIndex = S2PointIndex<S2LatLng>()
+
     private var asyncExecutor: ExecutorService = Executors.newCachedThreadPool()
     private var closestPointAndRadiusArray = ArrayList<Any>()
     private lateinit var fromRTKFeed: LatLng
@@ -200,13 +185,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     lateinit var buttonConnect: Button
 
     companion object {
-
+        private var pointsIndex = S2PointIndex<S2LatLng>()
+        private var listPointsIndex = mutableListOf<S2PointIndex<S2LatLng>>()
         var plant: MeshDirection? = null
         var device: BluetoothDevice? = null
         var lastLoc: Location? = null
         var areaMode: Boolean = true
+        var mapNotRendered: Boolean = true
         lateinit var areaToggle:CompoundButton
-
 
         lateinit var projectLines: MutableList<PlantingLine>
         var lastFixType = ""
@@ -401,8 +387,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         } else {
             LoginActivity.authbd
 
-//            val intent = Intent(this, LoginActivity::class.java)
-//            startActivity(intent)
+            val intent = Intent(this, LoginActivity::class.java)
+            startActivity(intent)
 
             workerPool.submit {
                 retrieveProjectsFromBackend(userID!!.toInt())
@@ -1117,13 +1103,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     locationOfCurrentPoint, locationOfNextPoint, locationOfRoverLatLng
                 )
                 //check that user is walking in straight line!
-                val q = line.contains(loc)
-                val p = isUserlocationOnPath(loc, lineAsList)
-                if (p || q) {
-                    blink("On track")
-                } else {
-                    blink(position)
-                }
+//                val q = line.contains(loc)
+//                val p = isUserlocationOnPath(loc, lineAsList)
+//                if (p || q) {
+////                    blink("On track")
+//                } else {
+////                    blink(position)
+//                }
 
 //                displayedDistance.text = distance.toString()
                 displayedPoints.text = listOfMarkedPoints.size.toString()
@@ -1189,12 +1175,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 position = keepUserInStraightLine(
                     locationOfCurrentPoint, locationOfNextPoint, locationOfRoverLatLng
                 )
-                val p = isUserlocationOnPath(loc, lineAsList)
-                if (p) {
-                    blink("On track")
-                } else {
-                    blink(position)
-                }
+//                val p = isUserlocationOnPath(loc, lineAsList)
+//                if (p) {
+////                    blink("On track")
+//                } else {
+////                    blink(position)
+//                }
 
             }
         }
@@ -1211,7 +1197,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         polyline1!!.endCap = CustomCap(
             BitmapDescriptorFactory.fromResource(R.drawable.blackarrow1), 10f
         )
-        blink(position)
+//        blink(position)
     }
 
     lateinit var anim: ObjectAnimator
@@ -1493,7 +1479,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     val drawLine: (List<LongLat>) -> Unit = { it ->
 
-
         val ml = it.map {
             LatLng(
                 it.getLatitude(), it.getLongitude()
@@ -1508,8 +1493,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             // Add it to the index
             val idx = polyLines.size
             S2Helper.addS2Polyline2Index(
-                idx, linesIndex, S2Helper.makeS2PolyLine(ml, pointsIndex)
+                idx, linesIndex,S2Helper.makeS2PolyLine(ml, pointsIndex)
             )
+            listPointsIndex.add(pointsIndex)
+
             // Add it to the list as well.
             polyLines.add(p)
 
@@ -1521,6 +1508,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private val onMapClick = GoogleMap.OnMapClickListener { loc ->
+
 
         if (areaMode) {
             try {
@@ -1652,64 +1640,205 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         onCreation = false
     }
 
+//    private val onPolyClick = GoogleMap.OnPolylineClickListener { polyline ->
+//        // rotate the map accordingly
+//        var lineList = mutableListOf<Int>()
+//
+//        polyline.isClickable = false
+//        if (listOfPlantingLines.isEmpty()) {
+//            listOfPlantingLines.add(polyline)
+//            polyline.color = Color.GREEN
+//
+//            Toast.makeText(applicationContext, "Planting line selected...", Toast.LENGTH_SHORT)
+//                .show()
+//        } else {
+//
+//            val recentLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
+//            recentLine.color = Color.CYAN
+//            recentLine.isClickable = true
+//            listOfPlantingLines.clear()
+//            listOfPlantingLines.add(polyline)
+//            polyline.color = Color.GREEN
+//            Toast.makeText(applicationContext, "Switching Lines..", Toast.LENGTH_SHORT).show()
+//
+//            //remove the planting radius circle if it exists
+//            if (listOfToleranceCircles.isNotEmpty()) {
+//                listOfToleranceCircles[listOfToleranceCircles.lastIndex].remove()
+//                listOfToleranceCircles.clear()
+//            }
+//
+//        }
+//
+//        //Handle this processing in a different thread, since they are short lived tasks
+//        // use a cached thread pool.
+//        MapWorkerPool.submit {
+//
+//            handler.post {
+//                //make the lines and circles on other poly-lines disappear, once we have line of interest,
+//
+//                polyLines.forEach {
+//                    it!!.isVisible = false
+//                    it.isClickable = false
+//                }
+//
+//                if (unmarkedCirclesList.isNotEmpty()) {
+//                    unmarkedCirclesList.forEach {
+//                        it.remove()
+//                    }
+//
+//                    unmarkedCirclesList.clear()
+//                }
+//
+//                if (listofmarkedcircles.isNotEmpty()) {
+//                    listofmarkedcircles.forEach {
+//                        it.remove()
+//                    }
+//                }
+//                polyline.isClickable = true
+//                polyline.isVisible = true
+//                val l = polyline.tag as MutableList<*>
+//                plotLine(l)
+//                fab_map.show()
+//            }
+//
+//            handler.post {
+//                map?.mapType = GoogleMap.MAP_TYPE_NORMAL
+//                fixTypeValue.setTextColor(Color.BLACK)
+//                fixType.setTextColor(Color.BLACK)
+//                latT.setTextColor(Color.BLACK)
+//                latTValue.setTextColor(Color.BLACK)
+//                longT.setTextColor(Color.BLACK)
+//                longTValue.setTextColor(Color.BLACK)
+//                markedPointsValue.setTextColor(Color.BLACK)
+//                markedPoints.setTextColor(Color.BLACK)
+//
+//                val target = map?.cameraPosition?.target
+//                val bearing = map?.cameraPosition?.bearing
+//                val cameraPosition =
+//                    CameraPosition.Builder().target(target!!).zoom(21f).bearing(bearing!!).build()
+//                map?.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
+//            }
+//
+//        }
+//        zoomMode = true
+//    }
+
+    // PSEUDO CODE:
+    // SELECT LINE, PLOT IT
+    //CHECK THE ARRAY , IF LESS THAN 5, DON'T DISAPPEAR OTHER LINES
     private val onPolyClick = GoogleMap.OnPolylineClickListener { polyline ->
         // rotate the map accordingly
+        var isLastLineClicked = false
+        if (listOfPlantingLines.isNotEmpty()){
+            val lastLineInList = listOfPlantingLines[listOfPlantingLines.lastIndex]
+            if(polyline == lastLineInList){     //show other lines once last line is reached
+                polyLines.forEach {
+                    if(!listOfPlantingLines.contains(it)){
+                        it!!.isVisible = true
+                        it.isClickable = true
+                    }
 
-        polyline.isClickable = false
-        if (listOfPlantingLines.isEmpty()) {
+                }
+                polyLines.forEach {             //remove already plotted lines from map, they are not needed anymore + circles from array coz it exponetially grows
+                    if (listOfPlantingLines.contains(it)) {
+                        it!!.isVisible = false
+                        it.isClickable = false
+                    }
+                    if (unmarkedCirclesList.isNotEmpty()) {
+                        unmarkedCirclesList.forEach {
+                            it.remove()
+                        }
+                    }
+                    if (listofmarkedcircles.isNotEmpty()) {
+                        listofmarkedcircles.forEach {
+                            it.remove()
+                        }
+                    }
+
+                }
+                listOfPlantingLines.clear()
+                isLastLineClicked = true
+            }
+        }
+
+        val numberOfLines = 5
+        if(!isLastLineClicked){
             listOfPlantingLines.add(polyline)
             polyline.color = Color.GREEN
-
-            Toast.makeText(applicationContext, "Planting line selected...", Toast.LENGTH_SHORT)
-                .show()
+            val l = polyline.tag as MutableList<*>
+            plotLine(l)
         } else {
-
-            val recentLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
-            recentLine.color = Color.CYAN
-            recentLine.isClickable = true
-            listOfPlantingLines.clear()
-            listOfPlantingLines.add(polyline)
             polyline.color = Color.GREEN
-            Toast.makeText(applicationContext, "Switching Lines..", Toast.LENGTH_SHORT).show()
+            val l = polyline.tag as MutableList<*>
+            plotLine(l)
+        }
 
+
+
+        if(listOfPlantingLines.count() == numberOfLines){
+
+            Toast.makeText(applicationContext, "lines selected...", Toast.LENGTH_SHORT)
+                .show()
             //remove the planting radius circle if it exists
             if (listOfToleranceCircles.isNotEmpty()) {
                 listOfToleranceCircles[listOfToleranceCircles.lastIndex].remove()
                 listOfToleranceCircles.clear()
             }
+            //Handle this processing in a different thread, since they are short lived tasks
+            // use a cached thread pool.
+            MapWorkerPool.submit {
+
+                handler.post {
+                    //make the lines and circles on other poly-lines disappear, once we have line of interest,
+
+                    polyLines.forEach {
+                        if(!listOfPlantingLines.contains(it)){
+                            it!!.isVisible = false
+                            it.isClickable = false
+                        }
+
+                    }
+
+//                    if (unmarkedCirclesList.isNotEmpty()) {
+//                        unmarkedCirclesList.forEach {
+//                            it.remove()
+//                        }
+//
+//                        unmarkedCirclesList.clear()
+//                    }
+
+//                    if (listofmarkedcircles.isNotEmpty()) {
+//                        listofmarkedcircles.forEach {
+//                            it.remove()
+//                        }
+//                    }
+//                    polyline.isClickable = true
+//                    polyline.isVisible = true
+//                    val l = polyline.tag as MutableList<*>
+//                    plotLine(l)
+                    fab_map.show()
 
         }
 
-        //Handle this processing in a different thread, since they are short lived tasks
-        // use a cached thread pool.
-        MapWorkerPool.submit {
+//        polyline.isClickable = false
+//        if (listOfPlantingLines.isEmpty()) {
+//            listOfPlantingLines.add(polyline)
+//            polyline.color = Color.GREEN
+//
+//            Toast.makeText(applicationContext, "Planting line selected...", Toast.LENGTH_SHORT)
+//                .show()
+//        } else {
+//
+//            val recentLine = listOfPlantingLines[listOfPlantingLines.lastIndex]
+//            recentLine.color = Color.CYAN
+//            recentLine.isClickable = true
+//            listOfPlantingLines.clear()
+//            listOfPlantingLines.add(polyline)
+//            polyline.color = Color.GREEN
+//            Toast.makeText(applicationContext, "Switching Lines..", Toast.LENGTH_SHORT).show()
+//        }
 
-            handler.post {
-                //make the lines and circles on other poly-lines disappear, once we have line of interest,
 
-                polyLines.forEach {
-                    it!!.isVisible = false
-                    it.isClickable = false
-                }
-
-                if (unmarkedCirclesList.isNotEmpty()) {
-                    unmarkedCirclesList.forEach {
-                        it.remove()
-                    }
-
-                    unmarkedCirclesList.clear()
-                }
-
-                if (listofmarkedcircles.isNotEmpty()) {
-                    listofmarkedcircles.forEach {
-                        it.remove()
-                    }
-                }
-                polyline.isClickable = true
-                polyline.isVisible = true
-                val l = polyline.tag as MutableList<*>
-                plotLine(l)
-                fab_map.show()
             }
 
             handler.post {
@@ -1733,7 +1862,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
         zoomMode = true
     }
-
     private fun plotLine(line: MutableList<*>) {
         //clear it so that the points to loop through are not many
 
@@ -1772,6 +1900,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                                 .radius(circleRadius).strokeWidth(1.0f)
 
                         )
+
                         unmarkedCirclesList.add(unmarkedCircles!!)
                     }
 

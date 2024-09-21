@@ -21,16 +21,26 @@ package com.dsmagic.kibira.utils;
 import android.location.Location;
 import android.location.LocationManager;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import com.dsmagic.kibira.activities.MainActivity;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 
+import org.apache.commons.math3.geometry.spherical.twod.S2Point;
+
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 import dilivia.s2.S2LatLng;
+
 import dilivia.s2.index.point.S2PointIndex;
+
 
 public class GeneralHelper {
 
@@ -43,6 +53,7 @@ public class GeneralHelper {
        }
        return querySet;
     }
+
 
     public static float findDistanceBtnTwoPoints(LatLng pt1, LatLng pt2){
 
