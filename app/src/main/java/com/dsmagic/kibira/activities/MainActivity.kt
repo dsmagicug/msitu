@@ -505,14 +505,12 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                         val linesOfInterest = listOfPlantingLines
                         linesOfInterest.forEach {
-                            val tag = it.tag
-                            if (tag != null) {
-                                listOfPointsOnLineOfInterest.add(tag as LatLng)
-                            }
+                            val tag = it.tag as LatLng
+                            listOfPointsOnLineOfInterest.add(tag)
 
                         }
                         getClosestPointOnLineRelativeToUserLocation(
-                            fromRTKFeed, listOfPointsOnLineOfInterest as MutableList<LatLng>
+                            fromRTKFeed, listOfPointsOnLineOfInterest
                         )
                         distanceToTheNextPointOfInterest(fromRTKFeed)
                         approachingPoint()
