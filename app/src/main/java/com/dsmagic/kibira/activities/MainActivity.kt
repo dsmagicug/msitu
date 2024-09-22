@@ -334,6 +334,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             /*
             * rotate the map accordingly
             * */
+            val area = AreaDialog
+            area.show(supportFragmentManager, "AREA")
+
+//            return true
 //            val newAngel = GeneralHelper.sanitizeMagnetometerBearing(lastRotateDegree)
 //            if (map != null) {
 //                GeneralHelper.changeMapPosition(map, newAngel)
@@ -497,12 +501,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 //                        getClosestPointOnLineRelativeToUserLocation(
 //                            fromRTKFeed, listOfPointsOnLineOfInterest
 //                        )
-                        val listOfPointsOnLineOfInterest = mutableListOf<Any>()
+                        val listOfPointsOnLineOfInterest = mutableListOf<LatLng>()
+
                         val linesOfInterest = listOfPlantingLines
                         linesOfInterest.forEach {
                             val tag = it.tag
                             if (tag != null) {
-                                listOfPointsOnLineOfInterest.add(tag)
+                                listOfPointsOnLineOfInterest.add(tag as LatLng)
                             }
 
                         }
