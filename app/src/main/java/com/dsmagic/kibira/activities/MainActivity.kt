@@ -490,12 +490,21 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                     }
                     else {
-                        val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
-                        val listOfPointsOnLineOfInterest = lineOfInterest.tag as MutableList<LatLng>
-                        getClosestPointOnLineRelativeToUserLocation(
-                            fromRTKFeed, listOfPointsOnLineOfInterest
-                        )
+//                        val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
+//                        val listOfPointsOnLineOfInterest = lineOfInterest.tag as MutableList<LatLng>
+//                        getClosestPointOnLineRelativeToUserLocation(
+//                            fromRTKFeed, listOfPointsOnLineOfInterest
+//                        )
+                        val listOfPointsOnLineOfInterest = mutableListOf<Any>()
+                        val linesOfInterest = listOfPlantingLines
+                        linesOfInterest.forEach {
+                            val tag = it.tag as MutableList<LatLng>
+                            listOfPointsOnLineOfInterest.add(tag)
 
+                        }
+                        getClosestPointOnLineRelativeToUserLocation(
+                            fromRTKFeed, listOfPointsOnLineOfInterest as MutableList<LatLng>
+                        )
                         distanceToTheNextPointOfInterest(fromRTKFeed)
                         approachingPoint()
                     }
