@@ -334,11 +334,13 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             /*
             * rotate the map accordingly
             * */
-            val newAngel = GeneralHelper.sanitizeMagnetometerBearing(lastRotateDegree)
-            if (map != null) {
-                GeneralHelper.changeMapPosition(map, newAngel)
-            }
-            BearingPhoneIsFacing = newAngel
+//            val newAngel = GeneralHelper.sanitizeMagnetometerBearing(lastRotateDegree)
+//            if (map != null) {
+//                GeneralHelper.changeMapPosition(map, newAngel)
+//            }
+//            BearingPhoneIsFacing = newAngel
+
+
         }
 
         /*
@@ -498,8 +500,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                         val listOfPointsOnLineOfInterest = mutableListOf<Any>()
                         val linesOfInterest = listOfPlantingLines
                         linesOfInterest.forEach {
-                            val tag = it.tag as MutableList<LatLng>
-                            listOfPointsOnLineOfInterest.add(tag)
+                            val tag = it.tag
+                            if (tag != null) {
+                                listOfPointsOnLineOfInterest.add(tag)
+                            }
 
                         }
                         getClosestPointOnLineRelativeToUserLocation(
@@ -1108,9 +1112,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                 }
 
-                position = keepUserInStraightLine(
-                    locationOfCurrentPoint, locationOfNextPoint, locationOfRoverLatLng
-                )
+//                position = keepUserInStraightLine(
+//                    locationOfCurrentPoint, locationOfNextPoint, locationOfRoverLatLng
+//                )
                 //check that user is walking in straight line!
 //                val q = line.contains(loc)
 //                val p = isUserlocationOnPath(loc, lineAsList)
@@ -1181,9 +1185,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     }
                 }
 
-                position = keepUserInStraightLine(
-                    locationOfCurrentPoint, locationOfNextPoint, locationOfRoverLatLng
-                )
+//                position = keepUserInStraightLine(
+//                    locationOfCurrentPoint, locationOfNextPoint, locationOfRoverLatLng
+//                )
 //                val p = isUserlocationOnPath(loc, lineAsList)
 //                if (p) {
 ////                    blink("On track")
