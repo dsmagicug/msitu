@@ -330,6 +330,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             created = false
         }
 
+
         fabCampus.setOnClickListener {
             /*
             * rotate the map accordingly
@@ -391,7 +392,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             editor.apply()
 
         } else {
-            LoginActivity.authbd
 
             val intent = Intent(this, LoginActivity::class.java)
             startActivity(intent)
@@ -496,19 +496,19 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
                     }
                     else {
-//                        val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
-//                        val listOfPointsOnLineOfInterest = lineOfInterest.tag as MutableList<LatLng>
-//                        getClosestPointOnLineRelativeToUserLocation(
-//                            fromRTKFeed, listOfPointsOnLineOfInterest
-//                        )
-                        val listOfPointsOnLineOfInterest = mutableListOf<LatLng>()
-
-                        val linesOfInterest = listOfPlantingLines
-                        linesOfInterest.forEach {
-                            val tag = it.tag as LatLng
-                            listOfPointsOnLineOfInterest.add(tag)
-
-                        }
+                        val lineOfInterest = listOfPlantingLines[listOfPlantingLines.lastIndex]
+                        val listOfPointsOnLineOfInterest = lineOfInterest.tag as MutableList<LatLng>
+                        getClosestPointOnLineRelativeToUserLocation(
+                            fromRTKFeed, listOfPointsOnLineOfInterest
+                        )
+//                        val listOfPointsOnLineOfInterest = mutableListOf<LatLng>()
+//
+//                        val linesOfInterest = listOfPlantingLines
+//                        linesOfInterest.forEach {
+//                            val tag = it.tag as LatLng
+//                            listOfPointsOnLineOfInterest.add(tag)
+//
+//                        }
                         getClosestPointOnLineRelativeToUserLocation(
                             fromRTKFeed, listOfPointsOnLineOfInterest
                         )
@@ -1014,6 +1014,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
 
                 }
+
+                // Create and start a background thread
+
             }
         }
 
@@ -1789,8 +1792,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             plotLine(l)
         }
 
-
-
         if(listOfPlantingLines.count() == numberOfLines){
 
             Toast.makeText(applicationContext, "lines selected...", Toast.LENGTH_SHORT)
@@ -1972,7 +1973,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
             /* Focus only on the points on the line of interest*/
             if (pt !in listOfPointsOnlineOfInterest) {
-                return
+//                return            // Allow even points not on line of interest,this will allow all selected lines?!
 
             }
             else {

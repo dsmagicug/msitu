@@ -64,7 +64,7 @@ object CustomlinesDialog : DialogFragment() {
 
             val inflater = requireActivity().layoutInflater
 
-            val r = inflater.inflate(R.layout.activity_customlines, null)
+            val r = inflater.inflate(R.layout.activity_area, null)
 
             val areaValue = r.findViewById<TextView>(R.id.area_value)
 
@@ -99,24 +99,6 @@ object CustomlinesDialog : DialogFragment() {
                         context, "Few vertices provided.More than 2 are expected", Toast.LENGTH_LONG
                     ).show()
                 }
-
-
-                    val list = mutableListOf<LongLat>(
-                        LongLat(32.463239621666666, 0.04694726166666666),
-                        LongLat(32.46321398833334, 0.046928243333333335),
-                        LongLat(32.46319326166667, 0.04695351666666667),
-                        LongLat(32.46321858666666, 0.046973766666666666)
-
-                    )
-
-            val list2 = mutableListOf<LongLat>(
-                LongLat(32.46325419666667, 0.04688487833333333),
-                LongLat(32.46325006	, 0.04692236833333333),
-                LongLat(32.46322413, 0.046900936666666664),
-
-                LongLat(32.463275073333335, 0.04690800666666666)
-
-            )
 
                     toUTMCoordinateSystem(VerticesLongLat, areaValue)
 
