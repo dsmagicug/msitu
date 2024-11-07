@@ -1,0 +1,27 @@
+{/* {
+              lines.map((line, idx) => (
+                <>
+                  <Polyline
+                    key={idx}
+                    coordinates={line}
+                    tappable={true}
+                    onPress={()=>handlePolylineClick(line)}
+                    strokeColor="blue"
+                    strokeWidth={1.0}
+                  />
+                  {
+                    line.map((coord, index) => (
+                      <Circle
+                        key={index}
+                        center={coord}
+                        radius={0.2}
+                        fillColor="red"
+                        strokeColor="red"
+                        zIndex={1}
+                      />
+                    ))
+                  }
+
+                </>
+              ))
+            }  */}

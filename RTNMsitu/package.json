@@ -1,0 +1,47 @@
+{
+  "name": "rtn-msitu",
+  "version": "10.07.1",
+  "description": "This module is used to interface S2 Geometry library for Digital Solutions RTK app for tree planting",
+  "react-native": "index",
+  "source": "index",
+  "files": [
+    "js",
+    "spec",
+    "android",
+    "ios",
+    "rtn-msitu.podspec",
+    "!android/build",
+    "!ios/build",
+    "!**/__tests__",
+    "!**/__fixtures__",
+    "!**/__mocks__"
+  ],
+  "keywords": [
+    "react-native",
+    "ios",
+    "android"
+  ],
+  "repository": "https://github.com/ekeeya/rtn-msitu",
+  "author": "Emmanuel Keeya ekeeya@ds.co.ug (https://github.com/ekeeya)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ekeeya/rtn-msitu/issues"
+  },
+  "homepage": "https://github.com/ekeeya/rtn-msitu#readme",
+  "devDependencies": {},
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*"
+  },
+  "codegenConfig": {
+    "name": "RTNMsituSpec",
+    "type": "all",
+    "jsSrcsDir": "spec",
+    "android": {
+      "javaPackageName": "com.rtnmsitu"
+    }
+  },
+  "dependencies": {
+    "rtn-msitu": "./RTNMsitu"
+  }
+}
