@@ -11,6 +11,8 @@ import { setShowCreateNewProjects } from "../../store/modal"
 import {convertLinesToLatLong} from "../../store/projects";
 import { useDispatch, useSelector } from 'react-redux';
 
+
+import { initializeBT } from "../../store/bluetooth";
 const Home = ({ navigation }) => {
 
   const mapRef = useRef(null);
@@ -29,6 +31,7 @@ const Home = ({ navigation }) => {
   const [plantingLines, setPlantingLines] = useState([])
 
   const { activeProject, visibleLines, loading } = useSelector(store => store.project)
+  const {init} =  useSelector(store=>store.bluetooth)
 
   const dispatch = useDispatch()
   const handlePolylineClick = (line) => {
@@ -39,8 +42,12 @@ const Home = ({ navigation }) => {
     if (mapRef.current) {
       mapRef.current.animateToRegion(initialRegion, 1000);
     }
+    
   }, [initialRegion]);
 
+  useEffect(()=>{
+    !init && dispatch(initializeBT())
+  },[init])
 
   useEffect(()=>{
     if (activeProject){
@@ -81,6 +88,7 @@ const Home = ({ navigation }) => {
   const handleMapPress = (e) => {
     if (areaMode) {
       const newCoordinate = e.nativeEvent.coordinate;
+      console.log(newCoordinate)
       setPolygonCoordinates([...polygonCoordinates, newCoordinate]);
     }
 
@@ -117,8 +125,7 @@ const Home = ({ navigation }) => {
           />
         )}
 
-        {
-          polygonCoordinates.map((coord, index) => (
+        {polygonCoordinates.map((coord, index) => (
             <Circle
               key={index}
               center={coord}

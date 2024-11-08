@@ -31,6 +31,10 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontFamily: "AvenirBold"
-  }
+  },
+  lottie: {
+    width: 50,
+    height: 50
+  },
 });
 export default styles;

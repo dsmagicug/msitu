@@ -1,5 +1,5 @@
-import { View, Text, ToastAndroid, Image } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { View, Text, Image, ToastAndroid } from 'react-native'
+import React, { useState } from 'react'
 import { Modal, ModalFooter, ModalTitle, ModalButton, ModalContent, SlideAnimation } from 'react-native-modals';
 import styles from '../../assets/styles';
 import MsTextInput from '../input/MsTextInput';
@@ -8,9 +8,8 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { Chip } from 'react-native-paper';
 import Icon from "react-native-vector-icons/MaterialCommunityIcons"
 import { Picker } from '@react-native-picker/picker';
-import { ALERT_TYPE, Dialog, AlertNotificationRoot, Toast } from 'react-native-alert-notification';
-import { useDispatch } from 'react-redux';
-// import { setShowCreateNewProjects } from "../../store/modal"
+import { useDispatch, useSelector } from 'react-redux';
+import AnimatedLoader from "react-native-animated-loader";
 import { generateProject } from '../../store/projects';
 import { convertToMeters } from '../../utils';
 
@@ -31,39 +30,39 @@ export default function NewProject({ show, onClose, onSelectFirstPoint, onSelect
     const [lineDirection, setLineDirection] = useState("");
     const [lineLength, setLineLength] = useState(500)
     const [gapSize, setGapSize] = useState(3)
-    const [firstPoint, setFirstPoint] = useState({ "latitude": 0.04278994698915981, "longitude": 32.46408261358738 })
-    const [secondPoint, setSecondPoint] = useState({ "latitude": 0.04959537959650264, "longitude": 32.46384188532829 })
+    const [firstPoint, setFirstPoint] = useState({"latitude": 0.03978721477698767, "longitude": 32.463856972754})
+    const [secondPoint, setSecondPoint] = useState({"latitude": 0.04610213884939541, "longitude": 32.46374599635601})
 
     const dispatch = useDispatch()
+    const { generating } = useSelector(store => store.project)
 
 
     const constructProject = () => {
         if (!firstPoint) {
-            Toast.show({
-                type: ALERT_TYPE.WARNING,
-                title: 'Empty First Base',
-                textBody: 'Sorry! First base point was not auto captured',
-            })
+            ToastAndroid.showWithGravity(
+                `Sorry! First base point was not captured`,
+                ToastAndroid.SHORT,
+                ToastAndroid.TOP,
+            ); 
             return
         }
         if (!secondPoint) {
-            Toast.show({
-                type: ALERT_TYPE.WARNING,
-                title: 'Empty Second Base',
-                textBody: 'Sorry! Second base point was not auto captured',
-            })
+            ToastAndroid.showWithGravity(
+               'Sorry! Second base point was not captured',
+                ToastAndroid.SHORT,
+                ToastAndroid.TOP,
+            ); 
             return
         }
         const payload = {
-            firstPoint, 
-            secondPoint, 
-            lineDirection, 
+            firstPoint,
+            secondPoint,
+            lineDirection,
             meshType,
-            name:projectName,
-            gapSize:convertToMeters(parseFloat(gapSize), gapSizeUnit),
-            lineLength:convertToMeters(parseFloat(lineLength), lineLengthUnit)
+            name: projectName,
+            gapSize: convertToMeters(parseFloat(gapSize), gapSizeUnit),
+            lineLength: convertToMeters(parseFloat(lineLength), lineLengthUnit)
         }
-        console.log(payload)
         dispatch(generateProject(payload))
     }
 
@@ -103,14 +102,14 @@ export default function NewProject({ show, onClose, onSelectFirstPoint, onSelect
                 <ModalFooter>
                     <ModalButton
                         text="CANCEL"
-                        textStyle={[styles.buttonText, {color:'red'}]}
+                        textStyle={[styles.buttonText, { color: 'red' }]}
                         onPress={() => { onClose() }}
                     />
                     <ModalButton
                         textStyle={styles.buttonText}
+                        disabled={generating}
                         text="CREATE"
                         onPress={() => {
-                            console.log("Woorks like a charm")
                             constructProject()
                         }}
                     />
@@ -129,16 +128,16 @@ export default function NewProject({ show, onClose, onSelectFirstPoint, onSelect
                         <MsTextInput
                             onChangeText={setProjectName}
                             label="Project Name" />
-                      <View className='flex-row justify-between w-full gap-x-1 mt-3'>
+                        <View className='flex-row justify-between w-full gap-x-1 mt-3'>
                             <MsTextInput
-                                containerStyle = {{width:150}}
+                                containerStyle={{ width: 150 }}
                                 keyboardType="decimal-pad"
                                 label="Line Length"
                                 onChangeText={setLineLength}
-                               
+
                             />
                             <Picker
-                                style={{ width: 130, marginTop:5}}
+                                style={{ width: 130, marginTop: 5 }}
                                 selectedValue={lineLengthUnit}
                                 onValueChange={(itemValue, itemIndex) =>
                                     setLineLengthUnit(itemValue)
@@ -150,15 +149,15 @@ export default function NewProject({ show, onClose, onSelectFirstPoint, onSelect
                                 <Picker.Item style={{ ...styles.textMedium }} label="Miles" value="miles" />
                             </Picker>
                         </View>
-                       <View className='flex-row justify-between w-full gap-x-1 mt-3'>
+                        <View className='flex-row justify-between w-full gap-x-1 mt-3'>
                             <MsTextInput
                                 keyboardType="decimal-pad"
                                 onChangeText={setGapSize}
                                 label="Gap Size"
-                                containerStyle = {{width:150}}
+                                containerStyle={{ width: 150 }}
                             />
-                            <Picker 
-                            style={{ width: 130, marginTop:5}}
+                            <Picker
+                                style={{ width: 130, marginTop: 5 }}
                                 selectedValue={gapSizeUnit}
                                 onValueChange={(itemValue, itemIndex) =>
                                     setGapSizeUnit(itemValue)
@@ -242,6 +241,14 @@ export default function NewProject({ show, onClose, onSelectFirstPoint, onSelect
 
                         </View>
                     </ScrollView>
+                    <AnimatedLoader
+                        visible={generating}
+                        overlayColor="rgba(255,255,255,0.75)"
+                        animationStyle={styles.lottie}
+                        animationType="slide"
+                        speed={1}>
+                        <Text className="font-avenirMedium">Generating Mesh...</Text>
+                    </AnimatedLoader>
                 </View>
             </ModalContent>
         </Modal>

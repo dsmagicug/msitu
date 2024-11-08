@@ -13,8 +13,10 @@ import { Dimensions, View, Text, TouchableOpacity, ScrollView, StyleSheet } from
 import { useDispatch, useSelector } from 'react-redux';
 import Divider from '../components/utilities/Divider';
 import NewProject from '../components/projects/NewProject';
-import { setShowCreateNewProjects, setShowProjectList } from "../store/modal"
+import { setShowCreateNewProjects, setShowProjectList, setShowBTDevices } from "../store/modal"
 import ProjectList from '../components/projects/ProjectList';
+import BluetoothDevices from '../components/projects/BluetoothDevices';
+import { scanDevices } from '../store/bluetooth';
 const Drawer = createDrawerNavigator();
 
 const useDrawerWidth = () => {
@@ -91,7 +93,8 @@ function CustomDrawerContent({ navigation, isPortrait }) {
             labelStyle={styles.label}
             icon={() => <Ionicon name="bluetooth" size={24} color="black" />}
             onPress={() => {
-              console.log("Nope");
+              dispatch(scanDevices())
+              dispatch(setShowBTDevices(true))
             }}
           />
           <DrawerItem
@@ -181,13 +184,16 @@ export default function DrawerNavigation() {
       <NewProject
         onClose={() => dispatch(setShowCreateNewProjects(false))}
         show={modalStore.showCreateNewProjects} />
+        
 
       <ProjectList
         show={modalStore.showProjectList}
         onClose={() => dispatch(setShowProjectList(false))}
-      >
-        <Text>List of projects</Text>
-      </ProjectList>
+      />
+      <BluetoothDevices
+         show={modalStore.showBTDevices}
+         onClose={() => dispatch(setShowBTDevices(false))}
+      />
     </>
   );
 }

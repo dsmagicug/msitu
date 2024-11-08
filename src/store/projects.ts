@@ -12,6 +12,7 @@ import ProjectService from '../services/ProjectService';
 
 interface ProjectState {
     loading: boolean;
+    fetching:boolean;
     generating: boolean;
     scaledPlantingLines: Array<PlantingLine> | [],
     error: string | null;
@@ -22,6 +23,7 @@ interface ProjectState {
 
 const initialState: ProjectState = {
     loading: false,
+    fetching:false,
     generating: false,
     scaledPlantingLines: [],
     error: null,
@@ -29,6 +31,18 @@ const initialState: ProjectState = {
     projectList: [],
     visibleLines:[]
 }
+
+export const fetchProjects = createAsyncThunk(
+    'project/fetchProjects',
+    async (_, thunkAPI) => {
+        try {
+            const projects = await ProjectService.fetch("projects", ["id", "name", "basePoints"]);
+            return projects;
+        } catch (error) {
+            thunkAPI.rejectWithValue(generateError(error));
+        }
+    },
+);
 
 export const generateProject = createAsyncThunk(
     'project/generateProject',
@@ -96,10 +110,10 @@ export const projectSlice = createSlice({
     extraReducers: builder => {
         builder
             .addCase(generateProject.pending, state => {
-                state.loading = true;
+                state.generating = true;
             })
             .addCase(generateProject.fulfilled, (state, action) => {
-                state.loading = false;
+                state.generating = false;
                  // @ts-ignore
                 const project: Project = action.payload;
                
@@ -107,7 +121,7 @@ export const projectSlice = createSlice({
                 state.activeProject = project;
             })
             .addCase(generateProject.rejected, (state, action) => {
-                state.loading = false;
+                state.generating = false;
                 state.error = action.error.message ?? 'Unknown error';
             })
             .addCase(convertLinesToLatLong.pending, state => {
@@ -120,6 +134,19 @@ export const projectSlice = createSlice({
             })
             .addCase(convertLinesToLatLong.rejected, (state, action) => {
                 state.loading = false;
+                state.error = action.error.message ?? 'Unknown error';
+            }) .addCase(fetchProjects.pending, state => {
+                state.fetching = true;
+            })
+            .addCase(fetchProjects.fulfilled, (state, action) => {
+                state.fetching = false;
+                const crudProjects =  action.payload;
+                if (crudProjects !== undefined){
+                    state.projectList = crudProjects;
+                }
+            })
+            .addCase(fetchProjects.rejected, (state, action) => {
+                state.fetching = false;
                 state.error = action.error.message ?? 'Unknown error';
             })
             

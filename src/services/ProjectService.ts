@@ -20,7 +20,7 @@ class ProjectService {
 
   public static async createTables() {
     const tableQueries = [
-      'CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY, name TEXT NOT NULL, basePoints TEXT NOT NULL, center TEXT,  plantingLines TEXT, markedPoints TEXT, lastLineIndex INTEGER);',
+      'CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY, name TEXT NOT NULL, basePoints TEXT NOT NULL, center TEXT,  plantingLines TEXT, markedPoints TEXT, lastLineIndex INTEGER, gapSize INTEGER, lineLength INTEGER, gapSizeUnit TEXT, lineLengthUnit TEXT, createdAt TEXT);',
     ];
 
     tableQueries.map(async query => {
@@ -127,31 +127,38 @@ class ProjectService {
         });
       });
     } catch (error) {
-      return Promise.reject(error);
+      return Promise.reject(error.message);
     }
   }
 
   public static async fetch(
-    tableName: String,
-    lookups: {
-      [key: string]: number | string;
-    } | null = null,
-    limit: number | 10 = 10,
-    orderBy: string | 'id' = 'id',
+    tableName: string,
+    fields: any = "*",
+    lookups: { [key: string]: number | string } | null = null,
+    limit: number = 10,
+    orderBy: string = 'id',
   ): Promise<any> {
     try {
       const items: any[] = [];
+  
+      const selectedFields = typeof fields === 'string' && fields === '*'
+      ? '*'
+      : Array.isArray(fields)
+      ? fields.join(', ')
+      : '*'; 
+  
       const query = lookups
-        ? `SELECT * FROM ${tableName} WHERE (${Object.keys(lookups)
-          .map(
-            key =>
-              `${key}=${typeof lookups[key] === 'string'
-                ? "'" + lookups[key] + "'"
-                : lookups[key]
-              }`,
-          )
-          .join(' AND ')}) ORDER BY ${orderBy} DESC LIMIT ${limit}`
-        : `SELECT * FROM ${tableName} ORDER BY ${orderBy} DESC LIMIT ${limit}`;
+        ? `SELECT ${selectedFields} FROM ${tableName} WHERE (${Object.keys(lookups)
+            .map(
+              key =>
+                `${key}=${typeof lookups[key] === 'string'
+                  ? "'" + lookups[key] + "'"
+                  : lookups[key]
+                }`,
+            )
+            .join(' AND ')}) ORDER BY ${orderBy} DESC LIMIT ${limit}`
+        : `SELECT ${selectedFields} FROM ${tableName} ORDER BY ${orderBy} DESC LIMIT ${limit}`;
+  
       const results = await ProjectService.db.executeSql(query);
       results.forEach(result => {
         for (let index = 0; index < result.rows.length; index++) {
@@ -160,9 +167,11 @@ class ProjectService {
       });
       return items;
     } catch (error) {
-      return Promise.reject(error);
+      console.error(error)
+      return Promise.reject(error.message);
     }
   }
+  
 
   public static async getById(
     tableName: String,

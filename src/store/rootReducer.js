@@ -2,9 +2,11 @@
 
 import modals from "./modal"
 import project from "./projects"
+import bluetooth from "./bluetooth"
 
 const rootReducer = {
     modals,
-    project
+    project,
+    bluetooth
 };
 export default rootReducer;

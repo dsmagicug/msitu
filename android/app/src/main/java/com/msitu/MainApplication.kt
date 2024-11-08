@@ -11,6 +11,8 @@ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
+import android.database.CursorWindow;
+import java.lang.reflect.Field;
 
 class MainApplication : Application(), ReactApplication {
 
@@ -35,6 +37,14 @@ class MainApplication : Application(), ReactApplication {
 
   override fun onCreate() {
     super.onCreate()
+    try {
+      val field = CursorWindow::class.java.getDeclaredField("sCursorWindowSize")
+      field.isAccessible = true
+      field.set(null, 100 * 1024 * 1024) // the 100MB is the new size
+  } catch (e: Exception) {
+    e.printStackTrace()
+  }
+  
     SoLoader.init(this, OpenSourceMergedSoMapping)
     if (BuildConfig.IS_NEW_ARCHITECTURE_ENABLED) {
       // If you opted-in for the New Architecture, we load the native entry point for this app.
