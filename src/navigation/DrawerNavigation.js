@@ -9,14 +9,14 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import AntDesignIcon from 'react-native-vector-icons/AntDesign'
 import AppStack from './AppStack';
 import React, { useState, useEffect } from 'react';
-import { Dimensions, View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
+import { Dimensions, View, Text, TouchableOpacity, ScrollView, StyleSheet} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Divider from '../components/utilities/Divider';
 import NewProject from '../components/projects/NewProject';
 import { setShowCreateNewProjects, setShowProjectList, setShowBTDevices } from "../store/modal"
 import ProjectList from '../components/projects/ProjectList';
 import BluetoothDevices from '../components/projects/BluetoothDevices';
-import { scanDevices } from '../store/bluetooth';
+// import { scanDevices } from '../store/bluetooth';
 const Drawer = createDrawerNavigator();
 
 const useDrawerWidth = () => {
@@ -38,6 +38,8 @@ const useDrawerWidth = () => {
 
   return { drawerWidth, isPortrait };
 };
+
+
 function CustomDrawerContent({ navigation, isPortrait }) {
   const dispatch = useDispatch()
   return (
@@ -93,7 +95,6 @@ function CustomDrawerContent({ navigation, isPortrait }) {
             labelStyle={styles.label}
             icon={() => <Ionicon name="bluetooth" size={24} color="black" />}
             onPress={() => {
-              dispatch(scanDevices())
               dispatch(setShowBTDevices(true))
             }}
           />
