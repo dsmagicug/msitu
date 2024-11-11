@@ -12,34 +12,57 @@ import MCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import styles from '../../assets/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
-import { setScanning,setIsBTEnabled, requestBluetoothPermissions, discorverDevices } from '../../store/bluetooth';
+import { setIsBTEnabled, setSelectedDevice, requestBluetoothPermissions, discorverDevices, getConnectedDevices } from '../../store/bluetooth';
 import RNBluetoothClassic from 'react-native-bluetooth-classic';
+import Toast from 'react-native-toast-message';
+import colors from 'tailwindcss/colors';
 
 export default function BluetoothDevices({ children, show, onClose }) {
 
-    const [btStateUpdateListener, setBTStateUpdateListener] =  useState(null)
+    const [connecting, setConnecting] = useState(false);
+    const [disconnecting, setDisconnecting] = useState(false);
+    const [connectedDeviceId, setConnectedDeviceId] = useState(null);
+    const [tappedDeviceId, setTappedDeviceId] = useState(null);
 
-    const { scanning, isBluetoothEnabled, deviceList } = useSelector(store => store.bluetooth)
+    const { scanning, isBluetoothEnabled, deviceList, selectedDevice } = useSelector(store => store.bluetooth)
     const dispatch = useDispatch();
 
-    useEffect(() => {
-        
-        const onStateChange = (event) => {
-            console.log(event)
-            dispatch(setIsBTEnabled(event.enabled));
+    const toggleDeviceConnectionStatus = async (device) => {
+        setTappedDeviceId(device.id)
+        let connection = await device.isConnected();
+        console.log(connection)
+        if (connection) {
+            // desconnect
+            setDisconnecting(true);
+            await device.disconnect();
+            setDisconnecting(false);
+            dispatch(setSelectedDevice(null));
+            setConnectedDeviceId(null);
+        } else {
+            setConnecting(true);
+            await device.connect({
+                connectorType: "rfcomm",
+                delimiter: "\n",
+                DEVICE_CHARSET: "utf-8"
+            });
+            setConnecting(false);
+            dispatch(setSelectedDevice(device));
+            setConnectedDeviceId(device.id)
+            // listen to the data
+            device.onDataReceived((data) => {
+                console.log(data.data)
+            })
+            Toast.show({
+                type:"success",
+                text1:"New Device Connected",
+                text2:`BT device ${device.name} has connected for data receiption`
+            })
         }
-        const btStateUpdate = RNBluetoothClassic.onStateChanged(onStateChange);
-        setBTStateUpdateListener(btStateUpdate)
-        return () => {
-            // cleanup 
-            if(btStateUpdateListener){
-                btStateUpdateListener.remove();
-            }
-            
-        }
-    }, [])
+    }
+
+
     const openBTSettings = () => {
-        
+
         Alert.alert('Bluetooth Disabled', 'Do you want to open setting to enable it?', [
             {
                 text: 'CANCEL',
@@ -123,16 +146,26 @@ export default function BluetoothDevices({ children, show, onClose }) {
             <ModalContent>
                 <ScrollView className='mt-3 h-64'>
                     {
-                        deviceList.map((device, idx)=>(
-                            <TouchableOpacity 
+                        deviceList.map((device, idx) => (
+                            <TouchableOpacity
+                                onPress={() => {
+                                    toggleDeviceConnectionStatus(device)
+                                }}
                                 key={idx}
-                                className='bg-gray-100 p-3 rounded-sm m-1'>
-                                <Text>{device.name}</Text>
+                                className={`flex flex-row justify-between items-center ${connectedDeviceId === device.id ? 'bg-green-500 text-white' : 'bg-gray-100'}  p-3 rounded-sm m-1`}>
+
+                                <Text className={`font-avenir ${connectedDeviceId === device.id ? 'font-bold text-white' : ''}`} >{device.name}</Text>
+                                <View className='flex flex-row justify-end items-center gap-1'>
+                                    {connectedDeviceId === device.id && <Text className='font-avenir font-bold text-white'>Connected</Text>}
+                                    {
+                                        tappedDeviceId === device.id && (connecting||disconnecting) && <ActivityIndicator color={colors.black} size="small"/>
+                                    }
+                                </View>
                             </TouchableOpacity>
                         ))
-                        
+
                     }
-                    
+
                 </ScrollView>
             </ModalContent>
         </BottomModal>

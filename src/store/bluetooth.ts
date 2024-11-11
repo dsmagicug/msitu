@@ -18,8 +18,6 @@ interface BTState {
   connecting:boolean;
   init: boolean;
   deviceList: Array<any> | [];
-  connectedDevice: any | null;
-  connectedDevices: Array<any> | [];
   btError: any | null;
 }
 
@@ -31,9 +29,7 @@ const initialState: BTState = {
   isBluetoothAvailable: false,
   init: false,
   btError: null,
-  deviceList: [],
-  connectedDevices: [],
-  connectedDevice: null,
+  deviceList: []
 };
 
 // Request Bluetooth Permissions
@@ -124,12 +120,12 @@ export const connectToDevice = createAsyncThunk(
       if (connection){
         return false
       }
-      const devices = await device.connect({
+      const truth = await device.connect({
         connectorType: "rfcomm",
         delimiter: "\n",
         DEVICE_CHARSET: "utf-8"
       });
-      return devices;
+      return truth;
     } catch (error) {
       return thunkAPI.rejectWithValue(generateError(error));
     }
@@ -156,7 +152,7 @@ const bluetoothSlice = createSlice({
     },
     setSelectedDevice(state, action: PayloadAction<BluetoothDevice | null>) {
       state.selectedDevice = action.payload;
-    },
+    }
   },
   extraReducers: builder => {
     builder
@@ -179,7 +175,10 @@ const bluetoothSlice = createSlice({
         state.btError = action.error.message || 'Failed to scan devices';
       })
       .addCase(getConnectedDevices.fulfilled, (state, action) => {
-        state.connectedDevices = action.payload;
+        const devices:Array<BluetoothDevice> = action.payload;
+        if (devices && devices.length > 0){
+          state.selectedDevice = devices[0]; // assuming it will always be one at a time, it has to be..
+        }
       })
 
       .addCase(cancelDiscovery.fulfilled, (state, action) => {
