@@ -5,10 +5,10 @@ import AntDesignIcon from 'react-native-vector-icons/AntDesign'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import Geolocation from '@react-native-community/geolocation';
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import ProjectList from '../../components/projects/ProjectList';
 import { setShowCreateNewProjects } from "../../store/modal"
-import {convertLinesToLatLong} from "../../store/projects";
+import { convertLinesToLatLong } from "../../store/projects";
 import { useDispatch, useSelector } from 'react-redux';
 
 
@@ -31,35 +31,39 @@ const Home = ({ navigation }) => {
   const [plantingLines, setPlantingLines] = useState([])
 
   const { activeProject, visibleLines, loading } = useSelector(store => store.project)
-  const {init} =  useSelector(store=>store.bluetooth)
+  const { roverLocation } = useSelector(store => store.nmeaListener)
+
+  const { init } = useSelector(store => store.bluetooth)
 
   const dispatch = useDispatch()
   const handlePolylineClick = (line) => {
     console.log(line)
   };
 
+
   useEffect(() => {
     if (mapRef.current) {
       mapRef.current.animateToRegion(initialRegion, 1000);
     }
-    
+
   }, [initialRegion]);
 
-  useEffect(()=>{
-    !init && dispatch(initializeBT())
-  },[init])
 
-  useEffect(()=>{
-    if (activeProject){
-      if (activeProject.plantingLines.length > 0){
+  useEffect(() => {
+    !init && dispatch(initializeBT())
+  }, [init])
+
+  useEffect(() => {
+    if (activeProject) {
+      if (activeProject.plantingLines.length > 0) {
         const payload = {
-          linePoints:activeProject.plantingLines,
-          center:activeProject.center
+          linePoints: activeProject.plantingLines,
+          center: activeProject.center
         }
         dispatch(convertLinesToLatLong(payload));
       }
     }
-  },[activeProject])
+  }, [activeProject])
 
   useEffect(() => {
     // Request permission and get the current location
@@ -84,6 +88,22 @@ const Home = ({ navigation }) => {
       { enableHighAccuracy: false, timeout: 200000, maximumAge: 5000 }
     );
   };
+
+ 
+  const centerMe = useMemo(()=>{
+    if(roverLocation){
+      const { latitude, longitude } = roverLocation;
+      setInitialRegion({
+        latitude,
+        longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    }
+    else{
+      getCurrentLocation()
+    }
+  }, [roverLocation])
 
   const handleMapPress = (e) => {
     if (areaMode) {
@@ -126,21 +146,30 @@ const Home = ({ navigation }) => {
         )}
 
         {polygonCoordinates.map((coord, index) => (
-            <Circle
-              key={index}
-              center={coord}
-              radius={0.5}
-              strokeWidth={8}
-              fillColor="skyblue"
-              strokeColor="skyblue"
-              zIndex={1}
-            />
-          ))
+          <Circle
+            key={index}
+            center={coord}
+            radius={0.5}
+            strokeWidth={8}
+            fillColor="skyblue"
+            strokeColor="skyblue"
+            zIndex={1}
+          />
+        ))
         }
-
+        {roverLocation &&
+          <Circle
+            key={`${idx}-${index}`}
+            center={coord}
+            radius={0.2}
+            fillColor="blue"
+            strokeColor="blue"
+            zIndex={1}
+          />
+        }
         {
           visibleLines.map((line, idx) => (
-            <React.Fragment  key={idx}>
+            <React.Fragment key={idx}>
               <Polyline
                 coordinates={line}
                 tappable={true}
@@ -212,14 +241,12 @@ const Home = ({ navigation }) => {
 
       <View className="absolute bottom-4 right-4 z-10">
         <TouchableOpacity
-          onPress={() => getCurrentLocation()}
+          onPress={() => centerMe()}
           className={`bg-white p-2 rounded`}>
 
           <MaterialIcons name="my-location" size={30} color="green" />
         </TouchableOpacity>
       </View>
-
-
 
       <ProjectList
         show={createProject}

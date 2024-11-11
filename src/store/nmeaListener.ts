@@ -5,13 +5,13 @@ import { LongLat, RTNMsitu, FixType } from 'rtn-msitu';
 
 interface NMEAState {
     converting: boolean;
-    roverLocation: LongLat | {};
+    roverLocation: LongLat | null;
     error: any | null;
 }
 
 const initialState: NMEAState = {
     converting: false,
-    roverLocation: {},
+    roverLocation: null,
     error: null
 };
 

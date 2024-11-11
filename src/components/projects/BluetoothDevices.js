@@ -12,7 +12,7 @@ import MCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import styles from '../../assets/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
-import { setSelectedDevice, requestBluetoothPermissions, discorverDevices, getConnectedDevices } from '../../store/bluetooth';
+import { setSelectedDevice, requestBluetoothPermissions, discorverDevices } from '../../store/bluetooth';
 import RNBluetoothClassic from 'react-native-bluetooth-classic';
 import Toast from 'react-native-toast-message';
 import colors from 'tailwindcss/colors';
@@ -49,7 +49,7 @@ export default function BluetoothDevices({ children, show, onClose }) {
             setConnecting(false);
             dispatch(setSelectedDevice(device));
             setConnectedDeviceId(device.id)
-            // listen to the data
+            // listen to the data right
             let pre = "";
             device.onDataReceived((buffer) => {
                 const sentence = buffer.data
