@@ -1,3 +1,4 @@
+import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
@@ -8,6 +9,7 @@ import com.facebook.react.bridge.WritableMap
 import com.facebook.react.module.annotations.ReactModule
 import com.rtnmsitu.NativeRTNMsituSpec
 import com.rtnmsitu.geometry.Geometry
+import com.rtnmsitu.geometry.LongLat
 import com.rtnmsitu.geometry.MeshDirection
 import com.rtnmsitu.geometry.Point
 import com.rtnmsitu.utils.Mapper
@@ -111,6 +113,16 @@ class MsituModule(reactContext: ReactApplicationContext) : NativeRTNMsituSpec(re
                 }
             }
         } catch (e: Exception) {
+            promise.reject("Error", e.message)
+        }
+    }
+
+    override fun nmeaToLongLat(sentence: String, promise: Promise) {
+        try{
+            val longLat = LongLat(sentence)
+            promise.resolve(Utils.longLatToWritable(longLat))
+        }catch (e:Exception){
+            Log.e("Parsing Error", "Failed to parse sentence", e)
             promise.reject("Error", e.message)
         }
     }

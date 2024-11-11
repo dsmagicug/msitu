@@ -12,10 +12,11 @@ import MCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import styles from '../../assets/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
-import { setIsBTEnabled, setSelectedDevice, requestBluetoothPermissions, discorverDevices, getConnectedDevices } from '../../store/bluetooth';
+import { setSelectedDevice, requestBluetoothPermissions, discorverDevices, getConnectedDevices } from '../../store/bluetooth';
 import RNBluetoothClassic from 'react-native-bluetooth-classic';
 import Toast from 'react-native-toast-message';
 import colors from 'tailwindcss/colors';
+import { parseNMEA } from '../../store/nmeaListener';
 
 export default function BluetoothDevices({ children, show, onClose }) {
 
@@ -49,9 +50,28 @@ export default function BluetoothDevices({ children, show, onClose }) {
             dispatch(setSelectedDevice(device));
             setConnectedDeviceId(device.id)
             // listen to the data
-            device.onDataReceived((data) => {
-                console.log(data.data)
-            })
+            let pre = "";
+            device.onDataReceived((buffer) => {
+                const sentence = buffer.data
+                const sx = pre + sentence;
+                let i = 0;
+                const sn = sx.length;
+                const lines = [];
+                let idx = sx.indexOf("\n", i);
+                while (idx > 0) {
+                    const line = sx.substring(i, idx);
+                    lines.push(line);
+                    i = idx + 1;
+                    if (i >= sn) break;
+                    idx = sx.indexOf("\n", i);
+                }
+                pre = (i < sn) ? sx.substring(i) : "";
+            
+                lines.forEach(line => {
+                    console.log("SENTENCE", line);
+                    dispatch(parseNMEA(line))
+                });
+                })
             Toast.show({
                 type:"success",
                 text1:"New Device Connected",

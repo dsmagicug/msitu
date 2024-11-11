@@ -5,7 +5,6 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
-import com.fasterxml.jackson.annotation.JsonFormat
 import com.rtnmsitu.geometry.GAP_SIZE_METRES
 import com.rtnmsitu.geometry.Geometry
 import com.rtnmsitu.geometry.LongLat
@@ -52,7 +51,7 @@ object Utils {
         }
         return resultArray
     }
-    private fun longLatToWritable(o: LongLat): ReadableMap {
+    public fun longLatToWritable(o: LongLat): ReadableMap {
         val map = Arguments.createMap()
         map.putDouble("latitude", o.lat)
         map.putDouble("longitude", o.long)

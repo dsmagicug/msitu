@@ -24,6 +24,8 @@ export interface Spec extends TurboModule {
         gapSize:number, 
         lineLength:number
     ):Promise<Array<PlantingLine>>;
+
+    nmeaToLongLat(sentence:string):Promise<LongLat>;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('RTNMsitu',) as Spec;
