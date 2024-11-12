@@ -12,11 +12,12 @@ import MCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import styles from '../../assets/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
-import { setSelectedDevice, requestBluetoothPermissions, discorverDevices } from '../../store/bluetooth';
+import { setSelectedDevice, requestBluetoothPermissions, discorverDevices, getBondedDevices, parseGGA, parseRMC } from '../../store/bluetooth';
 import RNBluetoothClassic from 'react-native-bluetooth-classic';
 import Toast from 'react-native-toast-message';
 import colors from 'tailwindcss/colors';
-import { parseNMEA } from '../../store/nmeaListener';
+import LatLong from '../../services/MNEAService';
+import { parseNMEA, setRoverLocation } from '../../store/nmeaListener';
 
 export default function BluetoothDevices({ children, show, onClose }) {
 
@@ -24,6 +25,7 @@ export default function BluetoothDevices({ children, show, onClose }) {
     const [disconnecting, setDisconnecting] = useState(false);
     const [connectedDeviceId, setConnectedDeviceId] = useState(null);
     const [tappedDeviceId, setTappedDeviceId] = useState(null);
+
 
     const { scanning, isBluetoothEnabled, deviceList, selectedDevice } = useSelector(store => store.bluetooth)
     const dispatch = useDispatch();
@@ -43,39 +45,21 @@ export default function BluetoothDevices({ children, show, onClose }) {
             setConnecting(true);
             await device.connect({
                 connectorType: "rfcomm",
-                delimiter: "\n",
+                // delimiter: "\n",
                 DEVICE_CHARSET: "utf-8"
             });
             setConnecting(false);
             dispatch(setSelectedDevice(device));
             setConnectedDeviceId(device.id)
             // listen to the data right
-            let pre = "";
             device.onDataReceived((buffer) => {
-                const sentence = buffer.data
-                const sx = pre + sentence;
-                let i = 0;
-                const sn = sx.length;
-                const lines = [];
-                let idx = sx.indexOf("\n", i);
-                while (idx > 0) {
-                    const line = sx.substring(i, idx);
-                    lines.push(line);
-                    i = idx + 1;
-                    if (i >= sn) break;
-                    idx = sx.indexOf("\n", i);
-                }
-                pre = (i < sn) ? sx.substring(i) : "";
-            
-                lines.forEach(line => {
-                    console.log("SENTENCE", line);
-                    dispatch(parseNMEA(line))
-                });
-                })
+                const sentence = buffer.data.trim();
+                dispatch(parseNMEA(sentence))
+            })
             Toast.show({
-                type:"success",
-                text1:"New Device Connected",
-                text2:`BT device ${device.name} has connected for data receiption`
+                type: "success",
+                text1: "New Device Connected",
+                text2: `BT device ${device.name} has connected for data receiption`
             })
         }
     }
@@ -93,10 +77,14 @@ export default function BluetoothDevices({ children, show, onClose }) {
         ]);
     }
     useEffect(() => {
+        if (show) {
+            dispatch(getBondedDevices())
+        }
         if (!isBluetoothEnabled && show) {
             openBTSettings()
         }
     }, [isBluetoothEnabled, show])
+
 
     return (
         <BottomModal
@@ -178,7 +166,7 @@ export default function BluetoothDevices({ children, show, onClose }) {
                                 <View className='flex flex-row justify-end items-center gap-1'>
                                     {connectedDeviceId === device.id && <Text className='font-avenir font-bold text-white'>Connected</Text>}
                                     {
-                                        tappedDeviceId === device.id && (connecting||disconnecting) && <ActivityIndicator color={colors.black} size="small"/>
+                                        tappedDeviceId === device.id && (connecting || disconnecting) && <ActivityIndicator color={colors.black} size="small" />
                                     }
                                 </View>
                             </TouchableOpacity>

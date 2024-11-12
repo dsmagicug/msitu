@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { generateError } from '../utils';
 
 import { LongLat, RTNMsitu, FixType } from 'rtn-msitu';
+import LatLong from '../services/MNEAService';
 
 interface NMEAState {
     converting: boolean;
@@ -18,16 +19,20 @@ const initialState: NMEAState = {
 
 // Initialize Bluetooth
 export const parseNMEA = createAsyncThunk(
-    'bluetooth/initialize',
-    async (line: string, thunkAPI) => {
-        try {
-            const longlat = await RTNMsitu.nmeaToLongLat(line);
-            return longlat;
-        } catch (error) {
-            return thunkAPI.rejectWithValue(generateError(error));
-        }
+    'nmeaListener/parseNMEA',
+    (sentence: string, thunkAPI) => {
+      // Return a promise directly
+      return new Promise((resolve, reject) => {
+        LatLong.asyncParse(sentence)
+          .then((longlat) => {
+            resolve(longlat);
+          })
+          .catch((error) => {
+            reject(thunkAPI.rejectWithValue(generateError(error)));
+          });
+      });
     }
-);
+  );
 
 
 
@@ -42,8 +47,7 @@ const nmeaListenerSlice = createSlice({
     extraReducers: builder => {
         builder
             .addCase(parseNMEA.fulfilled, (state, action) => {
-                console.log(action.payload)
-                const longLat = action.payload as LongLat;
+                const longLat = action.payload as LatLong;
                 if(longLat.fixType !== FixType.NoFixData){
                     state.roverLocation = longLat;
                 }

@@ -1,7 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { generateError } from '../utils';
 import RNBluetoothClassic, {
-  BluetoothEventType,
   BluetoothDevice,
 }
   from 'react-native-bluetooth-classic';
@@ -12,6 +11,7 @@ import {
 
 interface BTState {
   scanning: boolean;
+ 
   selectedDevice:BluetoothDevice|null;
   isBluetoothEnabled: boolean;
   isBluetoothAvailable: boolean;
@@ -112,6 +112,18 @@ export const getConnectedDevices = createAsyncThunk(
 );
 
 
+export const getBondedDevices = createAsyncThunk(
+  'bluetooth/getBondedDevices',
+  async (_, thunkAPI) => {
+    try {
+      const devices = await RNBluetoothClassic.getBondedDevices();
+      return devices;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(generateError(error));
+    }
+  }
+);
+
 export const connectToDevice = createAsyncThunk(
   'bluetooth/connectToDevice',
   async (device:BluetoothDevice, thunkAPI) => {
@@ -131,7 +143,6 @@ export const connectToDevice = createAsyncThunk(
     }
   }
 );
-
 
 
 
@@ -173,6 +184,9 @@ const bluetoothSlice = createSlice({
       .addCase(discorverDevices.rejected, (state, action) => {
         state.scanning = false;
         state.btError = action.error.message || 'Failed to scan devices';
+      })
+      .addCase(getBondedDevices.fulfilled, (state, action) => {
+        state.deviceList = action.payload;
       })
       .addCase(getConnectedDevices.fulfilled, (state, action) => {
         const devices:Array<BluetoothDevice> = action.payload;

@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import DrawerNavigation from './DrawerNavigation';
 import { useDispatch } from 'react-redux';
-import { getConnectedDevices, setIsBTEnabled } from '../store/bluetooth';
+import { getConnectedDevices, setIsBTEnabled, setSelectedDevice } from '../store/bluetooth';
 import RNBluetoothClassic from 'react-native-bluetooth-classic';
 import Toast from 'react-native-toast-message';
 
@@ -27,6 +27,7 @@ export default function AppStackNavigation() {
             text1:"Ooops!",
             text2:`BT Device ${device.name} has disconnected.`
         })
+        dispatch(setSelectedDevice(null))
     }
 
 

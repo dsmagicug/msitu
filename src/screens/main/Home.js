@@ -1,21 +1,17 @@
-import MapView, { PROVIDER_GOOGLE, Polyline, Polygon, Circle, MAP_TYPES } from 'react-native-maps';
 import { Text, View, Alert, TouchableOpacity } from "react-native";
-import Icon from 'react-native-vector-icons/Ionicons';
-import AntDesignIcon from 'react-native-vector-icons/AntDesign'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
-import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 import Geolocation from '@react-native-community/geolocation';
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState} from "react";
 import ProjectList from '../../components/projects/ProjectList';
-import { setShowCreateNewProjects } from "../../store/modal"
 import { convertLinesToLatLong } from "../../store/projects";
 import { useDispatch, useSelector } from 'react-redux';
 
-
 import { initializeBT } from "../../store/bluetooth";
+import MsituMapView from '../../components/maps/MsituMapView';
+import LocationFeed from "../../components/maps/LocationFeed";
+import TopNavBar from "../../components/misc/TopNavBar";
 const Home = ({ navigation }) => {
 
-  const mapRef = useRef(null);
 
   const [createProject, setCreateProject] = useState(false)
   const [areaMode, setAreaMode] = useState(false);
@@ -32,21 +28,13 @@ const Home = ({ navigation }) => {
 
   const { activeProject, visibleLines, loading } = useSelector(store => store.project)
   const { roverLocation } = useSelector(store => store.nmeaListener)
+  const { selectedDevice } = useSelector(store => store.bluetooth)
+
 
   const { init } = useSelector(store => store.bluetooth)
 
   const dispatch = useDispatch()
-  const handlePolylineClick = (line) => {
-    console.log(line)
-  };
 
-
-  useEffect(() => {
-    if (mapRef.current) {
-      mapRef.current.animateToRegion(initialRegion, 1000);
-    }
-
-  }, [initialRegion]);
 
 
   useEffect(() => {
@@ -89,9 +77,10 @@ const Home = ({ navigation }) => {
     );
   };
 
- 
-  const centerMe = useMemo(()=>{
-    if(roverLocation){
+
+  const centerMe = () => {
+
+    if (roverLocation) {
       const { latitude, longitude } = roverLocation;
       setInitialRegion({
         latitude,
@@ -100,121 +89,32 @@ const Home = ({ navigation }) => {
         longitudeDelta: 0.01,
       });
     }
-    else{
+    else {
       getCurrentLocation()
     }
-  }, [roverLocation])
+  }
 
-  const handleMapPress = (e) => {
-    if (areaMode) {
-      const newCoordinate = e.nativeEvent.coordinate;
-      console.log(newCoordinate)
-      setPolygonCoordinates([...polygonCoordinates, newCoordinate]);
-    }
-
-  };
-
+  
   useEffect(() => {
     if (!areaMode && polygonCoordinates.length > 0) {
       setPolygonCoordinates([])
     }
   }, [areaMode, polygonCoordinates])
 
+
+
   return (
 
     <View className="flex-1 relative">
       {/* Map View */}
-      <MapView
-        ref={mapRef}
-        provider={PROVIDER_GOOGLE}
-        onPress={handleMapPress}
-        mapType={MAP_TYPES.TERRAIN}
-        showsUserLocation={false}
-        showsScale={true}
-        showsMyLocationButton={true}
-        region={initialRegion}
-        style={{ flex: 1 }}
-
-      >
-        {polygonCoordinates.length > 0 && (
-          <Polygon
-            coordinates={polygonCoordinates}
-            strokeColor="blue"
-            fillColor="rgba(135, 206, 250, 0.3)"
-            strokeWidth={2}
-          />
-        )}
-
-        {polygonCoordinates.map((coord, index) => (
-          <Circle
-            key={index}
-            center={coord}
-            radius={0.5}
-            strokeWidth={8}
-            fillColor="skyblue"
-            strokeColor="skyblue"
-            zIndex={1}
-          />
-        ))
-        }
-        {roverLocation &&
-          <Circle
-            key={`${idx}-${index}`}
-            center={coord}
-            radius={0.2}
-            fillColor="blue"
-            strokeColor="blue"
-            zIndex={1}
-          />
-        }
-        {
-          visibleLines.map((line, idx) => (
-            <React.Fragment key={idx}>
-              <Polyline
-                coordinates={line}
-                tappable={true}
-                onPress={() => handlePolylineClick(line)}
-                strokeColor="blue"
-                strokeWidth={1.5}
-              />
-              {
-                line.map((coord, index) => (
-                  <Circle
-                    key={`${idx}-${index}`}
-                    center={coord}
-                    radius={0.3}
-                    fillColor="red"
-                    strokeColor="red"
-                    zIndex={1}
-                  />
-                ))
-              }
-
-            </React.Fragment>
-          ))
-        }
-
-      </MapView>
+      <MsituMapView
+        initialRegion={initialRegion}
+        areaMode={areaMode}
+        visibleLines={visibleLines}
+      />
 
       {/* Overlay View at the Top */}
-      <View className="absolute flex flex-row justify-between top-10 left-2 right-2 bg-white/70 p-2 rounded-lg items-center z-10">
-        <TouchableOpacity
-          className='bg-white/90 p-2 border border-teal-800 rounded-lg'
-          onPress={() => {
-            navigation.openDrawer();
-          }}
-        >
-          <Icon name="menu-outline" size={24} color="teal" />
-        </TouchableOpacity>
-        <Text className='font-avenirBold text-xl'>{activeProject && activeProject.name}</Text>
-        <View className='flex flex-row'>
-          <TouchableOpacity
-            onPress={() => dispatch(setShowCreateNewProjects(true))}
-            className='bg-white/100 border border-teal-800 p-2 rounded-lg'>
-            <AntDesignIcon name="addfolder" size={24} color="teal" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <TopNavBar navigation={navigation}/>
 
       {/* Left and Right Views Fixed at the Bottom */}
       <View className="flex flex-col gap-2 absolute bottom-4 left-4 z-10">
@@ -239,14 +139,10 @@ const Home = ({ navigation }) => {
         </View>
       </View>
 
-      <View className="absolute bottom-4 right-4 z-10">
-        <TouchableOpacity
-          onPress={() => centerMe()}
-          className={`bg-white p-2 rounded`}>
-
-          <MaterialIcons name="my-location" size={30} color="green" />
-        </TouchableOpacity>
-      </View>
+      {
+        (roverLocation && selectedDevice) &&
+        <LocationFeed latLong={roverLocation}/>
+      }
 
       <ProjectList
         show={createProject}
