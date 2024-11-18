@@ -1,15 +1,20 @@
 import { Text, View, Alert, TouchableOpacity } from "react-native";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import Geolocation from '@react-native-community/geolocation';
-import React, { useEffect, useState} from "react";
+import React, { useEffect, useState, useRef } from "react";
 import ProjectList from '../../components/projects/ProjectList';
 import { convertLinesToLatLong } from "../../store/projects";
 import { useDispatch, useSelector } from 'react-redux';
+import AnimatedLoader from "react-native-animated-loader";
+import {throttle} from "lodash"
 
 import { initializeBT } from "../../store/bluetooth";
 import MsituMapView from '../../components/maps/MsituMapView';
 import LocationFeed from "../../components/maps/LocationFeed";
 import TopNavBar from "../../components/misc/TopNavBar";
+import styles from "../../assets/styles";
+import LatLong from "../../services/MNEAService";
+import {  FixType } from 'rtn-msitu';
 const Home = ({ navigation }) => {
 
 
@@ -25,17 +30,48 @@ const Home = ({ navigation }) => {
   })
   const [plantingPoints, setPlantingPoints] = useState([])
   const [plantingLines, setPlantingLines] = useState([])
+  const [roverLocation, setRoverLocation] =  useState(null);
+  const [dataReadListener, setDataReadListener] =  useState(null);
 
-  const { activeProject, visibleLines, loading } = useSelector(store => store.project)
-  const { roverLocation } = useSelector(store => store.nmeaListener)
+  const { activeProject, visibleLines, loading, scaledPlantingLines } = useSelector(store => store.project)
   const { selectedDevice } = useSelector(store => store.bluetooth)
 
 
   const { init } = useSelector(store => store.bluetooth)
 
+  const onReceiveData = async (buffer)=>{
+    const sentence = buffer.data.trim();
+    const longLat = new LatLong(sentence);
+    if(longLat.fixType !== FixType.NoFixData){
+      throttledUpdate(longLat);
+    }
+  }
+
   const dispatch = useDispatch()
 
+  const throttledUpdate = useRef(
+    throttle((location) => setRoverLocation(location), 100)
+).current;
 
+  useEffect(() => {
+    const checkConnectionAndSetupListener = async () => {
+        if (!selectedDevice) return;
+        const connection = await selectedDevice.isConnected();
+        if (connection) {
+          const readListener =  selectedDevice.onDataReceived((buffer) =>onReceiveData(buffer));
+          setDataReadListener(readListener);
+        }
+    };
+
+    checkConnectionAndSetupListener();
+
+    return () => {
+        console.log("Stop listening")
+        if(dataReadListener){
+          dataReadListener.remove();
+        }
+    };
+}, [selectedDevice, throttledUpdate]);
 
   useEffect(() => {
     !init && dispatch(initializeBT())
@@ -43,15 +79,15 @@ const Home = ({ navigation }) => {
 
   useEffect(() => {
     if (activeProject) {
-      if (activeProject.plantingLines.length > 0) {
+      if (scaledPlantingLines.length > 0) {
         const payload = {
-          linePoints: activeProject.plantingLines,
+          linePoints: scaledPlantingLines,
           center: activeProject.center
         }
         dispatch(convertLinesToLatLong(payload));
       }
     }
-  }, [activeProject])
+  }, [activeProject, scaledPlantingLines])
 
   useEffect(() => {
     // Request permission and get the current location
@@ -94,7 +130,7 @@ const Home = ({ navigation }) => {
     }
   }
 
-  
+
   useEffect(() => {
     if (!areaMode && polygonCoordinates.length > 0) {
       setPolygonCoordinates([])
@@ -110,11 +146,12 @@ const Home = ({ navigation }) => {
       <MsituMapView
         initialRegion={initialRegion}
         areaMode={areaMode}
+        roverLocation={roverLocation}
         visibleLines={visibleLines}
       />
 
       {/* Overlay View at the Top */}
-      <TopNavBar navigation={navigation}/>
+      <TopNavBar navigation={navigation} />
 
       {/* Left and Right Views Fixed at the Bottom */}
       <View className="flex flex-col gap-2 absolute bottom-4 left-4 z-10">
@@ -137,19 +174,29 @@ const Home = ({ navigation }) => {
               </View>
             </View>}
         </View>
+        <AnimatedLoader
+          visible={loading}
+          overlayColor="rgba(255,255,255,0.75)"
+          animationStyle={styles.lottie}
+          animationType="slide"
+          speed={1}>
+          <Text className="font-avenirMedium">Loading...</Text>
+        </AnimatedLoader>
       </View>
 
-      {
+     {
         (roverLocation && selectedDevice) &&
         <LocationFeed latLong={roverLocation}/>
       }
+      
 
       <ProjectList
         show={createProject}
-        onClose={() => { setCreateProject(false) }}
-      >
+        onClose={() => { setCreateProject(false) }}>
         <Text>Prpject List here</Text>
       </ProjectList>
+          
+
 
     </View>
 

@@ -1,5 +1,5 @@
 import { View, Text, Image, ToastAndroid } from 'react-native'
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Modal, ModalFooter, ModalTitle, ModalButton, ModalContent, SlideAnimation } from 'react-native-modals';
 import styles from '../../assets/styles';
 import MsTextInput from '../input/MsTextInput';
@@ -30,11 +30,15 @@ export default function NewProject({ show, onClose, onSelectFirstPoint, onSelect
     const [lineDirection, setLineDirection] = useState("");
     const [lineLength, setLineLength] = useState(500)
     const [gapSize, setGapSize] = useState(3)
-    const [firstPoint, setFirstPoint] = useState({"latitude": 0.03978721477698767, "longitude": 32.463856972754})
-    const [secondPoint, setSecondPoint] = useState({"latitude": 0.04610213884939541, "longitude": 32.46374599635601})
+    const [firstPoint, setFirstPoint] = useState(null)
+    const [secondPoint, setSecondPoint] = useState(null)
+    const [basePoints, setBasePoints] = useState([])
 
     const dispatch = useDispatch()
     const { generating } = useSelector(store => store.project)
+
+
+    const { roverLocation } = useSelector(store => store.nmeaListener)
 
 
     const constructProject = () => {
@@ -43,15 +47,15 @@ export default function NewProject({ show, onClose, onSelectFirstPoint, onSelect
                 `Sorry! First base point was not captured`,
                 ToastAndroid.SHORT,
                 ToastAndroid.TOP,
-            ); 
+            );
             return
         }
         if (!secondPoint) {
             ToastAndroid.showWithGravity(
-               'Sorry! Second base point was not captured',
+                'Sorry! Second base point was not captured',
                 ToastAndroid.SHORT,
                 ToastAndroid.TOP,
-            ); 
+            );
             return
         }
         const payload = {
@@ -66,30 +70,51 @@ export default function NewProject({ show, onClose, onSelectFirstPoint, onSelect
         dispatch(generateProject(payload))
     }
 
-    /*  useEffect(() => {
-         if (!checkedFirstPoint) {
-             setFirstPoint(null)
-         } else {
-             ToastAndroid.showWithGravity(
-                 `First base Point selected`,
-                 ToastAndroid.SHORT,
-                 ToastAndroid.CENTER,
-             );
-         }
-     }, [checkedFirstPoint])
- 
-     useEffect(() => {
-         if (!checkedSecondPoint) {
-             setSecondPoint(null)
-         } else {
-             ToastAndroid.showWithGravity(
-                 `Second base Point selected`,
-                 ToastAndroid.SHORT,
-                 ToastAndroid.CENTER,
-             );
-         }
- 
-     }, [checkedSecondPoint]) */
+    useEffect(() => {
+        if (!checkedFirstPoint) {
+            setFirstPoint(null)
+            setSecondPoint(null) // making sure, first point is selected first
+            setBasePoints([])
+        } else {
+            setFirstPoint(roverLocation)
+            setBasePoints([{ latitude: roverLocation.latitude, longitude: roverLocation.longitude }])
+            ToastAndroid.showWithGravity(
+                `First base Point selected`,
+                ToastAndroid.SHORT,
+                ToastAndroid.CENTER,
+            );
+        }
+    }, [checkedFirstPoint])
+
+    useEffect(() => {
+        let points = basePoints;
+        if (!checkedSecondPoint) {
+            setSecondPoint(null)
+            points.pop()
+        } else {
+
+            setSecondPoint(roverLocation);
+            if (basePoints.length == 0) {
+                ToastAndroid.showWithGravity(
+                    `Select the second point only if the first is selected.`,
+                    ToastAndroid.SHORT,
+                    ToastAndroid.CENTER,
+                );
+                return;
+            }
+            else if (basePoints.length > 1) {
+                points[1] = { latitude: roverLocation.latitude, longitude: roverLocation.longitude }
+            } else {
+                points.push({ latitude: roverLocation.latitude, longitude: roverLocation.longitude })
+            }
+            ToastAndroid.showWithGravity(
+                `Second base Point selected`,
+                ToastAndroid.SHORT,
+                ToastAndroid.CENTER,
+            );
+        }
+        setBasePoints(points)
+    }, [checkedSecondPoint])
     return (
         <Modal
             visible={show}
@@ -221,6 +246,7 @@ export default function NewProject({ show, onClose, onSelectFirstPoint, onSelect
                         <View className='w-full mt-3'>
                             <MsCheckbox
                                 uncheckedColor='gray'
+                                disabled={true}
                                 label='First Base Point (check to auto fill)'
                                 color='green'
                                 status={checkedFirstPoint ? 'checked' : 'unchecked'}
@@ -231,6 +257,7 @@ export default function NewProject({ show, onClose, onSelectFirstPoint, onSelect
                             />
                             <MsCheckbox
                                 uncheckedColor='gray'
+                                disabled
                                 label='Second Base Point (check to auto fill)'
                                 color='green'
                                 status={checkedSecondPoint ? 'checked' : 'unchecked'}
@@ -238,6 +265,15 @@ export default function NewProject({ show, onClose, onSelectFirstPoint, onSelect
                                     setCheckedSecondPoint(!checkedSecondPoint);
                                 }}
                             />
+                            {
+                                (roverLocation === null)
+                                &&
+                                <Text className='mx-3 text-xs font-avenirBold text-yellow-600'>Make sure rover is connected..</Text>
+                            }
+                            {
+                                basePoints.length > 0 &&
+                                <Text className='mx-3 text-xs font-avenirBold text-yellow-600'>{JSON.stringify(basePoints)}</Text>
+                            }
 
                         </View>
                     </ScrollView>

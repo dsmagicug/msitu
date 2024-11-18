@@ -36,5 +36,10 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50
   },
+  lottie2: {
+    width: 100,
+    height: 100,
+    zIndex:100,
+  },
 });
 export default styles;

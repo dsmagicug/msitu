@@ -5,7 +5,7 @@ import {
     Project
 }
     from "../models"
-import { setShowCreateNewProjects } from './modal';
+import { setShowCreateNewProjects, setShowProjectList } from './modal';
 import { PlantingLine } from '../../RTNMsitu';
 import ProjectService from '../services/ProjectService';
 
@@ -44,6 +44,20 @@ export const fetchProjects = createAsyncThunk(
     },
 );
 
+
+export const loadProject = createAsyncThunk(
+    'project/loadProject',
+    async (id:number, thunkAPI) => {
+        try {
+            const project = await ProjectService.getById("projects", id);
+            thunkAPI.dispatch(setShowProjectList(false))// close the project list dialog
+            return project;
+        } catch (error) {
+            thunkAPI.rejectWithValue(generateError(error));
+        }
+    },
+);
+
 export const generateProject = createAsyncThunk(
     'project/generateProject',
     async (params, thunkAPI) => {
@@ -74,7 +88,7 @@ export const generateProject = createAsyncThunk(
             const { insertId } = insertRows[0];
             project["id"] = insertId
             thunkAPI.dispatch(setShowCreateNewProjects(false));
-            project["plantingLines"] = project.plantingLines.slice(0, 10)
+            //project["plantingLines"] = project.plantingLines.slice(0, 10)
             return project;
         } catch (error) {
             thunkAPI.rejectWithValue(generateError(error));
@@ -147,6 +161,29 @@ export const projectSlice = createSlice({
             })
             .addCase(fetchProjects.rejected, (state, action) => {
                 state.fetching = false;
+                state.error = action.error.message ?? 'Unknown error';
+            })
+            .addCase(loadProject.pending, state => {
+                state.loading = true;
+              
+            })
+            .addCase(loadProject.fulfilled, (state, action) => {
+                state.loading = false;
+                let project = action.payload;
+                const plantingLines = JSON.parse(project.plantingLines)
+                project ={
+                    ...project,
+                    center:JSON.parse(project.center),
+                    basePoints: JSON.parse(project.basePoints),
+                    markedPoints: JSON.parse(project.markedPoints),
+                    plantingLines:plantingLines
+                }as Project
+                
+                state.scaledPlantingLines = plantingLines.slice(0, 10)
+                state.activeProject = project;
+            })
+            .addCase(loadProject.rejected, (state, action) => {
+                state.loading = false;
                 state.error = action.error.message ?? 'Unknown error';
             })
             

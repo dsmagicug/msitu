@@ -161,7 +161,7 @@ function CustomDrawerContent({ navigation, isPortrait }) {
   );
 }
 
-export default function DrawerNavigation() {
+export default function DrawerNavigation(props) {
   const { drawerWidth, isPortrait } = useDrawerWidth();
   const modalStore = useSelector(selector => selector.modals);
   const dispatch = useDispatch()

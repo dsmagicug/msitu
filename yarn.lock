@@ -7837,6 +7837,11 @@ rbush@^3.0.1:
   dependencies:
     quickselect "^2.0.0"
 
+react-addons@^0.9.1-deprecated:
+  version "0.9.1-deprecated"
+  resolved "https://registry.yarnpkg.com/react-addons/-/react-addons-0.9.1-deprecated.tgz#24131877d87076c1288fd2569b4b618614dccaf6"
+  integrity sha512-rFTcmhaRiEuQTsNClIvyiM17NtmkRFAao/4/URrxF94KHytJkU1GvB8BQx4bFV8nEEEgyUPlw8WVBIyVDj6KOQ==
+
 react-devtools-core@^5.3.1:
   version "5.3.2"
   resolved "https://registry.yarnpkg.com/react-devtools-core/-/react-devtools-core-5.3.2.tgz#d5df92f8ef2a587986d094ef2c47d84cf4ae46ec"

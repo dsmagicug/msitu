@@ -4,11 +4,13 @@ import { BottomModal, ModalFooter, ModalButton, ModalContent } from 'react-nativ
 import AntDesignIcon from 'react-native-vector-icons/AntDesign'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import styles from '../../assets/styles';
-import { fetchProjects } from '../../store/projects';
+import { fetchProjects, loadProject } from '../../store/projects';
 import { useDispatch, useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
 export default function ProjectList({ children, show, onClose }) {
 
+
+    // const navigation =  useNavigation()
     const dispatch = useDispatch()
     const { fetching, projectList } = useSelector(store => store.project)
     useEffect(() => {
@@ -53,7 +55,10 @@ export default function ProjectList({ children, show, onClose }) {
                             <Text className='font-avenirMedium'>{project.name}</Text>
                             <View className='flex flex-row justify-end gap-1'>
                                 <TouchableOpacity
-                                    onPress={() => { console.log("Open") }}
+                                    onPress={() => { 
+                                        dispatch(loadProject(project.id)) 
+                                        // navigation.closeDrawer()
+                                    }}
                                     className='bg-white/100 border border-blue-600 p-1 gap-1 rounded flex flex-row justify-center items-center'>
                                     <MaterialCommunityIcons name="open-in-new" size={14} color="blue" />
                                     <Text className='font-avenir text-sm text-blue-800'>Open</Text>

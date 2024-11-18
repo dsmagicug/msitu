@@ -61,7 +61,9 @@
     "deprecated-react-native-prop-types": "^5.0.0",
     "eslint": "^8.19.0",
     "jest": "^29.6.3",
+    "lodash": "^4.17.21",
     "prettier": "2.8.8",
+    "react-addons": "^0.9.1-deprecated",
     "react-test-renderer": "18.3.1",
     "typescript": "5.0.4"
   },

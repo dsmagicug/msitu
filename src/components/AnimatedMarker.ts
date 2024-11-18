@@ -60,7 +60,7 @@ export const useAnimatedRegion = (location: Partial<LatLng> = {}) => {
 
   const animate = useCallback(
     (options: AnimateOptions) => {
-      const { duration = 5000, easing = Easing.inOut(Easing.ease) } = options;
+      const { duration = 500, easing = Easing.inOut(Easing.ease) } = options;
 
       const animateValue = (
         value: Animated.SharedValue<number | undefined>,

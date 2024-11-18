@@ -2,7 +2,6 @@ import {
     View,
     Text,
     TouchableOpacity,
-    ToastAndroid,
     ActivityIndicator,
     Alert
 } from 'react-native'
@@ -16,8 +15,7 @@ import { setSelectedDevice, requestBluetoothPermissions, discorverDevices, getBo
 import RNBluetoothClassic from 'react-native-bluetooth-classic';
 import Toast from 'react-native-toast-message';
 import colors from 'tailwindcss/colors';
-import LatLong from '../../services/MNEAService';
-import { parseNMEA, setRoverLocation } from '../../store/nmeaListener';
+import { parseNMEA } from '../../store/nmeaListener';
 
 export default function BluetoothDevices({ children, show, onClose }) {
 
@@ -52,10 +50,11 @@ export default function BluetoothDevices({ children, show, onClose }) {
             dispatch(setSelectedDevice(device));
             setConnectedDeviceId(device.id)
             // listen to the data right
-            device.onDataReceived((buffer) => {
+
+            /* device.onDataReceived((buffer) => {
                 const sentence = buffer.data.trim();
                 dispatch(parseNMEA(sentence))
-            })
+            })  */
             Toast.show({
                 type: "success",
                 text1: "New Device Connected",

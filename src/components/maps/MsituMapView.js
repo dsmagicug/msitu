@@ -1,79 +1,62 @@
+import React, { useEffect, useState, useRef } from "react";
 import MapView, {
     PROVIDER_GOOGLE,
     Polyline,
     Polygon,
     Circle,
-    MAP_TYPES
-} from 'react-native-maps';
-import React, { useEffect, useState, useRef } from "react";
-import Animated, { Easing } from "react-native-reanimated"
-import { AnimatedMarker, useAnimatedRegion } from '../../components/AnimatedMarker';
-import Dot from '../../components/maps/Dot';
-import { useSelector } from 'react-redux';
+    MAP_TYPES,
+} from "react-native-maps";
+import { Easing } from "react-native-reanimated";
+import { throttle } from "lodash";
+import { useAnimatedRegion } from "../../components/AnimatedMarker";
+import RoverPosition from "./RoverPosition";
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-const MsituMapView = ({initialRegion,  areaMode, visibleLines }) => {
 
+const MsituMapView = ({ initialRegion, areaMode, visibleLines, roverLocation }) => {
     const mapRef = useRef(null);
-    const roverPositionRef = useRef(null);
-    const [polygonCoordinates, setPolygonCoordinates] = useState([])
+    const [polygonCoordinates, setPolygonCoordinates] = useState([]);
+    const {  circleProps, animate } = useAnimatedRegion(initialRegion);
 
-    const { markerProps, circleProps, animate } = useAnimatedRegion(initialRegion);
-
-    const { roverLocation } = useSelector(store => store.nmeaListener)
-
-
-
-    const handlePolylineClick = (line) => {
-        console.log(line)
-    };
-
-    useEffect(() => {
-        if (mapRef.current) {
-            mapRef.current.animateToRegion(initialRegion, 1000);
-        }
-
-    }, [initialRegion]);
+    // Throttle the animation
+    const throttledAnimate = useRef(
+        throttle((location) => {
+            animate({
+                latitude: location.latitude,
+                longitude: location.longitude,
+                duration: 100,
+                easing: Easing.linear,
+            });
+        }, 100)
+    ).current;
 
     const handleMapPress = (e) => {
         if (areaMode) {
-            const newCoordinate = e.nativeEvent.coordinate;
-            setPolygonCoordinates([...polygonCoordinates, newCoordinate]);
+            setPolygonCoordinates((coords) => [...coords, e.nativeEvent.coordinate]);
         }
-
     };
 
     useEffect(() => {
         if (!areaMode && polygonCoordinates.length > 0) {
-            setPolygonCoordinates([])
+            setPolygonCoordinates([]);
         }
-    }, [areaMode, polygonCoordinates])
+    }, [areaMode]);
 
     useEffect(() => {
         if (roverLocation) {
-            animate({
-                latitude: roverLocation.latitude,
-                longitude: roverLocation.longitude,
-                duration: 10,
-                easing: Easing.linear
-            });
+            throttledAnimate(roverLocation);
         }
-    }, [roverPositionRef, roverLocation])
+    }, [roverLocation]);
 
     return (
-
         <MapView
             ref={mapRef}
             provider={PROVIDER_GOOGLE}
-            onPress={handleMapPress}
             mapType={MAP_TYPES.SATELLITE}
-            showsUserLocation={false}
-            showsScale={false}
-            showsMyLocationButton={true}
+            onPress={handleMapPress}
             region={initialRegion}
             style={{ flex: 1 }}
-
         >
+            {/* Polygon */}
             {polygonCoordinates.length > 0 && (
                 <Polygon
                     coordinates={polygonCoordinates}
@@ -83,62 +66,46 @@ const MsituMapView = ({initialRegion,  areaMode, visibleLines }) => {
                 />
             )}
 
-            {
-                polygonCoordinates.map((coord, index) => (
-                    <Circle
-                        key={index}
-                        center={coord}
-                        radius={0.5}
-                        strokeWidth={8}
-                        fillColor="skyblue"
-                        strokeColor="skyblue"
-                        zIndex={1}
+            {/* Dots for Polygon */}
+            {polygonCoordinates.map((coord, index) => (
+                <Circle
+                    key={index}
+                    center={coord}
+                    radius={0.5}
+                    strokeWidth={8}
+                    fillColor="skyblue"
+                    strokeColor="skyblue"
+                    zIndex={1}
+                />
+            ))}
+
+            {/* Animated Circle */}
+            <RoverPosition circleProps={circleProps} />
+
+            {/* Polylines and Circles */}
+            {visibleLines.map((line, idx) => (
+                <React.Fragment key={idx}>
+                    <Polyline
+                        coordinates={line}
+                        tappable
+                        onPress={() => console.log(line)}
+                        strokeColor="blue"
+                        strokeWidth={1.5}
                     />
-                ))
-            }
-
-            {/* <AnimatedMarker animatedProps={markerProps}>
-            <Dot className="w-3 h-3 rounded-full bg-yellow-200" />
-            </AnimatedMarker> */}
-            
-            <AnimatedCircle
-                animatedProps={circleProps}
-                radius={0.4} 
-                strokeWidth={2}
-                fillColor="yellow"
-                strokeColor="yellow"
-                zIndex={1}
-            />
-
-            {
-                visibleLines.map((line, idx) => (
-                    <React.Fragment key={idx}>
-                        <Polyline
-                            coordinates={line}
-                            tappable={true}
-                            onPress={() => handlePolylineClick(line)}
-                            strokeColor="blue"
-                            strokeWidth={1.5}
+                    {line.map((coord, index) => (
+                        <Circle
+                            key={`${idx}-${index}`}
+                            center={coord}
+                            radius={0.3}
+                            strokeColor="red"
+                            strokeWidth={2}
+                            zIndex={1}
                         />
-                        {
-                            line.map((coord, index) => (
-                                <Circle
-                                    key={`${idx}-${index}`}
-                                    center={coord}
-                                    radius={0.4}
-                                    fillColor="red"
-                                    strokeColor="red"
-                                    zIndex={1}
-                                />
-                            ))
-                        }
-
-                    </React.Fragment>
-                ))
-            }
-
+                    ))}
+                </React.Fragment>
+            ))}
         </MapView>
+    );
+};
 
-    )
-}
 export default MsituMapView;
