@@ -1,24 +1,34 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import MapView, {
     PROVIDER_GOOGLE,
     Polyline,
     Polygon,
     Circle,
     MAP_TYPES,
+    Marker
 } from "react-native-maps";
 import { Easing } from "react-native-reanimated";
-import { throttle } from "lodash";
+import { throttle, debounce } from "lodash";
 import { useAnimatedRegion } from "../../components/AnimatedMarker";
 import RoverPosition from "./RoverPosition";
+import LatLong from "../../services/NMEAService";
+import { useSelector } from "react-redux";
+import { searchClosestPoint } from "../../store/pegging";
 
+// Memoize RoverPosition to prevent unnecessary re-renders
+const MemoizedRoverPosition = React.memo(RoverPosition);
 
-const MsituMapView = ({ initialRegion, areaMode, visibleLines, roverLocation }) => {
+const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleLines, roverLocation }) => {
     const mapRef = useRef(null);
     const [polygonCoordinates, setPolygonCoordinates] = useState([]);
-    const {  circleProps, animate } = useAnimatedRegion(initialRegion);
+    const { circleProps, animate } = useAnimatedRegion(initialRegion);
+    const prevRoverLocationRef = useRef(null);
+    const [selectedPlanitingLines, setSelectedPlantingLines] =  useState([])
+    const [combinedPoints, setCombinedPoints] = useState([])
+    const {mode, maxCyrusLines} = useSelector(store=>store.pegging)
 
-    // Throttle the animation
-    const throttledAnimate = useRef(
+    // Throttle the animation and memoize it with useCallback
+    const throttledAnimate = useCallback(
         throttle((location) => {
             animate({
                 latitude: location.latitude,
@@ -26,26 +36,71 @@ const MsituMapView = ({ initialRegion, areaMode, visibleLines, roverLocation }) 
                 duration: 100,
                 easing: Easing.linear,
             });
-        }, 100)
-    ).current;
+        }, 100),
+        [animate]
+    );
 
-    const handleMapPress = (e) => {
+    // Memoize circleProps to prevent unnecessary re-renders when roverLocation changes
+    const memoizedCircleProps = useMemo(() => ({
+        ...circleProps,
+        center: roverLocation ? { latitude: roverLocation.latitude, longitude: roverLocation.longitude } : circleProps.center,
+    }), [roverLocation, circleProps]);
+
+    const handleMapPress = useCallback((e) => {
         if (areaMode) {
-            setPolygonCoordinates((coords) => [...coords, e.nativeEvent.coordinate]);
+            // setPolygonCoordinates((coords) => [...coords, e.nativeEvent.coordinate]);
         }
+    }, [areaMode]);
+
+
+    const handlePolyLineClick = (line, index) => {
+        setSelectedPlantingLines((prevSelectedLines) => {
+            const existingIndex = prevSelectedLines.findIndex(item => item[1] === index);
+            if (existingIndex !== -1) {
+                return [
+                    ...prevSelectedLines.slice(0, existingIndex),
+                    ...prevSelectedLines.slice(existingIndex + 1)
+                ];
+            } else {
+                return [...prevSelectedLines, [line, index]];
+            }
+        });
     };
+
+    useEffect(() => {
+        if (selectedPlanitingLines.length > 0) {
+            const combinedLines = selectedPlanitingLines.reduce((acc, [line, index]) => {
+                return acc.concat(line);
+            }, []);
+            setCombinedPoints(combinedLines); 
+        }
+    }, [selectedPlanitingLines]);
 
     useEffect(() => {
         if (!areaMode && polygonCoordinates.length > 0) {
             setPolygonCoordinates([]);
         }
-    }, [areaMode]);
+    }, [areaMode, polygonCoordinates]);
+
+    const debouncedDispatch = useRef(
+        debounce((location) => {
+            if (combinedPoints.length > 0){
+                dispatch(searchClosestPoint(location, combinedPoints));
+            }
+        }, 1000) 
+    ).current;
 
     useEffect(() => {
         if (roverLocation) {
-            throttledAnimate(roverLocation);
+            const prevRoverLocation = prevRoverLocationRef.current;
+            if (LatLong.significantChange(prevRoverLocation, roverLocation)) {
+                throttledAnimate(roverLocation);
+                // also debounce for 1 second
+                debouncedDispatch(roverLocation);
+            }
+            prevRoverLocationRef.current = roverLocation;
         }
-    }, [roverLocation]);
+    }, [roverLocation, throttledAnimate]);
 
     return (
         <MapView
@@ -56,6 +111,20 @@ const MsituMapView = ({ initialRegion, areaMode, visibleLines, roverLocation }) 
             region={initialRegion}
             style={{ flex: 1 }}
         >
+
+            {/* Base Points as Pins */}
+            {basePoints && basePoints.map((point, index) => (
+                <Circle 
+                    key={`base-point-${index}`}
+                    center={{ latitude: point.latitude, longitude: point.longitude }}
+                    radius={0.2}
+                    strokeWidth={1}
+                    fillColor="#00FF00"
+                    strokeColor="#00FF00"
+                    zIndex={1}
+                />
+            ))}
+
             {/* Polygon */}
             {polygonCoordinates.length > 0 && (
                 <Polygon
@@ -80,7 +149,7 @@ const MsituMapView = ({ initialRegion, areaMode, visibleLines, roverLocation }) 
             ))}
 
             {/* Animated Circle */}
-            <RoverPosition circleProps={circleProps} />
+            <MemoizedRoverPosition circleProps={memoizedCircleProps} />
 
             {/* Polylines and Circles */}
             {visibleLines.map((line, idx) => (
@@ -88,7 +157,7 @@ const MsituMapView = ({ initialRegion, areaMode, visibleLines, roverLocation }) 
                     <Polyline
                         coordinates={line}
                         tappable
-                        onPress={() => console.log(line)}
+                        onPress={()=>{handlePolyLineClick(line, idx)}}
                         strokeColor="blue"
                         strokeWidth={1.5}
                     />
@@ -106,6 +175,6 @@ const MsituMapView = ({ initialRegion, areaMode, visibleLines, roverLocation }) 
             ))}
         </MapView>
     );
-};
+});
 
 export default MsituMapView;

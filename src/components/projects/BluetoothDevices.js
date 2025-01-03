@@ -31,7 +31,6 @@ export default function BluetoothDevices({ children, show, onClose }) {
     const toggleDeviceConnectionStatus = async (device) => {
         setTappedDeviceId(device.id)
         let connection = await device.isConnected();
-        console.log(connection)
         if (connection) {
             // desconnect
             setDisconnecting(true);
@@ -63,6 +62,11 @@ export default function BluetoothDevices({ children, show, onClose }) {
         }
     }
 
+    useEffect(()=>{
+        if(!selectedDevice){
+            setConnectedDeviceId(null);
+        }
+    },[selectedDevice])
 
     const openBTSettings = () => {
 

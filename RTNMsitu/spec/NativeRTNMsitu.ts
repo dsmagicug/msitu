@@ -1,5 +1,6 @@
 import { TurboModule, TurboModuleRegistry } from "react-native";
 import { type PlantingLine, type LongLat } from "./types/backend";
+import { LatLng } from "react-native-maps";
 
 export interface Spec extends TurboModule {
 
@@ -25,7 +26,10 @@ export interface Spec extends TurboModule {
         lineLength:number
     ):Promise<Array<PlantingLine>>;
 
-    nmeaToLongLat(sentence:string):Promise<LongLat>;
+    closetPointRelativeToRoverPosition(
+        roverLocation:{ latitude: number; longitude: number },
+        points:Array<{latitude: number; longitude: number}>
+    ):Promise<LatLng>
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('RTNMsitu',) as Spec;

@@ -182,9 +182,6 @@ export default function DrawerNavigation(props) {
           component={AppStack}
         />
       </Drawer.Navigator>
-      <NewProject
-        onClose={() => dispatch(setShowCreateNewProjects(false))}
-        show={modalStore.showCreateNewProjects} />
         
 
       <ProjectList

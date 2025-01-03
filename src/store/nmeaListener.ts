@@ -2,17 +2,17 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { generateError } from '../utils';
 
 import { LongLat, RTNMsitu, FixType } from 'rtn-msitu';
-import LatLong from '../services/MNEAService';
+import LatLong from '../services/NMEAService';
 
 interface NMEAState {
     converting: boolean;
-    roverLocation: LongLat | null;
+    roverLocation: LongLat | {};
     error: any | null;
 }
 
 const initialState: NMEAState = {
     converting: false,
-    roverLocation: null,
+    roverLocation: {},
     error: null
 };
 
@@ -25,6 +25,7 @@ export const parseNMEA = createAsyncThunk(
       return new Promise((resolve, reject) => {
         LatLong.asyncParse(sentence)
           .then((longlat) => {
+            //@ts-ignore
             resolve(longlat);
           })
           .catch((error) => {
@@ -42,11 +43,15 @@ const nmeaListenerSlice = createSlice({
     reducers: {
         setConverting(state, action: PayloadAction<boolean>) {
             state.converting = action.payload;
+        },
+        setGlobalRoverLocation(state, action:PayloadAction<LongLat>){
+          state.roverLocation = action.payload;
         }
     },
     extraReducers: builder => {
         builder
             .addCase(parseNMEA.fulfilled, (state, action) => {
+                //@ts-ignore
                 const longLat = action.payload as LatLong;
                 if(longLat.fixType !== FixType.NoFixData){
                     state.roverLocation = longLat;
@@ -60,5 +65,5 @@ const nmeaListenerSlice = createSlice({
     },
 });
 
-export const { setConverting } = nmeaListenerSlice.actions;
+export const { setConverting,setGlobalRoverLocation } = nmeaListenerSlice.actions;
 export default nmeaListenerSlice.reducer;

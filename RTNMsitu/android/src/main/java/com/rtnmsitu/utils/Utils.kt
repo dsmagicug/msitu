@@ -5,6 +5,7 @@ import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableArray
+import com.google.android.gms.maps.model.LatLng
 import com.rtnmsitu.geometry.GAP_SIZE_METRES
 import com.rtnmsitu.geometry.Geometry
 import com.rtnmsitu.geometry.LongLat
@@ -51,7 +52,9 @@ object Utils {
         }
         return resultArray
     }
-    public fun longLatToWritable(o: LongLat): ReadableMap {
+
+
+    private fun longLatToWritable(o: LongLat): ReadableMap {
         val map = Arguments.createMap()
         map.putDouble("latitude", o.lat)
         map.putDouble("longitude", o.long)
@@ -110,6 +113,22 @@ object Utils {
         p.zone =o.getInt("zone")
         p.hemisphere = o.getString("hemisphere").toString()
         return p
+    }
+
+    fun toGoogleLatLng(o: ReadableMap): LatLng {
+        val latitude = o.getDouble("latitude")
+        val longitude = o.getDouble("longitude")
+        return LatLng(latitude, longitude)
+    }
+
+    fun toGoogleLatLngList(locations: ReadableArray):MutableList<LatLng>{
+        val pts = mutableListOf<LatLng>()
+        for (i in 0 until locations.size()) {
+            val p: ReadableMap = locations.getMap(i)
+            val l =  toGoogleLatLng(p)
+            pts.add(l)
+        }
+        return pts
     }
 
     suspend fun plotMesh(

@@ -7,13 +7,17 @@ import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.module.annotations.ReactModule
+import com.google.android.gms.maps.model.LatLng
 import com.rtnmsitu.NativeRTNMsituSpec
 import com.rtnmsitu.geometry.Geometry
-import com.rtnmsitu.geometry.LongLat
 import com.rtnmsitu.geometry.MeshDirection
 import com.rtnmsitu.geometry.Point
+import com.rtnmsitu.s2.S2Helper
+import com.rtnmsitu.utils.GeneralHelper
 import com.rtnmsitu.utils.Mapper
 import com.rtnmsitu.utils.Utils
+import dilivia.s2.S2LatLng
+import dilivia.s2.index.point.S2PointIndex
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,7 +38,7 @@ class MsituModule(reactContext: ReactApplicationContext) : NativeRTNMsituSpec(re
             val latLong = coord?.let { Utils.extractLongLat(it) }
             val point = latLong?.let { Point(it) }
             return Mapper.toWritableMap(point)
-        }catch (e:Exception){
+        } catch (e: Exception) {
             return null
         }
     }
@@ -46,7 +50,8 @@ class MsituModule(reactContext: ReactApplicationContext) : NativeRTNMsituSpec(re
             val centerPoint = Utils.extractPoint(center)
             val coordLine = Geometry.generateLongLatLine(centerPoint, line)
             promise.resolve(Utils.lineToCoordinate(coordLine))
-        }catch (e:Exception){
+        } catch (e: Exception) {
+            Log.e("RTMsitu", "An error occurred: ${e.message}", e)
             promise.reject("Error", e.message)
         }
     }
@@ -57,11 +62,12 @@ class MsituModule(reactContext: ReactApplicationContext) : NativeRTNMsituSpec(re
             val centerPoint = Utils.extractPoint(center)
             val coordLines = Geometry.generateLongLatLines(centerPoint, plantingLines)
             val resultArray = Arguments.createArray()
-            coordLines.forEach{line->
+            coordLines.forEach { line ->
                 resultArray.pushArray(Utils.lineToCoordinate(line))
             }
             promise.resolve(resultArray)
-        }catch (e:Exception){
+        } catch (e: Exception) {
+            Log.e("RTMsitu", "An error occurred: ${e.message}", e)
             promise.reject("Error", e.message)
         }
 
@@ -83,14 +89,24 @@ class MsituModule(reactContext: ReactApplicationContext) : NativeRTNMsituSpec(re
             val direction = meshDirection?.let { MeshDirection.valueOf(it) }
 
             if (firstPoint == null || secondPoint == null || direction == null) {
-                promise.reject("InvalidArgument", "First, Second, and MeshDirection must not be null")
+                promise.reject(
+                    "InvalidArgument",
+                    "First, Second, and MeshDirection must not be null"
+                )
                 return
             }
 
             // Use coroutineScope to launch a coroutine off the main thread
             coroutineScope.launch {
                 try {
-                    val lines = Utils.plotMesh(firstPoint, secondPoint, direction, gapSize, lineLength, Utils.MeshType.valueOf(meshType))
+                    val lines = Utils.plotMesh(
+                        firstPoint,
+                        secondPoint,
+                        direction,
+                        gapSize,
+                        lineLength,
+                        Utils.MeshType.valueOf(meshType)
+                    )
 
                     // Convert lines to WritableArray
                     val resultArray = Arguments.createArray()
@@ -113,16 +129,30 @@ class MsituModule(reactContext: ReactApplicationContext) : NativeRTNMsituSpec(re
                 }
             }
         } catch (e: Exception) {
+            Log.e("RTMsitu", "An error occurred: ${e.message}", e)
             promise.reject("Error", e.message)
         }
     }
 
-    override fun nmeaToLongLat(sentence: String, promise: Promise) {
-        try{
-            val longLat = LongLat(sentence)
-            promise.resolve(Utils.longLatToWritable(longLat))
-        }catch (e:Exception){
-            Log.e("Parsing Error", "Failed to parse sentence", e)
+    override fun closetPointRelativeToRoverPosition(
+        roverLocation: ReadableMap,
+        points: ReadableArray,
+        promise: Promise
+    ) {
+        try {
+            val roverPosition = Utils.toGoogleLatLng(roverLocation)
+            val pointsOfReference = Utils.toGoogleLatLngList(points)
+            val poolInS2Format: S2PointIndex<S2LatLng> =
+                GeneralHelper.convertLineToS2(pointsOfReference)
+            val closetS2Point =
+                S2Helper.findClosestPointOnLine(poolInS2Format, roverPosition) as S2LatLng?
+            if (closetS2Point != null) {
+                val googleLatLng = LatLng(closetS2Point.latDegrees(), closetS2Point.lngDegrees())
+                promise.resolve(Mapper.toWritableMap(googleLatLng))
+            }
+            promise.resolve(null);
+        } catch (e: Exception) {
+            Log.e("RTMsitu", "An error occurred: ${e.message}", e)
             promise.reject("Error", e.message)
         }
     }

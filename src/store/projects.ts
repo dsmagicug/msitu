@@ -88,7 +88,7 @@ export const generateProject = createAsyncThunk(
             const { insertId } = insertRows[0];
             project["id"] = insertId
             thunkAPI.dispatch(setShowCreateNewProjects(false));
-            //project["plantingLines"] = project.plantingLines.slice(0, 10)
+            project["plantingLines"] = project.plantingLines.slice(0, 10)
             return project;
         } catch (error) {
             thunkAPI.rejectWithValue(generateError(error));

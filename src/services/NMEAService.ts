@@ -14,6 +14,7 @@ import { convertToUTC, parseToUTC } from "../utils";
 
     private lastVerticalAccuracy: number = 0;
     private lastHorizontalAccuracy: number = 0;
+    
 
     constructor(sentence: string) {
         const l = sentence.split(",");
@@ -97,6 +98,19 @@ import { convertToUTC, parseToUTC } from "../utils";
         const sign = (indicator === "N" || indicator === "E") ? 1 : -1;
 
         return sign * (degrees + minutes);
+    }
+
+    static significantChange(oldLocation:LatLong, newLocation:LatLong){
+        if (!oldLocation || ! newLocation){
+            return true
+        }
+        const ANGLE_SIGNIFICANT_DIFF = 0.5e-7;
+        return (
+            !oldLocation || 
+            Math.abs(oldLocation.latitude - newLocation.latitude) > ANGLE_SIGNIFICANT_DIFF ||
+            Math.abs(oldLocation.longitude - newLocation.longitude) > ANGLE_SIGNIFICANT_DIFF
+        );
+
     }
 
     static async asyncParse(sentence: string): Promise<LatLong> {

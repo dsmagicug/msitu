@@ -19,7 +19,7 @@ const animation = new SlideAnimation({
     useNativeDriver: true
 })
 
-export default function NewProject({ show, onClose, onSelectFirstPoint, onSelectSecondPoint }) {
+export default function NewProject({ show, onClose,roverLocation }) {
 
     const [checkedFirstPoint, setCheckedFirstPoint] = useState(false)
     const [checkedSecondPoint, setCheckedSecondPoint] = useState(false)
@@ -36,10 +36,6 @@ export default function NewProject({ show, onClose, onSelectFirstPoint, onSelect
 
     const dispatch = useDispatch()
     const { generating } = useSelector(store => store.project)
-
-
-    const { roverLocation } = useSelector(store => store.nmeaListener)
-
 
     const constructProject = () => {
         if (!firstPoint) {
@@ -239,8 +235,8 @@ export default function NewProject({ show, onClose, onSelectFirstPoint, onSelect
                                     setLineDirection(itemValue)
                                 }>
                                 <Picker.Item style={{ ...styles.textMedium }} label="Line Draw Direction" value="" />
-                                <Picker.Item style={{ ...styles.textMedium }} label="Left" value="LEFT" />
-                                <Picker.Item style={{ ...styles.textMedium }} label="Right" value="RIGHT" />
+                                <Picker.Item style={{ ...styles.textMedium }} label="Left" value="RIGHT" />
+                                <Picker.Item style={{ ...styles.textMedium }} label="Right" value="LEFT" />
                             </Picker>
                         </View>
                         <View className='w-full mt-3'>

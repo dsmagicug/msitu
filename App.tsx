@@ -27,7 +27,6 @@ function App(): React.JSX.Element {
     })
 }
 
-
   useEffect(()=>{
             const onBtError = RNBluetoothClassic.onError(handleOnError);
             setBTGenericErrorListener(onBtError);
@@ -41,13 +40,13 @@ function App(): React.JSX.Element {
   },[])
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-
       <SafeAreaProvider>
         <StatusBar animated translucent backgroundColor="transparent" barStyle="dark-content" />
         <Provider store={store}>
           
             <PaperProvider>
             <AlertNotificationRoot>
+             
               <AppNavigation />
               </AlertNotificationRoot>
             </PaperProvider>
