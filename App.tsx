@@ -11,46 +11,44 @@ import { store } from './src/store/store.js';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { PaperProvider } from 'react-native-paper';
 import Toast from 'react-native-toast-message';
-import RNBluetoothClassic, {BluetoothDeviceEvent,  BluetoothEventSubscription} from 'react-native-bluetooth-classic'
+import RNBluetoothClassic, { BluetoothDeviceEvent, BluetoothEventSubscription } from 'react-native-bluetooth-classic'
 
 function App(): React.JSX.Element {
 
-  const [btGenericErrorListener, setBTGenericErrorListener] =  useState<BluetoothEventSubscription | null>(null);
-  
+  const [btGenericErrorListener, setBTGenericErrorListener] = useState<BluetoothEventSubscription | null>(null);
 
-  const handleOnError = (event:BluetoothDeviceEvent) => {
+
+  const handleOnError = (event: BluetoothDeviceEvent) => {
     Toast.show({
-        type:"error",
-        text1:"Bluetooth Error",
-        text2:"A generic BT error just occured"
-        
-    })
-}
+      type: "error",
+      text1: "Bluetooth Error",
+      text2: "A generic BT error just occured"
 
-  useEffect(()=>{
-            const onBtError = RNBluetoothClassic.onError(handleOnError);
-            setBTGenericErrorListener(onBtError);
-            return () => {
-              // cleanup 
-              if(btGenericErrorListener){
-                  btGenericErrorListener.remove();
-                  setBTGenericErrorListener(null);
-              }
-          }
-  },[])
+    })
+  }
+
+  useEffect(() => {
+    const onBtError = RNBluetoothClassic.onError(handleOnError);
+    setBTGenericErrorListener(onBtError);
+    return () => {
+      // cleanup 
+      if (btGenericErrorListener) {
+        btGenericErrorListener.remove();
+        setBTGenericErrorListener(null);
+      }
+    }
+  }, [])
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StatusBar animated translucent backgroundColor="transparent" barStyle="dark-content" />
         <Provider store={store}>
-          
-            <PaperProvider>
+          <PaperProvider>
             <AlertNotificationRoot>
-             
               <AppNavigation />
-              </AlertNotificationRoot>
-            </PaperProvider>
-            <Toast />
+            </AlertNotificationRoot>
+          </PaperProvider>
+          <Toast />
           <ModalPortal />
         </Provider>
       </SafeAreaProvider>

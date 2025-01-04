@@ -7,7 +7,7 @@ import AntDesignIcon from 'react-native-vector-icons/AntDesign'
 import MCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons'
 
-export default function TopNavBar({ navigation }) {
+export default function TopNavBar({ navigation, hideNewProject }) {
 
     const dispatch = useDispatch()
     const { activeProject, loading } = useSelector(store => store.project)
@@ -44,11 +44,11 @@ export default function TopNavBar({ navigation }) {
                     </Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity
+                {!hideNewProject && <TouchableOpacity
                     onPress={() => dispatch(setShowCreateNewProjects(true))}
                     className='flex items-center bg-white/90 border-l  border-l-gray-400 p-2'>
                     <AntDesignIcon name="addfolder" size={24} color="teal" />
-                </TouchableOpacity>
+                </TouchableOpacity>}
             </View>
         </View>
     )

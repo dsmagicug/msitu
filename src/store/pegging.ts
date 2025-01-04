@@ -1,17 +1,9 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RTNMsitu, LatLng } from "rtn-msitu"
+import { RTNMsitu, LatLng, LongLat } from "rtn-msitu"
 import { generateError } from '../utils';
-import {
-    Project
-}
-    from "../models"
-import { setShowCreateNewProjects, setShowProjectList } from './modal';
 import { PlantingLine } from '../../RTNMsitu';
-import ProjectService from '../services/ProjectService';
-
 
 export type ModeParams={
-    mode:string | 'cyrus'|'normal'
     maxLines:number
 }
 
@@ -21,20 +13,18 @@ export type SearchClosestPointParams={
 }
 
 interface PeggingState {
-    mode: string | 'cyrus'|'normal';
-    maxCyrusLines:number;
     searching:boolean;
     markedPoints:Array<LatLng>|[],
-    cyrusLines: Array<PlantingLine> | [],
+    maxCyrusLines:number,
+    cyrusLines: Array<Array<LongLat>> | [],
     closestCoord:LatLng | null
     error: string | null;
 }
 
 const initialState: PeggingState = {
     searching: false,
-    mode:"normal",
-    maxCyrusLines:1,
     markedPoints:[],
+    maxCyrusLines:1,
     cyrusLines: [],
     error: null,
     closestCoord: null
@@ -46,7 +36,6 @@ export const searchClosestPoint = createAsyncThunk(
     async (params:SearchClosestPointParams, thunkAPI) => {
         try {
             const {roverPosition, points } = params
-
             // @ts-ignore
             const result = await RTNMsitu.closetPointRelativeToRoverPosition(roverPosition, points);
             return result as LatLng;
@@ -62,10 +51,8 @@ export const peggingSlice = createSlice({
     name: 'project',
     initialState,
     reducers: {
-        setMode(state, action: PayloadAction<ModeParams>) {
-            const {mode, maxLines} = action.payload;
-            state.mode = mode;
-            state.maxCyrusLines=mode === 'normal' ? 1 : maxLines;
+        setCyrusLines(state, action: PayloadAction<Array<Array<LongLat>>>) {
+            state.cyrusLines = action.payload
         },
     },
     extraReducers: builder => {
@@ -76,10 +63,8 @@ export const peggingSlice = createSlice({
             .addCase(searchClosestPoint.fulfilled, (state, action) => {
                 state.searching = false;
                  // @ts-ignore
-                const project: Project = action.payload;
-               
-                state.scaledPlantingLines = project.plantingLines
-                state.activeProject = project;
+                 state.closestCoord = action.payload
+                
             })
             .addCase(searchClosestPoint.rejected, (state, action) => {
                 state.searching = false;
@@ -88,5 +73,5 @@ export const peggingSlice = createSlice({
     },
 });
 
-export const { setMode } = peggingSlice.actions;
+export const {setCyrusLines } = peggingSlice.actions;
 export default peggingSlice.reducer;

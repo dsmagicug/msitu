@@ -12,8 +12,7 @@ import React, { useState, useEffect } from 'react';
 import { Dimensions, View, Text, TouchableOpacity, ScrollView, StyleSheet} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Divider from '../components/utilities/Divider';
-import NewProject from '../components/projects/NewProject';
-import { setShowCreateNewProjects, setShowProjectList, setShowBTDevices } from "../store/modal"
+import { setShowProjectList, setShowBTDevices } from "../store/modal"
 import ProjectList from '../components/projects/ProjectList';
 import BluetoothDevices from '../components/projects/BluetoothDevices';
 // import { scanDevices } from '../store/bluetooth';

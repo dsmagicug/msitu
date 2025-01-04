@@ -4,43 +4,42 @@ import MapView, {
     Polyline,
     Polygon,
     Circle,
-    MAP_TYPES,
-    Marker
+    MAP_TYPES
 } from "react-native-maps";
 import { Easing } from "react-native-reanimated";
 import { throttle, debounce } from "lodash";
 import { useAnimatedRegion } from "../../components/AnimatedMarker";
 import RoverPosition from "./RoverPosition";
 import LatLong from "../../services/NMEAService";
-import { useSelector } from "react-redux";
-import { searchClosestPoint } from "../../store/pegging";
+import { searchClosestPoint, setCyrusLines } from "../../store/pegging";
+import { useDispatch, useSelector } from "react-redux";
 
-// Memoize RoverPosition to prevent unnecessary re-renders
 const MemoizedRoverPosition = React.memo(RoverPosition);
 
-const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleLines, roverLocation }) => {
+const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleLines, roverLocation, planting }) => {
     const mapRef = useRef(null);
     const [polygonCoordinates, setPolygonCoordinates] = useState([]);
     const { circleProps, animate } = useAnimatedRegion(initialRegion);
     const prevRoverLocationRef = useRef(null);
-    const [selectedPlanitingLines, setSelectedPlantingLines] =  useState([])
-    const [combinedPoints, setCombinedPoints] = useState([])
-    const {mode, maxCyrusLines} = useSelector(store=>store.pegging)
+    const [selectedPlantingLines, setSelectedPlantingLines] = useState([]);
+    const [combinedPoints, setCombinedPoints] = useState([]);
+    const { cyrusLines } = useSelector(store => store.pegging);
+    const [mapType, setMapType] = useState(MAP_TYPES.SATELLITE)
 
-    // Throttle the animation and memoize it with useCallback
+    const dispatch = useDispatch();
+
     const throttledAnimate = useCallback(
         throttle((location) => {
             animate({
                 latitude: location.latitude,
                 longitude: location.longitude,
-                duration: 100,
+                duration: 300,
                 easing: Easing.linear,
             });
         }, 100),
         [animate]
     );
 
-    // Memoize circleProps to prevent unnecessary re-renders when roverLocation changes
     const memoizedCircleProps = useMemo(() => ({
         ...circleProps,
         center: roverLocation ? { latitude: roverLocation.latitude, longitude: roverLocation.longitude } : circleProps.center,
@@ -51,7 +50,6 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
             // setPolygonCoordinates((coords) => [...coords, e.nativeEvent.coordinate]);
         }
     }, [areaMode]);
-
 
     const handlePolyLineClick = (line, index) => {
         setSelectedPlantingLines((prevSelectedLines) => {
@@ -68,26 +66,28 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
     };
 
     useEffect(() => {
-        if (selectedPlanitingLines.length > 0) {
-            const combinedLines = selectedPlanitingLines.reduce((acc, [line, index]) => {
+        if (selectedPlantingLines.length > 0) {
+            const combinedLines = selectedPlantingLines.reduce((acc, [line, index]) => {
                 return acc.concat(line);
             }, []);
-            setCombinedPoints(combinedLines); 
+            setCombinedPoints(combinedLines);
+            const lines = selectedPlantingLines.map(([line, index]) => line);
+            dispatch(setCyrusLines(lines));
         }
-    }, [selectedPlanitingLines]);
+    }, [selectedPlantingLines]);
 
     useEffect(() => {
         if (!areaMode && polygonCoordinates.length > 0) {
             setPolygonCoordinates([]);
         }
-    }, [areaMode, polygonCoordinates]);
+    }, [areaMode]);
 
     const debouncedDispatch = useRef(
         debounce((location) => {
-            if (combinedPoints.length > 0){
+            if (combinedPoints.length > 0) {
                 dispatch(searchClosestPoint(location, combinedPoints));
             }
-        }, 1000) 
+        }, 1000)
     ).current;
 
     useEffect(() => {
@@ -95,84 +95,132 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
             const prevRoverLocation = prevRoverLocationRef.current;
             if (LatLong.significantChange(prevRoverLocation, roverLocation)) {
                 throttledAnimate(roverLocation);
-                // also debounce for 1 second
                 debouncedDispatch(roverLocation);
             }
             prevRoverLocationRef.current = roverLocation;
         }
-    }, [roverLocation, throttledAnimate]);
+    }, [roverLocation]);
+
+    useEffect(() => {
+        if (mapRef.current && initialRegion) {
+            mapRef.current.animateCamera({
+                center: initialRegion,
+                zoom: planting ? 21 : 20,  
+                pitch: 0,
+                heading: 0,
+                altitude: 0
+            }, { duration: 1000 });
+        }
+    }, [initialRegion, planting, mapType]);
+
+    useEffect(()=>{
+        if(planting){
+            setMapType(MAP_TYPES.TERRAIN)
+        }else{
+            setMapType(MAP_TYPES.SATELLITE)
+        }
+    }, [planting])
 
     return (
         <MapView
             ref={mapRef}
             provider={PROVIDER_GOOGLE}
-            mapType={MAP_TYPES.SATELLITE}
+            showsCompass={false}
+            loadingEnabled
+            mapType={mapType}
             onPress={handleMapPress}
             region={initialRegion}
+            camera={{
+                center: initialRegion,
+                zoom:  planting ? 21 : 20, 
+                heading: 0,
+                pitch: 0,
+                altitude: 0
+            }}
             style={{ flex: 1 }}
         >
-
-            {/* Base Points as Pins */}
-            {basePoints && basePoints.map((point, index) => (
-                <Circle 
-                    key={`base-point-${index}`}
-                    center={{ latitude: point.latitude, longitude: point.longitude }}
-                    radius={0.2}
-                    strokeWidth={1}
-                    fillColor="#00FF00"
-                    strokeColor="#00FF00"
-                    zIndex={1}
-                />
-            ))}
-
-            {/* Polygon */}
-            {polygonCoordinates.length > 0 && (
-                <Polygon
-                    coordinates={polygonCoordinates}
-                    strokeColor="blue"
-                    fillColor="rgba(135, 206, 250, 0.3)"
-                    strokeWidth={2}
-                />
-            )}
-
-            {/* Dots for Polygon */}
-            {polygonCoordinates.map((coord, index) => (
-                <Circle
-                    key={index}
-                    center={coord}
-                    radius={0.5}
-                    strokeWidth={8}
-                    fillColor="skyblue"
-                    strokeColor="skyblue"
-                    zIndex={1}
-                />
-            ))}
-
-            {/* Animated Circle */}
             <MemoizedRoverPosition circleProps={memoizedCircleProps} />
 
-            {/* Polylines and Circles */}
-            {visibleLines.map((line, idx) => (
-                <React.Fragment key={idx}>
-                    <Polyline
-                        coordinates={line}
-                        tappable
-                        onPress={()=>{handlePolyLineClick(line, idx)}}
-                        strokeColor="blue"
-                        strokeWidth={1.5}
-                    />
-                    {line.map((coord, index) => (
+            {planting ? (
+                // Planting mode content
+                cyrusLines.map((line, idx) => (
+                    <React.Fragment key={idx}>
+                        <Polyline
+                            coordinates={line}
+                            strokeColor="green"
+                            strokeWidth={1.5}
+                        />
+                        {line.map((coord, index) => (
+                            <Circle
+                                key={`${idx}-${index}`}
+                                center={coord}
+                                radius={0.3}
+                                strokeColor="red"
+                                strokeWidth={2}
+                                zIndex={1}
+                            />
+                        ))}
+                    </React.Fragment>
+                ))
+            ) : (
+                // Normal mode content
+                <>
+                    {basePoints && basePoints.map((point, index) => (
                         <Circle
-                            key={`${idx}-${index}`}
-                            center={coord}
-                            radius={0.3}
-                            strokeColor="red"
-                            strokeWidth={2}
+                            key={`base-point-${index}`}
+                            center={{ latitude: point.latitude, longitude: point.longitude }}
+                            radius={0.2}
+                            strokeWidth={1}
+                            fillColor="#00FF00"
+                            strokeColor="#00FF00"
                             zIndex={1}
                         />
                     ))}
-                </React.Fragment>
-            ))}
+
+                    {polygonCoordinates.length > 0 && (
+                        <Polygon
+                            coordinates={polygonCoordinates}
+                            strokeColor="blue"
+                            fillColor="rgba(135, 206, 250, 0.3)"
+                            strokeWidth={2}
+                        />
+                    )}
+
+                    {polygonCoordinates.map((coord, index) => (
+                        <Circle
+                            key={index}
+                            center={coord}
+                            radius={0.5}
+                            strokeWidth={8}
+                            fillColor="skyblue"
+                            strokeColor="skyblue"
+                            zIndex={1}
+                        />
+                    ))}
+
+                    {visibleLines.map((line, idx) => (
+                        <React.Fragment key={idx}>
+                            <Polyline
+                                coordinates={line}
+                                tappable
+                                onPress={() => { handlePolyLineClick(line, idx) }}
+                                strokeColor={selectedPlantingLines.some(sublist => sublist[1] === idx) ? 'orange' : 'blue'}
+                                strokeWidth={1.5}
+                            />
+                            {line.map((coord, index) => (
+                                <Circle
+                                    key={`${idx}-${index}`}
+                                    center={coord}
+                                    radius={0.3}
+                                    strokeColor="red"
+                                    strokeWidth={2}
+                                    zIndex={1}
+                                />
+                            ))}
+                        </React.Fragment>
+                    ))}
+                </>
+            )}
         </MapView>
     );
 });

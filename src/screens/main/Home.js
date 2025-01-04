@@ -1,13 +1,11 @@
-import { Text, View, Alert, TouchableOpacity } from "react-native";
+import { Text, View, Alert, TouchableOpacity,ToastAndroid } from "react-native";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import Geolocation from '@react-native-community/geolocation';
 import React, { useEffect, useState, useRef, useMemo } from "react";
-import ProjectList from '../../components/projects/ProjectList';
 import { convertLinesToLatLong } from "../../store/projects";
 import { useDispatch, useSelector } from 'react-redux';
 import AnimatedLoader from "react-native-animated-loader";
 import { throttle } from "lodash"
-
 import { initializeBT } from "../../store/bluetooth";
 import MsituMapView from '../../components/maps/MsituMapView';
 import LocationFeed from "../../components/maps/LocationFeed";
@@ -17,11 +15,13 @@ import LatLong from "../../services/NMEAService";
 import { FixType } from 'rtn-msitu';
 import NewProject from "../../components/projects/NewProject";
 import { setShowCreateNewProjects } from "../../store/modal";
+import FabGroup from "../../components/fab/FabGroup";
+
+
 const Home = ({ navigation }) => {
 
-
-  const [createProject, setCreateProject] = useState(false)
   const [areaMode, setAreaMode] = useState(false);
+  const [planting, setPlanting] = useState(false)
   const [area, setArea] = useState(0.00)
   const [polygonCoordinates, setPolygonCoordinates] = useState([])
   const [initialRegion, setInitialRegion] = useState({
@@ -34,14 +34,15 @@ const Home = ({ navigation }) => {
   const [plantingLines, setPlantingLines] = useState([])
   const [roverLocation, setRoverLocation] = useState(null);
   const [dataReadListener, setDataReadListener] = useState(null);
+  const [fabActions, setFabActions] = useState()
+
 
   const { activeProject, visibleLines, loading, scaledPlantingLines } = useSelector(store => store.project)
   const { selectedDevice } = useSelector(store => store.bluetooth)
-
+   const { cyrusLines } = useSelector(store => store.pegging);
 
   const { init } = useSelector(store => store.bluetooth)
   const modalStore = useSelector(selector => selector.modals);
-
   const onReceiveData = async (buffer) => {
     const sentence = buffer.data.trim();
     const longLat = new LatLong(sentence);
@@ -72,7 +73,6 @@ const Home = ({ navigation }) => {
 
     return () => {
       if (dataReadListener) {
-
         dataReadListener.remove();
       }
     };
@@ -119,8 +119,8 @@ const Home = ({ navigation }) => {
   };
 
 
-  const basePoints = useMemo(()=>{
-    if(activeProject && activeProject.basePoints){
+  const basePoints = useMemo(() => {
+    if (activeProject && activeProject.basePoints) {
       return activeProject.basePoints
     }
     return []
@@ -151,13 +151,36 @@ const Home = ({ navigation }) => {
   }, [areaMode, polygonCoordinates])
 
 
+  const handleIconClick = (action) => {
+    if(action === "center"){
+      centerMe();
+    }
+    else if(action === "plant"){
+      const truth = !planting;
+      if(truth){
+        if(cyrusLines.length > 0){
+          setPlanting(true)
+        }else{
+          ToastAndroid.showWithGravity(
+                          'Ooops! Please Select at least one line to peg',
+                          ToastAndroid.SHORT,
+                          ToastAndroid.TOP,
+                      );
+        }
+      }else{
+        setPlanting(false)
+      }
+    }else{
+      setArea(true)
+    }
+  };
 
   return (
-
     <View className="flex-1 relative">
       {/* Map View */}
       <MsituMapView
         basePoints={basePoints}
+        planting={planting}
         initialRegion={initialRegion}
         areaMode={areaMode}
         roverLocation={roverLocation}
@@ -196,6 +219,7 @@ const Home = ({ navigation }) => {
           speed={1}>
           <Text className="font-avenirMedium">Loading...</Text>
         </AnimatedLoader>
+
       </View>
 
       {
@@ -203,20 +227,28 @@ const Home = ({ navigation }) => {
         <LocationFeed latLong={roverLocation} />
       }
 
-
-      <ProjectList
-        show={createProject}
-        onClose={() => { setCreateProject(false) }}>
-        <Text>Prpject List here</Text>
-      </ProjectList>
-
       <NewProject
         roverLocation={roverLocation}
         onClose={() => dispatch(setShowCreateNewProjects(false))}
         show={modalStore.showCreateNewProjects} />
-
+      <FabGroup
+        actions={[
+          {
+            icon: require("../../assets/center.png"),
+            name: 'center',
+            initialPosition: 160
+          },
+          {
+            icon: require("../../assets/plant.png"),
+            name: 'plant',
+            backgroundColor:planting ? 'green-500':null,
+            disabled:cyrusLines.length === 0,
+            initialPosition: 100
+          }
+        ]}
+        onActionPress={handleIconClick}
+      />
     </View>
-
   )
 }
 export default Home;
