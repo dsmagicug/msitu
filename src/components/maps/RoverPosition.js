@@ -11,9 +11,9 @@ const RoverPosition = React.memo(({ circleProps }) => {
         <AnimatedCircle
                 animatedProps={circleProps}
                 radius={0.2} 
-                strokeWidth={2}
-                fillColor="yellow"
-                strokeColor="yellow"
+                strokeWidth={1}
+                fillColor="#000C66"
+                strokeColor="#000C66"
                 zIndex={5}
             />
     );

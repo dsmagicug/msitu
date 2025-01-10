@@ -5,7 +5,7 @@ import React from 'react'
 const LocationFeed = React.memo(({ latLong }) => {
     const {latitude, longitude, fixType} = latLong
     return (
-        <View className="absolute bottom-4 right-1 z-10 bg-white/60 p-2 rounded-lg w-2/5">
+        <View className="absolute bottom-4 left-1 z-10 bg-white/60 p-2 rounded-lg w-2/5">
             <View className="flex flex-row justify-start gap-1 items-center">
                 <Text className="font-avenirBold">Lat:</Text>
                 <Text className="font-avenirMedium text-sm" >{latitude}</Text>

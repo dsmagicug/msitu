@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RTNMsitu, LatLng, LongLat } from "rtn-msitu"
 import { generateError } from '../utils';
-import { PlantingLine } from '../../RTNMsitu';
+import { Vibration} from "react-native"
 
 export type ModeParams={
     maxLines:number
@@ -54,6 +54,19 @@ export const peggingSlice = createSlice({
         setCyrusLines(state, action: PayloadAction<Array<Array<LongLat>>>) {
             state.cyrusLines = action.payload
         },
+        markPoint: (state, action: PayloadAction<LatLng>) => {
+            const ONE_SECOND_IN_MS = 1000;
+            const newPoint = action.payload;
+            const pointExists = state.markedPoints.some(point => 
+                point.latitude === newPoint.latitude && 
+                point.longitude === newPoint.longitude
+            );
+            if (!pointExists) {
+                // @ts-ignore
+                state.markedPoints.push(newPoint);
+            }
+            Vibration.vibrate(1 * ONE_SECOND_IN_MS); // vibrate regardless, peg-kids are slow
+                },
     },
     extraReducers: builder => {
         builder
@@ -73,5 +86,5 @@ export const peggingSlice = createSlice({
     },
 });
 
-export const {setCyrusLines } = peggingSlice.actions;
+export const {setCyrusLines, markPoint } = peggingSlice.actions;
 export default peggingSlice.reducer;

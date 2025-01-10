@@ -1,5 +1,5 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { Point, RTNMsitu, type LatLng } from "rtn-msitu"
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Point, RTNMsitu,  LatLng } from "rtn-msitu"
 import { generateError } from '../utils';
 import {
     Project
@@ -117,8 +117,21 @@ export const projectSlice = createSlice({
     name: 'project',
     initialState,
     reducers: {
-        setLoading: (state, action) => {
+        setLoading: (state, action:PayloadAction<boolean>) => {
             state.loading = action.payload;
+        },
+        saveProjectMarkedPoints: (state, action: PayloadAction<Array<LatLng>>) => {
+            if (state.activeProject) {
+                const newPoints = action.payload;
+                let allPoints = [...state.activeProject.markedPoints, ...newPoints];
+                const uniquePointsSet = new Set(allPoints.map(point => 
+                    `${point.latitude},${point.longitude}`
+                ));
+                state.activeProject.markedPoints = Array.from(uniquePointsSet, str => {
+                    const [latitude, longitude] = str.split(',').map(Number);
+                    return { latitude, longitude };
+                });
+            }
         },
     },
     extraReducers: builder => {
@@ -175,7 +188,27 @@ export const projectSlice = createSlice({
                     ...project,
                     center:JSON.parse(project.center),
                     basePoints: JSON.parse(project.basePoints),
-                    markedPoints: JSON.parse(project.markedPoints),
+                    markedPoints: [
+                    {
+                        "longitude": 32.46331336833333,
+                        "latitude": 0.046942785
+                    },
+                    {
+                        "longitude": 32.463272307083116,
+                        "latitude": 0.046891103641127536
+                    },
+                    {
+                        "longitude": 32.46328087413975,
+                        "latitude": 0.04694776452549391
+                    },
+                    {
+                        "longitude": 32.46326034351479,
+                        "latitude": 0.04692192384608531
+                    },{
+                        "longitude": 32.463135537284884,
+                        "latitude": 0.04708598391822104
+                    }
+                ],
                     plantingLines:plantingLines
                 }as Project
                 
@@ -190,5 +223,5 @@ export const projectSlice = createSlice({
     },
 });
 
-export const { setLoading } = projectSlice.actions;
+export const { setLoading, saveProjectMarkedPoints } = projectSlice.actions;
 export default projectSlice.reducer;

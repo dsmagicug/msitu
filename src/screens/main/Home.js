@@ -167,11 +167,14 @@ const Home = ({ navigation }) => {
                           ToastAndroid.TOP,
                       );
         }
-      }else{
+      }
+      else{
         setPlanting(false)
       }
-    }else{
-      setArea(true)
+    }
+    
+    else{
+      setAreaMode(!areaMode)
     }
   };
 
@@ -188,19 +191,17 @@ const Home = ({ navigation }) => {
       />
 
       {/* Overlay View at the Top */}
-      <TopNavBar navigation={navigation} />
+      <TopNavBar 
+          hideNewProject={cyrusLines.length > 0}
+          navigation={navigation} 
+        />
 
       {/* Left and Right Views Fixed at the Bottom */}
       <View className="flex flex-col gap-2 absolute bottom-4 left-4 z-10">
 
         <View className="flex flex-row justify-start">
-          <TouchableOpacity
-            onPress={() => setAreaMode(!areaMode)}
-            className={`${areaMode ? 'bg-green-400' : 'bg-white'} p-2 rounded`}>
-            <MaterialCommunityIcons name="ruler-square-compass" size={30} color={`${areaMode ? 'white' : 'black'}`} />
-          </TouchableOpacity>
           {areaMode &&
-            <View className="bg-white/40 rounded mx-1 w-32 px-1">
+            <View className="bg-white/70 rounded mx-1 w-32 px-1">
               <View className='flex flex-row justify-start gap-1 align-baseline'>
                 <Text className='font-avenirBold'>Area:</Text>
                 <Text className='font-avenirMedium'>{area} sq m</Text>
@@ -233,6 +234,13 @@ const Home = ({ navigation }) => {
         show={modalStore.showCreateNewProjects} />
       <FabGroup
         actions={[
+          {
+            icon: require("../../assets/compass.png"),
+            name: 'area',
+            backgroundColor:areaMode ? 'green-500':null,
+            disabled:cyrusLines.length > 0,
+            initialPosition: 220
+          },
           {
             icon: require("../../assets/center.png"),
             name: 'center',

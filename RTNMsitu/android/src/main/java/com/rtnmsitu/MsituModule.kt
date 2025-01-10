@@ -157,6 +157,20 @@ class MsituModule(reactContext: ReactApplicationContext) : NativeRTNMsituSpec(re
         }
     }
 
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    override fun distanceBtnCoords(pt1: ReadableMap, pt2: ReadableMap): Double? {
+        try {
+            val point1 = Utils.toGoogleLatLng(pt1)
+            val point2 = Utils.toGoogleLatLng(pt2)
+            val distance = GeneralHelper.findDistanceBtnTwoPoints(point1, point2)
+            return distance.toDouble();
+        } catch (e: Exception) {
+            Log.e("RTMsitu", "Error in distance calculation: ${e.message}", e)
+            return null
+        }
+
+    }
+
     companion object {
         const val NAME = "RTNMsitu"
     }

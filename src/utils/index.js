@@ -68,3 +68,9 @@ export const generateError = error => {
 
     return meters;
 }
+
+export const pointToString = (point) => `${point.latitude},${point.longitude}`;
+export const stringToPoint = (str) => {
+  const [latitude, longitude] = str.split(',').map(Number);
+  return { latitude, longitude };
+};

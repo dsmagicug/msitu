@@ -7,12 +7,15 @@ import MapView, {
     MAP_TYPES
 } from "react-native-maps";
 import { Easing } from "react-native-reanimated";
-import { throttle, debounce } from "lodash";
+import { throttle } from "lodash";
 import { useAnimatedRegion } from "../../components/AnimatedMarker";
 import RoverPosition from "./RoverPosition";
 import LatLong from "../../services/NMEAService";
-import { searchClosestPoint, setCyrusLines } from "../../store/pegging";
+import { setCyrusLines, markPoint, resetMarkedPoints } from "../../store/pegging";
+import { saveProjectMarkedPoints } from "../../store/projects"
 import { useDispatch, useSelector } from "react-redux";
+import { RTNMsitu } from "rtn-msitu"
+import { pointToString } from "../../utils";
 
 const MemoizedRoverPosition = React.memo(RoverPosition);
 
@@ -23,7 +26,10 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
     const prevRoverLocationRef = useRef(null);
     const [selectedPlantingLines, setSelectedPlantingLines] = useState([]);
     const [combinedPoints, setCombinedPoints] = useState([]);
-    const { cyrusLines } = useSelector(store => store.pegging);
+    const { cyrusLines, markedPoints } = useSelector(store => store.pegging);
+
+    const { activeProject } = useSelector(store => store.project)
+    const [closestPoint, setClosestPoint] = useState(null)
     const [mapType, setMapType] = useState(MAP_TYPES.SATELLITE)
 
     const dispatch = useDispatch();
@@ -82,30 +88,35 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
         }
     }, [areaMode]);
 
-    const debouncedDispatch = useRef(
-        debounce((location) => {
-            if (combinedPoints.length > 0) {
-                dispatch(searchClosestPoint(location, combinedPoints));
+    const throttledPointSearch = useCallback(
+        throttle(async (location) => {
+            const result = await RTNMsitu.closetPointRelativeToRoverPosition(location, combinedPoints);
+            if (result) {
+                setClosestPoint(result)
             }
-        }, 1000)
-    ).current;
+        }, 1000),
+        [combinedPoints]
+    );
+
 
     useEffect(() => {
         if (roverLocation) {
             const prevRoverLocation = prevRoverLocationRef.current;
             if (LatLong.significantChange(prevRoverLocation, roverLocation)) {
                 throttledAnimate(roverLocation);
-                debouncedDispatch(roverLocation);
+                if (planting && combinedPoints.length > 0) {
+                    throttledPointSearch(roverLocation);
+                }
             }
             prevRoverLocationRef.current = roverLocation;
         }
-    }, [roverLocation]);
+    }, [roverLocation, combinedPoints]);
 
     useEffect(() => {
         if (mapRef.current && initialRegion) {
             mapRef.current.animateCamera({
                 center: initialRegion,
-                zoom: planting ? 21 : 20,  
+                zoom: 21,
                 pitch: 0,
                 heading: 0,
                 altitude: 0
@@ -113,13 +124,45 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
         }
     }, [initialRegion, planting, mapType]);
 
-    useEffect(()=>{
-        if(planting){
+    useEffect(() => {
+        if (planting) {
             setMapType(MAP_TYPES.TERRAIN)
-        }else{
+        } else {
             setMapType(MAP_TYPES.SATELLITE)
+            // set what must be set
+            if (markedPoints.length > 0) {
+                // reset now
+                dispatch(resetMarkedPoints())
+            }
+
+            setSelectedPlantingLines([])
+
         }
     }, [planting])
+
+    useEffect(() => {
+
+        if (closestPoint && roverLocation) {
+            const distance = RTNMsitu.distanceBtnCoords(closestPoint, roverLocation)
+            if (distance <= 0.1) {
+                dispatch(saveProjectMarkedPoints([closestPoint]))
+            }
+        }
+    }, [closestPoint])
+
+
+    const useCheckPointExists = () => {
+        return useCallback((pointToCheck) => {
+            if (activeProject && activeProject.markedPoints.length > 0) {
+                const pointsSet = new Set(activeProject.markedPoints.map(pointToString)); // use a set, it's faster
+                return pointsSet.has(pointToString(pointToCheck));
+            } else {
+                return false;
+            }
+        }, [activeProject]);
+    };
+
+    const checkPointExists = useCheckPointExists();
 
     return (
         <MapView
@@ -132,7 +175,7 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
             region={initialRegion}
             camera={{
                 center: initialRegion,
-                zoom:  planting ? 21 : 20, 
+                zoom: 21,
                 heading: 0,
                 pitch: 0,
                 altitude: 0
@@ -145,21 +188,36 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                 // Planting mode content
                 cyrusLines.map((line, idx) => (
                     <React.Fragment key={idx}>
+                        {
+                            closestPoint &&
+                            <Circle
+
+                                center={closestPoint}
+                                radius={0.6}
+                                strokeColor={"blue"}
+                                strokeWidth={1}
+                                zIndex={1}
+                            />
+                        }
                         <Polyline
                             coordinates={line}
                             strokeColor="green"
                             strokeWidth={1.5}
                         />
-                        {line.map((coord, index) => (
-                            <Circle
-                                key={`${idx}-${index}`}
-                                center={coord}
-                                radius={0.3}
-                                strokeColor="red"
-                                strokeWidth={2}
-                                zIndex={1}
-                            />
-                        ))}
+                        {line.map((coord, index) => {
+                            const isMarked = checkPointExists(coord);
+                            return (
+                                <Circle
+                                    key={`${idx}-${index}`}
+                                    center={coord}
+                                    radius={0.3}
+                                    fillColor={isMarked ? 'green' : 'red'}
+                                    strokeColor={isMarked ? 'green' : 'red'}
+                                    strokeWidth={2}
+                                    zIndex={1}
+                                />
+                            );
+                        })}
                     </React.Fragment>
                 ))
             ) : (
@@ -171,8 +229,20 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                             center={{ latitude: point.latitude, longitude: point.longitude }}
                             radius={0.2}
                             strokeWidth={1}
-                            fillColor="#00FF00"
-                            strokeColor="#00FF00"
+                            fillColor="#FFA500"
+                            strokeColor="#FFA500"
+                            zIndex={1}
+                        />
+                    ))}
+
+                    {activeProject && activeProject.markedPoints.map((point, index) => (
+                        <Circle
+                            key={`marked-point-${index}`}
+                            center={{ latitude: point.latitude, longitude: point.longitude }}
+                            radius={0.2}
+                            strokeWidth={1}
+                            fillColor="#FFA500"
+                            strokeColor="#FFA500"
                             zIndex={1}
                         />
                     ))}
@@ -197,7 +267,6 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                             zIndex={1}
                         />
                     ))}
-
                     {visibleLines.map((line, idx) => (
                         <React.Fragment key={idx}>
                             <Polyline
@@ -207,16 +276,20 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                                 strokeColor={selectedPlantingLines.some(sublist => sublist[1] === idx) ? 'orange' : 'blue'}
                                 strokeWidth={1.5}
                             />
-                            {line.map((coord, index) => (
-                                <Circle
-                                    key={`${idx}-${index}`}
-                                    center={coord}
-                                    radius={0.3}
-                                    strokeColor="red"
-                                    strokeWidth={2}
-                                    zIndex={1}
-                                />
-                            ))}
+                            {line.map((coord, index) => {
+                                const isMarked = checkPointExists(coord);
+                                return (
+                                    <Circle
+                                        key={`${idx}-${index}`}
+                                        center={coord}
+                                        radius={0.3}
+                                        fillColor={isMarked ? '#FFA500' : 'red'}
+                                        strokeColor={isMarked ? '#FFA500' : 'red'}
+                                        strokeWidth={2}
+                                        zIndex={1}
+                                    />
+                                );
+                            })}
                         </React.Fragment>
                     ))}
                 </>

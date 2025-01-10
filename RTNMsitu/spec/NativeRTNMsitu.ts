@@ -30,6 +30,8 @@ export interface Spec extends TurboModule {
         roverLocation:{ latitude: number; longitude: number },
         points:Array<{latitude: number; longitude: number}>
     ):Promise<LatLng>
+
+    distanceBtnCoords(pt1:{latitude: number; longitude: number }, pt2:{latitude: number; longitude: number }): number| null;
 }
 
 export default TurboModuleRegistry.getEnforcing<Spec>('RTNMsitu',) as Spec;
