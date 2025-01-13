@@ -1,30 +1,30 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RTNMsitu, LatLng, LongLat } from "rtn-msitu"
 import { generateError } from '../utils';
-import { Vibration} from "react-native"
+import { Vibration } from "react-native"
 
-export type ModeParams={
-    maxLines:number
+export type ModeParams = {
+    maxLines: number
 }
 
-export type SearchClosestPointParams={
-    roverPosition:LatLng;
-    points:Array<LatLng>
+export type SearchClosestPointParams = {
+    roverPosition: LatLng;
+    points: Array<LatLng>
 }
 
 interface PeggingState {
-    searching:boolean;
-    markedPoints:Array<LatLng>|[],
-    maxCyrusLines:number,
+    searching: boolean;
+    markedPoints: Array<LatLng> | [],
+    maxCyrusLines: number,
     cyrusLines: Array<Array<LongLat>> | [],
-    closestCoord:LatLng | null
+    closestCoord: LatLng | null
     error: string | null;
 }
 
 const initialState: PeggingState = {
     searching: false,
-    markedPoints:[],
-    maxCyrusLines:1,
+    markedPoints: [],
+    maxCyrusLines: 1,
     cyrusLines: [],
     error: null,
     closestCoord: null
@@ -33,9 +33,9 @@ const initialState: PeggingState = {
 
 export const searchClosestPoint = createAsyncThunk(
     'pegging/searchClosestPoint',
-    async (params:SearchClosestPointParams, thunkAPI) => {
+    async (params: SearchClosestPointParams, thunkAPI) => {
         try {
-            const {roverPosition, points } = params
+            const { roverPosition, points } = params
             // @ts-ignore
             const result = await RTNMsitu.closetPointRelativeToRoverPosition(roverPosition, points);
             return result as LatLng;
@@ -57,8 +57,8 @@ export const peggingSlice = createSlice({
         markPoint: (state, action: PayloadAction<LatLng>) => {
             const ONE_SECOND_IN_MS = 1000;
             const newPoint = action.payload;
-            const pointExists = state.markedPoints.some(point => 
-                point.latitude === newPoint.latitude && 
+            const pointExists = state.markedPoints.some(point =>
+                point.latitude === newPoint.latitude &&
                 point.longitude === newPoint.longitude
             );
             if (!pointExists) {
@@ -66,7 +66,10 @@ export const peggingSlice = createSlice({
                 state.markedPoints.push(newPoint);
             }
             Vibration.vibrate(1 * ONE_SECOND_IN_MS); // vibrate regardless, peg-kids are slow
-                },
+        },
+        resetMarkedPoints(state, _) {
+            state.markedPoints = []
+        },
     },
     extraReducers: builder => {
         builder
@@ -75,9 +78,9 @@ export const peggingSlice = createSlice({
             })
             .addCase(searchClosestPoint.fulfilled, (state, action) => {
                 state.searching = false;
-                 // @ts-ignore
-                 state.closestCoord = action.payload
-                
+                // @ts-ignore
+                state.closestCoord = action.payload
+
             })
             .addCase(searchClosestPoint.rejected, (state, action) => {
                 state.searching = false;
@@ -86,5 +89,5 @@ export const peggingSlice = createSlice({
     },
 });
 
-export const {setCyrusLines, markPoint } = peggingSlice.actions;
+export const { setCyrusLines, markPoint, resetMarkedPoints } = peggingSlice.actions;
 export default peggingSlice.reducer;

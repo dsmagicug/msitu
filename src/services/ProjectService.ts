@@ -98,7 +98,6 @@ class ProjectService {
       const query = `UPDATE ${tableName} SET ${updateStatements.join(
         ', ',
       )} WHERE id=${id}`;
-
       return new Promise((resolve, reject) => {
         ProjectService.db.transaction(tx => {
           tx.executeSql(
@@ -106,8 +105,9 @@ class ProjectService {
             [],
             (_, result) => {
               if (result.rowsAffected > 0) {
-                tx.executeSql(
-                  `SELECT * FROM ${tableName} WHERE id = last_insert_rowid()`,
+                resolve(result);
+                /* tx.executeSql(
+                  `SELECT * FROM ${tableName} WHERE id = ${id}`,
                   [],
                   (_, { rows }) => {
                     resolve(rows.item(0));
@@ -115,18 +115,20 @@ class ProjectService {
                   (_, error) => {
                     reject(error);
                   },
-                );
+                ); */
               } else {
                 reject(new Error('No rows affected'));
               }
             },
             (_, error) => {
+              console.error(error)
               reject(error);
             },
           );
         });
       });
-    } catch (error) {
+    } catch (error:any) {
+      console.error(error)
       return Promise.reject(error.message);
     }
   }
@@ -166,7 +168,7 @@ class ProjectService {
         }
       });
       return items;
-    } catch (error) {
+    } catch (error:any) {
       console.error(error)
       return Promise.reject(error.message);
     }

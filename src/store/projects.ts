@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Point, RTNMsitu,  LatLng } from "rtn-msitu"
+import { RTNMsitu,  LatLng } from "rtn-msitu"
 import { generateError } from '../utils';
 import {
     Project
@@ -8,11 +8,13 @@ import {
 import { setShowCreateNewProjects, setShowProjectList } from './modal';
 import { PlantingLine } from '../../RTNMsitu';
 import ProjectService from '../services/ProjectService';
+import { Vibration } from "react-native"
 
 
 interface ProjectState {
     loading: boolean;
     fetching:boolean;
+    lock:boolean;
     generating: boolean;
     scaledPlantingLines: Array<PlantingLine> | [],
     error: string | null;
@@ -24,6 +26,7 @@ interface ProjectState {
 const initialState: ProjectState = {
     loading: false,
     fetching:false,
+    lock:false,
     generating: false,
     scaledPlantingLines: [],
     error: null,
@@ -120,8 +123,13 @@ export const projectSlice = createSlice({
         setLoading: (state, action:PayloadAction<boolean>) => {
             state.loading = action.payload;
         },
+        setLock: (state, action:PayloadAction<boolean>) => {
+            state.lock = action.payload;
+        },
         saveProjectMarkedPoints: (state, action: PayloadAction<Array<LatLng>>) => {
+            const ONE_SECOND_IN_MS = 1000;
             if (state.activeProject) {
+                // best way wound be to just append but I have decided to use Set, a bit much faster
                 const newPoints = action.payload;
                 let allPoints = [...state.activeProject.markedPoints, ...newPoints];
                 const uniquePointsSet = new Set(allPoints.map(point => 
@@ -131,6 +139,14 @@ export const projectSlice = createSlice({
                     const [latitude, longitude] = str.split(',').map(Number);
                     return { latitude, longitude };
                 });
+                // save these to db parmanently
+                ProjectService.update("projects", state.activeProject.id, {markedPoints: JSON.stringify(state.activeProject.markedPoints)})
+                .then((result)=>{
+                    console.log(result)
+                }).catch((error:any)=>{
+                    console.error(error)
+                })
+                Vibration.vibrate(1 * ONE_SECOND_IN_MS); // vibrate regardless, peg-kids are slow
             }
         },
     },
@@ -182,33 +198,14 @@ export const projectSlice = createSlice({
             })
             .addCase(loadProject.fulfilled, (state, action) => {
                 state.loading = false;
+                state.lock=false;
                 let project = action.payload;
                 const plantingLines = JSON.parse(project.plantingLines)
                 project ={
                     ...project,
                     center:JSON.parse(project.center),
                     basePoints: JSON.parse(project.basePoints),
-                    markedPoints: [
-                    {
-                        "longitude": 32.46331336833333,
-                        "latitude": 0.046942785
-                    },
-                    {
-                        "longitude": 32.463272307083116,
-                        "latitude": 0.046891103641127536
-                    },
-                    {
-                        "longitude": 32.46328087413975,
-                        "latitude": 0.04694776452549391
-                    },
-                    {
-                        "longitude": 32.46326034351479,
-                        "latitude": 0.04692192384608531
-                    },{
-                        "longitude": 32.463135537284884,
-                        "latitude": 0.04708598391822104
-                    }
-                ],
+                    markedPoints: JSON.parse(project.markedPoints),
                     plantingLines:plantingLines
                 }as Project
                 
@@ -223,5 +220,5 @@ export const projectSlice = createSlice({
     },
 });
 
-export const { setLoading, saveProjectMarkedPoints } = projectSlice.actions;
+export const { setLoading, saveProjectMarkedPoints,setLock } = projectSlice.actions;
 export default projectSlice.reducer;

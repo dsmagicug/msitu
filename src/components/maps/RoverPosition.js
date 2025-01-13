@@ -6,15 +6,15 @@ import  {
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-const RoverPosition = React.memo(({ circleProps }) => {
+const RoverPosition = React.memo(({ circleProps, color="#000C66"}) => {
     return (
         <AnimatedCircle
                 animatedProps={circleProps}
                 radius={0.2} 
                 strokeWidth={1}
-                fillColor="#000C66"
-                strokeColor="#000C66"
-                zIndex={5}
+                fillColor={color}
+                strokeColor={color}
+                zIndex={20}
             />
     );
 });

@@ -1,8 +1,7 @@
-import { Text, View, Alert, TouchableOpacity,ToastAndroid } from "react-native";
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
+import { Text, View, Alert, ToastAndroid } from "react-native";
 import Geolocation from '@react-native-community/geolocation';
 import React, { useEffect, useState, useRef, useMemo } from "react";
-import { convertLinesToLatLong } from "../../store/projects";
+import { convertLinesToLatLong, setLock } from "../../store/projects";
 import { useDispatch, useSelector } from 'react-redux';
 import AnimatedLoader from "react-native-animated-loader";
 import { throttle } from "lodash"
@@ -30,16 +29,13 @@ const Home = ({ navigation }) => {
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   })
-  const [plantingPoints, setPlantingPoints] = useState([])
-  const [plantingLines, setPlantingLines] = useState([])
   const [roverLocation, setRoverLocation] = useState(null);
   const [dataReadListener, setDataReadListener] = useState(null);
-  const [fabActions, setFabActions] = useState()
 
 
-  const { activeProject, visibleLines, loading, scaledPlantingLines } = useSelector(store => store.project)
+  const { activeProject, visibleLines, loading, scaledPlantingLines, lock } = useSelector(store => store.project)
   const { selectedDevice } = useSelector(store => store.bluetooth)
-   const { cyrusLines } = useSelector(store => store.pegging);
+  const { cyrusLines } = useSelector(store => store.pegging);
 
   const { init } = useSelector(store => store.bluetooth)
   const modalStore = useSelector(selector => selector.modals);
@@ -83,7 +79,7 @@ const Home = ({ navigation }) => {
   }, [init])
 
   useEffect(() => {
-    if (activeProject) {
+    if (activeProject && !lock) {
       if (scaledPlantingLines.length > 0) {
         const payload = {
           linePoints: scaledPlantingLines,
@@ -92,7 +88,7 @@ const Home = ({ navigation }) => {
         dispatch(convertLinesToLatLong(payload));
       }
     }
-  }, [activeProject, scaledPlantingLines])
+  }, [activeProject, scaledPlantingLines, lock])
 
   useEffect(() => {
     // Request permission and get the current location
@@ -156,6 +152,7 @@ const Home = ({ navigation }) => {
       centerMe();
     }
     else if(action === "plant"){
+      dispatch(setLock(true)) //  so we do not have to call convertLinesToLatLong
       const truth = !planting;
       if(truth){
         if(cyrusLines.length > 0){
@@ -186,7 +183,7 @@ const Home = ({ navigation }) => {
         planting={planting}
         initialRegion={initialRegion}
         areaMode={areaMode}
-        roverLocation={roverLocation}
+        roverLocation={roverLocation} 
         visibleLines={visibleLines}
       />
 
@@ -239,7 +236,7 @@ const Home = ({ navigation }) => {
             name: 'area',
             backgroundColor:areaMode ? 'green-500':null,
             disabled:cyrusLines.length > 0,
-            initialPosition: 220
+            initialPosition: cyrusLines.length > 0 ? 0 : 220
           },
           {
             icon: require("../../assets/center.png"),

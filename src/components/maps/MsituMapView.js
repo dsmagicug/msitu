@@ -4,14 +4,16 @@ import MapView, {
     Polyline,
     Polygon,
     Circle,
-    MAP_TYPES
+    MAP_TYPES,
+    Marker
 } from "react-native-maps";
+import { Image } from "react-native"
 import { Easing } from "react-native-reanimated";
 import { throttle } from "lodash";
 import { useAnimatedRegion } from "../../components/AnimatedMarker";
 import RoverPosition from "./RoverPosition";
 import LatLong from "../../services/NMEAService";
-import { setCyrusLines, markPoint, resetMarkedPoints } from "../../store/pegging";
+import { setCyrusLines, resetMarkedPoints } from "../../store/pegging";
 import { saveProjectMarkedPoints } from "../../store/projects"
 import { useDispatch, useSelector } from "react-redux";
 import { RTNMsitu } from "rtn-msitu"
@@ -19,7 +21,7 @@ import { pointToString } from "../../utils";
 
 const MemoizedRoverPosition = React.memo(RoverPosition);
 
-const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleLines, roverLocation, planting }) => {
+const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleLines, roverLocation, planting, rotationDegrees = 180 }) => {
     const mapRef = useRef(null);
     const [polygonCoordinates, setPolygonCoordinates] = useState([]);
     const { circleProps, animate } = useAnimatedRegion(initialRegion);
@@ -27,7 +29,6 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
     const [selectedPlantingLines, setSelectedPlantingLines] = useState([]);
     const [combinedPoints, setCombinedPoints] = useState([]);
     const { cyrusLines, markedPoints } = useSelector(store => store.pegging);
-
     const { activeProject } = useSelector(store => store.project)
     const [closestPoint, setClosestPoint] = useState(null)
     const [mapType, setMapType] = useState(MAP_TYPES.SATELLITE)
@@ -132,7 +133,7 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
             // set what must be set
             if (markedPoints.length > 0) {
                 // reset now
-                dispatch(resetMarkedPoints())
+                dispatch(setCyrusLines([]))
             }
 
             setSelectedPlantingLines([])
@@ -164,6 +165,24 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
 
     const checkPointExists = useCheckPointExists();
 
+    const rotateMap = (degrees) => {
+        if (mapRef.current && roverLocation) {
+            mapRef.current.animateCamera({
+                heading: degrees,
+                pitch: 0,
+                zoom: 21,
+                center: roverLocation
+            }, { duration: 1000 });
+            setRotation(degrees);
+        }
+    };
+
+
+    useEffect(() => {
+        rotateMap((rotationDegrees + 45) % 360)
+    }, [rotationDegrees])
+
+
     return (
         <MapView
             ref={mapRef}
@@ -182,7 +201,9 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
             }}
             style={{ flex: 1 }}
         >
-            <MemoizedRoverPosition circleProps={memoizedCircleProps} />
+            <MemoizedRoverPosition
+                color={planting ? '#000C66' : '#FFFF00'}
+                circleProps={memoizedCircleProps} />
 
             {planting ? (
                 // Planting mode content
@@ -224,15 +245,17 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                 // Normal mode content
                 <>
                     {basePoints && basePoints.map((point, index) => (
+
                         <Circle
                             key={`base-point-${index}`}
                             center={{ latitude: point.latitude, longitude: point.longitude }}
                             radius={0.2}
                             strokeWidth={1}
-                            fillColor="#FFA500"
-                            strokeColor="#FFA500"
-                            zIndex={1}
+                            fillColor="#FFFF00"
+                            strokeColor="#FFFF00"
+                            zIndex={10}
                         />
+
                     ))}
 
                     {activeProject && activeProject.markedPoints.map((point, index) => (
@@ -241,8 +264,8 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                             center={{ latitude: point.latitude, longitude: point.longitude }}
                             radius={0.2}
                             strokeWidth={1}
-                            fillColor="#FFA500"
-                            strokeColor="#FFA500"
+                            fillColor="#00FF00"
+                            strokeColor="#00FF00"
                             zIndex={1}
                         />
                     ))}
