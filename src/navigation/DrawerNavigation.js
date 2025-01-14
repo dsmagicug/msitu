@@ -142,7 +142,7 @@ function CustomDrawerContent({ navigation, isPortrait }) {
               labelStyle={styles.label}
               icon={() => <Ionicon name="settings-outline" size={24} color="black" />}
               onPress={() => {
-                console.log("Nope");
+                navigation.navigate("Settings")
               }}
             />
             <DrawerItem

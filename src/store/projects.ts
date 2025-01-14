@@ -10,11 +10,17 @@ import { PlantingLine } from '../../RTNMsitu';
 import ProjectService from '../services/ProjectService';
 import { Vibration } from "react-native"
 
+export type IndexPayLoad = {
+    forwardIndex:number
+    backwardIndex:number
+}
 
 interface ProjectState {
     loading: boolean;
     fetching:boolean;
     lock:boolean;
+    forwardIndex:number;
+    backwardIndex:number;
     generating: boolean;
     scaledPlantingLines: Array<PlantingLine> | [],
     error: string | null;
@@ -27,6 +33,8 @@ const initialState: ProjectState = {
     loading: false,
     fetching:false,
     lock:false,
+    forwardIndex:9,
+    backwardIndex:0,
     generating: false,
     scaledPlantingLines: [],
     error: null,
@@ -126,6 +134,10 @@ export const projectSlice = createSlice({
         setLock: (state, action:PayloadAction<boolean>) => {
             state.lock = action.payload;
         },
+        setIndices:(state, action:PayloadAction<IndexPayLoad>)=>{
+            state.forwardIndex = action.payload.forwardIndex;
+            state.backwardIndex = action.payload.backwardIndex;
+        },
         saveProjectMarkedPoints: (state, action: PayloadAction<Array<LatLng>>) => {
             const ONE_SECOND_IN_MS = 1000;
             if (state.activeProject) {
@@ -220,5 +232,5 @@ export const projectSlice = createSlice({
     },
 });
 
-export const { setLoading, saveProjectMarkedPoints,setLock } = projectSlice.actions;
+export const { setLoading, saveProjectMarkedPoints,setLock, setIndices} = projectSlice.actions;
 export default projectSlice.reducer;

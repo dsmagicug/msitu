@@ -1,7 +1,7 @@
 import { Text, View, Alert, ToastAndroid } from "react-native";
 import Geolocation from '@react-native-community/geolocation';
 import React, { useEffect, useState, useRef, useMemo } from "react";
-import { convertLinesToLatLong, setLock } from "../../store/projects";
+import { convertLinesToLatLong, setLock, setIndices } from "../../store/projects";
 import { useDispatch, useSelector } from 'react-redux';
 import AnimatedLoader from "react-native-animated-loader";
 import { throttle } from "lodash"
@@ -160,6 +160,15 @@ const Home = ({ navigation }) => {
           setMapRotateDegrees(mapRotateDegrees+90)
         }
     }
+    else if(action ==="plus"){
+      
+      const nextNLines = activeProject.planting.slice(forwardIndex+1, 10)
+      dispatch(setIndices({
+        forwardIndex:forwardIndex+10,
+        backwardIndex:forwardIndex
+      }));
+      dispatch(setLock(false));
+    }
     else if(action === "plant"){
       dispatch(setLock(true)) //  so we do not have to call convertLinesToLatLong
       const truth = !planting;
@@ -171,7 +180,7 @@ const Home = ({ navigation }) => {
                           'Ooops! Please Select at least one line to peg',
                           ToastAndroid.SHORT,
                           ToastAndroid.TOP,
-                      );
+                    );
         }
       }
       else{
@@ -242,23 +251,34 @@ const Home = ({ navigation }) => {
       <FabGroup
         actions={[
           {
+            icon: require("../../assets/forward.png"),
+            name: 'plus',
+            disabled:activeProject === null,
+            initialPosition: 340
+          },
+          {
+            icon: require("../../assets/backward.png"),
+            name: 'minus',
+            disabled:activeProject === null,
+            initialPosition: 280
+          },
+          {
             icon: require("../../assets/360.png"),
             name: 'rotate',
             disabled:activeProject === null || !roverLocation,
-            initialPosition: 280
+            initialPosition: 400
           },
-          
           {
             icon: require("../../assets/center.png"),
             name: 'center',
-            initialPosition: 220
+            initialPosition: 160
           },
           {
             icon: require("../../assets/plant.png"),
             name: 'plant',
             backgroundColor:planting ? 'green-500':null,
             disabled:cyrusLines.length === 0,
-            initialPosition: 160
+            initialPosition: 220
           },
           {
             icon: require("../../assets/compass.png"),
