@@ -14,6 +14,7 @@ export type SearchClosestPointParams = {
 
 interface PeggingState {
     searching: boolean;
+    skipPoints:number;
     markedPoints: Array<LatLng> | [],
     maxCyrusLines: number,
     cyrusLines: Array<Array<LongLat>> | [],
@@ -23,6 +24,7 @@ interface PeggingState {
 
 const initialState: PeggingState = {
     searching: false,
+    skipPoints:5,
     markedPoints: [],
     maxCyrusLines: 1,
     cyrusLines: [],
@@ -53,6 +55,10 @@ export const peggingSlice = createSlice({
     reducers: {
         setCyrusLines(state, action: PayloadAction<Array<Array<LongLat>>>) {
             state.cyrusLines = action.payload
+        },
+
+        setSkipPoints(state, action: PayloadAction<number>) {
+            state.skipPoints = action.payload
         },
         markPoint: (state, action: PayloadAction<LatLng>) => {
             const ONE_SECOND_IN_MS = 1000;
@@ -89,5 +95,5 @@ export const peggingSlice = createSlice({
     },
 });
 
-export const { setCyrusLines, markPoint, resetMarkedPoints } = peggingSlice.actions;
+export const { setCyrusLines, markPoint, resetMarkedPoints, setSkipPoints } = peggingSlice.actions;
 export default peggingSlice.reducer;

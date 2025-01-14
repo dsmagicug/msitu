@@ -32,6 +32,8 @@ const Home = ({ navigation }) => {
   const [roverLocation, setRoverLocation] = useState(null);
   const [dataReadListener, setDataReadListener] = useState(null);
 
+  const [mapRotateDegrees, setMapRotateDegrees] =  useState(180);
+
 
   const { activeProject, visibleLines, loading, scaledPlantingLines, lock } = useSelector(store => store.project)
   const { selectedDevice } = useSelector(store => store.bluetooth)
@@ -151,6 +153,13 @@ const Home = ({ navigation }) => {
     if(action === "center"){
       centerMe();
     }
+    else if(action === "rotate"){
+        if(mapRotateDegrees == 360){
+          setMapRotateDegrees(0)
+        }else{
+          setMapRotateDegrees(mapRotateDegrees+90)
+        }
+    }
     else if(action === "plant"){
       dispatch(setLock(true)) //  so we do not have to call convertLinesToLatLong
       const truth = !planting;
@@ -185,6 +194,7 @@ const Home = ({ navigation }) => {
         areaMode={areaMode}
         roverLocation={roverLocation} 
         visibleLines={visibleLines}
+        rotationDegrees={mapRotateDegrees}
       />
 
       {/* Overlay View at the Top */}
@@ -232,24 +242,31 @@ const Home = ({ navigation }) => {
       <FabGroup
         actions={[
           {
-            icon: require("../../assets/compass.png"),
-            name: 'area',
-            backgroundColor:areaMode ? 'green-500':null,
-            disabled:cyrusLines.length > 0,
-            initialPosition: cyrusLines.length > 0 ? 0 : 220
+            icon: require("../../assets/360.png"),
+            name: 'rotate',
+            disabled:activeProject === null || !roverLocation,
+            initialPosition: 280
           },
+          
           {
             icon: require("../../assets/center.png"),
             name: 'center',
-            initialPosition: 160
+            initialPosition: 220
           },
           {
             icon: require("../../assets/plant.png"),
             name: 'plant',
             backgroundColor:planting ? 'green-500':null,
             disabled:cyrusLines.length === 0,
-            initialPosition: 100
-          }
+            initialPosition: 160
+          },
+          {
+            icon: require("../../assets/compass.png"),
+            name: 'area',
+            backgroundColor:areaMode ? 'green-500':null,
+            disabled:cyrusLines.length > 0,
+            initialPosition: cyrusLines.length > 0 ? 0 : 100
+          },
         ]}
         onActionPress={handleIconClick}
       />

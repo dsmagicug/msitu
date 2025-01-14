@@ -102,8 +102,8 @@ const FabGroup: React.FC<FabGroupProps> = ({ style, actions, onActionPress }) =>
       ))}
       <Pressable className="bg-blue-700 absolute bottom-3 right-3 rounded-full w-16 h-16 items-center justify-center" onPress={handlePress}>
         <Animated.View className="w-16 h-16 items-center justify-center" 
-        style={plusIcon}>
-          <Icon name={openState.value ? 'add' : 'plus'} size={26} color="#FFF" />
+          style={plusIcon}>
+          <Icon name="add" size={26} color="#FFF" />
         </Animated.View>
       </Pressable>
     </View>

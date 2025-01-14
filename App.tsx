@@ -22,8 +22,7 @@ function App(): React.JSX.Element {
     Toast.show({
       type: "error",
       text1: "Bluetooth Error",
-      text2: "A generic BT error just occured"
-
+      text2: "A generic BT error just occured",
     })
   }
 

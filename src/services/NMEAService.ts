@@ -78,14 +78,14 @@ import { convertToUTC, parseToUTC } from "../utils";
             "M": FixType.ManualInput,
             "R": FixType.RTKFix,
             "S": FixType.Simulated,
-            1: FixType.Autonomous,
-            2: FixType.DGPS,
-            3: FixType.PPS,
-            4: FixType.RTKFix,
-            5: FixType.RTKFloat,
-            6: FixType.Estimated,
-            7: FixType.ManualInput,
-            8: FixType.Simulated
+            "1": FixType.Autonomous,
+            "2": FixType.DGPS,
+            "3": FixType.PPS,
+            "4": FixType.RTKFix,
+            "5": FixType.RTKFloat,
+            "6": FixType.Estimated,
+            "7": FixType.ManualInput,
+            "8": FixType.Simulated
         }[value] || FixType.NoFixData;
     }
 

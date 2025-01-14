@@ -4,16 +4,13 @@ import MapView, {
     Polyline,
     Polygon,
     Circle,
-    MAP_TYPES,
-    Marker
-} from "react-native-maps";
-import { Image } from "react-native"
+    MAP_TYPES} from "react-native-maps";
 import { Easing } from "react-native-reanimated";
 import { throttle } from "lodash";
 import { useAnimatedRegion } from "../../components/AnimatedMarker";
 import RoverPosition from "./RoverPosition";
 import LatLong from "../../services/NMEAService";
-import { setCyrusLines, resetMarkedPoints } from "../../store/pegging";
+import { setCyrusLines } from "../../store/pegging";
 import { saveProjectMarkedPoints } from "../../store/projects"
 import { useDispatch, useSelector } from "react-redux";
 import { RTNMsitu } from "rtn-msitu"
@@ -28,7 +25,7 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
     const prevRoverLocationRef = useRef(null);
     const [selectedPlantingLines, setSelectedPlantingLines] = useState([]);
     const [combinedPoints, setCombinedPoints] = useState([]);
-    const { cyrusLines, markedPoints } = useSelector(store => store.pegging);
+    const { cyrusLines, markedPoints, skipPoints } = useSelector(store => store.pegging);
     const { activeProject } = useSelector(store => store.project)
     const [closestPoint, setClosestPoint] = useState(null)
     const [mapType, setMapType] = useState(MAP_TYPES.SATELLITE)
@@ -75,7 +72,8 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
     useEffect(() => {
         if (selectedPlantingLines.length > 0) {
             const combinedLines = selectedPlantingLines.reduce((acc, [line, index]) => {
-                return acc.concat(line);
+                const filteredLine = line.filter((_, i) => i % skipPoints === 0); // Only include unskipped points
+                return acc.concat(filteredLine);
             }, []);
             setCombinedPoints(combinedLines);
             const lines = selectedPlantingLines.map(([line, index]) => line);
@@ -135,7 +133,6 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                 // reset now
                 dispatch(setCyrusLines([]))
             }
-
             setSelectedPlantingLines([])
 
         }
@@ -173,13 +170,12 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                 zoom: 21,
                 center: roverLocation
             }, { duration: 1000 });
-            setRotation(degrees);
         }
     };
 
 
     useEffect(() => {
-        rotateMap((rotationDegrees + 45) % 360)
+        rotateMap((rotationDegrees) % 360)
     }, [rotationDegrees])
 
 
@@ -227,17 +223,20 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                         />
                         {line.map((coord, index) => {
                             const isMarked = checkPointExists(coord);
-                            return (
-                                <Circle
-                                    key={`${idx}-${index}`}
-                                    center={coord}
-                                    radius={0.3}
-                                    fillColor={isMarked ? 'green' : 'red'}
-                                    strokeColor={isMarked ? 'green' : 'red'}
-                                    strokeWidth={2}
-                                    zIndex={1}
-                                />
-                            );
+                            if(index % skipPoints === 0){
+                                return (
+                                    <Circle
+                                        key={`${idx}-${index}`}
+                                        center={coord}
+                                        radius={0.3}
+                                        fillColor={isMarked ? 'green' : 'red'}
+                                        strokeColor={isMarked ? 'green' : 'red'}
+                                        strokeWidth={2}
+                                        zIndex={1}
+                                    />
+                                );
+                            }
+                            
                         })}
                     </React.Fragment>
                 ))
@@ -245,7 +244,6 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                 // Normal mode content
                 <>
                     {basePoints && basePoints.map((point, index) => (
-
                         <Circle
                             key={`base-point-${index}`}
                             center={{ latitude: point.latitude, longitude: point.longitude }}
@@ -256,18 +254,6 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                             zIndex={10}
                         />
 
-                    ))}
-
-                    {activeProject && activeProject.markedPoints.map((point, index) => (
-                        <Circle
-                            key={`marked-point-${index}`}
-                            center={{ latitude: point.latitude, longitude: point.longitude }}
-                            radius={0.2}
-                            strokeWidth={1}
-                            fillColor="#00FF00"
-                            strokeColor="#00FF00"
-                            zIndex={1}
-                        />
                     ))}
 
                     {polygonCoordinates.length > 0 && (
@@ -306,8 +292,8 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                                         key={`${idx}-${index}`}
                                         center={coord}
                                         radius={0.3}
-                                        fillColor={isMarked ? '#FFA500' : 'red'}
-                                        strokeColor={isMarked ? '#FFA500' : 'red'}
+                                        fillColor={isMarked ? '#00FF00' : 'red'}
+                                        strokeColor={isMarked ? '#00FF00' : 'red'}
                                         strokeWidth={2}
                                         zIndex={1}
                                     />
