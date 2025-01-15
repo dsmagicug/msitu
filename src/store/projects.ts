@@ -1,5 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { RTNMsitu,  LatLng } from "rtn-msitu"
+import { RTNMsitu, LatLng } from "rtn-msitu"
 import { generateError } from '../utils';
 import {
     Project
@@ -11,36 +11,32 @@ import ProjectService from '../services/ProjectService';
 import { Vibration } from "react-native"
 
 export type IndexPayLoad = {
-    forwardIndex:number
-    backwardIndex:number
+    forwardIndex: number
+    backwardIndex: number
 }
 
 interface ProjectState {
     loading: boolean;
-    fetching:boolean;
-    lock:boolean;
-    forwardIndex:number;
-    backwardIndex:number;
+    fetching: boolean;
+    lock: boolean;
     generating: boolean;
     scaledPlantingLines: Array<PlantingLine> | [],
     error: string | null;
     activeProject: Project | null;
     projectList: Array<Project>
-    visibleLines:Array<LatLng> | []
+    visibleLines: Array<LatLng> | []
 }
 
 const initialState: ProjectState = {
     loading: false,
-    fetching:false,
-    lock:false,
-    forwardIndex:9,
-    backwardIndex:0,
+    fetching: false,
+    lock: false,
     generating: false,
     scaledPlantingLines: [],
     error: null,
     activeProject: null,
     projectList: [],
-    visibleLines:[]
+    visibleLines: []
 }
 
 export const fetchProjects = createAsyncThunk(
@@ -58,11 +54,18 @@ export const fetchProjects = createAsyncThunk(
 
 export const loadProject = createAsyncThunk(
     'project/loadProject',
-    async (id:number, thunkAPI) => {
+    async (id: number, thunkAPI) => {
         try {
             const project = await ProjectService.getById("projects", id);
-            thunkAPI.dispatch(setShowProjectList(false))// close the project list dialog
-            return project;
+            thunkAPI.dispatch(setShowProjectList(false))
+            let jsProject ={
+                    ...project,
+                    plantingLines:JSON.parse(project.plantingLines),
+                    center: JSON.parse(project.center),
+                    basePoints: JSON.parse(project.basePoints),
+                    markedPoints: JSON.parse(project.markedPoints)
+            }  as Project
+            return jsProject
         } catch (error) {
             thunkAPI.rejectWithValue(generateError(error));
         }
@@ -75,23 +78,28 @@ export const generateProject = createAsyncThunk(
         try {
             // @ts-ignore
             const { firstPoint, name, secondPoint, lineDirection, meshType, gapSize, lineLength } = params;
-            const results = await RTNMsitu.generateMesh(firstPoint, secondPoint, lineDirection, meshType, parseFloat(gapSize), parseFloat(lineLength)) as Array<PlantingLine>;
+             // @ts-ignore
+            const results = await RTNMsitu.generateMesh(firstPoint, secondPoint, lineDirection, meshType, parseFloat(gapSize), parseFloat(lineLength)) as string;
             // lets process our lines
+            const lines = JSON.parse(results)
             const basePoints = [firstPoint as LatLng, secondPoint as LatLng]
             let project = {
                 name,
                 basePoints,
                 // @ts-ignore
-                center:results[0][0], // the very first one is the center
-                plantingLines: results as Array<PlantingLine>,
+                center: lines[0][0], // the very first one is the center
+                plantingLines: lines as Array<PlantingLine>,
                 markedPoints: [],
-                lastLineIndex: -1
-
+                forwardIndex: 9,
+                backwardIndex:0,
+                gapSize:gapSize,
+                lineLength:lineLength,
+                lineCount:results.length
             } as Project
             //save project to DB
             const insertRows = await ProjectService.save("projects", [{
                 ...project,
-                center:JSON.stringify(project.center),
+                center: JSON.stringify(project.center),
                 basePoints: JSON.stringify(project.basePoints),
                 plantingLines: JSON.stringify(project.plantingLines),
                 markedPoints: JSON.stringify([])
@@ -99,7 +107,6 @@ export const generateProject = createAsyncThunk(
             const { insertId } = insertRows[0];
             project["id"] = insertId
             thunkAPI.dispatch(setShowCreateNewProjects(false));
-            project["plantingLines"] = project.plantingLines.slice(0, 10)
             return project;
         } catch (error) {
             thunkAPI.rejectWithValue(generateError(error));
@@ -113,7 +120,7 @@ export const convertLinesToLatLong = createAsyncThunk(
     async (params, thunkAPI) => {
         try {
             // @ts-ignore
-            const {linePoints , center } = params
+            const { linePoints, center } = params
             const coordLines = await RTNMsitu.linesToCoords(linePoints, center);
             return coordLines;
 
@@ -128,15 +135,20 @@ export const projectSlice = createSlice({
     name: 'project',
     initialState,
     reducers: {
-        setLoading: (state, action:PayloadAction<boolean>) => {
+        setLoading: (state, action: PayloadAction<boolean>) => {
             state.loading = action.payload;
         },
-        setLock: (state, action:PayloadAction<boolean>) => {
+        setLock: (state, action: PayloadAction<boolean>) => {
             state.lock = action.payload;
         },
-        setIndices:(state, action:PayloadAction<IndexPayLoad>)=>{
-            state.forwardIndex = action.payload.forwardIndex;
-            state.backwardIndex = action.payload.backwardIndex;
+        setIndices: (state, action: PayloadAction<IndexPayLoad>) => {
+            if(state.activeProject){
+                state.activeProject.forwardIndex = action.payload.forwardIndex;
+                state.activeProject.backwardIndex = action.payload.backwardIndex;
+            }
+        },
+        setScaledPlanitingLines: (state, action: PayloadAction<Array<PlantingLine>>) => {
+            state.scaledPlantingLines = action.payload
         },
         saveProjectMarkedPoints: (state, action: PayloadAction<Array<LatLng>>) => {
             const ONE_SECOND_IN_MS = 1000;
@@ -144,7 +156,7 @@ export const projectSlice = createSlice({
                 // best way wound be to just append but I have decided to use Set, a bit much faster
                 const newPoints = action.payload;
                 let allPoints = [...state.activeProject.markedPoints, ...newPoints];
-                const uniquePointsSet = new Set(allPoints.map(point => 
+                const uniquePointsSet = new Set(allPoints.map(point =>
                     `${point.latitude},${point.longitude}`
                 ));
                 state.activeProject.markedPoints = Array.from(uniquePointsSet, str => {
@@ -152,12 +164,12 @@ export const projectSlice = createSlice({
                     return { latitude, longitude };
                 });
                 // save these to db parmanently
-                ProjectService.update("projects", state.activeProject.id, {markedPoints: JSON.stringify(state.activeProject.markedPoints)})
-                .then((result)=>{
-                    console.log(result)
-                }).catch((error:any)=>{
-                    console.error(error)
-                })
+                ProjectService.update("projects", state.activeProject.id, { markedPoints: JSON.stringify(state.activeProject.markedPoints) })
+                    .then((result) => {
+                        console.log(result)
+                    }).catch((error: any) => {
+                        console.error(error)
+                    })
                 Vibration.vibrate(1 * ONE_SECOND_IN_MS); // vibrate regardless, peg-kids are slow
             }
         },
@@ -169,10 +181,9 @@ export const projectSlice = createSlice({
             })
             .addCase(generateProject.fulfilled, (state, action) => {
                 state.generating = false;
-                 // @ts-ignore
+                // @ts-ignore
                 const project: Project = action.payload;
-               
-                state.scaledPlantingLines = project.plantingLines
+                state.scaledPlantingLines = project.plantingLines.slice(0, 10)
                 state.activeProject = project;
             })
             .addCase(generateProject.rejected, (state, action) => {
@@ -184,19 +195,19 @@ export const projectSlice = createSlice({
             })
             .addCase(convertLinesToLatLong.fulfilled, (state, action) => {
                 state.loading = false;
-                 // @ts-ignore
+                // @ts-ignore
                 state.visibleLines = action.payload ? action.payload : [];
             })
             .addCase(convertLinesToLatLong.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message ?? 'Unknown error';
-            }) .addCase(fetchProjects.pending, state => {
+            }).addCase(fetchProjects.pending, state => {
                 state.fetching = true;
             })
             .addCase(fetchProjects.fulfilled, (state, action) => {
                 state.fetching = false;
-                const crudProjects =  action.payload;
-                if (crudProjects !== undefined){
+                const crudProjects = action.payload;
+                if (crudProjects !== undefined) {
                     state.projectList = crudProjects;
                 }
             })
@@ -206,31 +217,22 @@ export const projectSlice = createSlice({
             })
             .addCase(loadProject.pending, state => {
                 state.loading = true;
-              
+
             })
             .addCase(loadProject.fulfilled, (state, action) => {
                 state.loading = false;
-                state.lock=false;
-                let project = action.payload;
-                const plantingLines = JSON.parse(project.plantingLines)
-                project ={
-                    ...project,
-                    center:JSON.parse(project.center),
-                    basePoints: JSON.parse(project.basePoints),
-                    markedPoints: JSON.parse(project.markedPoints),
-                    plantingLines:plantingLines
-                }as Project
-                
-                state.scaledPlantingLines = plantingLines.slice(0, 10)
+                state.lock = false;
+                const project = action.payload as Project;
+                state.scaledPlantingLines = project.plantingLines.slice(0, 10)
                 state.activeProject = project;
             })
             .addCase(loadProject.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message ?? 'Unknown error';
             })
-            
+
     },
 });
 
-export const { setLoading, saveProjectMarkedPoints,setLock, setIndices} = projectSlice.actions;
+export const { setLoading, saveProjectMarkedPoints, setLock, setIndices, setScaledPlanitingLines } = projectSlice.actions;
 export default projectSlice.reducer;

@@ -20,7 +20,7 @@ class ProjectService {
 
   public static async createTables() {
     const tableQueries = [
-      'CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY, name TEXT NOT NULL, basePoints TEXT NOT NULL, center TEXT,  plantingLines TEXT, markedPoints TEXT, lastLineIndex INTEGER, gapSize INTEGER, lineLength INTEGER, gapSizeUnit TEXT, lineLengthUnit TEXT, createdAt TEXT);',
+      'CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY, name TEXT NOT NULL, basePoints TEXT NOT NULL, center TEXT,  plantingLines TEXT, markedPoints TEXT, lastLineIndex INTEGER, gapSize INTEGER, lineLength INTEGER, gapSizeUnit TEXT, lineLengthUnit TEXT, forwardIndex INTEGER, backwardIndex INTEGER,lineCount INTEGER, createdAt TEXT);',
     ];
 
     tableQueries.map(async query => {
@@ -190,6 +190,7 @@ class ProjectService {
       });
       return item;
     } catch (error) {
+      console.error(error)
       return Promise.reject(error);
     }
   }

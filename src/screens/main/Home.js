@@ -1,7 +1,7 @@
 import { Text, View, Alert, ToastAndroid } from "react-native";
 import Geolocation from '@react-native-community/geolocation';
 import React, { useEffect, useState, useRef, useMemo } from "react";
-import { convertLinesToLatLong, setLock, setIndices } from "../../store/projects";
+import { convertLinesToLatLong, setLock, setIndices, setScaledPlanitingLines } from "../../store/projects";
 import { useDispatch, useSelector } from 'react-redux';
 import AnimatedLoader from "react-native-animated-loader";
 import { throttle } from "lodash"
@@ -35,8 +35,10 @@ const Home = ({ navigation }) => {
   const [mapRotateDegrees, setMapRotateDegrees] =  useState(180);
 
 
-  const { activeProject, visibleLines, loading, scaledPlantingLines, lock } = useSelector(store => store.project)
+  const { activeProject, visibleLines, loading, scaledPlantingLines, lock, forwardIndex, backwardIndex, totalLines } = useSelector(store => store.project)
   const { selectedDevice } = useSelector(store => store.bluetooth)
+  const [activeMinusLines, setActiveMinusLines] =  useState(false);
+  const [activePlusLines, setActivePlusLines] =  useState(true);
   const { cyrusLines } = useSelector(store => store.pegging);
 
   const { init } = useSelector(store => store.bluetooth)
@@ -161,13 +163,37 @@ const Home = ({ navigation }) => {
         }
     }
     else if(action ==="plus"){
+      const startIndex = activeProject.forwardIndex + 1;
+      let endIndex = startIndex + 10;
+      if (endIndex > activeProject.lineCount) {
+        endIndex = activeProject.lineCount;
+      }
+
+      const nextNLines = activeProject.plantingLines.slice(startIndex, endIndex);
       
-      const nextNLines = activeProject.planting.slice(forwardIndex+1, 10)
       dispatch(setIndices({
-        forwardIndex:forwardIndex+10,
-        backwardIndex:forwardIndex
+        forwardIndex: endIndex - 1, // Set to last displayed index
+        backwardIndex: activeProject.forwardIndex
       }));
       dispatch(setLock(false));
+      dispatch(setScaledPlanitingLines(nextNLines));
+    }
+    else if (action === "minus") {
+      let endIndex = activeProject.backwardIndex + 1;
+      let startIndex = endIndex - 10;
+    
+      if (startIndex <= 0) {
+        startIndex = 0;
+        endIndex = Math.min(9, activeProject.lineCount);
+      }
+      const prevNLines = activeProject.plantingLines.slice(startIndex, endIndex);
+      
+      dispatch(setIndices({
+        forwardIndex: activeProject.backwardIndex,
+        backwardIndex: startIndex
+      }));
+      dispatch(setLock(false));
+      dispatch(setScaledPlanitingLines(prevNLines));
     }
     else if(action === "plant"){
       dispatch(setLock(true)) //  so we do not have to call convertLinesToLatLong
@@ -193,6 +219,21 @@ const Home = ({ navigation }) => {
     }
   };
 
+  useEffect(()=>{
+    if(activeProject){
+      if(activeProject.backwardIndex <=0){
+        setActiveMinusLines(false)
+      }else{
+        setActiveMinusLines(true)
+      }
+      if(activeProject.forwardIndex >= activeProject.lineCount){
+        setActivePlusLines(false)
+      }else{
+        setActivePlusLines(true)
+      }
+    }
+    
+  }, [activeProject])
   return (
     <View className="flex-1 relative">
       {/* Map View */}
@@ -253,13 +294,13 @@ const Home = ({ navigation }) => {
           {
             icon: require("../../assets/forward.png"),
             name: 'plus',
-            disabled:activeProject === null,
+            disabled:activeProject === null || !activePlusLines,
             initialPosition: 340
           },
           {
             icon: require("../../assets/backward.png"),
             name: 'minus',
-            disabled:activeProject === null,
+            disabled:activeProject === null || !activeMinusLines,
             initialPosition: 280
           },
           {

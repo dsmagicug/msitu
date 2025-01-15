@@ -172,5 +172,4 @@ const Settings: React.FC = () => {
         </View>
     );
 };
-
 export default Settings;

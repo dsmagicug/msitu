@@ -107,23 +107,7 @@ class MsituModule(reactContext: ReactApplicationContext) : NativeRTNMsituSpec(re
                         lineLength,
                         Utils.MeshType.valueOf(meshType)
                     )
-
-                    // Convert lines to WritableArray
-                    val resultArray = Arguments.createArray()
-                    lines.forEach { line ->
-                        val lineArray = Arguments.createArray()
-                        line.points.forEach { point ->
-                            val pointMap = Arguments.createMap().apply {
-                                putDouble("x", point.x)
-                                putDouble("y", point.y)
-                                putInt("zone", point.zone)
-                                putString("hemisphere", point.hemisphere)
-                            }
-                            lineArray.pushMap(pointMap)
-                        }
-                        resultArray.pushArray(lineArray)
-                    }
-                    promise.resolve(resultArray)
+                    promise.resolve(lines.toString())
                 } catch (e: Exception) {
                     promise.reject("MeshGenerationError", e.message)
                 }

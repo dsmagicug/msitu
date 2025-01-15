@@ -4,7 +4,8 @@ import MapView, {
     Polyline,
     Polygon,
     Circle,
-    MAP_TYPES} from "react-native-maps";
+    MAP_TYPES
+} from "react-native-maps";
 import { Easing } from "react-native-reanimated";
 import { throttle } from "lodash";
 import { useAnimatedRegion } from "../../components/AnimatedMarker";
@@ -223,7 +224,7 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                         />
                         {line.map((coord, index) => {
                             const isMarked = checkPointExists(coord);
-                            if(index % skipPoints === 0){
+                            if (index % skipPoints === 0) {
                                 return (
                                     <Circle
                                         key={`${idx}-${index}`}
@@ -232,11 +233,11 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                                         fillColor={isMarked ? 'green' : 'red'}
                                         strokeColor={isMarked ? 'green' : 'red'}
                                         strokeWidth={2}
-                                        zIndex={1}
+                                        zIndex={2}
                                     />
                                 );
                             }
-                            
+
                         })}
                     </React.Fragment>
                 ))
@@ -276,6 +277,19 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                             zIndex={1}
                         />
                     ))}
+                    {
+                        activeProject && activeProject.markedPoints.map((point, index) => (
+                            <Circle
+                                key={`marked-${index}`}
+                                center={point}
+                                radius={0.3}
+                                fillColor="#00FF00"
+                                strokeColor="#00FF00"
+                                strokeWidth={2}
+                                zIndex={5}
+                            />
+                        ))
+                    }
                     {visibleLines.map((line, idx) => (
                         <React.Fragment key={idx}>
                             <Polyline
@@ -285,20 +299,6 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                                 strokeColor={selectedPlantingLines.some(sublist => sublist[1] === idx) ? 'orange' : 'blue'}
                                 strokeWidth={1.5}
                             />
-                            {line.map((coord, index) => {
-                                const isMarked = checkPointExists(coord);
-                                return (
-                                    <Circle
-                                        key={`${idx}-${index}`}
-                                        center={coord}
-                                        radius={0.3}
-                                        fillColor={isMarked ? '#00FF00' : 'red'}
-                                        strokeColor={isMarked ? '#00FF00' : 'red'}
-                                        strokeWidth={2}
-                                        zIndex={1}
-                                    />
-                                );
-                            })}
                         </React.Fragment>
                     ))}
                 </>

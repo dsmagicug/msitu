@@ -63,7 +63,7 @@ open class Point(internal var x: Double, internal var y: Double) {
     }
 
     override fun toString(): String {
-        return "Point(x=$x, y=$y, zone=$zone, hemisphere='$hemisphere')"
+        return """{"x":$x,"y":$y,"zone":$zone,"hemisphere":"$hemisphere"}"""
     }
 
 
@@ -128,6 +128,11 @@ open class PlantingLine(val points: ArrayList<Point>) {
             LongLat(centre.zone, centre.hemisphere, it.x /*+ centre.x*/, it.y /*+ centre.y*/)
         }
     }
+
+    override fun toString(): String {
+        return "[${points.joinToString(",") { it.toString() }}]"
+    }
+
 }
 
 var LOCATION_PROVIDER = "Rtk"

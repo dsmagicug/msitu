@@ -19,7 +19,7 @@ const animation = new SlideAnimation({
     useNativeDriver: true
 })
 
-export default function NewProject({ show, onClose,roverLocation }) {
+export default function NewProject({ show, onClose, roverLocation }) {
 
     const [checkedFirstPoint, setCheckedFirstPoint] = useState(false)
     const [checkedSecondPoint, setCheckedSecondPoint] = useState(false)
@@ -56,7 +56,7 @@ export default function NewProject({ show, onClose,roverLocation }) {
         }
         const payload = {
             firstPoint,
-            secondPoint,
+            secondPoint:,
             lineDirection,
             meshType,
             name: projectName,

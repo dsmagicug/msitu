@@ -57,7 +57,7 @@ export default function ProjectList({ children, show, onClose }) {
                                 <TouchableOpacity
                                     onPress={() => { 
                                         dispatch(loadProject(project.id)) 
-                                        // navigation.closeDrawer()
+                                        //navigation.closeDrawer()
                                     }}
                                     className='bg-white/100 border border-blue-600 p-1 gap-1 rounded flex flex-row justify-center items-center'>
                                     <MaterialCommunityIcons name="open-in-new" size={14} color="blue" />

@@ -24,7 +24,7 @@ export interface Spec extends TurboModule {
         meshType:string,
         gapSize:number, 
         lineLength:number
-    ):Promise<Array<PlantingLine>>;
+    ):Promise<string>;
 
     closetPointRelativeToRoverPosition(
         roverLocation:{ latitude: number; longitude: number },
