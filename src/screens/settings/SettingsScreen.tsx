@@ -17,13 +17,15 @@ import MsTextInput from '../../components/input/MsTextInput';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Picker } from '@react-native-picker/picker';
 import styles from '../../assets/styles';
-const { width: screenWidth } = Dimensions.get("screen");
+import { useDispatch, useSelector } from 'react-redux';
+import { Settings, defaultSettings, loadSettings, saveSettings } from '../../store/settings';
 
-const Settings: React.FC = () => {
+const SettingsScreen: React.FC = () => {
     const navigation = useNavigation();
     const [mode, setMode] = useState<boolean>(true);
     const [isPortrait, setIsPortrait] = useState<boolean>(true);
-    const [mapStyle, setMapStyle] = useState<string>("SATELLITE")
+    const [mapStyle, setMapStyle] = useState<string>("satellite")
+    const [localSettings, setLocalSettings] =  useState<Settings>(defaultSettings)
    
     const { width: screenWidth } = useWindowDimensions();
     const fadeAnim = useSharedValue(mode ? 1 : 0);
@@ -43,12 +45,34 @@ const Settings: React.FC = () => {
     const { width, height } = useWindowDimensions();
 
 
+    // @ts-ignore
+    const {loading, saving, settings} = useSelector(store=>store.settings)
+
+    const dispatch = useDispatch()
 
 
+    useEffect(()=>{
+         // @ts-ignore
+        dispatch(loadSettings())
+    },[])
     // Track orientation
     useEffect(() => {
         setIsPortrait(height > width);
     }, [width, height]);
+
+
+    useEffect(()=>{
+        if(settings){
+            setLocalSettings(settings)
+            setMapStyle(localSettings.mapStyle)
+        }
+        
+    },[settings])
+
+    useEffect(()=>{
+        let appMode = mode ? "planting" :"survey"
+        setLocalSettings({...localSettings, appMode})
+    },[mode])
 
     const onToggleAppMode = () => setMode(!mode);
 
@@ -92,9 +116,14 @@ const Settings: React.FC = () => {
                                 <Image source={require("../../assets/point.png")} style={{ width: 26, height: 26, tintColor: colors.gray[600] }} />
                                 <MsTextInput
                                     label="No. of points to skip"
-                                    initialValue="5"
+                                    initialValue={`${localSettings.skipLines}`}
                                     containerStyle={{ width: screenWidth / 1.5 }}
-                                    onChangeText={(e) => {}}
+                                    keyboardType='number-pad'
+                                    onChangeText={(value) => {
+                                        if (value.length > 0){
+                                            setLocalSettings({...localSettings, skipLines:parseInt(value)})
+                                        }
+                                    }}
                                 />
                             </View>
                             <Text className='text-xs font-avenir mt-1 text-justify text-teal-800'>
@@ -106,9 +135,14 @@ const Settings: React.FC = () => {
                                 <Image source={require("../../assets/steel-mesh.png")} style={{ width: 26, height: 26, tintColor: colors.gray[600] }} />
                                 <MsTextInput
                                     label="No. of visible lines"
-                                    initialValue="10"
+                                    initialValue={`${localSettings.displayLineCount}`}
+                                     keyboardType='number-pad'
                                     containerStyle={{ width: screenWidth / 1.5 }}
-                                    onChangeText={(e) => {}}
+                                    onChangeText={(value) => {
+                                        if (value.length > 0){
+                                            setLocalSettings({...localSettings, displayLineCount:parseInt(value)})
+                                        }
+                                    }}
                                 />
                             </View>
                             <Text className='text-xs font-avenir mt-1 text-justify text-teal-800'>
@@ -127,7 +161,9 @@ const Settings: React.FC = () => {
                             <View className='w-9/12'>
                             <MsTextInput
                                 label="Cloud Sync API"
-                                onChangeText={(e) => console.log(e)}
+                                keyboardType='url'
+                                initialValue={localSettings.cloudApi}
+                                onChangeText={(value) => setLocalSettings({...localSettings, cloudApi:value})}
                             />
                             </View>
                             </View>
@@ -151,8 +187,11 @@ const Settings: React.FC = () => {
                             <Picker
                                 style={{ width: screenWidth/2, marginTop: 5 }}
                                 selectedValue={mapStyle}
-                                onValueChange={(itemValue, itemIndex) =>
-                                    setMapStyle(itemValue)
+                                onValueChange={(itemValue, _) =>
+                                    {
+                                        setMapStyle(itemValue)
+                                        setLocalSettings({...localSettings, mapStyle:itemValue})
+                                    }
                                 }>
                                 <Picker.Item style={{ ...styles.textMedium }} label="SETELLITE" value={MAP_TYPES.SATELLITE} />
                                 <Picker.Item style={{ ...styles.textMedium }} label="TERRAIN" value={MAP_TYPES.TERRAIN} />
@@ -168,8 +207,18 @@ const Settings: React.FC = () => {
                         </Text>
                     </View>
                 </View>
+                <View className='mx-5 mt-8 flex flex-col'>
+                    <TouchableOpacity 
+                        onPress={()=>{
+                            //@ts-ignore
+                            dispatch(saveSettings(localSettings))
+                        }}
+                        className='flex p-4 border border-teal-800 justify-center items-center'>
+                        <Text className='font-avenirBold'>SAVE SETTINGS</Text>
+                    </TouchableOpacity>
+                </View>
             </ScrollView>
         </View>
     );
 };
-export default Settings;
+export default SettingsScreen;

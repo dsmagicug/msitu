@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import colors from 'tailwindcss/colors';
 import React from 'react';
 import styles from '../../assets/styles';
+import { KeyboardTypeOptions } from 'react-native';
 
 interface MsTextInputProps {
     label: string;
@@ -10,9 +11,10 @@ interface MsTextInputProps {
     containerStyle?: StyleProp<ViewStyle>;
     onChangeText: (text: string) => void;
     initialValue?: string;
+    keyboardType?:KeyboardTypeOptions;
 }
 
-export default function MsTextInput({ label, placeholder, containerStyle, onChangeText, initialValue }: MsTextInputProps) {
+export default function MsTextInput({ label, placeholder, containerStyle, onChangeText, initialValue, keyboardType }: MsTextInputProps) {
 
     const [value, setValue] = React.useState<string>(initialValue || "");
     
@@ -72,6 +74,7 @@ export default function MsTextInput({ label, placeholder, containerStyle, onChan
             <TextInput
                 placeholder={isFocused ? '' : placeholder}
                 placeholderTextColor={colors.gray[600]}
+                keyboardType={keyboardType? keyboardType:'default'}
                 value={value}
                 style={[
                     styles.input,

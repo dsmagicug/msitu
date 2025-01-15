@@ -5,12 +5,14 @@ import project from "./projects"
 import bluetooth from "./bluetooth"
 import nmeaListener from "./nmeaListener"
 import pegging from "./pegging"
+import settings from "./settings"
 
 const rootReducer = {
     modals,
     project,
     bluetooth,
     nmeaListener,
-    pegging
+    pegging,
+    settings
 };
 export default rootReducer;

@@ -17,6 +17,7 @@ function App(): React.JSX.Element {
 
   const [btGenericErrorListener, setBTGenericErrorListener] = useState<BluetoothEventSubscription | null>(null);
 
+  
 
   const handleOnError = (event: BluetoothDeviceEvent) => {
     Toast.show({
@@ -29,6 +30,7 @@ function App(): React.JSX.Element {
   useEffect(() => {
     const onBtError = RNBluetoothClassic.onError(handleOnError);
     setBTGenericErrorListener(onBtError);
+   
     return () => {
       // cleanup 
       if (btGenericErrorListener) {

@@ -9,6 +9,7 @@ import { setShowCreateNewProjects, setShowProjectList } from './modal';
 import { PlantingLine } from '../../RTNMsitu';
 import ProjectService from '../services/ProjectService';
 import { Vibration } from "react-native"
+import { Settings } from './settings';
 
 export type IndexPayLoad = {
     forwardIndex: number
@@ -65,7 +66,10 @@ export const loadProject = createAsyncThunk(
                     basePoints: JSON.parse(project.basePoints),
                     markedPoints: JSON.parse(project.markedPoints)
             }  as Project
-            return jsProject
+
+            //@ts-ignore
+            const {settings} = thunkAPI.getState().settings as Settings;
+            return {project:jsProject, settings};
         } catch (error) {
             thunkAPI.rejectWithValue(generateError(error));
         }
@@ -78,7 +82,6 @@ export const generateProject = createAsyncThunk(
         try {
             // @ts-ignore
             const { firstPoint, name, secondPoint, lineDirection, meshType, gapSize, lineLength } = params;
-             // @ts-ignore
             const results = await RTNMsitu.generateMesh(firstPoint, secondPoint, lineDirection, meshType, parseFloat(gapSize), parseFloat(lineLength)) as string;
             // lets process our lines
             const lines = JSON.parse(results)
@@ -107,7 +110,9 @@ export const generateProject = createAsyncThunk(
             const { insertId } = insertRows[0];
             project["id"] = insertId
             thunkAPI.dispatch(setShowCreateNewProjects(false));
-            return project;
+            //@ts-ignore
+            const {settings} = thunkAPI.getState().settings as Settings;
+            return {project, settings};
         } catch (error) {
             thunkAPI.rejectWithValue(generateError(error));
         }
@@ -130,6 +135,18 @@ export const convertLinesToLatLong = createAsyncThunk(
     },
 );
 
+
+export const deleteProject = createAsyncThunk(
+    'project/deleteProject',
+    async (id:number, thunkAPI) => {
+        try {
+            await ProjectService.deleteItem(id, "projects");
+            return id;
+        } catch (error) {
+            thunkAPI.rejectWithValue(generateError(error));
+        }
+    },
+);
 
 export const projectSlice = createSlice({
     name: 'project',
@@ -182,8 +199,8 @@ export const projectSlice = createSlice({
             .addCase(generateProject.fulfilled, (state, action) => {
                 state.generating = false;
                 // @ts-ignore
-                const project: Project = action.payload;
-                state.scaledPlantingLines = project.plantingLines.slice(0, 10)
+                const {project, settings} = action.payload;
+                state.scaledPlantingLines = project.plantingLines.slice(0, settings.displayLineCount)
                 state.activeProject = project;
             })
             .addCase(generateProject.rejected, (state, action) => {
@@ -222,11 +239,23 @@ export const projectSlice = createSlice({
             .addCase(loadProject.fulfilled, (state, action) => {
                 state.loading = false;
                 state.lock = false;
-                const project = action.payload as Project;
-                state.scaledPlantingLines = project.plantingLines.slice(0, 10)
+                // @ts-ignore
+                const {project, settings} = action.payload;
+                console.log(settings)
+                state.scaledPlantingLines = project.plantingLines.slice(0, settings.displayLineCount)
                 state.activeProject = project;
             })
             .addCase(loadProject.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message ?? 'Unknown error';
+            })
+            .addCase(deleteProject.fulfilled, (state, action) => {
+                if(state.activeProject && state.activeProject.id === action.payload){
+                    state.activeProject = null;
+                }
+                state.projectList = state.projectList.filter(p => p.id !== action.payload);
+            })
+            .addCase(deleteProject.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.error.message ?? 'Unknown error';
             })

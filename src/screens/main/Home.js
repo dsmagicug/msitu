@@ -15,6 +15,7 @@ import { FixType } from 'rtn-msitu';
 import NewProject from "../../components/projects/NewProject";
 import { setShowCreateNewProjects } from "../../store/modal";
 import FabGroup from "../../components/fab/FabGroup";
+import { loadSettings } from "../../store/settings";
 
 
 const Home = ({ navigation }) => {
@@ -40,7 +41,7 @@ const Home = ({ navigation }) => {
   const [activeMinusLines, setActiveMinusLines] =  useState(false);
   const [activePlusLines, setActivePlusLines] =  useState(true);
   const { cyrusLines } = useSelector(store => store.pegging);
-
+  const {settings } = useSelector(store => store.settings)
   const { init } = useSelector(store => store.bluetooth)
   const modalStore = useSelector(selector => selector.modals);
   const onReceiveData = async (buffer) => {
@@ -100,6 +101,8 @@ const Home = ({ navigation }) => {
       getCurrentLocation()
     });
     getCurrentLocation();
+    //@ts-ignore
+    dispatch(loadSettings());
   }, []);
 
   const getCurrentLocation = () => {
@@ -163,8 +166,9 @@ const Home = ({ navigation }) => {
         }
     }
     else if(action ==="plus"){
+      const displayLines = settings.displayLineCount
       const startIndex = activeProject.forwardIndex + 1;
-      let endIndex = startIndex + 10;
+      let endIndex = startIndex + displayLines;
       if (endIndex > activeProject.lineCount) {
         endIndex = activeProject.lineCount;
       }
@@ -180,11 +184,11 @@ const Home = ({ navigation }) => {
     }
     else if (action === "minus") {
       let endIndex = activeProject.backwardIndex + 1;
-      let startIndex = endIndex - 10;
-    
+      const displayLines = settings.displayLineCount
+      let startIndex = endIndex - displayLines;
       if (startIndex <= 0) {
         startIndex = 0;
-        endIndex = Math.min(9, activeProject.lineCount);
+        endIndex = Math.min(displayLines-1, activeProject.lineCount);
       }
       const prevNLines = activeProject.plantingLines.slice(startIndex, endIndex);
       

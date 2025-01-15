@@ -4,7 +4,7 @@ import { BottomModal, ModalFooter, ModalButton, ModalContent } from 'react-nativ
 import AntDesignIcon from 'react-native-vector-icons/AntDesign'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
 import styles from '../../assets/styles';
-import { fetchProjects, loadProject } from '../../store/projects';
+import { fetchProjects, loadProject, deleteProject } from '../../store/projects';
 import { useDispatch, useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
 export default function ProjectList({ children, show, onClose }) {
@@ -61,19 +61,19 @@ export default function ProjectList({ children, show, onClose }) {
                                     }}
                                     className='bg-white/100 border border-blue-600 p-1 gap-1 rounded flex flex-row justify-center items-center'>
                                     <MaterialCommunityIcons name="open-in-new" size={14} color="blue" />
-                                    <Text className='font-avenir text-sm text-blue-800'>Open</Text>
+                                    <Text className='font-avenirBold text-sm text-blue-600'>Open</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity
+                                {/* <TouchableOpacity
                                     onPress={() => { console.log("Export") }}
                                     className='bg-white/100 border border-teal-600 p-1 gap-1 rounded flex flex-row justify-center items-center'>
                                     <MaterialCommunityIcons name="code-json" size={14} color="teal" />
                                     <Text className='font-avenir text-sm text-teal-900'>Export</Text>
-                                </TouchableOpacity>
+                                </TouchableOpacity> */}
                                 <TouchableOpacity
-                                    onPress={() => { console.log("Export") }}
+                                    onPress={() => { dispatch(deleteProject(project.id)) }}
                                     className='bg-white/100 border border-red-600 p-1 gap-1 rounded flex flex-row justify-center items-center'>
                                     <MaterialCommunityIcons name="trash-can-outline" size={14} color="red" />
-                                    <Text className='font-avenir text-sm text-red-900'>Delete</Text>
+                                    <Text className='font-avenirBold text-sm text-red-600'>Delete</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>

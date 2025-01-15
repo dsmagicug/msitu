@@ -26,8 +26,9 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
     const prevRoverLocationRef = useRef(null);
     const [selectedPlantingLines, setSelectedPlantingLines] = useState([]);
     const [combinedPoints, setCombinedPoints] = useState([]);
-    const { cyrusLines, markedPoints, skipPoints } = useSelector(store => store.pegging);
+    const { cyrusLines, markedPoints } = useSelector(store => store.pegging);
     const { activeProject } = useSelector(store => store.project)
+    const {settings} = useSelector(store => store.settings)
     const [closestPoint, setClosestPoint] = useState(null)
     const [mapType, setMapType] = useState(MAP_TYPES.SATELLITE)
 
@@ -73,7 +74,7 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
     useEffect(() => {
         if (selectedPlantingLines.length > 0) {
             const combinedLines = selectedPlantingLines.reduce((acc, [line, index]) => {
-                const filteredLine = line.filter((_, i) => i % skipPoints === 0); // Only include unskipped points
+                const filteredLine = line.filter((_, i) => i % settings.skipLines === 0); // Only include unskipped points
                 return acc.concat(filteredLine);
             }, []);
             setCombinedPoints(combinedLines);
@@ -224,7 +225,7 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
                         />
                         {line.map((coord, index) => {
                             const isMarked = checkPointExists(coord);
-                            if (index % skipPoints === 0) {
+                            if (index % settings.skipLines === 0) {
                                 return (
                                     <Circle
                                         key={`${idx}-${index}`}

@@ -12,5 +12,7 @@ export type Project = {
     center:Point,
     plantingLines:Array<PlantingLine> | []
     markedPoints:Array<LatLng> | []
-    lastLineIndex:number | -1
+    forwardIndex:number | 9
+    backwardIndex:number | 0
+    lineCount:number
 }

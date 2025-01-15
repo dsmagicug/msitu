@@ -56,7 +56,7 @@ export default function NewProject({ show, onClose, roverLocation }) {
         }
         const payload = {
             firstPoint,
-            secondPoint:,
+            secondPoint,
             lineDirection,
             meshType,
             name: projectName,
