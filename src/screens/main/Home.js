@@ -301,19 +301,19 @@ const Home = ({ navigation }) => {
           {
             icon: require('../../assets/forward.png'),
             name: 'plus',
-            disabled:activeProject === null || !activePlusLines,
+            disabled: activeProject === null || !activePlusLines || planting,
             initialPosition: 340,
           },
           {
             icon: require('../../assets/backward.png'),
             name: 'minus',
-            disabled:activeProject === null || !activeMinusLines,
+            disabled: activeProject === null || !activeMinusLines || planting,
             initialPosition: 280,
           },
           {
             icon: require('../../assets/360.png'),
             name: 'rotate',
-            disabled:activeProject === null || !roverLocation,
+            disabled: activeProject === null || !roverLocation,
             initialPosition: 400,
           },
           {
@@ -324,15 +324,15 @@ const Home = ({ navigation }) => {
           {
             icon: require('../../assets/plant.png'),
             name: 'plant',
-            backgroundColor:planting ? 'green-500' : null,
-            disabled:cyrusLines.length === 0,
+            backgroundColor: planting ? 'green-500' : null,
+            disabled: cyrusLines.length === 0,
             initialPosition: 220,
           },
           {
             icon: require('../../assets/compass.png'),
             name: 'area',
-            backgroundColor:areaMode ? 'green-500' : null,
-            disabled:cyrusLines.length > 0,
+            backgroundColor: areaMode ? 'green-500' : null,
+            disabled: cyrusLines.length > 0,
             initialPosition: cyrusLines.length > 0 ? 0 : 100,
           },
           {

@@ -3,6 +3,7 @@ import {
   openDatabase,
   SQLiteDatabase,
 } from 'react-native-sqlite-storage';
+import { Project } from '../models';
 
 enablePromise(true);
 
@@ -143,13 +144,13 @@ class ProjectService {
   ): Promise<any> {
     try {
       const items: any[] = [];
-  
+
       const selectedFields = typeof fields === 'string' && fields === '*'
       ? '*'
       : Array.isArray(fields)
       ? fields.join(', ')
-      : '*'; 
-  
+      : '*';
+
       const query = lookups
         ? `SELECT ${selectedFields} FROM ${tableName} WHERE (${Object.keys(lookups)
             .map(
@@ -161,7 +162,7 @@ class ProjectService {
             )
             .join(' AND ')}) ORDER BY ${orderBy} DESC LIMIT ${limit}`
         : `SELECT ${selectedFields} FROM ${tableName} ORDER BY ${orderBy} DESC LIMIT ${limit}`;
-  
+
       const results = await ProjectService.db.executeSql(query);
       results.forEach(result => {
         for (let index = 0; index < result.rows.length; index++) {
@@ -174,7 +175,7 @@ class ProjectService {
       return Promise.reject(error.message);
     }
   }
-  
+
 
   public static async getById(
     tableName: String,
@@ -203,6 +204,47 @@ class ProjectService {
       return Promise.resolve(false);
     } catch (e) {
       return Promise.reject(e);
+    }
+  }
+
+  public static async exportProject(projectId: number): Promise<Project> {
+    try {
+      // Get project from database
+      const projectData = await ProjectService.getById('projects', projectId);
+
+      if (!projectData) {
+        throw new Error('Project not found');
+      }
+
+      // Parse JSON fields
+      const basePoints = projectData.basePoints ? JSON.parse(projectData.basePoints) : [];
+      const center = projectData.center ? JSON.parse(projectData.center) : null;
+      const plantingLines = projectData.plantingLines ? JSON.parse(projectData.plantingLines) : [];
+      const markedPoints = projectData.markedPoints ? JSON.parse(projectData.markedPoints) : [];
+      const createdAt = projectData.createdAt ? new Date(projectData.createdAt) : null;
+
+      // Parse Project object with proper types from text
+      const project: Project = {
+        id: projectData.id,
+        name: projectData.name,
+        basePoints: basePoints,
+        gapSize: projectData.gapSize,
+        lineLength: projectData.lineLength,
+        gapSizeUnit: projectData.gapSizeUnit,
+        lineLengthUnit: projectData.lineLengthUnit,
+        createdAt: createdAt,
+        center: center,
+        plantingLines: plantingLines,
+        markedPoints: markedPoints,
+        forwardIndex: projectData.forwardIndex || 9,
+        backwardIndex: projectData.backwardIndex || 0,
+        lineCount: projectData.lineCount
+      };
+
+      return project;
+    } catch (error) {
+      console.error('Failed to export project:', error);
+      return Promise.reject(error);
     }
   }
 }

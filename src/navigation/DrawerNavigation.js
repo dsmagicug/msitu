@@ -9,10 +9,11 @@ import AppStack from './AppStack';
 import React, { useState, useEffect } from 'react';
 import { Dimensions, View, Text, TouchableOpacity, ScrollView, StyleSheet} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { setShowProjectList, setShowBTDevices, setShowAboutMsitu } from '../store/modal';
+import { setShowProjectList, setShowBTDevices, setShowAboutMsitu, setShowProjectExport } from '../store/modal';
 import ProjectList from '../components/projects/ProjectList';
 import BluetoothDevices from '../components/projects/BluetoothDevices';
 import AboutMsituModal from '../components/misc/AboutMsituModal';
+import ProjectExportModal from '../components/projects/ProjectExportModal';
 import { APP_VERSION, APP_NAME, APP_SUBTITLE, getBuildInfo } from '../config/version';
 import { DRAWER_MENUS } from './menus';
 import Reanimated, {
@@ -199,6 +200,9 @@ const handleMenuItemAction = (item, navigation, dispatch) => {
       break;
     case 'setShowAboutMsitu':
       dispatch(setShowAboutMsitu(true));
+      break;
+    case 'setShowProjectExport':
+      dispatch(setShowProjectExport(true));
       break;
     case 'navigate':
       navigation.closeDrawer();
@@ -414,6 +418,10 @@ export default function DrawerNavigation(props) {
       <AboutMsituModal
         visible={modalStore.showAboutMsitu}
         onClose={() => dispatch(setShowAboutMsitu(false))}
+      />
+      <ProjectExportModal
+        visible={modalStore.showProjectExport}
+        onClose={() => dispatch(setShowProjectExport(false))}
       />
     </>
   );

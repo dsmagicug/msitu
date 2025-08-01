@@ -76,10 +76,10 @@ const FabGroup: React.FC<FabGroupProps> = ({ style, actions, onActionPress }) =>
 
   const renderIcon = (icon: string | { uri: number }, disabled : boolean | undefined) => {
     if (typeof icon === 'string') {
-      return <Icon name={icon} size={26} color={disabled ? 'gray':'#FFF'} />;
+      return <Icon name={icon} size={26} color={disabled ? '#6b7280':'#FFF'} />;
     } else {
       //@ts-ignore
-      return <Image source={icon} style={{ width: 26, height: 26, tintColor: disabled ? 'gray':'#FFF'  }} />;
+      return <Image source={icon} style={{ width: 26, height: 26, tintColor: disabled ? '#6b7280':'#FFF'  }} />;
     }
   };
 
@@ -88,8 +88,24 @@ const FabGroup: React.FC<FabGroupProps> = ({ style, actions, onActionPress }) =>
       {actions.map((action, index) => (
         <Animated.View 
           key={index} 
-          className={`bg-${action.backgroundColor ? action.backgroundColor : action.disabled ? 'blue-50':  'blue-700'} absolute bottom-3 right-5 rounded-full w-14 h-14 items-center justify-center`}
-          style={animatedStyles[index]}
+          className="absolute bottom-3 right-5 rounded-full w-14 h-14 items-center justify-center"
+          style={[
+            animatedStyles[index],
+            {
+              backgroundColor: action.backgroundColor 
+                ? action.backgroundColor 
+                : action.disabled 
+                  ? '#f3f4f6'  // Light gray background for disabled
+                  : '#1d4ed8', // Blue background for enabled
+              borderWidth: action.disabled ? 2 : 0,
+              borderColor: action.disabled ? '#d1d5db' : 'transparent',
+              shadowColor: action.disabled ? '#000' : '#000',
+              shadowOffset: { width: 0, height: action.disabled ? 2 : 1 },
+              shadowOpacity: action.disabled ? 0.15 : 0.1,
+              shadowRadius: action.disabled ? 4 : 2,
+              elevation: action.disabled ? 3 : 1,
+            }
+          ]}
         >
           <TouchableOpacity 
             disabled={action.disabled}

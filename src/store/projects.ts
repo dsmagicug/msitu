@@ -44,7 +44,7 @@ export const fetchProjects = createAsyncThunk(
     'project/fetchProjects',
     async (_, thunkAPI) => {
         try {
-            const projects = await ProjectService.fetch("projects", ["id", "name", "basePoints"]);
+            const projects = await ProjectService.fetch("projects", ["id", "name", "basePoints","gapSize","lineLength", "gapSizeUnit", "lineLengthUnit"]);
             return projects;
         } catch (error) {
             thunkAPI.rejectWithValue(generateError(error));
@@ -190,6 +190,11 @@ export const projectSlice = createSlice({
                 Vibration.vibrate(1 * ONE_SECOND_IN_MS); // vibrate regardless, peg-kids are slow
             }
         },
+        clearActiveProject: (state) => {
+            state.activeProject = null;
+            state.scaledPlantingLines = [];
+            state.visibleLines = [];
+        },
     },
     extraReducers: builder => {
         builder
@@ -263,5 +268,5 @@ export const projectSlice = createSlice({
     },
 });
 
-export const { setLoading, saveProjectMarkedPoints, setLock, setIndices, setScaledPlanitingLines } = projectSlice.actions;
+export const { setLoading, saveProjectMarkedPoints, setLock, setIndices, setScaledPlanitingLines, clearActiveProject } = projectSlice.actions;
 export default projectSlice.reducer;

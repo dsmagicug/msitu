@@ -11,22 +11,14 @@ export const DRAWER_MENUS = {
         action: "setShowProjectList",
         comingSoon: false,
       },
-      /*{
-        label: "Import Projects",
-        description: "Import from cloud or local files",
-        icon: "download",
-        iconType: "Entypo",
-        action: "console.log",
-        comingSoon: true,
-      }
       {
-        label: "Export Projects",
+        label: "Share/Export Projects",
         description: "Share and backup your data",
         icon: "code-json",
         iconType: "MaterialCommunityIcons",
-        action: "console.log",
-        comingSoon: true,
-      },,*/
+        action: "setShowProjectExport",
+        comingSoon: false,
+      },
     ]
   },
   equipment: {

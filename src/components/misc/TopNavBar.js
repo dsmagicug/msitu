@@ -106,18 +106,19 @@ export default function TopNavBar({ navigation, hideNewProject }) {
                 <Text className='font-avenirBold text-xl text-center' style={textStyle}>
                     {activeProject ? activeProject.name : `${APP_NAME} [Cyrus Mode]`}
                 </Text>
-                {activeProject && (
-                    <Text className='font-avenirMedium text-sm text-center' style={subtitleStyle}>
-                        {loading ? 'Loading...' : 'Ready'}
-                    </Text>
-                )}
             </View>
             
             <View className='flex flex-row items-center gap-2'>
                 <TouchableOpacity
                     onPress={() => dispatch(setShowBTDevices(true))}
-                    className='flex items-center justify-center'
+                    className='flex items-center justify-center p-2 rounded-lg'
                     activeOpacity={0.7}
+                    style={{
+                        borderWidth: 0,
+                        backgroundColor: 'transparent',
+                        minWidth: 80,
+                        maxWidth: 120,
+                    }}
                 >
                     <View className="flex items-center">
                         {
@@ -131,8 +132,9 @@ export default function TopNavBar({ navigation, hideNewProject }) {
                                                 fontSize: 8,
                                                 fontWeight: 'bold'
                                             }}
+                                            numberOfLines={1}
                                         >
-                                            {selectedDevice.name.length > 12 ? selectedDevice.name.substring(0, 12) + '...' : selectedDevice.name}
+                                            {selectedDevice.name}
                                         </Text>
                                     </>
                                 ) : (
@@ -172,12 +174,12 @@ export default function TopNavBar({ navigation, hideNewProject }) {
                         onPress={handleNewProject}
                         className='p-3 rounded-xl flex items-center justify-center'
                         style={{
-                            backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(34, 197, 94, 0.1)',
+                            backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(59, 130, 246, 0.1)',
                             borderWidth: 1,
-                            borderColor: highContrastMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(34, 197, 94, 0.2)',
+                            borderColor: highContrastMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(59, 130, 246, 0.2)',
                         }}
                     >
-                        <AntDesignIcon name="addfolder" size={24} color={highContrastMode ? "#000000" : "#22c55e"} />
+                        <AntDesignIcon name="addfolder" size={24} color={highContrastMode ? "#000000" : "#3b82f6"} />
                     </TouchableOpacity>
                 )}
             </View>
