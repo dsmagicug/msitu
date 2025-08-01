@@ -9,10 +9,8 @@ import Reanimated, {
   withSpring,
   withTiming,
   withDelay,
-  interpolate,
-  Extrapolation
 } from 'react-native-reanimated';
-import { APP_VERSION, APP_NAME, APP_SUBTITLE } from '../../config/version';
+import { APP_VERSION, APP_NAME, APP_SUBTITLE, getBuildInfo, CONTACT_INFO } from '../../config/version';
 
 const AboutMsituModal = ({ visible, onClose }) => {
   // Get high contrast mode from store
@@ -55,16 +53,78 @@ const AboutMsituModal = ({ visible, onClose }) => {
     onClose();
   };
 
-  const openWebsite = () => {
-    Linking.openURL('https://msitu.tech/').catch(err => console.error('Error opening website:', err));
+  const openWebsite = async () => {
+    console.log("Opening website in default browser...");
+    try {
+      const url = CONTACT_INFO.website;
+      console.log("Attempting to open:", url);
+      
+      // Try the most direct approach
+      const supported = await Linking.canOpenURL(url);
+      console.log("URL supported:", supported);
+      
+      if (supported) {
+        await Linking.openURL(url);
+        console.log("Website opened successfully");
+      } else {
+        console.log("URL not supported, trying alternative...");
+        // Try alternative approach
+        await Linking.openURL('https://www.msitu.tech');
+      }
+    } catch (error) {
+      console.error('Error opening website:', error);
+      console.error('Error details:', error.message);
+    }
   };
 
-  const openGitHub = () => {
-    Linking.openURL('https://github.com/dsmagicug/msitu').catch(err => console.error('Error opening GitHub:', err));
+  const openGitHub = async () => {
+    console.log("Opening GitHub in default browser...");
+    try {
+      const url = CONTACT_INFO.github;
+      console.log("Attempting to open:", url);
+      
+      // Try the most direct approach
+      const supported = await Linking.canOpenURL(url);
+      console.log("URL supported:", supported);
+      
+      if (supported) {
+        await Linking.openURL(url);
+        console.log("GitHub opened successfully");
+      } else {
+        console.log("URL not supported, trying alternative...");
+        // Try alternative approach
+        await Linking.openURL('https://www.github.com/dsmagicug/msitu');
+      }
+    } catch (error) {
+      console.error('Error opening GitHub:', error);
+      console.error('Error details:', error.message);
+    }
   };
 
-  const openEmail = () => {
-    Linking.openURL('mailto:msitu@msitu.tech').catch(err => console.error('Error opening email:', err));
+  const openEmail = async () => {
+    console.log("Opening email app...");
+    try {
+      const url = `mailto:${CONTACT_INFO.email}`;
+      console.log("Attempting to open:", url);
+      await Linking.openURL(url);
+      console.log("Email app opened successfully");
+    } catch (error) {
+      console.error('Error opening email:', error);
+      console.error('Error details:', error.message);
+    }
+  };
+
+  const openPhone = async () => {
+    console.log("Opening phone app...");
+    try {
+      const url = `tel:${CONTACT_INFO.phone}`;
+      console.log("Attempting to open:", url);
+      await Linking.openURL(url);
+      console.log("Phone app opened successfully");
+    } catch (error) {
+      console.error('Error opening phone:', error);
+      console.error('Error details:', error.message);
+    }
   };
 
   if (!visible) return null;
@@ -100,32 +160,32 @@ const AboutMsituModal = ({ visible, onClose }) => {
   };
 
   return (
-    <Reanimated.View 
+    <Reanimated.View
       className="absolute inset-0 z-50 justify-center items-center"
       style={[containerStyle, modalAnimatedStyle]}
     >
-      <TouchableOpacity 
-        className="absolute inset-0" 
+      <TouchableOpacity
+        className="absolute inset-0"
         onPress={handleClose}
         activeOpacity={1}
       />
-      
-      <Reanimated.View 
+
+      <Reanimated.View
         className="mx-6 rounded-3xl overflow-hidden"
         style={[modalStyle, contentAnimatedStyle]}
       >
-        {/* Fixed Header */}
         <View className="p-6 pb-4 bg-gray-50" style={{ backgroundColor: highContrastMode ? '#f8f9fa' : '#f9fafb' }}>
           <View className="flex flex-row items-center justify-between mb-4">
             <View className="flex-1">
               <Text className="font-avenirBold text-2xl" style={textStyle}>{APP_NAME}</Text>
               <Text className="font-avenirMedium text-sm" style={subtitleStyle}>{APP_SUBTITLE}</Text>
               <Text className="font-avenirMedium text-xs mt-1" style={subtitleStyle}>Version {APP_VERSION}</Text>
+              <Text className="font-avenirMedium text-xs mt-1" style={subtitleStyle}>Build {getBuildInfo()}</Text>
             </View>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={handleClose}
               className="p-2 rounded-full"
-              style={{ 
+              style={{
                 backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(239, 68, 68, 0.1)',
                 borderWidth: highContrastMode ? 1 : 0,
                 borderColor: highContrastMode ? '#000000' : 'transparent',
@@ -136,14 +196,13 @@ const AboutMsituModal = ({ visible, onClose }) => {
           </View>
         </View>
 
-        {/* Scrollable Content */}
-        <ScrollView className="max-h-80" showsVerticalScrollIndicator={false}>
+        <ScrollView className="max-h-96" showsVerticalScrollIndicator={false}>
           <View className="px-6 pb-6">
             {/* Mission */}
             <View className="mb-6 pt-4">
               <Text className="font-avenirBold text-lg mb-3" style={textStyle}>Our Mission</Text>
               <Text className="font-avenirMedium text-sm leading-5" style={subtitleStyle}>
-                "The true meaning of life is to plant trees, under whose shade you do not expect to sit." 
+                "The true meaning of life is to plant trees, under whose shade you do not expect to sit."
                 <Text className="font-avenirBold"> ― Nelson Henderson</Text>
               </Text>
             </View>
@@ -152,13 +211,13 @@ const AboutMsituModal = ({ visible, onClose }) => {
             <View className="mb-6">
               <Text className="font-avenirBold text-lg mb-3" style={textStyle}>The Challenge</Text>
               <Text className="font-avenirMedium text-sm leading-5 mb-3" style={subtitleStyle}>
-                Traditional tree planting using ropes and manual measurement is tedious, inaccurate, and time-consuming. 
+                Traditional tree planting using ropes and manual measurement is tedious, inaccurate, and time-consuming.
                 Between 2001-2002, Uganda lost 290ha of tree cover - a 15% decrease.
               </Text>
-              
+
               <Text className="font-avenirBold text-lg mb-3" style={textStyle}>Our Solution</Text>
               <Text className="font-avenirMedium text-sm leading-5" style={subtitleStyle}>
-                Msitu uses Real Time Kinematic (RTK) technology to achieve <Text className="font-avenirBold">2cm accuracy</Text> in GPS positioning, 
+                Msitu uses Real Time Kinematic (RTK) technology to achieve <Text className="font-avenirBold">2cm accuracy</Text> in GPS positioning,
                 making tree planting seamless, precise, and enjoyable.
               </Text>
             </View>
@@ -197,11 +256,11 @@ const AboutMsituModal = ({ visible, onClose }) => {
             <View className="mb-6">
               <Text className="font-avenirBold text-lg mb-3" style={textStyle}>How It Works</Text>
               <Text className="font-avenirMedium text-sm leading-5 mb-3" style={subtitleStyle}>
-                Msitu uses a hybrid approach that combines the precision of RTK technology with practical field efficiency. 
+                Msitu uses a hybrid approach that combines the precision of RTK technology with practical field efficiency.
                 Instead of marking every point, we mark key reference points that serve as a skeleton for traditional rope methods.
               </Text>
               <Text className="font-avenirMedium text-sm leading-5" style={subtitleStyle}>
-                This approach reduces the time spent on pegging while maintaining the accuracy and precision that RTK technology provides, 
+                This approach reduces the time spent on pegging while maintaining the accuracy and precision that RTK technology provides,
                 making it accessible for both hobby and commercial foresters.
               </Text>
             </View>
@@ -210,33 +269,15 @@ const AboutMsituModal = ({ visible, onClose }) => {
             <View className="mb-6">
               <Text className="font-avenirBold text-lg mb-3" style={textStyle}>Environmental Impact</Text>
               <Text className="font-avenirMedium text-sm leading-5" style={subtitleStyle}>
-                By making tree planting more efficient and accessible, Msitu contributes to global reforestation efforts. 
+                By making tree planting more efficient and accessible, Msitu contributes to global reforestation efforts.
                 Each tree planted helps combat climate change, restore biodiversity, and create sustainable ecosystems for future generations.
               </Text>
-            </View>
-
-            {/* Links */}
-            <View className="space-y-3 mb-6">
-              <TouchableOpacity onPress={openWebsite} className="flex flex-row items-center p-3 rounded-lg" style={{ backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(59, 130, 246, 0.05)' }}>
-                <MaterialCommunityIcons name="web" size={20} color={highContrastMode ? "#000000" : "#3b82f6"} />
-                <Text className="font-avenirMedium text-sm ml-3" style={linkStyle}>Visit Website</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity onPress={openGitHub} className="flex flex-row items-center p-3 rounded-lg" style={{ backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(59, 130, 246, 0.05)' }}>
-                <MaterialCommunityIcons name="github" size={20} color={highContrastMode ? "#000000" : "#3b82f6"} />
-                <Text className="font-avenirMedium text-sm ml-3" style={linkStyle}>Open Source Repository</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity onPress={openEmail} className="flex flex-row items-center p-3 rounded-lg" style={{ backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(59, 130, 246, 0.05)' }}>
-                <MaterialCommunityIcons name="email" size={20} color={highContrastMode ? "#000000" : "#3b82f6"} />
-                <Text className="font-avenirMedium text-sm ml-3" style={linkStyle}>Contact: msitu@msitu.tech</Text>
-              </TouchableOpacity>
             </View>
           </View>
         </ScrollView>
 
         {/* Fixed Footer */}
-        <View className="p-4 border-t bg-gray-50" style={{ 
+        <View className="p-4 border-t bg-gray-50" style={{
           borderColor: highContrastMode ? '#000000' : '#e5e7eb',
           backgroundColor: highContrastMode ? '#f8f9fa' : '#f9fafb'
         }}>
@@ -246,10 +287,65 @@ const AboutMsituModal = ({ visible, onClose }) => {
           <Text className="font-avenirBold text-xs text-center mt-2" style={textStyle}>
             ― Franklin D. Roosevelt
           </Text>
+          
+          {/* Subtle Footer Links */}
+          <View className="flex flex-row justify-center items-center mt-4 space-x-8">
+            <TouchableOpacity
+              onPress={openWebsite}
+              className="p-2 rounded-full"
+              style={{
+                backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(59, 130, 246, 0.05)',
+                borderWidth: highContrastMode ? 1 : 0,
+                borderColor: highContrastMode ? '#000000' : 'transparent',
+              }}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons name="web" size={20} color={highContrastMode ? "#000000" : "#3b82f6"} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={openGitHub}
+              className="p-2 rounded-full"
+              style={{
+                backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(59, 130, 246, 0.05)',
+                borderWidth: highContrastMode ? 1 : 0,
+                borderColor: highContrastMode ? '#000000' : 'transparent',
+              }}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons name="github" size={20} color={highContrastMode ? "#000000" : "#3b82f6"} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              onPress={openEmail}
+              className="p-2 rounded-full"
+              style={{
+                backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(59, 130, 246, 0.05)',
+                borderWidth: highContrastMode ? 1 : 0,
+                borderColor: highContrastMode ? '#000000' : 'transparent',
+              }}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons name="email" size={20} color={highContrastMode ? "#000000" : "#3b82f6"} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={openPhone}
+              className="p-2 rounded-full"
+              style={{
+                backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(59, 130, 246, 0.05)',
+                borderWidth: highContrastMode ? 1 : 0,
+                borderColor: highContrastMode ? '#000000' : 'transparent',
+              }}
+              activeOpacity={0.7}
+            >
+              <MaterialCommunityIcons name="phone" size={20} color={highContrastMode ? "#000000" : "#3b82f6"} />
+            </TouchableOpacity>
+          </View>
         </View>
       </Reanimated.View>
     </Reanimated.View>
   );
 };
 
-export default AboutMsituModal; 
+export default AboutMsituModal;

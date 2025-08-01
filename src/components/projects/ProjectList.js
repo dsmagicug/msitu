@@ -132,7 +132,7 @@ export default function ProjectList({ children, show, onClose }) {
                         </Text>
                     </View>
                     <TouchableOpacity
-                        className='p-3 rounded-xl'
+                        className='p-3 rounded-xl mr-3'
                         style={{
                           backgroundColor: 'rgba(34, 197, 94, 0.1)',
                           borderWidth: 1,
