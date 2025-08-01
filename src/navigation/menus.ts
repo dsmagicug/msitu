@@ -11,14 +11,14 @@ export const DRAWER_MENUS = {
         action: "setShowProjectList",
         comingSoon: false,
       },
-      {
+      /*{
         label: "Import Projects",
         description: "Import from cloud or local files",
         icon: "download",
         iconType: "Entypo",
         action: "console.log",
         comingSoon: true,
-      },
+      }
       {
         label: "Export Projects",
         description: "Share and backup your data",
@@ -26,7 +26,7 @@ export const DRAWER_MENUS = {
         iconType: "MaterialCommunityIcons",
         action: "console.log",
         comingSoon: true,
-      },
+      },,*/
     ]
   },
   equipment: {
@@ -40,14 +40,14 @@ export const DRAWER_MENUS = {
         action: "setShowBTDevices",
         comingSoon: false,
       },
-      {
+      /*{
         label: "USB Serial",
         description: "Direct USB connections",
         icon: "usb-port",
         iconType: "MaterialCommunityIcons",
         action: "console.log",
         comingSoon: true,
-      },
+      },*/
     ]
   },
   application: {
@@ -72,4 +72,4 @@ export const DRAWER_MENUS = {
       },
     ]
   }
-}; 
+};

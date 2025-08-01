@@ -1,12 +1,11 @@
 // ** Reducers Imports
 
-import modals from "./modal"
-import project from "./projects"
-import bluetooth from "./bluetooth"
-import nmeaListener from "./nmeaListener"
-import pegging from "./pegging"
-import settings from "./settings"
-import usbSerial from "./usbSerial"
+import modals from './modal';
+import project from './projects';
+import bluetooth from './bluetooth';
+import nmeaListener from './nmeaListener';
+import pegging from './pegging';
+import settings from './settings';
 
 const rootReducer = {
     modals,
@@ -15,6 +14,5 @@ const rootReducer = {
     nmeaListener,
     pegging,
     settings,
-    usbSerial
 };
 export default rootReducer;

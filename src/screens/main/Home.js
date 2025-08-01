@@ -34,7 +34,7 @@ const Home = ({ navigation }) => {
   const [dataReadListener, setDataReadListener] = useState(null);
 
   const [mapRotateDegrees, setMapRotateDegrees] =  useState(180);
-
+  const [mapType, setMapType] = useState('SATELLITE');
 
   const { activeProject, visibleLines, loading, scaledPlantingLines, lock, forwardIndex, backwardIndex, totalLines } = useSelector(store => store.project);
   const { selectedDevice } = useSelector(store => store.bluetooth);
@@ -217,6 +217,9 @@ const Home = ({ navigation }) => {
         setPlanting(false);
       }
     }
+    else if(action === 'refresh'){
+      setMapType(mapType === 'SATELLITE' ? 'TERRAIN' : 'SATELLITE');
+    }
     else{
       setAreaMode(!areaMode);
     }
@@ -248,6 +251,7 @@ const Home = ({ navigation }) => {
         roverLocation={roverLocation}
         visibleLines={visibleLines}
         rotationDegrees={mapRotateDegrees}
+        mapType={mapType}
       />
 
       {/* Overlay View at the Top */}
@@ -330,6 +334,11 @@ const Home = ({ navigation }) => {
             backgroundColor:areaMode ? 'green-500' : null,
             disabled:cyrusLines.length > 0,
             initialPosition: cyrusLines.length > 0 ? 0 : 100,
+          },
+          {
+            icon: require('../../assets/map.png'),
+            name: 'refresh',
+            initialPosition: 500,
           },
         ]}
         onActionPress={handleIconClick}

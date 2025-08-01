@@ -19,7 +19,7 @@ import { pointToString } from "../../utils";
 
 const MemoizedRoverPosition = React.memo(RoverPosition);
 
-const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleLines, roverLocation, planting, rotationDegrees = 180 }) => {
+const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleLines, roverLocation, planting, rotationDegrees = 180, mapType = 'SATELLITE' }) => {
     const mapRef = useRef(null);
     const [polygonCoordinates, setPolygonCoordinates] = useState([]);
     const { circleProps, animate } = useAnimatedRegion(initialRegion);
@@ -30,7 +30,7 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
     const { activeProject } = useSelector(store => store.project)
     const {settings} = useSelector(store => store.settings)
     const [closestPoint, setClosestPoint] = useState(null)
-    const [mapType, setMapType] = useState(MAP_TYPES.SATELLITE)
+    const [localMapType, setLocalMapType] = useState(MAP_TYPES.SATELLITE)
 
     const dispatch = useDispatch();
 
@@ -127,9 +127,9 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
 
     useEffect(() => {
         if (planting) {
-            setMapType(MAP_TYPES.TERRAIN)
+            setLocalMapType(MAP_TYPES.TERRAIN)
         } else {
-            setMapType(MAP_TYPES.SATELLITE)
+            setLocalMapType(MAP_TYPES.SATELLITE)
             // set what must be set
             if (markedPoints.length > 0) {
                 // reset now
@@ -141,6 +141,16 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
     }, [planting])
 
     useEffect(() => {
+        if (mapType === 'SATELLITE') {
+            setLocalMapType(MAP_TYPES.SATELLITE);
+        } else if (mapType === 'TERRAIN') {
+            setLocalMapType(MAP_TYPES.TERRAIN);
+        } else if (mapType === 'HYBRID') {
+            setLocalMapType(MAP_TYPES.HYBRID);
+        }
+    }, [mapType]);
+
+    useEffect(() => {
 
         if (closestPoint && roverLocation) {
             const distance = RTNMsitu.distanceBtnCoords(closestPoint, roverLocation)
@@ -149,7 +159,6 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
             }
         }
     }, [closestPoint])
-
 
     const useCheckPointExists = () => {
         return useCallback((pointToCheck) => {
@@ -187,7 +196,7 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
             provider={PROVIDER_GOOGLE}
             showsCompass={false}
             loadingEnabled
-            mapType={mapType}
+            mapType={localMapType}
             onPress={handleMapPress}
             region={initialRegion}
             camera={{
