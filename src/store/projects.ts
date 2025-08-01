@@ -44,8 +44,7 @@ export const fetchProjects = createAsyncThunk(
     'project/fetchProjects',
     async (_, thunkAPI) => {
         try {
-            const projects = await ProjectService.fetch("projects", ["id", "name", "basePoints","gapSize","lineLength", "gapSizeUnit", "lineLengthUnit"]);
-            return projects;
+            return await ProjectService.fetch("projects", ["id", "name", "basePoints","gapSize","lineLength", "gapSizeUnit", "lineLengthUnit"]);
         } catch (error) {
             thunkAPI.rejectWithValue(generateError(error));
         }

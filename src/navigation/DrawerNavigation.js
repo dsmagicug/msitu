@@ -222,7 +222,7 @@ function CustomDrawerContent({ navigation, isPortrait }) {
   const scaleValue = useSharedValue(0.9);
 
   // Get project count from store
-  const { projects } = useSelector(store => store.project);
+  const { projectList } = useSelector(store => store.project);
   // Get high contrast mode from store
   // @ts-ignore
   const { settings } = useSelector(store => store.settings);
@@ -297,11 +297,7 @@ function CustomDrawerContent({ navigation, isPortrait }) {
               <Text className="font-avenirBold text-2xl" style={{
                 color: highContrastMode ? '#000000' : '#16a34a',
                 fontWeight: highContrastMode ? 'bold' : 'normal',
-              }}>{projects?.length || 0}</Text>
-              <Text className="font-avenirMedium text-sm" style={{
-                color: highContrastMode ? '#000000' : '#16a34a',
-                fontWeight: highContrastMode ? '600' : 'normal',
-              }}>Projects</Text>
+              }}>{projectList?.length || 0} Projects</Text>
             </View>
           </View>
         </View>

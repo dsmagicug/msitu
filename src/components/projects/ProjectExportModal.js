@@ -13,12 +13,10 @@ import Reanimated, {
   withTiming,
   withDelay,
 } from 'react-native-reanimated';
-import RNFS from 'react-native-fs';
 
 const ProjectExportModal = ({ visible, onClose }) => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedProject, setSelectedProject] = useState(null);
 
   // Get high contrast mode from store
   const { settings } = useSelector(store => store.settings);
@@ -80,70 +78,17 @@ const ProjectExportModal = ({ visible, onClose }) => {
   const handleExportProject = async (project) => {
     try {
       setLoading(true);
-      
-      // Request storage permission on Android
-      if (Platform.OS === 'android') {
-        try {
-          // Check if permission is already granted
-          const hasPermission = await PermissionsAndroid.check(
-            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE
-          );
-          
-          if (!hasPermission) {
-            const granted = await PermissionsAndroid.request(
-              PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-              {
-                title: 'Storage Permission',
-                message: 'App needs access to storage to save project files to Downloads folder.',
-                buttonNeutral: 'Ask Me Later',
-                buttonNegative: 'Cancel',
-                buttonPositive: 'OK',
-              }
-            );
-            
-            if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-              throw new Error('Storage permission denied. Cannot save project file.');
-            }
-          }
-        } catch (permissionError) {
-          console.error('Permission error:', permissionError);
-          throw new Error('Failed to request storage permission. Cannot save project file.');
-        }
-      }
 
+      // Export project data
       const exportedProject = await ProjectService.exportProject(project.id);
-
       // Convert to JSON file
-      const projectJson = await exportProjectToFile(exportedProject);
-      
-      // Create filename with timestamp
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-      const filename = `msitu-project-${project.name.replace(/\s+/g, '-')}-${timestamp}.json`;
-      
-      // Determine download path
-      let downloadPath;
-      if (Platform.OS === 'android') {
-        downloadPath = `${RNFS.DownloadDirectoryPath}/${filename}`;
-      } else {
-        downloadPath = `${RNFS.DocumentDirectoryPath}/${filename}`;
-      }
-      
-      // Write file to downloads
-      await RNFS.writeFile(downloadPath, projectJson, 'utf8');
-      
-      // Show success message
-      Toast.show({
-        type: 'success',
-        text1: 'Export Successful',
-        text2: `Project saved to Downloads/${filename}`
-      });
-      
+      await exportProjectToFile(exportedProject);
     } catch (error) {
       console.error('Export failed:', error);
       Toast.show({
         type: 'error',
         text1: 'Export Failed',
-        text2: error.message || 'Failed to export project'
+        text2: error.message || 'Failed to export project',
       });
     } finally {
       setLoading(false);
@@ -291,16 +236,12 @@ const ProjectExportModal = ({ visible, onClose }) => {
                             Length: {project.lineLength || 'N/A'} {project.lineLengthUnit || 'm'} • Gap: {(project.gapSize || 0).toFixed(2)} {project.gapSizeUnit || 'm'}
                           </Text>
                         </View>
-                        <View className="flex-row items-center space-x-8">
+                        <View className="flex-row items-center space-x-12">
                         <TouchableOpacity
                           onPress={() => handleExportProject(project)}
                           disabled={loading}
-                          className="p-3 rounded-lg"
-                          style={{
-                            backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(34, 197, 94, 0.1)',
-                            borderWidth: highContrastMode ? 1 : 0,
-                            borderColor: highContrastMode ? '#000000' : 'transparent',
-                          }}
+                          className="p-4"
+                          activeOpacity={0.7}
                         >
                           <MaterialCommunityIcons
                             name="download"
@@ -308,22 +249,18 @@ const ProjectExportModal = ({ visible, onClose }) => {
                             color={highContrastMode ? "#000000" : "#22c55e"}
                           />
                         </TouchableOpacity>
-                        <TouchableOpacity
+                        {/* <TouchableOpacity
                           onPress={() => handleShareProject(project)}
                           disabled={loading}
-                          className="p-3 rounded-lg"
-                          style={{
-                            backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(59, 130, 246, 0.1)',
-                            borderWidth: highContrastMode ? 1 : 0,
-                            borderColor: highContrastMode ? '#000000' : 'transparent',
-                          }}
+                          className="p-4"
+                          activeOpacity={0.7}
                         >
                           <MaterialCommunityIcons
                             name="share-variant"
                             size={20}
                             color={highContrastMode ? "#000000" : "#3b82f6"}
                           />
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                       </View>
                     </View>
                   </View>

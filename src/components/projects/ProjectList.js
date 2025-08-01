@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ActivityIndicator, Dimensions } from 'react-native'
+import { View, Text, TouchableOpacity, ActivityIndicator, Dimensions, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { BottomModal, ModalFooter, ModalButton, ModalContent } from 'react-native-modals';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign'
@@ -14,6 +14,11 @@ import Reanimated, {
   withTiming,
   withDelay
 } from 'react-native-reanimated';
+import ProjectService from '../../services/ProjectService';
+import { importProjectFromFile } from '../../utils/fileUtils';
+import Toast from 'react-native-toast-message';
+import { pick , types} from '@react-native-documents/picker'
+import RNFS from 'react-native-fs';
 
 const AnimatedProjectItem = ({ project, index, onOpen, onDelete, onDeselect, isActive }) => {
   const scaleValue = useSharedValue(0);
@@ -115,6 +120,86 @@ export default function ProjectList({ children, show, onClose }) {
     const dispatch = useDispatch()
     const { fetching, projectList, activeProject } = useSelector(store => store.project)
     const [isPortrait, setIsPortrait] = useState(true);
+    const [importing, setImporting] = useState(false);
+
+    const handleImportProject = async () => {
+        try {
+            setImporting(true);
+
+            // Pick JSON file
+            const result = await pick({
+                allowMultiSelection: false,
+                type: [types.json],
+            });
+            if (result && result.length > 0) {
+                const file = result[0];
+                const jsonData = await RNFS.readFile(file.uri, 'utf8');
+
+                // Parse and validate the project
+                const project = await importProjectFromFile(jsonData);
+                console.log('Importing project:', project.name);
+                // Prepare project data for database with async stringification
+                const projectData = {
+                    ...project,
+                    id:null,
+                    center: project.center ? JSON.stringify(project.center) : null,
+                    basePoints: project.basePoints ? JSON.stringify(project.basePoints) : [],
+                    plantingLines: project.plantingLines ? JSON.stringify(project.plantingLines) : [],
+                    markedPoints: project.markedPoints ? JSON.stringify(project.markedPoints) : null,
+                    createdAt: project.createdAt ? new Date(project.createdAt).toISOString() : new Date().toISOString()
+                };
+
+                // Save to database
+                const insertRows = await ProjectService.save("projects", [projectData]);
+                const { insertId } = insertRows[0];
+                if(insertId){
+                    // Refresh project list
+                    dispatch(fetchProjects());
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Import Successful',
+                        text2: `Project "${project.name}" imported successfully`
+                    });
+                }
+            }
+
+        } catch (error) {
+            console.error('Import error:', error);
+            Toast.show({
+                type: 'error',
+                text1: 'Import Failed',
+                text2: error.message || 'Failed to import project'
+            });
+        } finally {
+            setImporting(false);
+        }
+    };
+
+    const handleDeleteProject = (project) => {
+        Alert.alert(
+            'Delete Project',
+            `Are you sure you want to delete "${project.name}"? This action cannot be undone.`,
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel',
+                },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: () => {
+                        dispatch(deleteProject(project.id));
+                        Toast.show({
+                            type: 'success',
+                            text1: 'Project Deleted',
+                            text2: `Project "${project.name}" has been deleted`
+                        });
+                    },
+                },
+            ],
+            { cancelable: true }
+        );
+    };
 
     useEffect(() => {
         const updateOrientation = () => {
@@ -153,24 +238,46 @@ export default function ProjectList({ children, show, onClose }) {
                           {projectList.length} project{projectList.length !== 1 ? 's' : ''} found
                         </Text>
                     </View>
-                    <TouchableOpacity
-                        className='p-3 rounded-xl'
-                        style={{
-                          backgroundColor: 'rgba(34, 197, 94, 0.1)',
-                          borderWidth: 1,
-                          borderColor: 'rgba(34, 197, 94, 0.2)',
-                          minWidth: 50,
-                          minHeight: 50,
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                        }}
-                        onPress={() => {
-                          // TODO: Add new project functionality
-                          console.log('New Project button pressed');
-                        }}
-                    >
-                        <AntDesignIcon name="addfolder" size={24} color="#22c55e" />
-                    </TouchableOpacity>
+                    <View className="flex flex-row gap-2">
+                        <TouchableOpacity
+                            className='p-3 rounded-xl'
+                            style={{
+                              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                              borderWidth: 1,
+                              borderColor: 'rgba(59, 130, 246, 0.2)',
+                              minWidth: 50,
+                              minHeight: 50,
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                            }}
+                            onPress={handleImportProject}
+                            disabled={importing}
+                        >
+                            {importing ? (
+                                <ActivityIndicator size="small" color="#3b82f6" />
+                            ) : (
+                                <MaterialCommunityIcons name="import" size={24} color="#3b82f6" />
+                            )}
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            className='p-3 rounded-xl'
+                            style={{
+                              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                              borderWidth: 1,
+                              borderColor: 'rgba(34, 197, 94, 0.2)',
+                              minWidth: 50,
+                              minHeight: 50,
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                            }}
+                            onPress={() => {
+                              // TODO: Add new project functionality
+                              console.log('New Project button pressed');
+                            }}
+                        >
+                            <AntDesignIcon name="addfolder" size={24} color="#22c55e" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
             }
             footer={
@@ -218,7 +325,7 @@ export default function ProjectList({ children, show, onClose }) {
                                 project={project}
                                 index={idx}
                                 onOpen={() => dispatch(loadProject(project.id))}
-                                onDelete={() => dispatch(deleteProject(project.id))}
+                                onDelete={() => handleDeleteProject(project)}
                                 isActive={activeProject && activeProject.id === project.id}
                                 onDeselect={() => dispatch(clearActiveProject())}
                             />

@@ -34,30 +34,20 @@ class ProjectService {
     if (items.length < 1) {
       return Promise.reject('Items list cannot be empty');
     }
-
     try {
       const firstItem = items[0];
       const fields = Object.keys(firstItem);
-      const insertQuery =
-        `INSERT
-      OR REPLACE INTO
-      ${tableName}
-      (
-      ${fields.join(', ')}
-      )
-      VALUES ` +
-        items
-          .map(
-            i =>
-              `(${fields
-                .map(field =>
-                  typeof i[field] === 'string' ? "'" + i[field] + "'" : i[field],
-                )
-                .join(', ')})`,
-          )
-          .join(',');
+      
+      // Use parameterized query to prevent data logging
+      const placeholders = items.map(() => `(${fields.map(() => '?').join(', ')})`).join(',');
+      const insertQuery = `INSERT OR REPLACE INTO ${tableName} (${fields.join(', ')}) VALUES ${placeholders}`;
+      
+      // Flatten the values array for parameterized query
+      const values = items.flatMap(item => fields.map(field => item[field]));
 
-      return ProjectService.db.executeSql(insertQuery);
+      // Execute with parameterized query to prevent data exposure
+      const result = await ProjectService.db.executeSql(insertQuery, values);
+      return result;
     } catch (error) {
       return Promise.reject(error)
     }
