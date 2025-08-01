@@ -73,27 +73,25 @@ const AnimatedDrawerItem = ({ label, icon, onPress, delay = 0, description = nul
 
   const cardStyle = {
     backgroundColor: disabled
-      ? (highContrastMode ? 'rgba(200, 200, 200, 0.8)' : 'rgba(240, 240, 240, 0.8)')
-      : (highContrastMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.8)'),
-    borderWidth: highContrastMode ? 2 : 1,
+      ? (highContrastMode ? 'rgba(200, 200, 200, 0.9)' : 'rgba(245, 245, 245, 0.9)')
+      : (highContrastMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.9)'),
+    borderWidth: highContrastMode ? 1 : 0,
     borderColor: disabled
-      ? (highContrastMode ? '#666666' : 'rgba(156, 163, 175, 0.3)')
-      : (highContrastMode ? '#000000' : 'rgba(59, 130, 246, 0.1)'),
+      ? (highContrastMode ? '#666666' : 'rgba(156, 163, 175, 0.2)')
+      : (highContrastMode ? '#000000' : 'transparent'),
     shadowColor: highContrastMode ? '#000000' : '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: disabled ? 0.02 : (highContrastMode ? 0.1 : 0.05),
-    shadowRadius: 8,
-    elevation: disabled ? 1 : (highContrastMode ? 4 : 2),
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: disabled ? 0.01 : (highContrastMode ? 0.05 : 0.02),
+    shadowRadius: 2,
+    elevation: disabled ? 0 : (highContrastMode ? 1 : 0),
   };
 
   const iconStyle = {
     backgroundColor: disabled
-      ? (highContrastMode ? 'rgba(100, 100, 100, 0.1)' : 'rgba(156, 163, 175, 0.1)')
-      : (highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(59, 130, 246, 0.1)'),
-    borderWidth: highContrastMode ? 1 : 0,
-    borderColor: disabled
-      ? (highContrastMode ? '#666666' : 'rgba(156, 163, 175, 0.3)')
-      : (highContrastMode ? '#000000' : 'transparent'),
+      ? (highContrastMode ? 'rgba(100, 100, 100, 0.05)' : 'rgba(156, 163, 175, 0.05)')
+      : (highContrastMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(59, 130, 246, 0.05)'),
+    borderWidth: 0,
+    borderColor: 'transparent',
   };
 
   const labelStyle = {
@@ -113,13 +111,13 @@ const AnimatedDrawerItem = ({ label, icon, onPress, delay = 0, description = nul
   return (
     <Reanimated.View style={animatedStyle}>
       <TouchableOpacity
-        className="flex flex-row items-center p-5 mx-3 rounded-2xl mb-2"
+        className="flex flex-row items-center p-4 mx-3 rounded-lg mb-1"
         onPress={handlePress}
         style={cardStyle}
         disabled={disabled}
-        activeOpacity={disabled ? 1 : 0.7}
+        activeOpacity={disabled ? 1 : 0.8}
       >
-        <View className="mr-3 p-1.5 rounded-md" style={iconStyle}>
+        <View className="mr-3 p-1 rounded" style={iconStyle}>
           {icon}
         </View>
         <View className="flex-1">
@@ -162,7 +160,7 @@ const DrawerSection = ({ title, children, delay = 0, highContrastMode = false })
 
   return (
     <Reanimated.View style={animatedStyle}>
-      <Text className="font-avenirBold text-sm uppercase tracking-wider mb-3 px-6" style={titleStyle}>
+      <Text className="font-avenirBold text-sm mb-2 px-6" style={titleStyle}>
         {title}
       </Text>
       {children}
