@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity } from 'react-native'
 import React from 'react'
 import { useDispatch, useSelector } from 'react-redux';
-import { setShowCreateNewProjects } from '../../store/modal';
+import { setShowCreateNewProjects, setShowBTDevices } from '../../store/modal';
 import Icon from 'react-native-vector-icons/Ionicons';
 import AntDesignIcon from 'react-native-vector-icons/AntDesign'
 import MCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons'
@@ -55,7 +55,7 @@ export default function TopNavBar({ navigation, hideNewProject }) {
 
     const bluetoothStatusStyle = useAnimatedStyle(() => {
         const backgroundColor = isBluetoothEnabled 
-            ? selectedDevice ? 'rgba(34, 197, 94, 0.15)' : 'rgba(59, 130, 246, 0.15)'
+            ? selectedDevice ? 'rgba(255, 255, 255, 0.1)' : 'rgba(59, 130, 246, 0.15)'
             : 'rgba(239, 68, 68, 0.15)';
         
         return {
@@ -114,9 +114,10 @@ export default function TopNavBar({ navigation, hideNewProject }) {
             </View>
             
             <View className='flex flex-row items-center gap-2'>
-                <Reanimated.View
-                    className='p-2 rounded-lg flex items-center justify-center'
-                    style={bluetoothStatusStyle}
+                <TouchableOpacity
+                    onPress={() => dispatch(setShowBTDevices(true))}
+                    className='flex items-center justify-center'
+                    activeOpacity={0.7}
                 >
                     <View className="flex items-center">
                         {
@@ -124,24 +125,47 @@ export default function TopNavBar({ navigation, hideNewProject }) {
                                 selectedDevice ? (
                                     <>
                                         <MaterialIcons name="bluetooth-connected" size={16} color={highContrastMode ? "#000000" : "#16a34a"} />
-                                        <Text className="font-avenirMedium text-center mt-1"
+                                        <Text className="font-avenirBold text-center mt-1"
                                             style={{
                                                 color: highContrastMode ? '#000000' : '#16a34a',
-                                                fontSize: 8
+                                                fontSize: 8,
+                                                fontWeight: 'bold'
                                             }}
                                         >
-                                            {selectedDevice.name.length > 8 ? selectedDevice.name.substring(0, 8) + '...' : selectedDevice.name}
+                                            {selectedDevice.name.length > 12 ? selectedDevice.name.substring(0, 12) + '...' : selectedDevice.name}
                                         </Text>
                                     </>
                                 ) : (
-                                    <MCommunityIcons name="bluetooth" size={16} color={highContrastMode ? "#000000" : "#2563eb"} />
+                                    <>
+                                        <MCommunityIcons name="bluetooth" size={16} color={highContrastMode ? "#000000" : "#3b82f6"} />
+                                        <Text className="font-avenirBold text-center mt-1"
+                                            style={{
+                                                color: highContrastMode ? '#000000' : '#3b82f6',
+                                                fontSize: 8,
+                                                fontWeight: 'bold'
+                                            }}
+                                        >
+                                            Enabled
+                                        </Text>
+                                    </>
                                 )
                             ) : (
-                                <MCommunityIcons name="bluetooth-off" size={16} color={highContrastMode ? "#000000" : "#dc2626"} />
+                                <>
+                                    <MCommunityIcons name="bluetooth-off" size={16} color={highContrastMode ? "#000000" : "#dc2626"} />
+                                    <Text className="font-avenirBold text-center mt-1"
+                                        style={{
+                                            color: highContrastMode ? '#000000' : '#dc2626',
+                                            fontSize: 8,
+                                            fontWeight: 'bold'
+                                        }}
+                                    >
+                                        Disabled
+                                    </Text>
+                                </>
                             )
                         }
                     </View>
-                </Reanimated.View>
+                </TouchableOpacity>
 
                 {!hideNewProject && (
                     <TouchableOpacity
