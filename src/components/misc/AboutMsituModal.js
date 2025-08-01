@@ -12,6 +12,7 @@ import Reanimated, {
   interpolate,
   Extrapolation
 } from 'react-native-reanimated';
+import { APP_VERSION, APP_NAME, APP_SUBTITLE } from '../../config/version';
 
 const AboutMsituModal = ({ visible, onClose }) => {
   // Get high contrast mode from store
@@ -117,9 +118,9 @@ const AboutMsituModal = ({ visible, onClose }) => {
         <View className="p-6 pb-4 bg-gray-50" style={{ backgroundColor: highContrastMode ? '#f8f9fa' : '#f9fafb' }}>
           <View className="flex flex-row items-center justify-between mb-4">
             <View className="flex-1">
-              <Text className="font-avenirBold text-2xl" style={textStyle}>Msitu</Text>
-              <Text className="font-avenirMedium text-sm" style={subtitleStyle}>Every tree planter's companion</Text>
-              <Text className="font-avenirMedium text-xs mt-1" style={subtitleStyle}>Version 1.0.0</Text>
+              <Text className="font-avenirBold text-2xl" style={textStyle}>{APP_NAME}</Text>
+              <Text className="font-avenirMedium text-sm" style={subtitleStyle}>{APP_SUBTITLE}</Text>
+              <Text className="font-avenirMedium text-xs mt-1" style={subtitleStyle}>Version {APP_VERSION}</Text>
             </View>
             <TouchableOpacity 
               onPress={handleClose}

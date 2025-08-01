@@ -14,6 +14,7 @@ import Reanimated, {
   interpolate,
   Extrapolation
 } from 'react-native-reanimated';
+import { APP_NAME } from '../../config/version';
 
 export default function TopNavBar({ navigation, hideNewProject }) {
 
@@ -103,7 +104,7 @@ export default function TopNavBar({ navigation, hideNewProject }) {
             
             <View className="flex-1 mx-4">
                 <Text className='font-avenirBold text-xl text-center' style={textStyle}>
-                    {activeProject ? activeProject.name : 'Msitu [Cyrus Mode]'}
+                    {activeProject ? activeProject.name : `${APP_NAME} [Cyrus Mode]`}
                 </Text>
                 {activeProject && (
                     <Text className='font-avenirMedium text-sm text-center' style={subtitleStyle}>

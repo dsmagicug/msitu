@@ -16,6 +16,7 @@ import { setShowProjectList, setShowBTDevices, setShowAboutMsitu } from "../stor
 import ProjectList from '../components/projects/ProjectList';
 import BluetoothDevices from '../components/projects/BluetoothDevices';
 import AboutMsituModal from '../components/misc/AboutMsituModal';
+import { APP_VERSION, APP_NAME, APP_SUBTITLE } from '../config/version';
 import Reanimated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -209,9 +210,9 @@ function CustomDrawerContent({ navigation, isPortrait }) {
         <View className="px-4 pt-8 pb-4" style={[{ position: 'sticky', top: 0, zIndex: 10 }, headerStyle]}>
           <View className="flex flex-row items-center justify-between mb-3">
             <View className="flex-1">
-              <Text className="font-avenirBold text-2xl" style={titleStyle}>Msitu</Text>
-              <Text className="font-avenirMedium text-sm" style={subtitleStyle}>Survey & Planting</Text>
-              <Text className="font-avenirMedium text-xs mt-1" style={versionStyle}>Version 1.0.0</Text>
+              <Text className="font-avenirBold text-2xl text-gray-800">{APP_NAME}</Text>
+              <Text className="font-avenirMedium text-sm text-gray-500">{APP_SUBTITLE}</Text>
+              <Text className="font-avenirMedium text-xs mt-1" style={versionStyle}>Version {APP_VERSION}</Text>
             </View>
             <TouchableOpacity 
               onPress={() => navigation.closeDrawer()}
