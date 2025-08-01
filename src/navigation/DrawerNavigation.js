@@ -12,9 +12,10 @@ import React, { useState, useEffect } from 'react';
 import { Dimensions, View, Text, TouchableOpacity, ScrollView, StyleSheet} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Divider from '../components/utilities/Divider';
-import { setShowProjectList, setShowBTDevices } from "../store/modal"
+import { setShowProjectList, setShowBTDevices, setShowAboutMsitu } from "../store/modal"
 import ProjectList from '../components/projects/ProjectList';
 import BluetoothDevices from '../components/projects/BluetoothDevices';
+import AboutMsituModal from '../components/misc/AboutMsituModal';
 import Reanimated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -310,7 +311,7 @@ function CustomDrawerContent({ navigation, isPortrait }) {
               label="About Msitu"
               description="Version and information"
               icon={<Ionicon name="information-circle-outline" size={24} color="#3b82f6" />}
-              onPress={() => console.log("About Msitu")}
+              onPress={() => dispatch(setShowAboutMsitu(true))}
               delay={1000}
               highContrastMode={highContrastMode}
             />
@@ -360,6 +361,10 @@ export default function DrawerNavigation(props) {
       <BluetoothDevices
          show={modalStore.showBTDevices}
          onClose={() => dispatch(setShowBTDevices(false))}
+      />
+      <AboutMsituModal
+        visible={modalStore.showAboutMsitu}
+        onClose={() => dispatch(setShowAboutMsitu(false))}
       />
     </>
   );

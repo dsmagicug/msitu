@@ -9,6 +9,7 @@ const modalSlice = createSlice({
         showProjectList: false,
         showBTDevices: false,
         showUSBDevices: false,
+        showAboutMsitu: false,
     },
     reducers: {
         setShowCreateNewProjects: (state, action) => {
@@ -20,9 +21,12 @@ const modalSlice = createSlice({
         setShowBTDevices: (state, action) => {
             state.showBTDevices = action.payload;
         },
+        setShowAboutMsitu: (state, action) => {
+            state.showAboutMsitu = action.payload;
+        },
     },
 });
 
-export const {setShowCreateNewProjects, setShowProjectList, setShowBTDevices} = modalSlice.actions;
+export const {setShowCreateNewProjects, setShowProjectList, setShowBTDevices, setShowAboutMsitu} = modalSlice.actions;
 
 export default modalSlice.reducer;
