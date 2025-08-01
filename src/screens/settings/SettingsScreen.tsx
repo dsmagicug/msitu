@@ -26,7 +26,7 @@ import Reanimated, {
 import { Picker } from '@react-native-picker/picker';
 import styles from '../../assets/styles';
 import { useDispatch, useSelector } from 'react-redux';
-import { Settings, defaultSettings, loadSettings, saveSettings } from '../../store/settings';
+import { Settings, defaultSettings, loadSettings, saveSettings, toggleHighContrastMode } from '../../store/settings';
 
 const AnimatedSettingCard = ({ children, index = 0, highContrast = false }: { children: React.ReactNode; index?: number; highContrast?: boolean }) => {
     const scaleValue = useSharedValue(0);
@@ -123,23 +123,37 @@ const SettingsScreen: React.FC = () => {
     useEffect(()=>{
         if(settings){
             setLocalSettings(settings)
-            setMapStyle(localSettings.mapStyle)
+            setMapStyle(settings.mapStyle)
+            setHighContrastMode(settings.highContrastMode || false)
+            setMode(settings.appMode === "planting")
             setHasUnsavedChanges(false);
         }
     },[settings])
 
-    useEffect(()=>{
-        let appMode = mode ? "planting" :"survey"
-        setLocalSettings({...localSettings, appMode})
+    const onToggleAppMode = () => {
+        const newMode = !mode;
+        setMode(newMode);
+        const appMode = newMode ? "planting" : "survey";
+        setLocalSettings({...localSettings, appMode});
         setHasUnsavedChanges(true);
-    },[mode])
+    };
 
-    const onToggleAppMode = () => setMode(!mode);
-
-    const handleSave = () => {
-        //@ts-ignore
-        dispatch(saveSettings(localSettings))
-        setHasUnsavedChanges(false);
+    const handleSave = async () => {
+        try {
+            // Ensure the store state is synced with local settings
+            const settingsToSave = {
+                ...localSettings,
+                highContrastMode: highContrastMode
+            };
+            //@ts-ignore
+            await dispatch(saveSettings(settingsToSave)).unwrap();
+            setHasUnsavedChanges(false);
+        } catch (error) {
+            console.error('Failed to save settings:', error);
+            // You could add a toast notification here to show the error
+            // For now, we'll just log it and keep the unsaved changes state
+            setHasUnsavedChanges(true);
+        }
     };
 
     const handleSettingChange = (newSettings: Settings) => {
@@ -148,8 +162,12 @@ const SettingsScreen: React.FC = () => {
     };
 
     const toggleHighContrast = () => {
-        setHighContrastMode(!highContrastMode);
+        const newHighContrastMode = !highContrastMode;
+        setHighContrastMode(newHighContrastMode);
+        setLocalSettings({...localSettings, highContrastMode: newHighContrastMode});
         setHasUnsavedChanges(true);
+        // Immediately update the store for instant effect across the app
+        dispatch(toggleHighContrastMode());
     };
 
     // High contrast text styles

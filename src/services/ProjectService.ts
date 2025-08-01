@@ -21,7 +21,7 @@ class ProjectService {
   public static async createTables() {
     const tableQueries = [
       'CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY, name TEXT NOT NULL, basePoints TEXT NOT NULL, center TEXT,  plantingLines TEXT, markedPoints TEXT, gapSize INTEGER, lineLength INTEGER, gapSizeUnit TEXT, lineLengthUnit TEXT, forwardIndex INTEGER, backwardIndex INTEGER,lineCount INTEGER, createdAt TEXT);',
-      'CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY, appMode TEXT, skipLines INTEGER, displayLineCount INTEGER, cloudApi TEXT, mapStyle TEXT);'
+      'CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY, appMode TEXT, skipLines INTEGER, displayLineCount INTEGER, cloudApi TEXT, mapStyle TEXT, highContrastMode INTEGER DEFAULT 0);'
     ];
 
     tableQueries.map(async query => {

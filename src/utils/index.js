@@ -1,4 +1,5 @@
 import moment from 'moment'
+import { useSelector } from 'react-redux';
 
 
 export function parseToUTC(input, format) {
@@ -73,4 +74,44 @@ export const pointToString = (point) => `${point.latitude},${point.longitude}`;
 export const stringToPoint = (str) => {
   const [latitude, longitude] = str.split(',').map(Number);
   return { latitude, longitude };
+};
+
+export const useHighContrastMode = () => {
+    // @ts-ignore
+    const { settings } = useSelector(store => store.settings);
+    return settings?.highContrastMode || false;
+};
+
+export const getHighContrastStyles = (highContrastMode) => {
+    return {
+        text: {
+            color: highContrastMode ? '#000000' : '#1f2937',
+            fontWeight: highContrastMode ? 'bold' : 'normal',
+        },
+        subtitle: {
+            color: highContrastMode ? '#000000' : '#6b7280',
+            fontWeight: highContrastMode ? '600' : 'normal',
+        },
+        body: {
+            color: highContrastMode ? '#000000' : '#374151',
+            fontWeight: highContrastMode ? 'bold' : 'normal',
+        },
+        container: {
+            backgroundColor: highContrastMode ? 'rgba(255, 255, 255, 0.98)' : 'rgba(255, 255, 255, 0.95)',
+            borderWidth: highContrastMode ? 2 : 1,
+            borderColor: highContrastMode ? '#000000' : 'rgba(59, 130, 246, 0.1)',
+            shadowColor: highContrastMode ? '#000000' : '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: highContrastMode ? 0.2 : 0.05,
+            shadowRadius: 8,
+            elevation: highContrastMode ? 4 : 2,
+        },
+        icon: {
+            color: highContrastMode ? '#000000' : '#3b82f6',
+        },
+        button: {
+            backgroundColor: highContrastMode ? '#000000' : '#3b82f6',
+            borderColor: highContrastMode ? '#000000' : 'transparent',
+        }
+    };
 };

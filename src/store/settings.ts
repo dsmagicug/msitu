@@ -10,6 +10,7 @@ export type Settings = {
     displayLineCount: number
     cloudApi: string
     mapStyle: string
+    highContrastMode: boolean
 }
 
 
@@ -25,7 +26,8 @@ export const defaultSettings: Settings = {
     skipLines: 5,
     displayLineCount: 10,
     cloudApi: "https://api.msitu.com/import",
-    mapStyle: MAP_TYPES.SATELLITE
+    mapStyle: MAP_TYPES.SATELLITE,
+    highContrastMode: false
 }
 
 const initialState: SettingState = {
@@ -42,11 +44,16 @@ export const saveSettings = createAsyncThunk(
         try {
             console.log(settings)
             const { id } = settings;
+            const settingsToSave = {
+                ...settings,
+                highContrastMode: settings.highContrastMode ? 1 : 0
+            };
+            
             if (id) {
-                await ProjectService.update("settings", id, settings);
+                await ProjectService.update("settings", id, settingsToSave);
                 return settings;
             } else {
-                const insertRows = await ProjectService.save("settings", [settings]);
+                const insertRows = await ProjectService.save("settings", [settingsToSave]);
                 const { insertId } = insertRows[0];
                 const data = {
                     ...settings,
@@ -55,9 +62,11 @@ export const saveSettings = createAsyncThunk(
                 return data as Settings;
             }
 
-
         } catch (error) {
-            thunkAPI.rejectWithValue(generateError(error));
+            console.error('Error saving settings:', error);
+            // Handle database errors properly without using generateError
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            return thunkAPI.rejectWithValue(errorMessage);
         }
     },
 );
@@ -69,13 +78,21 @@ export const loadSettings = createAsyncThunk(
         try {
             const settings = await ProjectService.fetch("settings", "*");
             if (settings && settings.length > 0) {
-                return settings[0] as Settings
+                const dbSettings = settings[0];
+                // Convert database boolean (0/1) back to boolean
+                return {
+                    ...dbSettings,
+                    highContrastMode: Boolean(dbSettings.highContrastMode)
+                } as Settings;
             } else {
                 thunkAPI.dispatch(saveSettings(defaultSettings))
             }
             return defaultSettings;
         } catch (error) {
-            thunkAPI.rejectWithValue(generateError(error));
+            console.error('Error loading settings:', error);
+            // Handle database errors properly without using generateError
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            return thunkAPI.rejectWithValue(errorMessage);
         }
     },
 );
@@ -84,7 +101,16 @@ export const settingSlice = createSlice({
     name: 'settings',
     initialState,
     reducers: {
-
+        toggleHighContrastMode: (state) => {
+            if (state.settings && typeof state.settings === 'object' && 'highContrastMode' in state.settings) {
+                (state.settings as Settings).highContrastMode = !(state.settings as Settings).highContrastMode;
+            }
+        },
+        setHighContrastMode: (state, action) => {
+            if (state.settings && typeof state.settings === 'object' && 'highContrastMode' in state.settings) {
+                (state.settings as Settings).highContrastMode = action.payload;
+            }
+        }
     },
     extraReducers: builder => {
         builder
@@ -115,3 +141,4 @@ export const settingSlice = createSlice({
     },
 });
 export default settingSlice.reducer;
+export const { toggleHighContrastMode, setHighContrastMode } = settingSlice.actions;

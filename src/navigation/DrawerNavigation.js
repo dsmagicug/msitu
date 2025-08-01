@@ -192,7 +192,10 @@ function CustomDrawerContent({ navigation, isPortrait }) {
               <AnimatedDrawerItem
                 label="Settings"
                 icon={<Ionicon name="settings-outline" size={24} color="#3b82f6" />}
-                onPress={() => navigation.navigate("Settings")}
+                onPress={() => {
+                  navigation.closeDrawer();
+                  navigation.navigate("Settings");
+                }}
                 delay={600}
               />
               <AnimatedDrawerItem
