@@ -8013,6 +8013,11 @@ react-native-toast-message@^2.2.1:
   resolved "https://registry.yarnpkg.com/react-native-toast-message/-/react-native-toast-message-2.2.1.tgz#f395321e9bc818ce63274c38a3d294ed997a4a27"
   integrity sha512-iXFMnlxPcgKKs4bZOIl06W16m6KXMh/bAYpWLyVXlISSCdcL2+FX5WPpRP3TGQeM/u9q+j5ex48DDY+72en+Sw==
 
+react-native-usb-serialport-for-android@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/react-native-usb-serialport-for-android/-/react-native-usb-serialport-for-android-0.5.0.tgz#19e71a7c48009ea2fefc1b80512ffce9e521b6c6"
+  integrity sha512-J+pQZBxcmlFbPGzBr/sUJkWRxNiJCzIIAbcDF4LySH6u/WY0/qe7Vdi/SCHTw+ukV9tfnanPAa/JxWR0JQwUOA==
+
 react-native-vector-icons@^10.2.0:
   version "10.2.0"
   resolved "https://registry.yarnpkg.com/react-native-vector-icons/-/react-native-vector-icons-10.2.0.tgz#f438f2ca16f7d6be658fd6ec8f0d2b7e2132b91c"

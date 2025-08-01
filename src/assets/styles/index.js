@@ -10,12 +10,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 5,
     fontSize: 14,
-    color: '#aaa',
+    color: '#64748b',
+  },
+  inputContainer: {
+    position: 'relative',
   },
   input: {
     height: 42,
     borderBottomWidth: 1,
-    borderBottomColor: 'teal',
+    borderBottomColor: '#e2e8f0',
     fontSize: 14,
     paddingHorizontal: 5,
   },

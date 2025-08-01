@@ -6,6 +6,7 @@ import bluetooth from "./bluetooth"
 import nmeaListener from "./nmeaListener"
 import pegging from "./pegging"
 import settings from "./settings"
+import usbSerial from "./usbSerial"
 
 const rootReducer = {
     modals,
@@ -13,6 +14,7 @@ const rootReducer = {
     bluetooth,
     nmeaListener,
     pegging,
-    settings
+    settings,
+    usbSerial
 };
 export default rootReducer;

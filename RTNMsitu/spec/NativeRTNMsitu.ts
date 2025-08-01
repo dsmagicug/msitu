@@ -1,28 +1,28 @@
-import { TurboModule, TurboModuleRegistry } from "react-native";
-import { type PlantingLine, type LongLat } from "./types/backend";
-import { LatLng } from "react-native-maps";
+import { TurboModule, TurboModuleRegistry } from 'react-native';
+import { type PlantingLine, type LongLat } from './types/backend';
+import { LatLng } from 'react-native-maps';
 
 export interface Spec extends TurboModule {
 
-    toPoint(coord:{latitude: number; longitude: number }): 
+    toPoint(coord:{latitude: number; longitude: number }):
     {x:number, y:number, zone:number, hemisphere:string}| null;
 
     lineToCoords(
-        points:Array<{x:number, y:number, zone:number, hemisphere:string}>, 
+        points:Array<{x:number, y:number, zone:number, hemisphere:string}>,
         center:{x:number, y:number, zone:number, hemisphere:string}):
         Promise<Array<LongLat>>;
-        
+
     linesToCoords(
-        lines:Array<Array<{x:number, y:number, zone:number, hemisphere:string}>>, 
+        lines:Array<Array<{x:number, y:number, zone:number, hemisphere:string}>>,
         center:{x:number, y:number, zone:number, hemisphere:string}
     ):Promise<Array<Array<LongLat>>>
 
     generateMesh(
         first: { latitude: number; longitude: number },
         second: { latitude: number; longitude: number },
-        meshDirection:string, 
+        meshDirection:string,
         meshType:string,
-        gapSize:number, 
+        gapSize:number,
         lineLength:number
     ):Promise<string>;
 
