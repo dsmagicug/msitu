@@ -1,24 +1,22 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useState, useEffect } from 'react';
 import {
-    View, 
-    Text, 
-    TouchableOpacity, 
-    Image, 
+    View,
+    Text,
+    TouchableOpacity,
+    Image,
     ScrollView,
-    Dimensions,
     useWindowDimensions,
     ActivityIndicator
 } from 'react-native';
 import {MAP_TYPES} from 'react-native-maps'
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import colors from 'tailwindcss/colors';
 import { Switch } from 'react-native-paper';
 import MsTextInput from '../../components/input/MsTextInput';
-import Reanimated, { 
-    useAnimatedStyle, 
-    useSharedValue, 
+import Reanimated, {
+    useAnimatedStyle,
+    useSharedValue,
     withTiming,
     withSpring,
     withDelay
@@ -27,6 +25,7 @@ import { Picker } from '@react-native-picker/picker';
 import styles from '../../assets/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { Settings, defaultSettings, loadSettings, saveSettings, toggleHighContrastMode } from '../../store/settings';
+import Toast from 'react-native-toast-message';
 
 const AnimatedSettingCard = ({ children, index = 0, highContrast = false }: { children: React.ReactNode; index?: number; highContrast?: boolean }) => {
     const scaleValue = useSharedValue(0);
@@ -71,7 +70,7 @@ const SettingsScreen: React.FC = () => {
     const [localSettings, setLocalSettings] = useState<Settings>(defaultSettings)
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
     const [highContrastMode, setHighContrastMode] = useState<boolean>(false);
-   
+
     const fadeAnim = useSharedValue(mode ? 1 : 0);
     const saveButtonOpacity = useSharedValue(0);
     const saveButtonTranslateY = useSharedValue(100);
@@ -141,18 +140,33 @@ const SettingsScreen: React.FC = () => {
     const handleSave = async () => {
         try {
             // Ensure the store state is synced with local settings
+            console.log(localSettings)
+            console.log(localSettings.skipLines, localSettings.displayLineCount)
             const settingsToSave = {
                 ...localSettings,
-                highContrastMode: highContrastMode
+                highContrastMode: highContrastMode,
+                // Validate and set defaults for invalid values
+                skipLines: localSettings.skipLines < 1 ? 1 : localSettings.skipLines,
+                displayLineCount: localSettings.displayLineCount < 1 ? 10 : localSettings.displayLineCount
             };
             //@ts-ignore
             await dispatch(saveSettings(settingsToSave)).unwrap();
             setHasUnsavedChanges(false);
+            Toast.show({
+                type: 'success',
+                text1: 'Settings saved successfully!',
+                text2: 'Your app preferences have been updated.',
+            });
         } catch (error) {
             console.error('Failed to save settings:', error);
             // You could add a toast notification here to show the error
             // For now, we'll just log it and keep the unsaved changes state
             setHasUnsavedChanges(true);
+            Toast.show({
+                type: 'error',
+                text1: 'Failed to save settings',
+                text2: 'Please try again or check your internet connection.',
+            });
         }
     };
 
@@ -161,13 +175,35 @@ const SettingsScreen: React.FC = () => {
         setHasUnsavedChanges(true);
     };
 
-    const toggleHighContrast = () => {
+    const toggleHighContrast = async () => {
         const newHighContrastMode = !highContrastMode;
         setHighContrastMode(newHighContrastMode);
-        setLocalSettings({...localSettings, highContrastMode: newHighContrastMode});
-        setHasUnsavedChanges(true);
+        const updatedSettings = {...localSettings, highContrastMode: newHighContrastMode};
+        setLocalSettings(updatedSettings);
+
         // Immediately update the store for instant effect across the app
         dispatch(toggleHighContrastMode());
+
+        // Automatically save the settings
+        try {
+            //@ts-ignore
+            await dispatch(saveSettings(updatedSettings)).unwrap();
+            setHasUnsavedChanges(false);
+            Toast.show({
+                type: 'success',
+                text1: 'High Contrast Mode',
+                text2: 'Your high contrast mode preference has been updated.',
+            });
+        } catch (error) {
+            console.error('Failed to save high contrast setting:', error);
+            // Keep the unsaved changes state if save fails
+            setHasUnsavedChanges(true);
+            Toast.show({
+                type: 'error',
+                text1: 'Failed to save high contrast mode',
+                text2: 'Please try again or check your internet connection.',
+            });
+        }
     };
 
     // High contrast text styles
@@ -178,13 +214,13 @@ const SettingsScreen: React.FC = () => {
     return (
         <View className="h-full" style={{ backgroundColor: highContrastMode ? "#ffffff" : "#f8fafc" }}>
             {/* Enhanced Header */}
-            <Reanimated.View 
+            <Reanimated.View
                 className={`h-${isPortrait ? "1/5" : "1/4"} bg-gradient-to-b from-blue-50 to-white`}
                 style={highContrastMode ? { backgroundColor: '#ffffff', borderBottomWidth: 2, borderBottomColor: '#000000' } : {}}
             >
                 <View className={`flex flex-col p-4 mt-${isPortrait ? '8':'4'} gap-3`}>
                     <View className="flex flex-row items-center justify-between">
-                        <TouchableOpacity 
+                        <TouchableOpacity
                             onPress={() => navigation.goBack()}
                             className="rounded-full w-12 h-12 items-center justify-center"
                             style={{ backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(59, 130, 246, 0.1)' }}
@@ -205,7 +241,7 @@ const SettingsScreen: React.FC = () => {
                 {/* High Contrast Toggle */}
                 <View className='mt-6 mb-4'>
                     <Text className='font-avenirBold text-lg mb-3 px-1' style={titleStyle}>DISPLAY</Text>
-                    
+
                     <AnimatedSettingCard index={0} highContrast={highContrastMode}>
                         <View className='flex flex-row justify-between items-center'>
                             <View className='flex flex-row items-center gap-4'>
@@ -217,8 +253,8 @@ const SettingsScreen: React.FC = () => {
                                     <Text className='font-avenirMedium text-xs' style={subtitleStyle}>Better visibility in bright light</Text>
                                 </View>
                             </View>
-                            <Switch 
-                                value={highContrastMode} 
+                            <Switch
+                                value={highContrastMode}
                                 onValueChange={toggleHighContrast}
                                 color={highContrastMode ? "#000000" : "#3b82f6"}
                             />
@@ -228,7 +264,7 @@ const SettingsScreen: React.FC = () => {
 
                 <View className='mt-6 mb-4'>
                     <Text className='font-avenirBold text-lg mb-3 px-1' style={titleStyle}>APP MODES</Text>
-                    
+
                     <AnimatedSettingCard index={1} highContrast={highContrastMode}>
                         <View className='flex flex-row justify-between items-center'>
                             <View className='flex flex-row items-center gap-4'>
@@ -240,8 +276,8 @@ const SettingsScreen: React.FC = () => {
                                     <Text className='font-avenirMedium text-xs' style={subtitleStyle}>For tree planting operations</Text>
                                 </View>
                             </View>
-                            <Switch 
-                                value={mode} 
+                            <Switch
+                                value={mode}
                                 onValueChange={onToggleAppMode}
                                 color={highContrastMode ? "#000000" : "#16a34a"}
                             />
@@ -259,8 +295,8 @@ const SettingsScreen: React.FC = () => {
                                     <Text className='font-avenirMedium text-xs' style={subtitleStyle}>For land surveying tasks</Text>
                                 </View>
                             </View>
-                            <Switch 
-                                value={!mode} 
+                            <Switch
+                                value={!mode}
                                 onValueChange={onToggleAppMode}
                                 color={highContrastMode ? "#000000" : "#3b82f6"}
                             />
@@ -271,7 +307,7 @@ const SettingsScreen: React.FC = () => {
                 <Reanimated.View style={animatedStyle}>
                     <View className='mb-4'>
                         <Text className='font-avenirBold text-lg mb-3 mt-6 px-1' style={titleStyle}>PLANTING LINE SETTINGS</Text>
-                        
+
                         <AnimatedSettingCard index={3} highContrast={highContrastMode}>
                             <View className='flex flex-row items-center gap-4 mb-3'>
                                 <View className="p-2 rounded-lg" style={{ backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(168, 85, 247, 0.1)' }}>
@@ -279,12 +315,17 @@ const SettingsScreen: React.FC = () => {
                                 </View>
                                 <View className="flex-1">
                                     <MsTextInput
+                                        key={`skipLines-${localSettings.skipLines}`}
                                         label="Points to skip"
                                         initialValue={`${localSettings.skipLines}`}
                                         keyboardType='number-pad'
                                         onChangeText={(value) => {
                                             if (value.length > 0){
-                                                handleSettingChange({...localSettings, skipLines:parseInt(value)})
+                                                const numValue = parseInt(value);
+                                                handleSettingChange({...localSettings, skipLines: numValue})
+                                            } else {
+                                                // Handle empty input - set to minimum
+                                                handleSettingChange({...localSettings, skipLines: 1})
                                             }
                                         }}
                                     />
@@ -302,12 +343,17 @@ const SettingsScreen: React.FC = () => {
                                 </View>
                                 <View className="flex-1">
                                     <MsTextInput
+                                        key={`displayLines-${localSettings.displayLineCount}`}
                                         label="Visible lines count"
                                         initialValue={`${localSettings.displayLineCount}`}
                                         keyboardType='number-pad'
                                         onChangeText={(value) => {
                                             if (value.length > 0){
-                                                handleSettingChange({...localSettings, displayLineCount:parseInt(value)})
+                                                const numValue = parseInt(value);
+                                                handleSettingChange({...localSettings, displayLineCount: numValue})
+                                            } else {
+                                                // Handle empty input - set to minimum
+                                                handleSettingChange({...localSettings, displayLineCount: 10})
                                             }
                                         }}
                                     />
@@ -322,7 +368,7 @@ const SettingsScreen: React.FC = () => {
 
                 <View className='mb-4'>
                     <Text className='font-avenirBold text-lg mb-3 mt-6 px-1' style={titleStyle}>CLOUD SETTINGS</Text>
-                    
+
                     <AnimatedSettingCard index={5} highContrast={highContrastMode}>
                         <View className='flex flex-row items-center gap-4 mb-3'>
                             <View className="p-2 rounded-lg" style={{ backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(236, 72, 153, 0.1)' }}>
@@ -341,12 +387,12 @@ const SettingsScreen: React.FC = () => {
                             <Text className='text-xs font-avenirMedium flex-1 leading-4' style={bodyTextStyle}>
                                 Projects will be uploaded to this API when internet is available
                             </Text>
-                            <TouchableOpacity 
+                            <TouchableOpacity
                                 className='px-4 py-2 rounded-lg items-center'
-                                style={{ 
-                                    backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(236, 72, 153, 0.1)', 
-                                    borderWidth: 1, 
-                                    borderColor: highContrastMode ? 'rgba(0, 0, 0, 0.3)' : 'rgba(236, 72, 153, 0.2)' 
+                                style={{
+                                    backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(236, 72, 153, 0.1)',
+                                    borderWidth: 1,
+                                    borderColor: highContrastMode ? 'rgba(0, 0, 0, 0.3)' : 'rgba(236, 72, 153, 0.2)'
                                 }}
                             >
                                 <Text className='font-avenirBold text-xs' style={{ color: highContrastMode ? '#000000' : '#ec4899' }}>Sync Now</Text>
@@ -357,7 +403,7 @@ const SettingsScreen: React.FC = () => {
 
                 <View className='mb-4'>
                     <Text className='font-avenirBold text-lg mb-3 mt-6 px-1' style={titleStyle}>MAP VIEW SETTINGS</Text>
-                    
+
                     <AnimatedSettingCard index={6} highContrast={highContrastMode}>
                         <View className='flex flex-row items-center gap-4 mb-3'>
                             <View className="p-2 rounded-lg" style={{ backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(34, 197, 94, 0.1)' }}>
@@ -392,11 +438,11 @@ const SettingsScreen: React.FC = () => {
             </ScrollView>
 
             {/* Smart Save Button - Only shows when there are unsaved changes */}
-            <Reanimated.View 
+            <Reanimated.View
                 className="absolute bottom-4 left-4 right-4"
                 style={saveButtonAnimatedStyle}
             >
-                <TouchableOpacity 
+                <TouchableOpacity
                     onPress={handleSave}
                     className="rounded-2xl py-4 items-center"
                     style={{
@@ -420,6 +466,7 @@ const SettingsScreen: React.FC = () => {
                     </View>
                 </TouchableOpacity>
             </Reanimated.View>
+            <Toast />
         </View>
     );
 };

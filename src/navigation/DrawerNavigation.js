@@ -36,7 +36,7 @@ const useDrawerWidth = () => {
       const { width, height } = Dimensions.get('window');
       const isPortrait = height >= width;
       setIsPotrait(isPortrait)
-      setDrawerWidth(isPortrait ? '55%' : '30%');
+      setDrawerWidth(isPortrait ? '65%' : '35%');
     };
     const subscription = Dimensions.addEventListener('change', updateDrawerWidth);
 
@@ -47,7 +47,7 @@ const useDrawerWidth = () => {
   return { drawerWidth, isPortrait };
 };
 
-const AnimatedDrawerItem = ({ label, icon, onPress, delay = 0 }) => {
+const AnimatedDrawerItem = ({ label, icon, onPress, delay = 0, description = null, badge = null, highContrastMode = false }) => {
   const scaleValue = useSharedValue(0);
   const opacityValue = useSharedValue(0);
 
@@ -70,22 +70,87 @@ const AnimatedDrawerItem = ({ label, icon, onPress, delay = 0 }) => {
     onPress();
   };
 
+  const cardStyle = {
+    backgroundColor: highContrastMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.8)',
+    borderWidth: highContrastMode ? 2 : 1,
+    borderColor: highContrastMode ? '#000000' : 'rgba(59, 130, 246, 0.1)',
+    shadowColor: highContrastMode ? '#000000' : '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: highContrastMode ? 0.1 : 0.05,
+    shadowRadius: 8,
+    elevation: highContrastMode ? 4 : 2,
+  };
+
+  const iconStyle = {
+    backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+    borderWidth: highContrastMode ? 1 : 0,
+    borderColor: highContrastMode ? '#000000' : 'transparent',
+  };
+
+  const labelStyle = {
+    color: highContrastMode ? '#000000' : '#1f2937',
+    fontWeight: highContrastMode ? 'bold' : 'normal',
+  };
+
+  const descriptionStyle = {
+    color: highContrastMode ? '#000000' : '#6b7280',
+    fontWeight: highContrastMode ? '600' : 'normal',
+  };
+
   return (
     <Reanimated.View style={animatedStyle}>
       <TouchableOpacity
-        className="flex flex-row items-center p-4 mx-2 rounded-xl mb-1"
+        className="flex flex-row items-center p-5 mx-3 rounded-2xl mb-2"
         onPress={handlePress}
-        style={{
-          backgroundColor: 'rgba(59, 130, 246, 0.05)',
-          borderWidth: 1,
-          borderColor: 'rgba(59, 130, 246, 0.1)',
-        }}
+        style={cardStyle}
       >
-        <View className="mr-3 p-2 rounded-lg" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
+        <View className="mr-3 p-1.5 rounded-md" style={iconStyle}>
           {icon}
         </View>
-        <Text className="font-avenirMedium text-gray-800 text-base">{label}</Text>
+        <View className="flex-1">
+          <Text className="font-avenirBold text-base" style={labelStyle}>{label}</Text>
+          {description && (
+            <Text className="font-avenirMedium text-xs mt-1" style={descriptionStyle}>{description}</Text>
+          )}
+        </View>
+        {badge && (
+          <View className="px-2 py-1 rounded-full" style={{ backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(239, 68, 68, 0.1)' }}>
+            <Text className="font-avenirBold text-xs" style={{ color: highContrastMode ? '#000000' : '#ef4444' }}>{badge}</Text>
+          </View>
+        )}
+        <Ionicon name="chevron-forward" size={16} color={highContrastMode ? "#000000" : "#9ca3af"} />
       </TouchableOpacity>
+    </Reanimated.View>
+  );
+};
+
+const DrawerSection = ({ title, children, delay = 0, highContrastMode = false }) => {
+  const opacityValue = useSharedValue(0);
+  const translateYValue = useSharedValue(20);
+
+  React.useEffect(() => {
+    opacityValue.value = withDelay(delay, withTiming(1, { duration: 400 }));
+    translateYValue.value = withDelay(delay, withSpring(0, { damping: 15, stiffness: 150 }));
+  }, []);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      opacity: opacityValue.value,
+      transform: [{ translateY: translateYValue.value }],
+    };
+  });
+
+  const titleStyle = {
+    color: highContrastMode ? '#000000' : '#6b7280',
+    fontWeight: highContrastMode ? 'bold' : 'normal',
+  };
+
+  return (
+    <Reanimated.View style={animatedStyle}>
+      <View className="mx-3 mb-3 mt-6">
+        <Text className="font-avenirBold text-xs tracking-widest uppercase" style={titleStyle}>{title}</Text>
+      </View>
+      {children}
     </Reanimated.View>
   );
 };
@@ -93,120 +158,164 @@ const AnimatedDrawerItem = ({ label, icon, onPress, delay = 0 }) => {
 function CustomDrawerContent({ navigation, isPortrait }) {
   const dispatch = useDispatch()
   const opacityValue = useSharedValue(0);
+  const scaleValue = useSharedValue(0.9);
+  
+  // Get project count from store
+  const { projects } = useSelector(store => store.project);
+  // Get high contrast mode from store
+  // @ts-ignore
+  const { settings } = useSelector(store => store.settings);
+  const highContrastMode = settings?.highContrastMode || false;
 
   React.useEffect(() => {
-    opacityValue.value = withTiming(1, { duration: 500 });
+    opacityValue.value = withTiming(1, { duration: 600 });
+    scaleValue.value = withSpring(1, { damping: 15, stiffness: 150 });
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
       opacity: opacityValue.value,
+      transform: [{ scale: scaleValue.value }],
     };
   });
 
+  // High contrast styles
+  const headerStyle = {
+    backgroundColor: highContrastMode ? 'rgba(255, 255, 255, 0.98)' : 'rgba(248, 250, 252, 0.98)',
+    borderBottomWidth: highContrastMode ? 2 : 0,
+    borderBottomColor: highContrastMode ? '#000000' : 'transparent',
+  };
+
+  const titleStyle = {
+    color: highContrastMode ? '#000000' : '#1f2937',
+    fontWeight: highContrastMode ? 'bold' : 'normal',
+  };
+
+  const subtitleStyle = {
+    color: highContrastMode ? '#000000' : '#6b7280',
+    fontWeight: highContrastMode ? '600' : 'normal',
+  };
+
+  const versionStyle = {
+    color: highContrastMode ? '#000000' : '#9ca3af',
+    fontWeight: highContrastMode ? '600' : 'normal',
+  };
+
   return (
     <Reanimated.View style={[{ flexGrow: 1 }, animatedStyle]}>
-      <DrawerContentScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View className="absolute top-2 right-2 z-10">
-          <TouchableOpacity 
-            onPress={() => navigation.closeDrawer()}
-            className="p-2 rounded-full"
-            style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}
-          >
-            <Ionicon name="caret-back-circle-outline" size={30} color="#ef4444" />
-          </TouchableOpacity>
+      <DrawerContentScrollView contentContainerStyle={{ flexGrow: 1, paddingTop: 0 }}>
+        {/* Fixed Header */}
+        <View className="px-4 pt-8 pb-4" style={[{ position: 'sticky', top: 0, zIndex: 10 }, headerStyle]}>
+          <View className="flex flex-row items-center justify-between mb-3">
+            <View className="flex-1">
+              <Text className="font-avenirBold text-2xl" style={titleStyle}>Msitu</Text>
+              <Text className="font-avenirMedium text-sm" style={subtitleStyle}>Survey & Planting</Text>
+              <Text className="font-avenirMedium text-xs mt-1" style={versionStyle}>Version 1.0.0</Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => navigation.closeDrawer()}
+              className="p-2 rounded-full"
+              style={{ 
+                backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                borderWidth: highContrastMode ? 1 : 0,
+                borderColor: highContrastMode ? '#000000' : 'transparent',
+              }}
+            >
+              <Ionicon name="close" size={24} color={highContrastMode ? "#000000" : "#ef4444"} />
+            </TouchableOpacity>
+          </View>
+          
+          {/* Project Count */}
+          <View className="flex flex-row gap-3">
+            <View className="flex-1 p-4 rounded-xl" style={{ 
+              backgroundColor: highContrastMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(34, 197, 94, 0.1)',
+              borderWidth: highContrastMode ? 2 : 0,
+              borderColor: highContrastMode ? '#000000' : 'transparent',
+            }}>
+              <Text className="font-avenirBold text-2xl" style={{ 
+                color: highContrastMode ? '#000000' : '#16a34a',
+                fontWeight: highContrastMode ? 'bold' : 'normal',
+              }}>{projects?.length || 0}</Text>
+              <Text className="font-avenirMedium text-sm" style={{ 
+                color: highContrastMode ? '#000000' : '#16a34a',
+                fontWeight: highContrastMode ? '600' : 'normal',
+              }}>Projects</Text>
+            </View>
+          </View>
         </View>
 
-        <ScrollView className="flex-1 mt-12">
-          <View className="flex flex-col">
-            <View className="mx-3 mb-4">
-              <Text className="uppercase font-avenirBold text-gray-500 text-sm tracking-wider">Projects</Text>
-            </View>
+        <ScrollView className="flex-1 px-2" showsVerticalScrollIndicator={false}>
+          {/* Projects Section */}
+          <DrawerSection title="Project Management" delay={100} highContrastMode={highContrastMode}>
             <AnimatedDrawerItem
-              label="Projects"
+              label="My Projects"
+              description="View and manage your projects"
               icon={<AntDesignIcon name="folderopen" size={24} color="#3b82f6" />}
               onPress={() => dispatch(setShowProjectList(true))}
-              delay={100}
+              delay={200}
+              highContrastMode={highContrastMode}
             />
             <AnimatedDrawerItem
               label="Import Projects"
+              description="Import from cloud or local files"
               icon={<Entypo name="download" size={24} color="#3b82f6" />}
-              onPress={() => console.log("Nope")}
-              delay={200}
+              onPress={() => console.log("Import Projects")}
+              delay={300}
+              highContrastMode={highContrastMode}
             />
             <AnimatedDrawerItem
               label="Export Projects"
+              description="Share and backup your data"
               icon={<MaterialCommunityIcons name="code-json" size={24} color="#3b82f6" />}
-              onPress={() => console.log("Nope")}
-              delay={300}
+              onPress={() => console.log("Export Projects")}
+              delay={400}
+              highContrastMode={highContrastMode}
             />
-            <Divider />
-          </View>
+          </DrawerSection>
 
-          <View className="flex flex-col">
-            <View className="mx-3 mb-4">
-              <Text className="uppercase font-avenirBold text-gray-500 text-sm tracking-wider">GNSS EQUIPMENT</Text>
-            </View>
+          {/* Equipment Section */}
+          <DrawerSection title="GNSS Equipment" delay={500} highContrastMode={highContrastMode}>
             <AnimatedDrawerItem
-              label="Bluetooth"
+              label="Bluetooth Devices"
+              description="Connect to GNSS receivers"
               icon={<Ionicon name="bluetooth" size={24} color="#3b82f6" />}
               onPress={() => dispatch(setShowBTDevices(true))}
-              delay={400}
+              delay={600}
+              highContrastMode={highContrastMode}
             />
             <AnimatedDrawerItem
               label="USB Serial"
+              description="Direct USB connections"
               icon={<MaterialCommunityIcons name="usb-port" size={24} color="#3b82f6" />}
-              onPress={() => console.log("Nope")}
-              delay={500}
+              onPress={() => console.log("USB Serial")}
+              delay={700}
+              highContrastMode={highContrastMode}
             />
-            <Divider />
-          </View>
+          </DrawerSection>
           
-          {!isPortrait && (
-            <View className="flex">
-              <View className="mx-3 mb-4 mt-5">
-                <Text className="uppercase font-avenirBold text-gray-500 text-sm tracking-wider">Misc.</Text>
-              </View>
-              <AnimatedDrawerItem
-                label="Settings"
-                icon={<Ionicon name="settings-outline" size={24} color="#3b82f6" />}
-                onPress={() => console.log("Nope")}
-                delay={600}
-              />
-              <AnimatedDrawerItem
-                label="About Msitu"
-                icon={<Ionicon name="information-circle-outline" size={24} color="#3b82f6" />}
-                onPress={() => console.log("Nope")}
-                delay={700}
-              />
-            </View>
-          )}
+          {/* Settings Section */}
+          <DrawerSection title="Application" delay={800} highContrastMode={highContrastMode}>
+            <AnimatedDrawerItem
+              label="Settings"
+              description="Configure app preferences"
+              icon={<Ionicon name="settings-outline" size={24} color="#3b82f6" />}
+              onPress={() => {
+                navigation.closeDrawer();
+                navigation.navigate("Settings");
+              }}
+              delay={900}
+              highContrastMode={highContrastMode}
+            />
+            <AnimatedDrawerItem
+              label="About Msitu"
+              description="Version and information"
+              icon={<Ionicon name="information-circle-outline" size={24} color="#3b82f6" />}
+              onPress={() => console.log("About Msitu")}
+              delay={1000}
+              highContrastMode={highContrastMode}
+            />
+          </DrawerSection>
         </ScrollView>
-        
-        {isPortrait && (
-          <View className='flex absolute bottom-0 w-full border h-auto border-b-0 border-r-0 border-t-gray-300 my-2'>
-            <View className='flex flex-col'>
-              <View className='mx-3 mb-4 mt-5'>
-                <Text className="uppercase font-avenirBold text-gray-500 text-sm tracking-wider">Misc.</Text>
-              </View>
-              <AnimatedDrawerItem
-                label="Settings"
-                icon={<Ionicon name="settings-outline" size={24} color="#3b82f6" />}
-                onPress={() => {
-                  navigation.closeDrawer();
-                  navigation.navigate("Settings");
-                }}
-                delay={600}
-              />
-              <AnimatedDrawerItem
-                label="About Msitu"
-                icon={<Ionicon name="information-circle-outline" size={24} color="#3b82f6" />}
-                onPress={() => console.log("Nope")}
-                delay={700}
-              />
-            </View>
-          </View>
-        )}
       </DrawerContentScrollView>
     </Reanimated.View>
   );
@@ -223,18 +332,19 @@ export default function DrawerNavigation(props) {
         <Drawer.Screen
           options={{
             headerShown: false,
-            overlayColor: 'rgba(0, 0, 0, 0.5)',
+            overlayColor: 'rgba(0, 0, 0, 0.4)',
             drawerStyle: {
-              marginTop: 35,
+              marginTop: 50,
+              marginBottom: 0,
               width: drawerWidth,
-              backgroundColor: 'rgba(255, 255, 255, 0.98)',
-              borderTopRightRadius: 20,
-              borderBottomRightRadius: 20,
+              backgroundColor: 'rgba(248, 250, 252, 0.98)',
+              borderTopRightRadius: 0,
+              borderBottomRightRadius: 0,
               shadowColor: '#000',
-              shadowOffset: { width: 2, height: 0 },
-              shadowOpacity: 0.1,
-              shadowRadius: 10,
-              elevation: 10,
+              shadowOffset: { width: 4, height: 0 },
+              shadowOpacity: 0.15,
+              shadowRadius: 20,
+              elevation: 15,
             },
           }}
           name="Drawer"
