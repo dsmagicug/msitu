@@ -9,7 +9,7 @@ export const VERSION_INFO = {
   name: APP_NAME,
   subtitle: APP_SUBTITLE,
   buildNumber: '1',
-  buildDate: '2024-01-01', // Update this when releasing
+  buildDate: '2025-08-01',
 };
 
-export default VERSION_INFO; 
+export default VERSION_INFO;
