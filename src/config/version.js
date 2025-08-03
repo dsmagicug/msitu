@@ -16,7 +16,7 @@ export const VERSION_INFO = {
   version: APP_VERSION,
   name: APP_NAME,
   subtitle: APP_SUBTITLE,
-  buildNumber: '5',
+  buildNumber: '6',
   buildDate: '2025-08-03',
 };
 

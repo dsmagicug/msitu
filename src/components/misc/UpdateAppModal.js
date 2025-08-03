@@ -179,7 +179,7 @@ const UpdateAppModal = ({ visible, onClose, versionDetails }) => {
             try {
               await RNFS.exists(apkPath).then(exists => {
                 if (exists) {
-                  RNFS.unlink(apkPath);
+                  //RNFS.unlink(apkPath);
                 }
               });
             } catch (cleanupError) {
