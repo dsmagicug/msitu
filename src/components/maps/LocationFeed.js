@@ -1,10 +1,10 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import { View, Text } from 'react-native';
+import React from 'react';
 import { useSelector } from 'react-redux';
 
 const LocationFeed = React.memo(({ latLong }) => {
-    const {latitude, longitude, fixType} = latLong
-    
+    const {latitude, longitude, fixType} = latLong;
+
     // @ts-ignore
     const { settings } = useSelector(store => store.settings);
     const highContrastMode = settings?.highContrastMode || false;
@@ -45,7 +45,7 @@ const LocationFeed = React.memo(({ latLong }) => {
                 <Text className="font-avenirMedium text-sm" style={textStyle}>{fixType}</Text>
             </View>
           </View>
-      )
+      );
 });
 
 export default LocationFeed;

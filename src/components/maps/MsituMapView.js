@@ -46,10 +46,64 @@ const MsituMapView = React.memo(({ initialRegion, areaMode, basePoints, visibleL
         [animate]
     );
 
-    const memoizedCircleProps = useMemo(() => ({
-        ...circleProps,
-        center: roverLocation ? { latitude: roverLocation.latitude, longitude: roverLocation.longitude } : circleProps.center,
-    }), [roverLocation, circleProps]);
+    const memoizedCircleProps = useMemo(() => {
+        try {
+            // Ensure we have valid coordinates
+            let validCenter;
+            
+            // Check roverLocation first
+            if (roverLocation && 
+                typeof roverLocation.latitude === 'number' && 
+                typeof roverLocation.longitude === 'number' &&
+                !isNaN(roverLocation.latitude) && 
+                !isNaN(roverLocation.longitude) &&
+                roverLocation.latitude >= -90 && roverLocation.latitude <= 90 &&
+                roverLocation.longitude >= -180 && roverLocation.longitude <= 180) {
+                validCenter = { 
+                    latitude: roverLocation.latitude, 
+                    longitude: roverLocation.longitude 
+                };
+            } 
+            // Check circleProps.center as fallback
+            else if (circleProps && circleProps.center && 
+                     typeof circleProps.center.latitude === 'number' && 
+                     typeof circleProps.center.longitude === 'number' &&
+                     !isNaN(circleProps.center.latitude) && 
+                     !isNaN(circleProps.center.longitude) &&
+                     circleProps.center.latitude >= -90 && circleProps.center.latitude <= 90 &&
+                     circleProps.center.longitude >= -180 && circleProps.center.longitude <= 180) {
+                validCenter = circleProps.center;
+            } 
+            // Fallback to initialRegion if available
+            else if (initialRegion && 
+                     typeof initialRegion.latitude === 'number' && 
+                     typeof initialRegion.longitude === 'number' &&
+                     !isNaN(initialRegion.latitude) && 
+                     !isNaN(initialRegion.longitude) &&
+                     initialRegion.latitude >= -90 && initialRegion.latitude <= 90 &&
+                     initialRegion.longitude >= -180 && initialRegion.longitude <= 180) {
+                validCenter = {
+                    latitude: initialRegion.latitude,
+                    longitude: initialRegion.longitude
+                };
+            } 
+            // Last resort fallback
+            else {
+                validCenter = { latitude: 0, longitude: 0 };
+            }
+            
+            return {
+                ...circleProps,
+                center: validCenter,
+            };
+        } catch (error) {
+            // If any error occurs, return safe defaults
+            return {
+                ...circleProps,
+                center: { latitude: 0, longitude: 0 },
+            };
+        }
+    }, [roverLocation, circleProps, initialRegion]);
 
     const handleMapPress = useCallback((e) => {
         if (areaMode) {

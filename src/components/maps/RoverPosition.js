@@ -1,16 +1,27 @@
 import React from 'react';
 import Animated from 'react-native-reanimated';
 import  {
-    Circle
+    Circle,
 } from 'react-native-maps';
+import { isValidCoordinate } from '../../utils/coordinateValidation';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
-const RoverPosition = React.memo(({ circleProps, color="#000C66"}) => {
+const RoverPosition = React.memo(({ circleProps, color = '#000C66'}) => {
+    // Don't render if we don't have valid center coordinates
+    try {
+        if (!circleProps || !isValidCoordinate(circleProps.center)) {
+            return null;
+        }
+    } catch (error) {
+        // If validation fails, don't render the component
+        return null;
+    }
+
     return (
         <AnimatedCircle
                 animatedProps={circleProps}
-                radius={0.2} 
+                radius={0.2}
                 strokeWidth={1}
                 fillColor={color}
                 strokeColor={color}

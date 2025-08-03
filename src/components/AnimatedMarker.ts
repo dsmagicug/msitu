@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { MapMarker, MapMarkerProps, Circle } from 'react-native-maps';
+import { MapMarker, MapMarkerProps } from 'react-native-maps';
 import Animated, {
   Easing,
   useAnimatedProps,
@@ -30,7 +30,7 @@ const getCenterOffsetForAnchor = (
 
 const MARKER_WIDTH = 50;
 const MARKER_HEIGHT = 50;
-const ANCHOR = { x: 1-10/MARKER_WIDTH, y: 1 - 10 / MARKER_HEIGHT };
+const ANCHOR = { x: 1 - 10 / MARKER_WIDTH, y: 1 - 10 / MARKER_HEIGHT };
 const CENTEROFFSET = getCenterOffsetForAnchor(ANCHOR, MARKER_WIDTH, MARKER_HEIGHT);
 
 export const useAnimatedRegion = (location: Partial<LatLng> = {}) => {
@@ -51,12 +51,44 @@ export const useAnimatedRegion = (location: Partial<LatLng> = {}) => {
     flat: true,
   }));
 
-  const circleAnimatedProps = useAnimatedProps(() => ({
-    center: {
-      latitude: latitude.value ?? 0,
-      longitude: longitude.value ?? 0,
-    },
-  }));
+    const circleAnimatedProps = useAnimatedProps(() => {
+    try {
+      // Use a valid default location (somewhere in the ocean) if coordinates are invalid
+      const defaultLat = 0;
+      const defaultLng = 0;
+      
+      // More defensive coordinate handling
+      let lat = defaultLat;
+      let lng = defaultLng;
+      
+      if (latitude.value !== undefined && latitude.value !== null && !isNaN(latitude.value)) {
+        lat = latitude.value;
+      }
+      
+      if (longitude.value !== undefined && longitude.value !== null && !isNaN(longitude.value)) {
+        lng = longitude.value;
+      }
+      
+      // Additional validation to ensure coordinates are within valid ranges
+      if (lat < -90 || lat > 90) lat = defaultLat;
+      if (lng < -180 || lng > 180) lng = defaultLng;
+      
+      return {
+        center: {
+          latitude: lat,
+          longitude: lng,
+        },
+      };
+    } catch (error) {
+      // Fallback to safe defaults if any error occurs
+      return {
+        center: {
+          latitude: 0,
+          longitude: 0,
+        },
+      };
+    }
+  });
 
   const animate = useCallback(
     (options: AnimateOptions) => {
@@ -66,7 +98,7 @@ export const useAnimatedRegion = (location: Partial<LatLng> = {}) => {
         value: Animated.SharedValue<number | undefined>,
         toValue?: number,
       ) => {
-        if (toValue === undefined) return;
+        if (toValue === undefined) {return;}
 
         value.value = withTiming(toValue, { duration, easing });
       };

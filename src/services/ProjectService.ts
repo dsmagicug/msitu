@@ -22,7 +22,7 @@ class ProjectService {
   public static async createTables() {
     const tableQueries = [
       'CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY, name TEXT NOT NULL, basePoints TEXT NOT NULL, center TEXT,  plantingLines TEXT, markedPoints TEXT, gapSize INTEGER, lineLength INTEGER, gapSizeUnit TEXT, lineLengthUnit TEXT, forwardIndex INTEGER, backwardIndex INTEGER,lineCount INTEGER, createdAt TEXT);',
-      'CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY, appMode TEXT, skipLines INTEGER, displayLineCount INTEGER, cloudApi TEXT, mapStyle TEXT, highContrastMode INTEGER DEFAULT 0);'
+      'CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY, appMode TEXT, skipLines INTEGER, displayLineCount INTEGER, cloudApi TEXT, mapStyle TEXT, highContrastMode INTEGER DEFAULT 0);',
     ];
 
     tableQueries.map(async query => {
@@ -37,19 +37,18 @@ class ProjectService {
     try {
       const firstItem = items[0];
       const fields = Object.keys(firstItem);
-      
+
       // Use parameterized query to prevent data logging
       const placeholders = items.map(() => `(${fields.map(() => '?').join(', ')})`).join(',');
       const insertQuery = `INSERT OR REPLACE INTO ${tableName} (${fields.join(', ')}) VALUES ${placeholders}`;
-      
+
       // Flatten the values array for parameterized query
       const values = items.flatMap(item => fields.map(field => item[field]));
 
       // Execute with parameterized query to prevent data exposure
-      const result = await ProjectService.db.executeSql(insertQuery, values);
-      return result;
+     return await ProjectService.db.executeSql(insertQuery, values);
     } catch (error) {
-      return Promise.reject(error)
+      return Promise.reject(error);
     }
   }
 
@@ -113,21 +112,21 @@ class ProjectService {
               }
             },
             (_, error) => {
-              console.error(error)
+              console.error(error);
               reject(error);
             },
           );
         });
       });
     } catch (error:any) {
-      console.error(error)
+      console.error(error);
       return Promise.reject(error.message);
     }
   }
 
   public static async fetch(
     tableName: string,
-    fields: any = "*",
+    fields: any = '*',
     lookups: { [key: string]: number | string } | null = null,
     limit: number = 10,
     orderBy: string = 'id',
@@ -161,7 +160,7 @@ class ProjectService {
       });
       return items;
     } catch (error:any) {
-      console.error(error)
+      console.error(error);
       return Promise.reject(error.message);
     }
   }
@@ -182,7 +181,7 @@ class ProjectService {
       });
       return item;
     } catch (error) {
-      console.error(error)
+      console.error(error);
       return Promise.reject(error);
     }
   }
@@ -228,7 +227,7 @@ class ProjectService {
         markedPoints: markedPoints,
         forwardIndex: projectData.forwardIndex || 9,
         backwardIndex: projectData.backwardIndex || 0,
-        lineCount: projectData.lineCount
+        lineCount: projectData.lineCount,
       };
 
       return project;

@@ -1,22 +1,22 @@
-import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import MapView, {
     PROVIDER_GOOGLE,
     Polyline,
     Polygon,
     Circle,
     MAP_TYPES,
-    MapType
-} from "react-native-maps";
-import { Easing } from "react-native-reanimated";
-import { throttle } from "lodash";
-import { useAnimatedRegion } from "../AnimatedMarker";
-import RoverPosition from "./RoverPosition";
-import LatLong from "../../services/NMEAService";
-import { setCyrusLines } from "../../store/pegging";
-import { saveProjectMarkedPoints } from "../../store/projects";
-import { useDispatch, useSelector } from "react-redux";
-import { RTNMsitu } from "rtn-msitu";
-import { pointToString } from "../../utils";
+    MapType,
+} from 'react-native-maps';
+import { Easing } from 'react-native-reanimated';
+import { throttle } from 'lodash';
+import { useAnimatedRegion } from '../AnimatedMarker';
+import RoverPosition from './RoverPosition';
+import LatLong from '../../services/NMEAService';
+import { setCyrusLines } from '../../store/pegging';
+import { saveProjectMarkedPoints } from '../../store/projects';
+import { useDispatch, useSelector } from 'react-redux';
+import { RTNMsitu } from 'rtn-msitu';
+import { pointToString } from '../../utils';
 
 interface MapProps {
     initialRegion: Region;
@@ -42,14 +42,14 @@ interface LatLng {
 
 const MemoizedRoverPosition = React.memo(RoverPosition);
 
-const MsituMapView: React.FC<MapProps> = ({ 
-    initialRegion, 
-    areaMode, 
-    basePoints, 
-    visibleLines, 
-    roverLocation, 
-    planting, 
-    rotationDegrees = 180 
+const MsituMapView: React.FC<MapProps> = ({
+    initialRegion,
+    areaMode,
+    basePoints,
+    visibleLines,
+    roverLocation,
+    planting,
+    rotationDegrees = 180,
 }) => {
     const mapRef = useRef<MapView>(null);
     const [polygonCoordinates, setPolygonCoordinates] = useState<LatLng[]>([]);
@@ -80,10 +80,44 @@ const MsituMapView: React.FC<MapProps> = ({
         [animate]
     );
 
-    const memoizedCircleProps = useMemo(() => ({
-        ...circleProps,
-        center: roverLocation ? { latitude: roverLocation.latitude, longitude: roverLocation.longitude } : circleProps.center,
-    }), [roverLocation, circleProps]);
+        const memoizedCircleProps = useMemo(() => {
+        try {
+            // Ensure we have valid coordinates
+            let validCenter;
+
+            // Check roverLocation first
+            if (roverLocation && !isNaN(roverLocation.latitude) && !isNaN(roverLocation.longitude) && roverLocation.latitude >= -90 && roverLocation.latitude <= 90 && roverLocation.longitude >= -180 && roverLocation.longitude <= 180) {
+                validCenter = {
+                    latitude: roverLocation.latitude,
+                    longitude: roverLocation.longitude,
+                };
+            }
+            // Check circleProps.center as fallback
+            else if (circleProps && circleProps.center && !isNaN(circleProps.center.latitude) && !isNaN(circleProps.center.longitude) && circleProps.center.latitude >= -90 && circleProps.center.latitude <= 90 && circleProps.center.longitude >= -180 && circleProps.center.longitude <= 180) {
+                validCenter = circleProps.center;
+            }
+            // Fallback to initialRegion if available
+            else if (initialRegion && !isNaN(initialRegion.latitude) && !isNaN(initialRegion.longitude) && initialRegion.latitude >= -90 && initialRegion.latitude <= 90 && initialRegion.longitude >= -180 && initialRegion.longitude <= 180) {
+                validCenter = {
+                    latitude: initialRegion.latitude,
+                    longitude: initialRegion.longitude,
+                };
+            }
+            else {
+                validCenter = { latitude: 0, longitude: 0 };
+            }
+
+            return {
+                ...circleProps,
+                center: validCenter,
+            };
+        } catch (error) {
+            return {
+                ...circleProps,
+                center: { latitude: 0, longitude: 0 },
+            };
+        }
+    }, [roverLocation, circleProps, initialRegion]);
 
     const handleMapPress = useCallback((e: any) => {
         if (areaMode) {
@@ -97,7 +131,7 @@ const MsituMapView: React.FC<MapProps> = ({
             if (existingIndex !== -1) {
                 return [
                     ...prevSelectedLines.slice(0, existingIndex),
-                    ...prevSelectedLines.slice(existingIndex + 1)
+                    ...prevSelectedLines.slice(existingIndex + 1),
                 ];
             } else {
                 return [...prevSelectedLines, [line, index]];
@@ -154,7 +188,7 @@ const MsituMapView: React.FC<MapProps> = ({
                 zoom: 21,
                 pitch: 0,
                 heading: 0,
-                altitude: 0
+                altitude: 0,
             }, { duration: 1000 });
         }
     }, [initialRegion, planting, mapType]);
@@ -202,7 +236,7 @@ const MsituMapView: React.FC<MapProps> = ({
                 heading: degrees,
                 pitch: 0,
                 zoom: 21,
-                center: roverLocation
+                center: roverLocation,
             }, { duration: 1000 });
         }
     };
@@ -213,7 +247,7 @@ const MsituMapView: React.FC<MapProps> = ({
 
     useEffect(()=>{
         setMapType(settings.mapStyle);
-    },[settings])
+    },[settings]);
 
     return (
         <MapView
@@ -229,7 +263,7 @@ const MsituMapView: React.FC<MapProps> = ({
                 zoom: 21,
                 heading: 0,
                 pitch: 0,
-                altitude: 0
+                altitude: 0,
             }}
             style={{ flex: 1 }}
         >
@@ -246,7 +280,7 @@ const MsituMapView: React.FC<MapProps> = ({
                             <Circle
                                 center={closestPoint}
                                 radius={0.6}
-                                strokeColor={"blue"}
+                                strokeColor={'blue'}
                                 strokeWidth={1}
                                 zIndex={1}
                             />
@@ -257,6 +291,7 @@ const MsituMapView: React.FC<MapProps> = ({
                             strokeWidth={1.5}
                         />
                         {line.map((coord, index) => {
+                            console.log(coord);
                             const isMarked = checkPointExists(coord);
                             if (index % settings.skipLines === 0) {
                                 return (
@@ -277,7 +312,7 @@ const MsituMapView: React.FC<MapProps> = ({
             ) : (
                 // Normal mode content
                 <>
-                    {basePoints && basePoints.map((point, index) => (
+                   {basePoints && basePoints.map((point, index) => (
                         <Circle
                             key={`base-point-${index}`}
                             center={{ latitude: point.latitude, longitude: point.longitude }}
@@ -325,7 +360,7 @@ const MsituMapView: React.FC<MapProps> = ({
                             <Polyline
                                 coordinates={line}
                                 tappable
-                                onPress={() => { handlePolyLineClick(line, idx) }}
+                                onPress={() => { handlePolyLineClick(line, idx); }}
                                 strokeColor={selectedPlantingLines.some(sublist => sublist[1] === idx) ? 'orange' : 'blue'}
                                 strokeWidth={1.5}
                             />

@@ -1,5 +1,5 @@
 // App version configuration
-export const APP_VERSION = '1.0.0';
+export const APP_VERSION = '1.1.0';
 export const APP_NAME = 'Msitu';
 export const APP_SUBTITLE = 'Every tree planter\'s companion';
 
@@ -16,8 +16,8 @@ export const VERSION_INFO = {
   version: APP_VERSION,
   name: APP_NAME,
   subtitle: APP_SUBTITLE,
-  buildNumber: '01',
-  buildDate: '2025-08-01',
+  buildNumber: '02',
+  buildDate: '2025-08-03',
 };
 
 // Helper function to get formatted build info

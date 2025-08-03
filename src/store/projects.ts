@@ -181,8 +181,8 @@ export const projectSlice = createSlice({
                 });
                 // save these to db parmanently
                 ProjectService.update("projects", state.activeProject.id, { markedPoints: JSON.stringify(state.activeProject.markedPoints) })
-                    .then((result) => {
-                        console.log(result)
+                    .then((_) => {
+                        //console.log(result)
                     }).catch((error: any) => {
                         console.error(error)
                     })

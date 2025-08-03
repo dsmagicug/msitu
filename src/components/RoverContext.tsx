@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { throttle } from 'lodash';
 import LatLong from '../services/NMEAService';
 import { FixType } from 'rtn-msitu';
@@ -19,10 +19,7 @@ export const RoverProvider: React.FC<RoverProviderProps> = ({ children }) => {
   const [roverLocation, setRoverLocation] = useState<LatLong | null>(null);
   const [dataReadListener, setDataReadListener] = useState<(() => void) | null>(null);
 
-  // Assuming these types are defined in your Redux store types
-  const { activeProject, visibleLines, loading, scaledPlantingLines } = useSelector((store: any) => store.project);
-  const { selectedDevice, init } = useSelector((store: any) => store.bluetooth);
-  const dispatch = useDispatch();
+  const { selectedDevice } = useSelector((store: any) => store.bluetooth);
 
   const onReceiveData = useCallback(async (buffer: { data: string }) => {
     const sentence = buffer.data.trim();
@@ -39,7 +36,7 @@ export const RoverProvider: React.FC<RoverProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const checkConnectionAndSetupListener = async () => {
-      if (!selectedDevice) return;
+      if (!selectedDevice) {return;}
       const connection = await selectedDevice.isConnected();
       if (connection) {
         const readListener = selectedDevice.onDataReceived((buffer: { data: string }) => onReceiveData(buffer));
@@ -50,7 +47,7 @@ export const RoverProvider: React.FC<RoverProviderProps> = ({ children }) => {
     checkConnectionAndSetupListener();
 
     return () => {
-      console.log("Stop listening");
+      console.log('Stop listening');
       if (dataReadListener) {
         dataReadListener();
       }
