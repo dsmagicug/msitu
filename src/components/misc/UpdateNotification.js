@@ -8,19 +8,15 @@ import Animated, {
   withDelay,
 } from 'react-native-reanimated';
 import Ionicons from 'react-native-vector-icons/Ionicons';
-import colors from 'tailwindcss/colors';
 import { useAppUpdate } from '../../hooks/useAppUpdate';
-import UpdateAppModal from './UpdateAppModal';
 
 const UpdateNotification = ({ onUpdatePress }) => {
-  const { updateAvailable, versionDetails, showUpdateNotification } = useAppUpdate();
-  
-  // Animation values
+  const { updateAvailable, versionDetails} = useAppUpdate();
+
   const notificationOpacity = useSharedValue(0);
   const notificationTranslateY = useSharedValue(-100);
   const badgeScale = useSharedValue(0);
 
-  // Animated styles
   const notificationAnimatedStyle = useAnimatedStyle(() => ({
     opacity: notificationOpacity.value,
     transform: [{ translateY: notificationTranslateY.value }],
@@ -30,14 +26,15 @@ const UpdateNotification = ({ onUpdatePress }) => {
     transform: [{ scale: badgeScale.value }],
   }));
 
-  // Show notification when update is available
   useEffect(() => {
     if (updateAvailable && versionDetails) {
+
       // Animate in
       notificationOpacity.value = withDelay(1000, withSpring(1, { damping: 15, stiffness: 150 }));
       notificationTranslateY.value = withDelay(1000, withSpring(0, { damping: 15, stiffness: 150 }));
       badgeScale.value = withDelay(1500, withSpring(1, { damping: 10, stiffness: 200 }));
     } else {
+
       // Animate out
       notificationOpacity.value = withTiming(0, { duration: 300 });
       notificationTranslateY.value = withTiming(-100, { duration: 300 });
@@ -50,7 +47,7 @@ const UpdateNotification = ({ onUpdatePress }) => {
   }
 
   return (
-    <Animated.View 
+    <Animated.View
       style={notificationAnimatedStyle}
       className="absolute top-4 left-4 right-4 z-50"
     >
@@ -67,7 +64,7 @@ const UpdateNotification = ({ onUpdatePress }) => {
                 size={24}
                 color="white"
               />
-              <Animated.View 
+              <Animated.View
                 style={badgeAnimatedStyle}
                 className="absolute -top-1 -right-1 bg-red-500 rounded-full w-3 h-3"
               />
@@ -92,4 +89,4 @@ const UpdateNotification = ({ onUpdatePress }) => {
   );
 };
 
-export default UpdateNotification; 
+export default UpdateNotification;
