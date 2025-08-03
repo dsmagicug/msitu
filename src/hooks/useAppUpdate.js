@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Platform, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import VERSION_INFO from "../config/version";
 
-const CURRENT_VERSION = '1.0.0'; // Update this when releasing new versions
+const CURRENT_VERSION =VERSION_INFO.version
 const CONFIG_URL = 'https://github.com/ekeeya/files/raw/main/config.json';
 const BASE_APK_URL = 'https://github.com/ekeeya/files/raw/main/msitu-apk-';
 
@@ -37,9 +38,9 @@ export const useAppUpdate = () => {
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const config = await response.json();
-      
+
       // Extract version information from config
       const latestVersion = config.currentVersion;
       const currentVersion = CURRENT_VERSION;
@@ -48,7 +49,7 @@ export const useAppUpdate = () => {
       if (latestVersion && latestVersion !== currentVersion) {
         // Check if latest version is greater than current
         const isNewer = compareVersions(latestVersion, currentVersion);
-        
+
         if (isNewer) {
           setVersionDetails({
             version: latestVersion,
@@ -74,8 +75,7 @@ export const useAppUpdate = () => {
       setLastCheckTime(new Date());
 
     } catch (error) {
-      console.log('Error checking for updates:', error);
-      // Don't show error to user for background checks
+      // Silent error handling for production
     } finally {
       setIsChecking(false);
     }
@@ -85,17 +85,17 @@ export const useAppUpdate = () => {
   const compareVersions = (version1, version2) => {
     const v1Parts = version1.split('.').map(Number);
     const v2Parts = version2.split('.').map(Number);
-    
+
     // Pad with zeros if needed
     const maxLength = Math.max(v1Parts.length, v2Parts.length);
     while (v1Parts.length < maxLength) v1Parts.push(0);
     while (v2Parts.length < maxLength) v2Parts.push(0);
-    
+
     for (let i = 0; i < maxLength; i++) {
       if (v1Parts[i] > v2Parts[i]) return true;
       if (v1Parts[i] < v2Parts[i]) return false;
     }
-    
+
     return false; // Versions are equal
   };
 
@@ -140,4 +140,4 @@ export const useAppUpdate = () => {
     checkForUpdates: forceCheckForUpdates,
     showUpdateNotification,
   };
-}; 
+};

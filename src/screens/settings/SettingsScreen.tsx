@@ -76,11 +76,41 @@ const SettingsScreen: React.FC = () => {
     const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
 
     // Get update information
-    const { updateAvailable, versionDetails, checkForUpdates } = useAppUpdate();
+    const { updateAvailable, versionDetails, checkForUpdates, isChecking } = useAppUpdate();
 
     const fadeAnim = useSharedValue(mode ? 1 : 0);
     const saveButtonOpacity = useSharedValue(0);
     const saveButtonTranslateY = useSharedValue(100);
+
+    // Auto-check for updates when screen loads
+    useEffect(() => {
+        const autoCheckUpdates = async () => {
+            try {
+                await checkForUpdates();
+            } catch (error) {
+                // Silent error handling for production
+            }
+        };
+        autoCheckUpdates();
+    }, []);
+
+    // Show toast when update is found
+    useEffect(() => {
+        if (updateAvailable && versionDetails && !isChecking) {
+            Toast.show({
+                type: 'info',
+                text1: 'Update Available',
+                text2: `Version ${(versionDetails as any).version} is ready to download`,
+                position: 'top',
+                visibilityTime: 4000,
+                autoHide: true,
+                topOffset: 50,
+                props: {
+                    backgroundColor: '#3b82f6', // Blue background
+                }
+            });
+        }
+    }, [updateAvailable, versionDetails, isChecking]);
 
     useEffect(() => {
         fadeAnim.value = withTiming(mode ? 1 : 0, { duration: 300 });
@@ -224,20 +254,20 @@ const SettingsScreen: React.FC = () => {
                 className={`h-${isPortrait ? "1/5" : "1/4"} bg-gradient-to-b from-blue-50 to-white`}
                 style={highContrastMode ? { backgroundColor: '#ffffff', borderBottomWidth: 2, borderBottomColor: '#000000' } : {}}
             >
-                <View className={`flex flex-col p-4 mt-${isPortrait ? '8':'4'} gap-3`}>
+                <View className={`flex flex-col p-4 gap-3`} style={{ marginTop: isPortrait ? 40 : 32 }}>
                     <View className="flex flex-row items-center justify-between">
                         <TouchableOpacity
                             onPress={() => navigation.goBack()}
-                            className="rounded-full w-12 h-12 items-center justify-center"
+                            className="rounded-full w-14 h-14 items-center justify-center"
                             style={{ backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(59, 130, 246, 0.1)' }}
                         >
-                            <Icon color={highContrastMode ? "#000000" : "#3b82f6"} name='keyboard-arrow-left' size={24} />
+                            <Icon color={highContrastMode ? "#000000" : "#3b82f6"} name='keyboard-arrow-left' size={28} />
                         </TouchableOpacity>
                         <View className="items-center">
                             <Text className='font-avenirBold text-2xl' style={titleStyle}>Settings</Text>
                             <Text className='font-avenirMedium text-sm' style={subtitleStyle}>Configure your app preferences</Text>
                         </View>
-                        <View className="w-12 h-12" />
+                        <View className="w-14 h-14" />
                     </View>
                 </View>
             </Reanimated.View>
@@ -372,7 +402,7 @@ const SettingsScreen: React.FC = () => {
                     </View>
                 </Reanimated.View>
 
-                <View className='mb-4'>
+                {/*<View className='mb-4'>
                     <Text className='font-avenirBold text-lg mb-3 mt-6 px-1' style={titleStyle}>CLOUD SETTINGS</Text>
 
                     <AnimatedSettingCard index={5} highContrast={highContrastMode}>
@@ -440,7 +470,7 @@ const SettingsScreen: React.FC = () => {
                             Choose your preferred map view style (default: SATELLITE)
                         </Text>
                     </AnimatedSettingCard>
-                </View>
+                </View>*/}
 
                 {/* App Updates Section */}
                 <View className='mb-4'>
@@ -454,7 +484,12 @@ const SettingsScreen: React.FC = () => {
                             <View className="flex-1">
                                 <View className="flex-row items-center mb-1">
                                     <Text className='font-avenirBold' style={titleStyle}>App Updates</Text>
-                                    {updateAvailable && (
+                                    {isChecking && (
+                                        <View className="ml-2">
+                                            <ActivityIndicator size="small" color={highContrastMode ? "#000000" : "#3b82f6"} />
+                                        </View>
+                                    )}
+                                    {updateAvailable && !isChecking && (
                                         <View className="ml-2 px-2 py-1 rounded-full" style={{
                                             backgroundColor: highContrastMode ? '#000000' : '#ef4444'
                                         }}>
@@ -463,46 +498,34 @@ const SettingsScreen: React.FC = () => {
                                     )}
                                 </View>
                                 <Text className='text-xs font-avenirMedium leading-4' style={bodyTextStyle}>
-                                    {updateAvailable && versionDetails
-                                        ? `Version ${(versionDetails as any).version} is available for download`
-                                        : 'Keep your app up to date with the latest features and bug fixes'
+                                    {isChecking
+                                        ? 'Checking for updates...'
+                                        : updateAvailable && versionDetails
+                                            ? `Version ${(versionDetails as any).version} is available for download`
+                                            : 'Keep your app up to date with the latest features and bug fixes'
                                     }
                                 </Text>
                             </View>
                         </View>
-                        
-                        {updateAvailable ? (
+
+                        {isChecking ? (
+                            <View className="items-center py-3">
+                                <ActivityIndicator size="small" color={highContrastMode ? "#000000" : "#3b82f6"} />
+                                <Text className="text-xs font-avenirMedium mt-2" style={subtitleStyle}>
+                                    Checking for updates...
+                                </Text>
+                            </View>
+                        ) : updateAvailable ? (
                             <View className="space-y-3">
-                                {/* Update Info Card */}
-                                <View className="p-3 rounded-xl" style={{
-                                    backgroundColor: highContrastMode ? '#f8f9fa' : '#f0f9ff',
-                                    borderWidth: highContrastMode ? 1 : 1,
-                                    borderColor: highContrastMode ? '#000000' : '#0ea5e9',
-                                }}>
-                                    <View className="flex-row items-center justify-between mb-2">
-                                        <Text className="font-avenirBold text-sm" style={textStyle}>
-                                            What's New
-                                        </Text>
-                                        <Text className="font-avenirMedium text-xs" style={subtitleStyle}>
-                                            {(versionDetails as any)?.size || '~61MB'}
-                                        </Text>
-                                    </View>
-                                    <Text className="text-xs font-avenirMedium leading-4" style={subtitleStyle}>
-                                        {(versionDetails as any)?.description || 'This update includes new features, improvements, and bug fixes.'}
-                                    </Text>
-                                </View>
+
 
                                 {/* Update Button */}
                                 <TouchableOpacity
                                     onPress={() => setShowUpdateModal(true)}
-                                    className="py-3 px-4 rounded-xl items-center"
+                                    className="py-3 px-4 rounded-xl items-center border-2"
                                     style={{
-                                        backgroundColor: highContrastMode ? '#000000' : '#3b82f6',
-                                        shadowColor: highContrastMode ? '#000000' : '#3b82f6',
-                                        shadowOffset: { width: 0, height: 2 },
-                                        shadowOpacity: 0.3,
-                                        shadowRadius: 4,
-                                        elevation: 3,
+                                        backgroundColor: 'transparent',
+                                        borderColor: highContrastMode ? '#dc2626' : '#f97316',
                                     }}
                                     activeOpacity={0.8}
                                 >
@@ -510,9 +533,9 @@ const SettingsScreen: React.FC = () => {
                                         <MaterialCommunityIcons
                                             name="cloud-download"
                                             size={18}
-                                            color="white"
+                                            color={highContrastMode ? '#dc2626' : '#f97316'}
                                         />
-                                        <Text className="text-sm font-avenirBold text-white ml-2">
+                                        <Text className="text-sm font-avenirBold ml-2" style={{ color: highContrastMode ? '#dc2626' : '#f97316' }}>
                                             Update Now
                                         </Text>
                                     </View>

@@ -148,14 +148,26 @@ const UpdateAppModal = ({ visible, onClose, versionDetails }) => {
         setDownloading(false);
         setInstalling(true);
 
+        // Verify file exists before installation
+        const fileExists = await RNFS.exists(apkPath);
+        if (!fileExists) {
+          throw new Error('Downloaded APK file not found');
+        }
+
+        // Get file stats to verify it's not empty
+        const fileStats = await RNFS.stat(apkPath);
+        if (fileStats.size === 0) {
+          throw new Error('Downloaded APK file is empty');
+        }
+
         // Install APK
         if (Platform.OS === 'android') {
           try {
+            // Use the actual file path for Android 14+ compatibility
             await RNApkInstaller.install(apkPath);
             setInstalling(false);
             onClose();
           } catch (err) {
-            console.error('Installation error:', err);
             Alert.alert(
               'Installation Failed',
               'Failed to install the update. Please try again.',
@@ -164,15 +176,18 @@ const UpdateAppModal = ({ visible, onClose, versionDetails }) => {
             setInstalling(false);
           } finally {
             // Clean up
-            await RNFS.exists(apkPath).then(exists => {
-              if (exists) {
-                RNFS.unlink(apkPath);
-              }
-            });
+            try {
+              await RNFS.exists(apkPath).then(exists => {
+                if (exists) {
+                  RNFS.unlink(apkPath);
+                }
+              });
+            } catch (cleanupError) {
+              // Silent cleanup error
+            }
           }
         }
       } else {
-        console.log('Download failed');
         Alert.alert(
           'Download Failed',
           'Failed to download the update. Please check your internet connection.',
@@ -181,7 +196,6 @@ const UpdateAppModal = ({ visible, onClose, versionDetails }) => {
         setDownloading(false);
       }
     } catch (error) {
-      console.log('Error during update:', error);
       Alert.alert(
         'Update Error',
         'An error occurred during the update process. Please try again.',

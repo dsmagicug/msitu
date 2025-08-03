@@ -1,16 +1,11 @@
 {
-  "currentVersion": "1.1.1",
-  "previousVersion": "1.1.0",
+  "currentVersion": "1.1.2",
+  "previousVersion": "1.1.1",
   "size": "~61MB",
-  "downloadUrl": "https://github.com/ekeeya/files/raw/main/msitu-apk-1.1.1.apk",
-  "publishedAt": "2025-08-03T18:30:00Z",
+  "downloadUrl": "https://github.com/ekeeya/files/raw/main/msitu-apk-1.1.2.apk",
+  "publishedAt": "2025-08-03T20:30:00Z",
   "changelog": [
-    "Fixed coordinate validation crashes in release builds",
-    "Improved map performance and stability",
-    "Enhanced RTK positioning accuracy",
-    "Updated ProGuard rules for better APK optimization",
-    "Fixed Bluetooth connected device UI design",
-    "New UI design of the drawer menus",
-    "Added some performance improvements"
+    "Added some performance improvements",
+    "Added ability to do in-app updates"
   ]
 }
