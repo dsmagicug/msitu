@@ -30,36 +30,6 @@ RTNMsitu.closetPointRelativeToRoverPosition(roverLocation, points)  // Find clos
 RTNMsitu.distanceBtnCoords(pt1, pt2)       // Calculate distance between coordinates
 ```
 
-#### App Update System
-
-The app includes an integrated update system that fetches updates from your GitHub files repository:
-
-**Config Structure:**
-```json
-{
-  "currentVersion": "1.1.0",
-  "previousVersion": "1.0.0",
-  "size": "~61MB",
-  "downloadUrl": "https://github.com/ekeeya/files/raw/main/msitu-apk-1.1.0.apk",
-  "publishedAt": "2024-01-15T10:30:00Z",
-  "changelog": [
-    "Fixed coordinate validation crashes",
-    "Improved map performance",
-    "Enhanced RTK positioning accuracy"
-  ]
-}
-```
-
-**Usage:**
-```bash
-# Generate config for new release
-node scripts/generate-config.js 1.1.0 "Bug fixes and performance improvements"
-
-# Upload to GitHub files repository
-# - config.json
-# - msitu-apk-1.1.0.apk
-```
-
 #### Native Implementation
 
 The RTNMsitu module is implemented in:
@@ -87,7 +57,7 @@ Key native libraries used:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/kitandara/kibira.git
+   git clone https://github.com/dsmagicug/msitu.git
    cd kibira
    ```
 
@@ -98,22 +68,7 @@ Key native libraries used:
    yarn install
    ```
 
-3. **Install React Native CLI globally** (if not already installed)
-   ```bash
-   npm install -g @react-native-community/cli
-   ```
-
-4. **Setup Android development environment**
-   ```bash
-   # Navigate to Android directory
-   cd android
-   
-   # Clean and build the project
-   ./gradlew clean
-   ./gradlew assembleDebug
-   ```
-
-5. **Start Metro bundler**
+3. **Start Metro bundler**
    ```bash
    # From project root
    npm start
@@ -121,7 +76,7 @@ Key native libraries used:
    yarn start
    ```
 
-6. **Run the app**
+4. **Run the app**
    ```bash
    # For Android
    npm run android
@@ -147,22 +102,6 @@ Key native libraries used:
    - **View Binding**: Enabled
    - **Kotlin Support**: Enabled
 
-#### Metro Configuration
-
-The project uses a custom Metro configuration for the RTNMsitu module:
-
-```javascript
-// metro.config.js
-const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
-
-const config = {
-  resolver: {
-    unstable_enableSymlinks: true,
-  },
-};
-
-module.exports = mergeConfig(getDefaultConfig(__dirname), config);
-```
 
 ### Building for Production
 
@@ -182,9 +121,6 @@ cd android
 ```bash
 # Generate Android bundle
 npm run bundle-android
-
-# Generate iOS bundle
-npm run bundle-ios
 ```
 
 ## 📱 Usage Guide
@@ -217,6 +153,7 @@ If no internet connection is available:
 1. Move around the plot with the rover to establish bearing
 2. Use offline maps or visual references
 3. The app will work without visual map representation
+4. That being said, for reference, please at least load the map.
 
 ### Syncing Multiple Equipment Sets
 
@@ -316,5 +253,5 @@ This project is licensed under the GPL License. See the LICENSE file for details
 
 For issues and questions:
 - Create an issue on GitHub
-- Contact: ekeeya@ds.co.ug
-- Repository: https://github.com/kitandara/kibira
+- Contact: support@ds.co.ug
+- Repository: https://github.com/dsmagicug/msitu
