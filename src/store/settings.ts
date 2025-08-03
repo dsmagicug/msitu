@@ -23,9 +23,9 @@ interface SettingState {
 }
 export const defaultSettings: Settings = {
     appMode: "planting",
-    skipLines: 5,
+    skipLines: 1,
     displayLineCount: 10,
-    cloudApi: "https://api.msitu.com/import",
+    cloudApi: "https://msitu.tech/projects",
     mapStyle: MAP_TYPES.SATELLITE,
     highContrastMode: false
 }
@@ -42,13 +42,12 @@ export const saveSettings = createAsyncThunk(
     'settings/saveSettings',
     async (settings: Settings, thunkAPI) => {
         try {
-            console.log(settings)
             const { id } = settings;
             const settingsToSave = {
                 ...settings,
                 highContrastMode: settings.highContrastMode ? 1 : 0
             };
-            
+
             if (id) {
                 await ProjectService.update("settings", id, settingsToSave);
                 return settings;

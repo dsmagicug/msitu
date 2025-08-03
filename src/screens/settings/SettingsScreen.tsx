@@ -7,7 +7,8 @@ import {
     Image,
     ScrollView,
     useWindowDimensions,
-    ActivityIndicator
+    ActivityIndicator,
+    Alert
 } from 'react-native';
 import {MAP_TYPES} from 'react-native-maps'
 import Icon from 'react-native-vector-icons/MaterialIcons';
@@ -26,6 +27,8 @@ import styles from '../../assets/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import { Settings, defaultSettings, loadSettings, saveSettings, toggleHighContrastMode } from '../../store/settings';
 import Toast from 'react-native-toast-message';
+import UpdateAppModal from '../../components/misc/UpdateAppModal';
+import { useAppUpdate } from '../../hooks/useAppUpdate';
 
 const AnimatedSettingCard = ({ children, index = 0, highContrast = false }: { children: React.ReactNode; index?: number; highContrast?: boolean }) => {
     const scaleValue = useSharedValue(0);
@@ -70,6 +73,10 @@ const SettingsScreen: React.FC = () => {
     const [localSettings, setLocalSettings] = useState<Settings>(defaultSettings)
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState<boolean>(false);
     const [highContrastMode, setHighContrastMode] = useState<boolean>(false);
+    const [showUpdateModal, setShowUpdateModal] = useState<boolean>(false);
+
+    // Get update information
+    const { updateAvailable, versionDetails, checkForUpdates } = useAppUpdate();
 
     const fadeAnim = useSharedValue(mode ? 1 : 0);
     const saveButtonOpacity = useSharedValue(0);
@@ -140,8 +147,6 @@ const SettingsScreen: React.FC = () => {
     const handleSave = async () => {
         try {
             // Ensure the store state is synced with local settings
-            console.log(localSettings)
-            console.log(localSettings.skipLines, localSettings.displayLineCount)
             const settingsToSave = {
                 ...localSettings,
                 highContrastMode: highContrastMode,
@@ -210,6 +215,7 @@ const SettingsScreen: React.FC = () => {
     const titleStyle = highContrastMode ? { color: '#000000', fontWeight: 'bold' as const } : { color: '#1f2937' };
     const subtitleStyle = highContrastMode ? { color: '#000000' } : { color: '#6b7280' };
     const bodyTextStyle = highContrastMode ? { color: '#000000' } : { color: '#374151' };
+    const textStyle = highContrastMode ? { color: '#000000' } : { color: '#374151' };
 
     return (
         <View className="h-full" style={{ backgroundColor: highContrastMode ? "#ffffff" : "#f8fafc" }}>
@@ -435,6 +441,121 @@ const SettingsScreen: React.FC = () => {
                         </Text>
                     </AnimatedSettingCard>
                 </View>
+
+                {/* App Updates Section */}
+                <View className='mb-4'>
+                    <Text className='font-avenirBold text-lg mb-3 mt-6 px-1' style={titleStyle}>APP UPDATES</Text>
+
+                    <AnimatedSettingCard index={7} highContrast={highContrastMode}>
+                        <View className='flex flex-row items-center gap-4 mb-4'>
+                            <View className="p-2 rounded-lg" style={{ backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(59, 130, 246, 0.1)' }}>
+                                <Image source={require("../../assets/refresh.png")} style={{ width: 20, height: 20, tintColor: highContrastMode ? "#000000" : "#3b82f6" }} />
+                            </View>
+                            <View className="flex-1">
+                                <View className="flex-row items-center mb-1">
+                                    <Text className='font-avenirBold' style={titleStyle}>App Updates</Text>
+                                    {updateAvailable && (
+                                        <View className="ml-2 px-2 py-1 rounded-full" style={{
+                                            backgroundColor: highContrastMode ? '#000000' : '#ef4444'
+                                        }}>
+                                            <Text className="text-xs font-avenirBold text-white">NEW</Text>
+                                        </View>
+                                    )}
+                                </View>
+                                <Text className='text-xs font-avenirMedium leading-4' style={bodyTextStyle}>
+                                    {updateAvailable && versionDetails
+                                        ? `Version ${(versionDetails as any).version} is available for download`
+                                        : 'Keep your app up to date with the latest features and bug fixes'
+                                    }
+                                </Text>
+                            </View>
+                        </View>
+                        
+                        {updateAvailable ? (
+                            <View className="space-y-3">
+                                {/* Update Info Card */}
+                                <View className="p-3 rounded-xl" style={{
+                                    backgroundColor: highContrastMode ? '#f8f9fa' : '#f0f9ff',
+                                    borderWidth: highContrastMode ? 1 : 1,
+                                    borderColor: highContrastMode ? '#000000' : '#0ea5e9',
+                                }}>
+                                    <View className="flex-row items-center justify-between mb-2">
+                                        <Text className="font-avenirBold text-sm" style={textStyle}>
+                                            What's New
+                                        </Text>
+                                        <Text className="font-avenirMedium text-xs" style={subtitleStyle}>
+                                            {(versionDetails as any)?.size || '~61MB'}
+                                        </Text>
+                                    </View>
+                                    <Text className="text-xs font-avenirMedium leading-4" style={subtitleStyle}>
+                                        {(versionDetails as any)?.description || 'This update includes new features, improvements, and bug fixes.'}
+                                    </Text>
+                                </View>
+
+                                {/* Update Button */}
+                                <TouchableOpacity
+                                    onPress={() => setShowUpdateModal(true)}
+                                    className="py-3 px-4 rounded-xl items-center"
+                                    style={{
+                                        backgroundColor: highContrastMode ? '#000000' : '#3b82f6',
+                                        shadowColor: highContrastMode ? '#000000' : '#3b82f6',
+                                        shadowOffset: { width: 0, height: 2 },
+                                        shadowOpacity: 0.3,
+                                        shadowRadius: 4,
+                                        elevation: 3,
+                                    }}
+                                    activeOpacity={0.8}
+                                >
+                                    <View className="flex-row items-center">
+                                        <MaterialCommunityIcons
+                                            name="cloud-download"
+                                            size={18}
+                                            color="white"
+                                        />
+                                        <Text className="text-sm font-avenirBold text-white ml-2">
+                                            Update Now
+                                        </Text>
+                                    </View>
+                                </TouchableOpacity>
+                            </View>
+                        ) : (
+                            <TouchableOpacity
+                                onPress={async () => {
+                                    // Force check for updates first
+                                    await checkForUpdates();
+
+                                    // Then show modal if update is available
+                                    if (updateAvailable && versionDetails) {
+                                        setShowUpdateModal(true);
+                                    } else {
+                                        Alert.alert(
+                                            'No Updates',
+                                            'You are using the latest version of the app.',
+                                            [{ text: 'OK' }]
+                                        );
+                                    }
+                                }}
+                                className="bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl"
+                                style={{
+                                    backgroundColor: highContrastMode ? '#f8f9fa' : '#f9fafb',
+                                    borderColor: highContrastMode ? '#000000' : '#e5e7eb',
+                                }}
+                                activeOpacity={0.8}
+                            >
+                                <View className="flex-row items-center justify-center space-x-2">
+                                    <MaterialCommunityIcons
+                                        name="cloud-download-outline"
+                                        size={16}
+                                        color={highContrastMode ? "#000000" : "#6b7280"}
+                                    />
+                                    <Text className="text-sm font-avenirMedium" style={{ color: highContrastMode ? "#000000" : "#6b7280" }}>
+                                        Check for Updates
+                                    </Text>
+                                </View>
+                            </TouchableOpacity>
+                        )}
+                    </AnimatedSettingCard>
+                </View>
             </ScrollView>
 
             {/* Smart Save Button - Only shows when there are unsaved changes */}
@@ -466,6 +587,14 @@ const SettingsScreen: React.FC = () => {
                     </View>
                 </TouchableOpacity>
             </Reanimated.View>
+
+            {/* Update Modal */}
+            <UpdateAppModal
+                visible={showUpdateModal}
+                onClose={() => setShowUpdateModal(false)}
+                versionDetails={versionDetails}
+            />
+
             <Toast />
         </View>
     );
