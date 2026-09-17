@@ -1,9 +1,13 @@
-import moment from 'moment'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+import utc from 'dayjs/plugin/utc'
 import { useSelector } from 'react-redux';
 
+dayjs.extend(customParseFormat);
+dayjs.extend(utc);
 
 export function parseToUTC(input, format) {
-  const parsedDate = moment(input, format);
+    const parsedDate = dayjs(input, format);
 
   if (!parsedDate.isValid()) {
     return "";
@@ -14,14 +18,13 @@ export function parseToUTC(input, format) {
 
 export function convertToUTC(input) {
 
-  const parsedTime = moment(input, "HHmmss");
-  const today = moment().startOf('day');
+    const parsedTime = dayjs(input, "HHmmss");
+    const today = dayjs().startOf('day');
 
-  const finalDate = today.set({
-    hour: parsedTime.hours(),
-    minute: parsedTime.minutes(),
-    second: parsedTime.seconds(),
-  });
+    const finalDate = today
+        .set('hour', parsedTime.hour())
+        .set('minute', parsedTime.minute())
+        .set('second', parsedTime.second());
   return finalDate.utc().toISOString();
 }
 

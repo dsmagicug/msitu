@@ -41,7 +41,7 @@ object Utils {
     fun extractListOfLatLng(list:ReadableArray): MutableList<LatLng>{
         val coordinates = arrayListOf<LatLng>()
         for (i in 0 until list.size()){
-            val coord: ReadableMap = list.getMap(i)
+            val coord = requireNotNull(list.getMap(i)) { "Coordinate at index $i is null" }
             val latLong:LatLng = extractLatLng(coord);
             coordinates.add(latLong);
         }
@@ -102,7 +102,7 @@ object Utils {
     fun toPlantingLine(points: ReadableArray):PlantingLine{
         val pts = arrayListOf<Point>()
         for (i in 0 until points.size()) {
-            val p: ReadableMap = points.getMap(i)
+            val p = requireNotNull(points.getMap(i)) { "Point at index $i is null" }
             val point =  extractPoint(p)
             pts.add(point)
         }
@@ -113,7 +113,7 @@ object Utils {
         val plantingLines = mutableListOf<PlantingLine>()
 
         for (i in 0 until lines.size()) {
-            val points: ReadableArray = lines.getArray(i)
+            val points = requireNotNull(lines.getArray(i)) { "Planting line at index $i is null" }
             val plantingLine = toPlantingLine(points)
             plantingLines.add(plantingLine)
         }
@@ -139,7 +139,7 @@ object Utils {
     fun toGoogleLatLngList(locations: ReadableArray):MutableList<LatLng>{
         val pts = mutableListOf<LatLng>()
         for (i in 0 until locations.size()) {
-            val p: ReadableMap = locations.getMap(i)
+            val p = requireNotNull(locations.getMap(i)) { "Location at index $i is null" }
             val l =  toGoogleLatLng(p)
             pts.add(l)
         }

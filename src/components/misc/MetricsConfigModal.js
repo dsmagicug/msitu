@@ -54,11 +54,11 @@ const MetricsConfigModal = ({
 
   const modalAnimatedStyle = useAnimatedStyle(() => ({
     opacity: modalOpacity.value,
-  }));
+  }), [modalOpacity]);
 
   const contentAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: modalScale.value }, { translateY: contentTranslateY.value }],
-  }));
+  }), [modalScale, contentTranslateY]);
 
   const handleApply = () => {
     const parsedGap = parseFloat(gapSize);

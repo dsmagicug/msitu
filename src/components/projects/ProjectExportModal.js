@@ -43,7 +43,7 @@ const ProjectExportModal = ({ visible, onClose }) => {
     return {
       opacity: modalOpacity.value,
     };
-  });
+  }, [modalOpacity]);
 
   const contentAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -52,7 +52,7 @@ const ProjectExportModal = ({ visible, onClose }) => {
         { translateY: contentTranslateY.value }
       ],
     };
-  });
+  }, [modalScale, contentTranslateY]);
 
   const handleClose = () => {
     onClose();
@@ -122,11 +122,11 @@ const ProjectExportModal = ({ visible, onClose }) => {
   if (!visible) return null;
 
   const containerStyle = {
-    backgroundColor: highContrastMode ? 'rgba(255, 255, 255, 0.98)' : 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: highContrastMode ? '#070424' : 'rgba(0, 0, 0, 0.5)',
   };
 
   const modalStyle = {
-    backgroundColor: highContrastMode ? '#ffffff' : '#ffffff',
+    backgroundColor: highContrastMode ? '#070424' : '#ffffff',
     borderWidth: highContrastMode ? 2 : 0,
     borderColor: highContrastMode ? '#000000' : 'transparent',
     shadowColor: highContrastMode ? '#000000' : '#000',
@@ -137,28 +137,28 @@ const ProjectExportModal = ({ visible, onClose }) => {
   };
 
   const textStyle = {
-    color: highContrastMode ? '#000000' : '#1f2937',
+    color: highContrastMode ? '#ffffff' : '#1f2937',
     fontWeight: highContrastMode ? 'bold' : 'normal',
   };
 
   const subtitleStyle = {
-    color: highContrastMode ? '#000000' : '#6b7280',
+    color: highContrastMode ? '#ffffff' : '#6b7280',
     fontWeight: highContrastMode ? '600' : 'normal',
   };
 
   const projectCardStyle = {
-    backgroundColor: highContrastMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.8)',
+    backgroundColor: highContrastMode ? '#070424' : 'rgba(255, 255, 255, 0.8)',
     borderWidth: highContrastMode ? 2 : 1,
     borderColor: highContrastMode ? '#000000' : 'rgba(59, 130, 246, 0.1)',
   };
 
   const projectNameStyle = {
-    color: highContrastMode ? '#000000' : '#1f2937',
+    color: highContrastMode ? '#ffffff' : '#1f2937',
     fontWeight: highContrastMode ? 'bold' : 'normal',
   };
 
   const projectInfoStyle = {
-    color: highContrastMode ? '#000000' : '#6b7280',
+    color: highContrastMode ? '#ffffff' : '#6b7280',
     fontWeight: highContrastMode ? '600' : 'normal',
   };
 
@@ -177,7 +177,7 @@ const ProjectExportModal = ({ visible, onClose }) => {
         className="mx-6 rounded-3xl overflow-hidden"
         style={[modalStyle, contentAnimatedStyle]}
       >
-        <View className="p-6 pb-4 bg-gray-50" style={{ backgroundColor: highContrastMode ? '#f8f9fa' : '#f9fafb' }}>
+        <View className="p-6 pb-4 bg-gray-50" style={{ backgroundColor: highContrastMode ? '#070424' : '#f9fafb' }}>
           <View className="flex flex-row items-center justify-between mb-4">
             <View className="flex-1">
               <Text className="font-avenirBold text-2xl" style={textStyle}>Export Projects</Text>
@@ -188,16 +188,17 @@ const ProjectExportModal = ({ visible, onClose }) => {
               onPress={handleClose}
               className="rounded-full"
               style={{
-                backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(239, 68, 68, 0.15)',
+                /* backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(239, 68, 68, 0.15)',
                 borderWidth: highContrastMode ? 1 : 0,
-                borderColor: highContrastMode ? '#000000' : 'transparent',
+                borderColor: highContrastMode ? '#000000' : 'transparent', */
                 width: 40,
                 height: 40,
                 justifyContent: 'center',
                 alignItems: 'center',
+                marginBottom: 15
               }}
             >
-              <Icon name="close" size={20} color={highContrastMode ? "#000000" : "#ef4444"} />
+              <Icon name="close" size={24} color={highContrastMode ? "#ffffff" : "#484444"} />
             </TouchableOpacity>
           </View>
         </View>
@@ -246,7 +247,7 @@ const ProjectExportModal = ({ visible, onClose }) => {
                           <MaterialCommunityIcons
                             name="download"
                             size={20}
-                            color={highContrastMode ? "#000000" : "#22c55e"}
+                            color={highContrastMode ? "#ffffff" : "#22c55e"}
                           />
                         </TouchableOpacity>
                         {/* <TouchableOpacity
@@ -272,8 +273,8 @@ const ProjectExportModal = ({ visible, onClose }) => {
 
         {/* Fixed Footer */}
         <View className="p-4 border-t bg-gray-50" style={{
-          borderColor: highContrastMode ? '#000000' : '#e5e7eb',
-          backgroundColor: highContrastMode ? '#f8f9fa' : '#f9fafb'
+          borderColor: highContrastMode ? '#070424' : '#e5e7eb',
+          backgroundColor: highContrastMode ? '#070424' : '#f9fafb'
         }}>
           <Text className="font-avenirMedium text-xs text-center" style={subtitleStyle}>
             "The best time to plant a tree was 20 years ago. The second best time is now."

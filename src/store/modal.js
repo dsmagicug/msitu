@@ -31,6 +31,6 @@ const modalSlice = createSlice({
     },
 });
 
-export const { setShowCreateNewProjects, setShowProjectList, setShowBTDevices, setShowAboutMsitu, setShowProjectExport } = modalSlice.actions;
+export const { setShowCreateNewProjects, setShowProjectList, setShowBTDevices, setShowAboutMsitu, setShowProjectExport} = modalSlice.actions;
 
 export default modalSlice.reducer;

@@ -1,6 +1,6 @@
 package com.rtnmsitu;
 
-import MsituModule
+import com.rtnmsitu.MsituModule
 
 import com.facebook.react.TurboReactPackage
 import com.facebook.react.bridge.NativeModule

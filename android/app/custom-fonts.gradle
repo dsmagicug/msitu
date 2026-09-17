@@ -29,20 +29,13 @@ afterEvaluate {
         }
     }
 
-    android.applicationVariants.all { def variant ->
-        def targetName = variant.name.capitalize()
-        def lintVitalAnalyzeTask = tasks.findByName("lintVitalAnalyze${targetName}")
-      
-        if (lintVitalAnalyzeTask) {
-            lintVitalAnalyzeTask.dependsOn(fontCopyTask)
+    // AGP 9 no longer exposes android.applicationVariants. Attach the copy
+    // task lazily to generated asset and lint tasks instead.
+    tasks.configureEach { task ->
+        if (task.name ==~ /generate.*Assets/ ||
+                task.name ==~ /lintVitalAnalyze.*/ ||
+                task.name ==~ /generate.*LintVitalReportModel/) {
+            task.dependsOn(fontCopyTask)
         }
-
-        def generateReportTask = tasks.findByName("generate${targetName}LintVitalReportModel")
-        if (generateReportTask) {
-            generateReportTask.dependsOn(fontCopyTask)
-        }
-      
-        def generateAssetsTask = tasks.findByName("generate${targetName}Assets")
-        generateAssetsTask.dependsOn(fontCopyTask)
     }
 } 

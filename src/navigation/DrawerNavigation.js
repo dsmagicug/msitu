@@ -1,19 +1,22 @@
-import {
+import {//'react-native'
   createDrawerNavigator,
   DrawerContentScrollView,
 } from '@react-navigation/drawer';
+import { useNavigation } from '@react-navigation/native';
 import Entypo from 'react-native-vector-icons/Entypo';
 import Ionicon from 'react-native-vector-icons/Ionicons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AppStack from './AppStack';
 import React, { useState, useEffect } from 'react';
-import { Dimensions, View, Text, TouchableOpacity, ScrollView, StyleSheet} from 'react-native';
+import { Dimensions, View, Text, TouchableOpacity, ScrollView, StyleSheet, useWindowDimensions} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { setShowProjectList, setShowBTDevices, setShowAboutMsitu, setShowProjectExport } from '../store/modal';
+import { setShowProjectList, setShowBTDevices, setShowAboutMsitu, setShowProjectExport, setShowCreateNewProjects} from '../store/modal';
 import ProjectList from '../components/projects/ProjectList';
 import BluetoothDevices from '../components/projects/BluetoothDevices';
 import AboutMsituModal from '../components/misc/AboutMsituModal';
 import ProjectExportModal from '../components/projects/ProjectExportModal';
+import SettingsScreen from '../screens/settings/SettingsScreen';
 import { APP_VERSION, APP_NAME, APP_SUBTITLE, getBuildInfo } from '../config/version';
 import { DRAWER_MENUS } from './menus';
 import Reanimated, {
@@ -23,6 +26,8 @@ import Reanimated, {
   withTiming,
   withDelay
 } from 'react-native-reanimated';
+import { Screen } from 'react-native-screens';
+import NewProject from '../components/projects/NewProject';
 
 const Drawer = createDrawerNavigator();
 
@@ -60,7 +65,7 @@ const AnimatedDrawerItem = ({ label, icon, onPress, delay = 0, description = nul
       transform: [{ scale: scaleValue.value }],
       opacity: opacityValue.value,
     };
-  });
+  }, [scaleValue, opacityValue]);
 
   const handlePress = () => {
     if (disabled) return;
@@ -74,7 +79,7 @@ const AnimatedDrawerItem = ({ label, icon, onPress, delay = 0, description = nul
   const cardStyle = {
     backgroundColor: disabled
       ? (highContrastMode ? 'rgba(200, 200, 200, 0.9)' : 'rgba(245, 245, 245, 0.9)')
-      : (highContrastMode ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.9)'),
+      : (highContrastMode ? '#2c303d' : 'rgba(255, 255, 255, 0.9)'),
     borderWidth: highContrastMode ? 1 : 0,
     borderColor: disabled
       ? (highContrastMode ? '#666666' : 'rgba(156, 163, 175, 0.2)')
@@ -97,14 +102,14 @@ const AnimatedDrawerItem = ({ label, icon, onPress, delay = 0, description = nul
   const labelStyle = {
     color: disabled
       ? (highContrastMode ? '#666666' : '#9ca3af')
-      : (highContrastMode ? '#000000' : '#1f2937'),
+      : (highContrastMode ? '#ffffff' : '#1f2937'),
     fontWeight: highContrastMode ? 'bold' : 'normal',
   };
 
   const descriptionStyle = {
     color: disabled
       ? (highContrastMode ? '#666666' : '#9ca3af')
-      : (highContrastMode ? '#000000' : '#6b7280'),
+      : (highContrastMode ? '#ffffff' : '#6b7280'),
     fontWeight: highContrastMode ? '600' : 'normal',
   };
 
@@ -127,8 +132,8 @@ const AnimatedDrawerItem = ({ label, icon, onPress, delay = 0, description = nul
           )}
         </View>
         {badge && (
-          <View className="px-2 py-1 rounded-full" style={{ backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(239, 68, 68, 0.1)' }}>
-            <Text className="font-avenirBold text-xs" style={{ color: highContrastMode ? '#000000' : '#ef4444' }}>{badge}</Text>
+          <View>
+            <Text className="font-avenirBold text-xs" style={{ color: highContrastMode ? '#000000' : '#3c3434' }}>{badge}</Text>
           </View>
         )}
         <Ionicon name="chevron-forward" size={16} color={disabled ? (highContrastMode ? "#666666" : "#d1d5db") : (highContrastMode ? "#000000" : "#9ca3af")} />
@@ -151,7 +156,7 @@ const DrawerSection = ({ title, children, delay = 0, highContrastMode = false })
       opacity: opacityValue.value,
       transform: [{ translateY: translateYValue.value }],
     };
-  });
+  }, [opacityValue, translateYValue]);
 
   const titleStyle = {
     color: highContrastMode ? '#000000' : '#6b7280',
@@ -177,6 +182,8 @@ const getIconComponent = (iconType, iconName, color) => {
       return <MaterialCommunityIcons name={iconName} size={24} color={color} />;
     case 'Entypo':
       return <Entypo name={iconName} size={24} color={color} />;
+    case 'AntDesignIcon':
+      return <AntDesign name={iconName} size={24} color={color}/>
     default:
       return <Ionicon name={iconName} size={24} color={color} />;
   }
@@ -190,6 +197,9 @@ const handleMenuItemAction = (item, navigation, dispatch) => {
   }
 
   switch (item.action) {
+    case 'setShowCreateNewProjects':
+      dispatch(setShowCreateNewProjects(true))
+      break;
     case 'setShowProjectList':
       dispatch(setShowProjectList(true));
       break;
@@ -225,6 +235,7 @@ function CustomDrawerContent({ navigation, isPortrait }) {
   // @ts-ignore
   const { settings } = useSelector(store => store.settings);
   const highContrastMode = settings?.highContrastMode || false;
+  const {height} = useWindowDimensions()
 
   React.useEffect(() => {
     opacityValue.value = withTiming(1, { duration: 600 });
@@ -236,52 +247,52 @@ function CustomDrawerContent({ navigation, isPortrait }) {
       opacity: opacityValue.value,
       transform: [{ scale: scaleValue.value }],
     };
-  });
+  }, [opacityValue, scaleValue]);
 
   // High contrast styles
   const headerStyle = {
-    backgroundColor: highContrastMode ? 'rgba(255, 255, 255, 0.98)' : 'rgba(248, 250, 252, 0.98)',
+    backgroundColor: highContrastMode ? '#070424' : 'rgba(248, 250, 252, 0.98)',
     borderBottomWidth: highContrastMode ? 2 : 0,
     borderBottomColor: highContrastMode ? '#000000' : 'transparent',
   };
 
   const titleStyle = {
-    color: highContrastMode ? '#000000' : '#1f2937',
+    color: highContrastMode ? '#ffffff' : '#1f2937',
     fontWeight: highContrastMode ? 'bold' : 'normal',
   };
 
   const subtitleStyle = {
-    color: highContrastMode ? '#000000' : '#6b7280',
+    color: highContrastMode ? '#ffffff' : '#6b7280',
     fontWeight: highContrastMode ? '600' : 'normal',
   };
 
   const versionStyle = {
-    color: highContrastMode ? '#000000' : '#9ca3af',
+    color: highContrastMode ? '#ffffff' : '#9ca3af',
     fontWeight: highContrastMode ? '600' : 'normal',
   };
 
   return (
-    <Reanimated.View style={[{ flexGrow: 1 }, animatedStyle]}>
+    <Reanimated.View style={[{ flexGrow: 1, backgroundColor: highContrastMode ? '#070424': '#ffffff', flex: 1}, {height}, animatedStyle]}>
       <DrawerContentScrollView contentContainerStyle={{ flexGrow: 1, paddingTop: 0 }}>
         {/* Fixed Header */}
         <View className="px-4 pt-8 pb-4" style={[{ position: 'sticky', top: 0, zIndex: 10 }, headerStyle]}>
-          <View className="flex flex-row items-center justify-between mb-3">
+          <View className="flex flex-row items-top justify-between mb-3">
             <View className="flex-1">
-              <Text className="font-avenirBold text-2xl text-gray-800">{APP_NAME}</Text>
-              <Text className="font-avenirMedium text-sm text-gray-500">{APP_SUBTITLE}</Text>
+              <Text className="font-avenirBold text-2xl text-gray-800" style={{color: highContrastMode ? '#ffffff': '#6b7280'}}>{APP_NAME}</Text>
+              <Text className="font-avenirMedium text-sm text-gray-500" style={{color: highContrastMode ? '#ffffff': '#6b7280'}}>{APP_SUBTITLE}</Text>
               <Text className="font-avenirMedium text-xs mt-1" style={versionStyle}>Version {APP_VERSION}</Text>
               <Text className="font-avenirMedium text-xs mt-1" style={versionStyle}>Build {getBuildInfo()}</Text>
             </View>
             <TouchableOpacity
               onPress={() => navigation.closeDrawer()}
               className="p-2 rounded-full"
-              style={{
+              /* style={{
                 backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(239, 68, 68, 0.1)',
                 borderWidth: highContrastMode ? 1 : 0,
                 borderColor: highContrastMode ? '#000000' : 'transparent',
-              }}
+              }} */
             >
-              <Ionicon name="close" size={24} color={highContrastMode ? "#000000" : "#ef4444"} />
+              <Ionicon name="close" size={24} color={highContrastMode ? "#ffffff" : "#484444"}/>
             </TouchableOpacity>
           </View>
 
@@ -356,7 +367,15 @@ function CustomDrawerContent({ navigation, isPortrait }) {
                   item.icon,
                   item.comingSoon ? "#9ca3af" : "#3b82f6"
                 )}
-                onPress={() => handleMenuItemAction(item, navigation, dispatch)}
+                onPress={() => {
+                  switch(item.label){
+                    case "Settings":
+                      navigation.closeDrawer();
+                      navigation.navigate("Drawer" ,{screen: "Settings"})
+                    default:
+                      handleMenuItemAction(item, navigation, dispatch)
+                  }
+                }}
                 delay={900 + (index * 100)}
                 highContrastMode={highContrastMode}
                 disabled={item.comingSoon}
@@ -370,6 +389,7 @@ function CustomDrawerContent({ navigation, isPortrait }) {
 }
 
 export default function DrawerNavigation(props) {
+  const navigator = useNavigation()
   const { drawerWidth, isPortrait } = useDrawerWidth();
   const modalStore = useSelector(selector => selector.modals);
   const dispatch = useDispatch()
@@ -382,9 +402,10 @@ export default function DrawerNavigation(props) {
             headerShown: false,
             overlayColor: 'rgba(0, 0, 0, 0.4)',
             drawerStyle: {
-              marginTop: 50,
+              marginTop: 0,
               marginBottom: 0,
               width: drawerWidth,
+              flexGrow: 1,
               backgroundColor: 'rgba(248, 250, 252, 0.98)',
               borderTopRightRadius: 0,
               borderBottomRightRadius: 0,
@@ -400,14 +421,17 @@ export default function DrawerNavigation(props) {
         />
       </Drawer.Navigator>
 
-
+      {/* <NewProject
+        visible={modalStore.showCreateNewProjects}
+        onClose={() => dispatch(setShowCreateNewProjects(false))}
+      /> */}
       <ProjectList
-        show={modalStore.showProjectList}
+        visible={modalStore.showProjectList}
         onClose={() => dispatch(setShowProjectList(false))}
       />
       <BluetoothDevices
-         show={modalStore.showBTDevices}
-         onClose={() => dispatch(setShowBTDevices(false))}
+        visible={modalStore.showBTDevices}
+        onClose={() => dispatch(setShowBTDevices(false))}
       />
       <AboutMsituModal
         visible={modalStore.showAboutMsitu}

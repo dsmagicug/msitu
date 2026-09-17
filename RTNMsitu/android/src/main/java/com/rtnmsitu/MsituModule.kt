@@ -1,3 +1,5 @@
+package com.rtnmsitu;
+
 import android.util.Log
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise

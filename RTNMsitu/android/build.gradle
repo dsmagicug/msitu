@@ -7,8 +7,8 @@ buildscript {
         gradlePluginPortal()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:7.3.1")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.7.22")
+        classpath("com.android.tools.build:gradle:8.10.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.20")
         classpath("net.enovea:ks2-geometry:1.0.0")
 
     }
@@ -19,12 +19,12 @@ apply plugin: 'com.facebook.react'
 apply plugin: 'org.jetbrains.kotlin.android'
 
 android {
-    compileSdkVersion safeExtGet('compileSdkVersion', 33)
+    compileSdkVersion safeExtGet('compileSdkVersion', 36)
     namespace "com.rtnmsitu"
 
     defaultConfig {
-        minSdkVersion 21 // Specify the minimum SDK version
-        targetSdkVersion 33 // Specify the target SDK version
+        minSdkVersion 24 // Specify the minimum SDK version
+        targetSdkVersion 36 // Specify the target SDK version
         versionCode 1 // Specify the version code
         versionName "1.0" // Specify the version name
     }

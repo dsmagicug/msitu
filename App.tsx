@@ -1,11 +1,11 @@
-import "./global.css"
+import "../msitu/global.css"
 
 import React, { useEffect, useState } from 'react';
 import { StatusBar } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ModalPortal } from 'react-native-modals';
 import { AlertNotificationRoot } from 'react-native-alert-notification';
-import AppNavigation from './src/navigation/AppNavigation.js';
+import AppNavigation from '../msitu/src/navigation/AppNavigation.js';
 import { Provider } from 'react-redux';
 import { store } from './src/store/store.js';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

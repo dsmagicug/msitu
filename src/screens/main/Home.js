@@ -1,10 +1,9 @@
 import { Text, View, Alert, ToastAndroid } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
-import React, { useEffect, useState, useRef, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { convertLinesToLatLong, setLock, setIndices, setScaledPlanitingLines } from '../../store/projects';
 import { useDispatch, useSelector } from 'react-redux';
 import AnimatedLoader from 'react-native-animated-loader';
-import { throttle } from 'lodash';
 import { initializeBT } from '../../store/bluetooth';
 import MsituMapView from '../../components/maps/MsituMapView.tsx';
 import LocationFeed from '../../components/maps/LocationFeed';
@@ -38,7 +37,6 @@ const Home = ({ navigation }) => {
     longitudeDelta: 0.01,
   });
   const [roverLocation, setRoverLocation] = useState(null);
-  const [dataReadListener, setDataReadListener] = useState(null);
 
   const [mapRotateDegrees, setMapRotateDegrees] =  useState(180);
   const [mapType, setMapType] = useState('SATELLITE');
@@ -51,40 +49,76 @@ const Home = ({ navigation }) => {
   const {settings } = useSelector(store => store.settings);
   const { init } = useSelector(store => store.bluetooth);
   const modalStore = useSelector(selector => selector.modals);
-  const onReceiveData = async (buffer) => {
-    const sentence = buffer.data.trim();
-    const longLat = new LatLong(sentence);
-    if (longLat.fixType !== FixType.NoFixData) {
-      throttledUpdate(longLat);
-    }
-  };
-
   const dispatch = useDispatch();
 
-  const throttledUpdate = useRef(
-    throttle((location) => {
-      setRoverLocation(location);
-    }, 100)
-  ).current;
-
+  // Poll-and-drain the rover stream instead of consuming `onDataReceived`.
+  // `onDataReceived` replays every buffered message in order, so when the
+  // native read/emit cadence falls behind the socket (seen after the
+  // bluetooth-classic + React Native upgrade) the position walks through a
+  // growing backlog of old fixes and only catches up ~30-40s later. Draining
+  // the buffer on each tick and keeping only the newest valid fix keeps the
+  // shown position real-time, matching what tools like SW Maps display.
   useEffect(() => {
-    const checkConnectionAndSetupListener = async () => {
-      if (!selectedDevice) {return;}
-      const connection = await selectedDevice.isConnected();
-      if (connection) {
-        const readListener = selectedDevice.onDataReceived((buffer) => onReceiveData(buffer));
-        setDataReadListener(readListener);
+    if (!selectedDevice) { return; }
+    let cancelled = false;
+    let timeoutId;
+
+    // Sampling cadence. Small enough to feel live, large enough to keep
+    // JS-thread/bridge traffic low. One setRoverLocation per tick caps map
+    // re-renders at ~1000/POLL_INTERVAL_MS per second.
+    const POLL_INTERVAL_MS = 80;
+    // Max messages drained per tick. Bounds the read/parse work a single tick
+    // can do so it can never monopolise the JS thread; any overflow is dumped.
+    const MAX_READS_PER_TICK = 60;
+
+    const poll = async () => {
+      try {
+        if (!(await selectedDevice.isConnected())) { return; }
+
+        let available = await selectedDevice.available();
+        if (available && available > 0) {
+          let latest = null;
+          let reads = 0;
+          while (available > 0 && reads < MAX_READS_PER_TICK && !cancelled) {
+            const message = await selectedDevice.read();
+            reads++;
+            if (message) {
+              const parsed = new LatLong(String(message).trim());
+              if (parsed.fixType !== FixType.NoFixData) {
+                latest = parsed;
+              }
+            }
+            available = await selectedDevice.available();
+          }
+
+          // Fell behind past our per-tick budget: dump the stale remainder so
+          // we never replay an old backlog or chain unbounded reads on a tick.
+          if (available > 0 && reads >= MAX_READS_PER_TICK && !cancelled) {
+            await selectedDevice.clear();
+          }
+
+          if (latest && !cancelled) {
+            setRoverLocation(latest);
+          }
+        }
+      } catch (e) {
+        // swallow transient read errors; the next tick retries
+      } finally {
+        // Self-schedule instead of setInterval so a slow tick can never
+        // overlap the next one: at most one drain is ever in flight, with a
+        // fixed gap between ticks. This is what keeps the main thread safe.
+        if (!cancelled) {
+          timeoutId = setTimeout(poll, POLL_INTERVAL_MS);
+        }
       }
     };
 
-    checkConnectionAndSetupListener();
-
+    poll();
     return () => {
-      if (dataReadListener) {
-        dataReadListener.remove();
-      }
+      cancelled = true;
+      clearTimeout(timeoutId);
     };
-  }, [selectedDevice, throttledUpdate]);
+  }, [selectedDevice]);
 
   useEffect(() => {
     !init && dispatch(initializeBT());
@@ -265,6 +299,11 @@ const Home = ({ navigation }) => {
         initialRegion={initialRegion}
         areaMode={areaMode}
         roverLocation={roverLocation}
+        pointerEvents={modalStore.showCreateNewProjects ? 'none' : 'auto'}
+        scrollEnabled={!modalStore.showCreateNewProjects}
+        zoomEnabled={!modalStore.showCreateNewProjects}
+        rotateEnabled={!modalStore.showCreateNewProjects}
+        pitchEnabled={!modalStore.showCreateNewProjects}
         onPolygonCoordsChange={(coords)=>{
           const a = RTNMsitu.calculateArea(coords,1.0);
           setArea(a);
@@ -318,7 +357,7 @@ const Home = ({ navigation }) => {
       <NewProject
         roverLocation={roverLocation}
         onClose={() => dispatch(setShowCreateNewProjects(false))}
-        show={modalStore.showCreateNewProjects} />
+        visible={modalStore.showCreateNewProjects} />
       <MetricsConfigModal
         visible={showPlantingConfig}
         onClose={(result) => {

@@ -29,7 +29,7 @@ const UpdateButton = ({
       { scale: scale.value },
       { rotate: `${rotation.value}deg` },
     ],
-  }));
+  }), [scale, rotation]);
 
   const handlePress = async () => {
     // Trigger press animation

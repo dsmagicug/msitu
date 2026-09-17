@@ -4,6 +4,14 @@ export const DRAWER_MENUS = {
     title: "Projects",
     items: [
       {
+        label: "Create New Project",
+        description: "Generate a new project",
+        icon: "addfolder",
+        iconType: "AntDesignIcon",
+        action: "setShowCreateNewProjects",
+        comingSoon: false,
+      },
+      {
         label: "Project List",
         description: "View and manage projects",
         icon: "folder-outline",

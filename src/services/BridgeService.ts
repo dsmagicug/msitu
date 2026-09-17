@@ -51,7 +51,8 @@ class BridgeService implements Bridge {
     generateMesh(first: LatLng, second: LatLng, meshDirection: MeshDirection, meshType: MeshType, gapSize: number, lineLength: number): Promise<PlantingLine[]> {
         return new Promise<PlantingLine[]> ((resolve, reject) => {
             RTNMsitu.generateMesh(first, second, meshDirection, meshType, gapSize,lineLength).then(result=>{
-                resolve(result)
+                const plantingLines = JSON.parse(result) as PlantingLine[]
+                resolve(plantingLines)
             }).catch(error=>{
                 reject(error)
             })

@@ -10,10 +10,10 @@ const LocationFeed = React.memo(({ latLong }) => {
     const highContrastMode = settings?.highContrastMode || false;
 
     const containerStyle = {
-        backgroundColor: highContrastMode ? 'rgba(255, 255, 255, 0.95)' : 'rgba(255, 255, 255, 0.6)',
+        backgroundColor: highContrastMode ? 'rgba(36, 33, 33, 0.95)' : 'rgba(255, 255, 255, 0.6)',
         borderWidth: highContrastMode ? 2 : 0,
-        borderColor: highContrastMode ? '#000000' : 'transparent',
-        shadowColor: highContrastMode ? '#000000' : 'transparent',
+        borderColor: highContrastMode ? 'transparent' : 'transparent',
+        shadowColor: highContrastMode ? 'transparent' : 'transparent',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: highContrastMode ? 0.3 : 0,
         shadowRadius: 4,
@@ -21,7 +21,7 @@ const LocationFeed = React.memo(({ latLong }) => {
     };
 
     const textStyle = {
-        color: highContrastMode ? '#000000' : '#374151',
+        color: highContrastMode ? '#fff8f8' : '#374151',
         fontWeight: highContrastMode ? 'bold' : 'normal',
     };
 

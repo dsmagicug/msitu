@@ -38,7 +38,7 @@ const AboutMsituModal = ({ visible, onClose }) => {
     return {
       opacity: modalOpacity.value,
     };
-  });
+  }, [modalOpacity]);
 
   const contentAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -47,7 +47,7 @@ const AboutMsituModal = ({ visible, onClose }) => {
         { translateY: contentTranslateY.value }
       ],
     };
-  });
+  }, [modalScale, contentTranslateY]);
 
   const handleClose = () => {
     onClose();
@@ -130,11 +130,11 @@ const AboutMsituModal = ({ visible, onClose }) => {
   if (!visible) return null;
 
   const containerStyle = {
-    backgroundColor: highContrastMode ? 'rgba(255, 255, 255, 0.98)' : 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.5)',
   };
 
   const modalStyle = {
-    backgroundColor: highContrastMode ? '#ffffff' : '#ffffff',
+    backgroundColor: highContrastMode ? '#070424' : '#ffffff',
     borderWidth: highContrastMode ? 2 : 0,
     borderColor: highContrastMode ? '#000000' : 'transparent',
     shadowColor: highContrastMode ? '#000000' : '#000',
@@ -145,12 +145,12 @@ const AboutMsituModal = ({ visible, onClose }) => {
   };
 
   const textStyle = {
-    color: highContrastMode ? '#000000' : '#1f2937',
+    color: highContrastMode ? '#ffffff' : '#1f2937',
     fontWeight: highContrastMode ? 'bold' : 'normal',
   };
 
   const subtitleStyle = {
-    color: highContrastMode ? '#000000' : '#6b7280',
+    color: highContrastMode ? '#ffffff' : '#6b7280',
     fontWeight: highContrastMode ? '600' : 'normal',
   };
 
@@ -174,7 +174,7 @@ const AboutMsituModal = ({ visible, onClose }) => {
         className="mx-6 rounded-3xl overflow-hidden"
         style={[modalStyle, contentAnimatedStyle]}
       >
-        <View className="p-6 pb-4 bg-gray-50" style={{ backgroundColor: highContrastMode ? '#f8f9fa' : '#f9fafb' }}>
+        <View className="p-6 pb-4 bg-gray-50" style={{ backgroundColor: highContrastMode ? '#070424' : '#f9fafb' }}>
           <View className="flex flex-row items-center justify-between mb-4">
             <View className="flex-1">
               <Text className="font-avenirBold text-2xl" style={textStyle}>{APP_NAME}</Text>
@@ -186,12 +186,13 @@ const AboutMsituModal = ({ visible, onClose }) => {
               onPress={handleClose}
               className="p-2 rounded-full"
               style={{
-                backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                /* backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(239, 68, 68, 0.1)',
                 borderWidth: highContrastMode ? 1 : 0,
-                borderColor: highContrastMode ? '#000000' : 'transparent',
+                borderColor: highContrastMode ? '#000000' : 'transparent', */
+                marginBottom: 25
               }}
             >
-              <Icon name="close" size={24} color={highContrastMode ? "#000000" : "#ef4444"} />
+              <Icon name="close" size={24} color={highContrastMode ? "#ffffff" : "#484444"} />
             </TouchableOpacity>
           </View>
         </View>
@@ -279,7 +280,7 @@ const AboutMsituModal = ({ visible, onClose }) => {
         {/* Fixed Footer */}
         <View className="p-4 border-t bg-gray-50" style={{
           borderColor: highContrastMode ? '#000000' : '#e5e7eb',
-          backgroundColor: highContrastMode ? '#f8f9fa' : '#f9fafb'
+          backgroundColor: highContrastMode ? '#070424' : '#f9fafb'
         }}>
           <Text className="font-avenirMedium text-xs text-center" style={subtitleStyle}>
             "A nation that destroys its soils destroys itself. Forests are the lungs of our land, purifying the air and giving fresh strength to our people."
@@ -294,7 +295,7 @@ const AboutMsituModal = ({ visible, onClose }) => {
               onPress={openWebsite}
               className="p-2 rounded-full"
               style={{
-                backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(59, 130, 246, 0.05)',
+                backgroundColor: highContrastMode ? '#ffffff' : 'rgba(59, 130, 246, 0.05)',
                 borderWidth: highContrastMode ? 1 : 0,
                 borderColor: highContrastMode ? '#000000' : 'transparent',
               }}
@@ -307,7 +308,7 @@ const AboutMsituModal = ({ visible, onClose }) => {
               onPress={openGitHub}
               className="p-2 rounded-full"
               style={{
-                backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(59, 130, 246, 0.05)',
+                backgroundColor: highContrastMode ? '#ffffff' : 'rgba(59, 130, 246, 0.05)',
                 borderWidth: highContrastMode ? 1 : 0,
                 borderColor: highContrastMode ? '#000000' : 'transparent',
               }}
@@ -320,7 +321,7 @@ const AboutMsituModal = ({ visible, onClose }) => {
               onPress={openEmail}
               className="p-2 rounded-full"
               style={{
-                backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(59, 130, 246, 0.05)',
+                backgroundColor: highContrastMode ? '#ffffff' : 'rgba(59, 130, 246, 0.05)',
                 borderWidth: highContrastMode ? 1 : 0,
                 borderColor: highContrastMode ? '#000000' : 'transparent',
               }}
@@ -333,7 +334,7 @@ const AboutMsituModal = ({ visible, onClose }) => {
               onPress={openPhone}
               className="p-2 rounded-full"
               style={{
-                backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(59, 130, 246, 0.05)',
+                backgroundColor: highContrastMode ? '#ffffff' : 'rgba(59, 130, 246, 0.05)',
                 borderWidth: highContrastMode ? 1 : 0,
                 borderColor: highContrastMode ? '#000000' : 'transparent',
               }}

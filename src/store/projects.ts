@@ -81,7 +81,7 @@ export const generateProject = createAsyncThunk(
         try {
             // @ts-ignore
             const { firstPoint, name, secondPoint, lineDirection, meshType, gapSize, lineLength } = params;
-            const results = await RTNMsitu.generateMesh(firstPoint, secondPoint, lineDirection, meshType, parseFloat(gapSize), parseFloat(lineLength)) as string;
+            const results = await RTNMsitu.generateMesh(firstPoint, secondPoint, lineDirection.toUpperCase(), meshType.toUpperCase(), parseFloat(gapSize), parseFloat(lineLength)) as string;
             // lets process our lines
             const lines = JSON.parse(results)
             const basePoints = [firstPoint as LatLng, secondPoint as LatLng]

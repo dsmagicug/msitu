@@ -51,7 +51,7 @@ export default function TopNavBar({ navigation, hideNewProject }) {
             transform: [{ scale: scaleValue.value }],
             opacity: opacityValue.value,
         };
-    });
+    }, [scaleValue, opacityValue]);
 
     const bluetoothStatusStyle = useAnimatedStyle(() => {
         const backgroundColor = isBluetoothEnabled
@@ -61,10 +61,10 @@ export default function TopNavBar({ navigation, hideNewProject }) {
         return {
             backgroundColor: withTiming(backgroundColor, { duration: 300 }),
         };
-    });
+    }, [isBluetoothEnabled, selectedDevice]);
 
     const containerStyle = {
-        backgroundColor: highContrastMode ? 'rgba(255, 255, 255, 0.98)' : 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: highContrastMode ? '#070424': '#ffffff',
         backdropFilter: 'blur(10px)',
         shadowColor: highContrastMode ? '#000000' : '#000',
         shadowOffset: { width: 0, height: 2 },
@@ -76,12 +76,12 @@ export default function TopNavBar({ navigation, hideNewProject }) {
     };
 
     const textStyle = {
-        color: highContrastMode ? '#000000' : '#1f2937',
+        color: highContrastMode ? '#ffffff' : '#1f2937',
         fontWeight: highContrastMode ? 'bold' : 'normal',
     };
 
     const subtitleStyle = {
-        color: highContrastMode ? '#000000' : '#6b7280',
+        color: highContrastMode ? '#ffffff' : '#6b7280',
         fontWeight: highContrastMode ? '600' : 'normal',
     };
 
@@ -94,12 +94,12 @@ export default function TopNavBar({ navigation, hideNewProject }) {
                 className='p-3 rounded-xl'
                 onPress={handlePress}
                 style={{
-                    backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(59, 130, 246, 0.1)',
-                    borderWidth: 1,
-                    borderColor: highContrastMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(59, 130, 246, 0.2)',
+                    //backgroundColor: highContrastMode ? 'rgba(0, 0, 0, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+                    //borderWidth: 1,
+                    //borderColor: highContrastMode ? 'rgba(0, 0, 0, 0.2)' : 'rgba(59, 130, 246, 0.2)',
                 }}
             >
-                <Icon name="menu-outline" size={24} color={highContrastMode ? "#000000" : "#3b82f6"} />
+                <Icon name="menu-outline" size={36} color={highContrastMode ? "#ffffff" : "#383435"} />
             </TouchableOpacity>
 
             <View className="flex-1 mx-4">
@@ -125,10 +125,10 @@ export default function TopNavBar({ navigation, hideNewProject }) {
                             isBluetoothEnabled ? (
                                 selectedDevice ? (
                                     <>
-                                        <MaterialIcons name="bluetooth-connected" size={16} color={highContrastMode ? "#000000" : "#16a34a"} />
+                                        <MaterialIcons name="bluetooth-connected" size={16} color={highContrastMode ? "#1e12f5" : "#16a34a"} />
                                         <Text className="font-avenirBold text-center mt-1"
                                             style={{
-                                                color: highContrastMode ? '#000000' : '#16a34a',
+                                                color: highContrastMode ? '#2f26d8' : '#16a34a',
                                                 fontSize: 8,
                                                 fontWeight: 'bold'
                                             }}
@@ -139,10 +139,10 @@ export default function TopNavBar({ navigation, hideNewProject }) {
                                     </>
                                 ) : (
                                     <>
-                                        <MCommunityIcons name="bluetooth" size={16} color={highContrastMode ? "#000000" : "#3b82f6"} />
+                                        <MCommunityIcons name="bluetooth" size={16} color={highContrastMode ? "#ffffff" : "#3b82f6"} />
                                         <Text className="font-avenirBold text-center mt-1"
                                             style={{
-                                                color: highContrastMode ? '#000000' : '#3b82f6',
+                                                color: highContrastMode ? '#ffffff' : '#3b82f6',
                                                 fontSize: 8,
                                                 fontWeight: 'bold'
                                             }}
@@ -156,7 +156,7 @@ export default function TopNavBar({ navigation, hideNewProject }) {
                                     <MCommunityIcons name="bluetooth-off" size={16} color={highContrastMode ? "#000000" : "#dc2626"} />
                                     <Text className="font-avenirBold text-center mt-1"
                                         style={{
-                                            color: highContrastMode ? '#000000' : '#dc2626',
+                                            color: highContrastMode ? '#db0000' : '#dc2626',
                                             fontSize: 8,
                                             fontWeight: 'bold'
                                         }}
@@ -169,7 +169,7 @@ export default function TopNavBar({ navigation, hideNewProject }) {
                     </View>
                 </TouchableOpacity>
 
-                {!hideNewProject && (
+                {/* {!hideNewProject && (
                     <TouchableOpacity
                         onPress={handleNewProject}
                         className='p-3 rounded-xl flex items-center justify-center'
@@ -181,7 +181,7 @@ export default function TopNavBar({ navigation, hideNewProject }) {
                     >
                         <AntDesignIcon name="addfolder" size={24} color={highContrastMode ? "#000000" : "#3b82f6"} />
                     </TouchableOpacity>
-                )}
+                )} */}
             </View>
         </Reanimated.View>
     )

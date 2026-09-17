@@ -20,11 +20,11 @@ const UpdateNotification = ({ onUpdatePress }) => {
   const notificationAnimatedStyle = useAnimatedStyle(() => ({
     opacity: notificationOpacity.value,
     transform: [{ translateY: notificationTranslateY.value }],
-  }));
+  }), [notificationOpacity, notificationTranslateY]);
 
   const badgeAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: badgeScale.value }],
-  }));
+  }), [badgeScale]);
 
   useEffect(() => {
     if (updateAvailable && versionDetails) {

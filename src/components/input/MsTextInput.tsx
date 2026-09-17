@@ -12,6 +12,7 @@ import Reanimated, {
   interpolate,
   Extrapolation
 } from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 
 interface MsTextInputProps {
     label: string;
@@ -26,6 +27,9 @@ export default function MsTextInput({ label, placeholder, containerStyle, onChan
 
     const [value, setValue] = React.useState<string>(initialValue || "");
     const [isFocused, setIsFocused] = useState<boolean>(false);
+    //@ts-ignore
+    const { settings } = useSelector(store => store.settings);
+    const highContrastMode = settings?.highContrastMode || false;
     
     const animatedLabelPosition = useSharedValue(initialValue ? 1 : 0);
     const animatedBorderWidth = useSharedValue(0);
@@ -110,13 +114,13 @@ export default function MsTextInput({ label, placeholder, containerStyle, onChan
             <Reanimated.View style={[styles.inputContainer, borderAnimatedStyle]}>
                 <TextInput
                     placeholder={isFocused ? '' : placeholder}
-                    placeholderTextColor={colors.gray[400]}
+                    placeholderTextColor={highContrastMode ? '#ffffffa1' : colors.gray[400]}
                     keyboardType={keyboardType? keyboardType:'default'}
                     value={value}
                     style={[
                         styles.input,
                         styles.textMedium,
-                        { fontSize: 14, color: colors.gray[800] } as TextStyle
+                        { fontSize: 14, color: highContrastMode ? '#ffffff' : colors.gray[800] } as TextStyle
                     ]}
                     onChangeText={(v: string) => {
                         if (onChangeText) {

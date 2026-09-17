@@ -86,22 +86,22 @@ const UpdateAppModal = ({ visible, onClose, versionDetails }) => {
 
   const modalAnimatedStyle = useAnimatedStyle(() => ({
     opacity: modalOpacity.value,
-  }));
+  }), [modalOpacity]);
 
   const contentAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
       { scale: modalScale.value },
       { translateY: contentTranslateY.value }
     ],
-  }));
+  }), [modalScale, contentTranslateY]);
 
   const pulseAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulseValue.value }],
-  }));
+  }), [pulseValue]);
 
   const downloadIconAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ rotate: `${downloadIconRotation.value}deg` }],
-  }));
+  }), [downloadIconRotation]);
 
   const downloadAndInstallApk = async () => {
     const apkUrl = versionDetails?.downloadUrl || 'https://github.com/ekeeya/files/raw/main/msitu-apk-1.0.0.apk';
